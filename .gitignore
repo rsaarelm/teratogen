@@ -1,0 +1,6 @@
+*.o
+*.8
+_obj/
+teratogen
+*.cgo?.go
+*.cgo?.?
