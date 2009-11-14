@@ -13,6 +13,9 @@ CLEANFILES+=teratogen
 
 include $(GOROOT)/src/Make.pkg
 
+run: teratogen
+	./teratogen
+
 %: install %.go
 	$(GC) $*.go
 	$(LD) -o $@ $*.$O
