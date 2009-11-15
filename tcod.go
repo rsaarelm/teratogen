@@ -81,12 +81,13 @@ func Flush() {
 	C.TCOD_console_flush();
 }
 
-func MakeColor(r, g, b uint8) *Color {
-	ret := new(Color);
+func MakeColor(r, g, b uint8) (ret *Color) {
+	ret = new(Color);
 	ret.tcodColor = C.make_color(C.uint8(r), C.uint8(g), C.uint8(b));
-	return ret;
+	return;
 }
 
+// TODO: varargs for the string, Sprintf for TCOD.
 func PrintLeft(x, y int, bkg BkgndFlag, fmt string) {
 	c_fmt := C.CString(fmt);
 	C.print_left(C.int(x), C.int(y), C.TCOD_bkgnd_flag_t(bkg), c_fmt);
@@ -95,4 +96,8 @@ func PrintLeft(x, y int, bkg BkgndFlag, fmt string) {
 
 func SetForeColor(color *Color) {
 	C.TCOD_console_set_foreground_color(nil, color.tcodColor);
+}
+
+func Clear() {
+	C.TCOD_console_clear(nil);
 }
