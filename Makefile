@@ -1,17 +1,34 @@
-all: teratogen
+LIBS=fomalhaut tcod
 
-include $(GOROOT)/src/Make.$(GOARCH)
-
-TARG=teratogen
 GOFILES=\
 	teratogen.go\
 
-run: teratogen
-	./teratogen
+TARG=teratogen
 
-teratogen: tcod_lib fomalhaut_lib
+MAINFILE=teratogen.go
 
-%_lib:
+
+# Start default makefile
+include $(GOROOT)/src/Make.$(GOARCH)
+
+LIBS_BUILD:=$(LIBS:%=%_build)
+LIBS_CLEAN:=$(LIBS:%=%_clean)
+
+all: $(TARG)
+
+# XXX: Hacky dependency to the main file to ensure that the libraries get
+# built before we try to compile the main file.
+$(MAINFILE): $(LIBS_BUILD)
+
+run: $(TARG)
+	./$(TARG)
+
+%_build:
 	cd $* && make install
 
+%_clean:
+	cd $* && make clean
+
 include $(GOROOT)/src/Make.cmd
+
+clean: $(LIBS_CLEAN)
