@@ -8,26 +8,8 @@ import fomalhaut "fomalhaut"
 
 const tickerWidth = 80;
 
-
-func eatPrefix(str string, length int) (result string) {
-	if len(str) < length {
-		result = ""
-	} else {
-		result = str[length:1 + len(str) - length];
-	}
-	return;
-}
-
-func padString(str string, minLength int) (result string) {
-	result = str;
-	for ; len(result) < minLength; {
-		result += " ";
-	}
-	return;
-}
-
 func updateTicker(str string, lineLength int) string {
-	return padString(eatPrefix(str, 1), lineLength);
+	return fomalhaut.PadString(fomalhaut.EatPrefix(str, 1), lineLength);
 }
 
 func main() {
