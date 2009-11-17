@@ -1,10 +1,10 @@
 package main
 
-import fmt "fmt"
-import time "time"
+import "fmt"
+import "time"
 
-import tcod "tcod"
-import fomalhaut "fomalhaut"
+import "tcod"
+import "fomalhaut"
 
 const tickerWidth = 80;
 
