@@ -37,8 +37,14 @@ func main() {
 
 	go func() {
 		for {
-			lettersAtTime := 1;
-			time.Sleep(int64(200000000 * lettersAtTime));
+			const lettersAtTime = 1;
+			// XXX: Originally had 0.2 as the delay, but that
+			// produces a const value that can't be casted to int
+			// since it ends up as non-integer due to rounding
+			// errors and Go won't allow using non-integer consts
+			// straight up in int casts.
+			const letterDelayNs = 1e9 * 0.25;
+			time.Sleep(int64(letterDelayNs * lettersAtTime));
 			for x := 0; x <= lettersAtTime; x++ {
 				tickerLine = updateTicker(tickerLine, tickerWidth);
 			}
