@@ -4,7 +4,7 @@ func EatPrefix(str string, length int) (result string) {
 	if len(str) < length {
 		result = ""
 	} else {
-		result = str[length:1 + len(str) - length];
+		result = str[length:len(str)];
 	}
 	return;
 }
