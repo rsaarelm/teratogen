@@ -5,11 +5,25 @@ import "time"
 
 import "tcod"
 import "fomalhaut"
+import "sync"
 
 const tickerWidth = 80;
 
 func updateTicker(str string, lineLength int) string {
 	return fomalhaut.PadString(fomalhaut.EatPrefix(str, 1), lineLength);
+}
+
+type World struct {
+	PlayerX, PlayerY int;
+	Lock *sync.RWMutex;
+}
+
+func MakeWorld() (result *World) {
+	result = new(World);
+	result.PlayerX = 40;
+	result.PlayerY = 20;
+	result.Lock = new(sync.RWMutex);
+	return;
 }
 
 func main() {
@@ -30,8 +44,7 @@ func main() {
 	tcod.SetForeColor(tcod.MakeColor(255, 0, 0));
 	tcod.PutChar(0, 0, 65, tcod.BkgndNone);
 	tcod.Flush();
-	x := 40;
-	y := 20;
+	world := MakeWorld();
 
 	tickerLine := "                                                                                Teratogen online. ";
 
@@ -58,7 +71,7 @@ func main() {
 		tcod.PrintLeft(0, 0, tcod.BkgndNone, tickerLine);
 		tcod.SetForeColor(tcod.MakeColor(0, 255, 0));
 
-		tcod.PutChar(x, y, '@', tcod.BkgndNone);
+		tcod.PutChar(world.PlayerX, world.PlayerY, '@', tcod.BkgndNone);
 		tcod.Flush();
 
 		key := tcod.CheckForKeypress();
@@ -67,13 +80,13 @@ func main() {
 			return;
 		// Colemak direction pad.
 		case 'n':
-			x -= 1;
+			world.PlayerX -= 1;
 		case ',':
-			y += 1;
+			world.PlayerY += 1;
 		case 'i':
-			x += 1;
+			world.PlayerX += 1;
 		case 'u':
-			y -= 1;
+			world.PlayerY -= 1;
 		case 'p':
 			tickerLine += "Some text for the buffer... ";
 		}
