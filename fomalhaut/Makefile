@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=./fomalhaut
+TARG=fomalhaut
 GOFILES=\
 	field2.go\
 	string.go\
