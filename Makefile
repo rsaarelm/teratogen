@@ -46,3 +46,5 @@ run: $(TARG)
 include $(GOROOT)/src/Make.cmd
 
 clean: $(LIBS_CLEAN)
+
+nuke: $(LIBS_NUKE)
