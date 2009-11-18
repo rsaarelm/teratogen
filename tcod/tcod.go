@@ -11,12 +11,6 @@ package tcod
 #include <stdlib.h>
 #include "libtcod.h"
 
-static int check_for_keypress(void) {
-  TCOD_key_t key;
-  key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED);
-  return key.c;
-}
-
 void TCOD_console_flush(void);
 
 static TCOD_color_t make_color(uint8 r, uint8 g, uint8 b) {
@@ -27,6 +21,36 @@ static TCOD_color_t make_color(uint8 r, uint8 g, uint8 b) {
   return result;
 }
 
+// Golang can't handle structs with 1-bit fields, so we make a normalized
+// version of the TCOD_key_t struct.
+typedef struct {
+  TCOD_keycode_t vk;
+  char c;
+  char pressed;
+  char lalt;
+  char lctrl;
+  char ralt;
+  char rctrl;
+  char shift;
+} unpacked_tcod_key_t;
+
+static unpacked_tcod_key_t unpack_key_t(TCOD_key_t key) {
+  unpacked_tcod_key_t result;
+  result.vk = key.vk;
+  result.c = key.c;
+  result.pressed = key.pressed;
+  result.lalt = key.lalt;
+  result.lctrl = key.lctrl;
+  result.ralt = key.ralt;
+  result.rctrl = key.rctrl;
+  result.shift = key.shift;
+  return result;
+}
+
+static unpacked_tcod_key_t check_for_keypress(void) {
+ return unpack_key_t(TCOD_console_check_for_keypress(TCOD_KEY_PRESSED));
+}
+
 static void print_left(int x, int y, TCOD_bkgnd_flag_t flag, const char *txt) {
  TCOD_console_print_left(NULL, x, y, flag, "%s", txt);
 }
@@ -34,12 +58,6 @@ static void print_left(int x, int y, TCOD_bkgnd_flag_t flag, const char *txt) {
 */
 import "C"
 import "unsafe"
-
-type KeyT struct {
-	vk C.int;
-	c C.char;
-	_ uint8;
-}
 
 type BkgndFlag int
 const (
@@ -74,7 +92,8 @@ func PutChar(x int, y int, c int, bkg BkgndFlag) {
 }
 
 func CheckForKeypress() int {
-	return int(C.check_for_keypress());
+	key := C.check_for_keypress();
+	return int(key.c);
 }
 
 func Flush() {
