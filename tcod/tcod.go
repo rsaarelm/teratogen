@@ -59,6 +59,87 @@ static void print_left(int x, int y, TCOD_bkgnd_flag_t flag, const char *txt) {
 import "C"
 import "unsafe"
 
+type Keycode byte
+const (
+	TCODK_NONE = iota;
+	TCODK_ESCAPE;
+	TCODK_BACKSPACE;
+	TCODK_TAB;
+	TCODK_ENTER;
+	TCODK_SHIFT;
+	TCODK_CONTROL;
+	TCODK_ALT;
+	TCODK_PAUSE;
+	TCODK_CAPSLOCK;
+	TCODK_PAGEUP;
+	TCODK_PAGEDOWN;
+	TCODK_END;
+	TCODK_HOME;
+	TCODK_UP;
+	TCODK_LEFT;
+	TCODK_RIGHT;
+	TCODK_DOWN;
+	TCODK_PRINTSCREEN;
+	TCODK_INSERT;
+	TCODK_DELETE;
+	TCODK_LWIN;
+	TCODK_RWIN;
+	TCODK_APPS;
+	TCODK_0;
+	TCODK_1;
+	TCODK_2;
+	TCODK_3;
+	TCODK_4;
+	TCODK_5;
+	TCODK_6;
+	TCODK_7;
+	TCODK_8;
+	TCODK_9;
+	TCODK_KP0;
+	TCODK_KP1;
+	TCODK_KP2;
+	TCODK_KP3;
+	TCODK_KP4;
+	TCODK_KP5;
+	TCODK_KP6;
+	TCODK_KP7;
+	TCODK_KP8;
+	TCODK_KP9;
+	TCODK_KPADD;
+	TCODK_KPSUB;
+	TCODK_KPDIV;
+	TCODK_KPMUL;
+	TCODK_KPDEC;
+	TCODK_KPENTER;
+	TCODK_F1;
+	TCODK_F2;
+	TCODK_F3;
+	TCODK_F4;
+	TCODK_F5;
+	TCODK_F6;
+	TCODK_F7;
+	TCODK_F8;
+	TCODK_F9;
+	TCODK_F10;
+	TCODK_F11;
+	TCODK_F12;
+	TCODK_NUMLOCK;
+	TCODK_SCROLLLOCK;
+	TCODK_SPACE;
+	TCODK_CHAR;
+)
+
+type KeyT struct {
+	Vk Keycode;
+	C byte;
+	Pressed bool;
+	Lalt bool;
+	Lctrl bool;
+	Ralt bool;
+	Rctrl bool;
+	Shift bool;
+}
+
 type BkgndFlag int
 const (
 	BkgndNone = iota;
@@ -91,6 +172,7 @@ func PutChar(x int, y int, c int, bkg BkgndFlag) {
 		nil, C.int(x), C.int(y), C.int(c), C.TCOD_bkgnd_flag_t(bkg))
 }
 
+// TODO: Return a keypress struct instead of char value only.
 func CheckForKeypress() int {
 	key := C.check_for_keypress();
 	return int(key.c);
