@@ -26,7 +26,21 @@ func MakeWorld() (result *World) {
 	return;
 }
 
+// TODO: Event system for changing world, event handler does lock/unlock, all
+// changes in events. "Transactional database".
+
+func (self *World) MovePlayer(dx, dy int) {
+	self.Lock.Lock();
+	defer self.Lock.Unlock();
+
+	self.PlayerX += dx;
+	self.PlayerY += dy;
+}
+
 func main() {
+	running := true;
+	getch := make(chan byte);
+
 	area := fomalhaut.NewMapField2();
 	area.Set(10, 10, "A");
 
@@ -64,8 +78,30 @@ func main() {
 		}
 	}();
 
+	// Game logic
+	go func() {
+		for {
+			key := <-getch;
+			switch key {
+			case 'q':
+				running = false;
+				// Colemak direction pad.
+			case 'n':
+				world.MovePlayer(-1, 0);
+			case ',':
+				world.MovePlayer(0, 1);
+			case 'i':
+				world.MovePlayer(1, 0);
+			case 'u':
+				world.MovePlayer(0, -1);
+			case 'p':
+				tickerLine += "Some text for the buffer... ";
+			}
+		}
+	}();
+
 	tcod.SetForeColor(tcod.MakeColor(0, 255, 0));
-	for {
+	for running {
 		tcod.Clear();
 		tcod.SetForeColor(tcod.MakeColor(192, 192, 192));
 		tcod.PrintLeft(0, 0, tcod.BkgndNone, tickerLine);
@@ -75,20 +111,8 @@ func main() {
 		tcod.Flush();
 
 		key := tcod.CheckForKeypress();
-		switch key {
-		case 'q':
-			return;
-		// Colemak direction pad.
-		case 'n':
-			world.PlayerX -= 1;
-		case ',':
-			world.PlayerY += 1;
-		case 'i':
-			world.PlayerX += 1;
-		case 'u':
-			world.PlayerY -= 1;
-		case 'p':
-			tickerLine += "Some text for the buffer... ";
+		if key != 0 {
+			getch <- byte(key);
 		}
 	}
 }
