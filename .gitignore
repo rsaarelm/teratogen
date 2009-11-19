@@ -4,3 +4,5 @@ _obj/
 teratogen
 *.cgo?.go
 *.cgo?.?
+_test
+*.out
