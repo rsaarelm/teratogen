@@ -1,4 +1,4 @@
-LIBS=fomalhaut tcod
+LIBS=fomalhaut libtcod
 
 GOFILES=\
 	teratogen.go\

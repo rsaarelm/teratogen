@@ -4,8 +4,8 @@ CGO_CFLAGS = -I$(LIBTCOD)/include
 
 CGO_LDFLAGS = -L$(LIBTCOD) -ltcod
 
-TARG=tcod
+TARG=libtcod
 CGOFILES=\
-	tcod.go
+	libtcod.go
 
 include $(GOROOT)/src/Make.pkg

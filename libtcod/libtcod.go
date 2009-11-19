@@ -1,4 +1,4 @@
-package tcod
+package libtcod
 
 // XXX: C interface has trouble with returned structs. Maybe it's specific to
 // the bit-level stuff in TCOD_key_t. Get rid of wrappers when FFI can handle

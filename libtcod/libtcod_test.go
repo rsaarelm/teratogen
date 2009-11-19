@@ -1,4 +1,4 @@
-package tcod
+package libtcod
 
 import "testing";
 

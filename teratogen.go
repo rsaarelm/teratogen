@@ -4,7 +4,7 @@ import "fmt"
 import "math"
 import "time"
 
-import "tcod"
+import "libtcod"
 import "fomalhaut"
 import "sync"
 
@@ -43,13 +43,13 @@ func main() {
 	running := true;
 	getch := make(chan byte);
 
-	tcod.Init(80, 50, "Teratogen");
-	tcod.SetForeColor(tcod.MakeColor(255, 255, 0));
-	tcod.PutChar(0, 0, 64, tcod.BkgndNone);
-	tcod.PrintLeft(0, 2, tcod.BkgndNone, "Hello, world!");
-	tcod.SetForeColor(tcod.MakeColor(255, 0, 0));
-	tcod.PutChar(0, 0, 65, tcod.BkgndNone);
-	tcod.Flush();
+	libtcod.Init(80, 50, "Teratogen");
+	libtcod.SetForeColor(libtcod.MakeColor(255, 255, 0));
+	libtcod.PutChar(0, 0, 64, libtcod.BkgndNone);
+	libtcod.PrintLeft(0, 2, libtcod.BkgndNone, "Hello, world!");
+	libtcod.SetForeColor(libtcod.MakeColor(255, 0, 0));
+	libtcod.PutChar(0, 0, 65, libtcod.BkgndNone);
+	libtcod.Flush();
 	world := MakeWorld();
 
 	tickerLine := "                                                                                Teratogen online. ";
@@ -91,17 +91,17 @@ func main() {
 		}
 	}();
 
-	tcod.SetForeColor(tcod.MakeColor(0, 255, 0));
+	libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
 	for running {
-		tcod.Clear();
-		tcod.SetForeColor(tcod.MakeColor(192, 192, 192));
-		tcod.PrintLeft(0, 0, tcod.BkgndNone, tickerLine);
-		tcod.SetForeColor(tcod.MakeColor(0, 255, 0));
+		libtcod.Clear();
+		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
+		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, tickerLine);
+		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
 
-		tcod.PutChar(world.PlayerX, world.PlayerY, '@', tcod.BkgndNone);
-		tcod.Flush();
+		libtcod.PutChar(world.PlayerX, world.PlayerY, '@', libtcod.BkgndNone);
+		libtcod.Flush();
 
-		key := tcod.CheckForKeypress();
+		key := libtcod.CheckForKeypress();
 		if key != 0 {
 			getch <- byte(key);
 		}
