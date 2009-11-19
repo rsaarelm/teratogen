@@ -2,16 +2,129 @@ package main
 
 import "fmt"
 import "math"
+import "rand"
 import "time"
 
 import "libtcod"
-import "fomalhaut"
+import . "fomalhaut"
 import "sync"
+
+type IntRect struct {
+	X, Y int;
+	Width, Height int;
+}
+
+type BspRoom struct {
+	IntRect;
+	ChildLeft, ChildRight *BspRoom;
+	RoomNorth, RoomEast, RoomSouth, RoomWest *BspRoom;
+}
+
+func (self *IntRect)RectArea() int { return self.Width * self.Height; }
+
+func (self *IntRect)ContainsPoint(x, y int) bool {
+	return x >= self.X && y >= self.Y &&
+		x < self.X + self.Width && y < self.Y + self.Height;
+}
+
+func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
+	result = new(BspRoom);
+	if w < 1 || h < 1 {
+		Die("Making a BspRoom with zero dimension.");
+	}
+	result.X, result.Y, result.Width, result.Height = x, y, w, h;
+	return;
+}
+
+func (self *BspRoom)IsLeaf() bool {
+	return self.ChildLeft == nil && self.ChildRight == nil;
+}
+
+func (self *BspRoom)ContainsPoint(x, y int) bool {
+	if self.IsLeaf() {
+		return self.IntRect.ContainsPoint(x, y);
+	} else {
+		return self.ChildLeft.ContainsPoint(x, y) ||
+			self.ChildRight.ContainsPoint(x, y);
+	}
+	panic("XXX: Issue 65");
+}
+
+func (self *BspRoom)VerticalSplit(pos int) {
+	if !self.IsLeaf() {
+		Die("Splitting a non-leaf BspRoom.");
+	}
+	if pos < 1 || pos > self.Height - 2 {
+		Die("BspRoom split pos too close to wall.");
+	}
+	self.ChildLeft = NewBspRoom(
+		self.X, self.Y, self.Width, pos);
+	self.ChildRight = NewBspRoom(
+		self.X, self.Y + pos + 1,
+		self.Width, self.Height - pos - 1);
+	self.ChildLeft.RoomSouth = self.ChildRight;
+	self.ChildRight.RoomNorth = self.ChildLeft;
+}
+
+func (self *BspRoom)HorizontalSplit(pos int) {
+	if !self.IsLeaf() {
+		Die("Splitting a non-leaf BspRoom.");
+	}
+	if pos < 1 || pos > self.Width - 2 {
+		Die("BspRoom split pos too close to wall.");
+	}
+	self.ChildLeft = NewBspRoom(
+		self.X, self.Y, pos, self.Height);
+	self.ChildRight = NewBspRoom(
+		self.X + pos + 1, self.Y,
+		self.Width - pos - 1, self.Height);
+	self.ChildLeft.RoomEast = self.ChildRight;
+	self.ChildRight.RoomWest = self.ChildLeft;
+}
+
+// Probability weight for vertical split, can't split below height 3.
+func (self *BspRoom)VerticalSplitWeight() int { return IntMax(0, self.Height - 2); }
+
+// Probability weight for horizontal split, can't split below width 3.
+func (self *BspRoom)HorizontalSplitWeight() int { return IntMax(0, self.Width - 2); }
+
+func MaybeSplitRoom(room *BspRoom) {
+	const medianArea = 60.0;
+	// Asymptotically approach 1 as room size grows. When size is
+	// medianArea, chance to split is 50 %.
+	splitProb := math.Atan(float64(room.RectArea()) / medianArea) / (0.5 * math.Pi);
+
+	if rand.Float64() < splitProb {
+		vw := room.VerticalSplitWeight();
+		hw := room.HorizontalSplitWeight();
+		if vw == 0 && hw == 0 {
+			// Too small to split either way.
+			return;
+		}
+		isVert := rand.Intn(vw + hw) < vw;
+		if isVert {
+			room.VerticalSplit(rand.Intn(room.Height - 3) + 1);
+		} else {
+			room.HorizontalSplit(rand.Intn(room.Width - 3) + 1);
+		}
+
+		// XXX: Could split these into goroutines, but then we'd need
+		// to set up channels to signal when they are finished.
+		MaybeSplitRoom(room.ChildLeft);
+		MaybeSplitRoom(room.ChildRight);
+	}
+}
+
+func MakeBspMap(x, y, w, h int) (result *BspRoom) {
+	result = NewBspRoom(x, y, w, h);
+	MaybeSplitRoom(result);
+	return;
+}
 
 const tickerWidth = 80;
 
 func updateTicker(str string, lineLength int) string {
-	return fomalhaut.PadString(fomalhaut.EatPrefix(str, 1), lineLength);
+	return PadString(EatPrefix(str, 1), lineLength);
 }
 
 type World struct {
@@ -19,7 +132,7 @@ type World struct {
 	Lock *sync.RWMutex;
 }
 
-func MakeWorld() (result *World) {
+func NewWorld() (result *World) {
 	result = new(World);
 	result.PlayerX = 40;
 	result.PlayerY = 20;
@@ -43,6 +156,8 @@ func main() {
 	running := true;
 	getch := make(chan byte);
 
+	rand.Seed(time.Nanoseconds());
+
 	libtcod.Init(80, 50, "Teratogen");
 	libtcod.SetForeColor(libtcod.MakeColor(255, 255, 0));
 	libtcod.PutChar(0, 0, 64, libtcod.BkgndNone);
@@ -50,7 +165,10 @@ func main() {
 	libtcod.SetForeColor(libtcod.MakeColor(255, 0, 0));
 	libtcod.PutChar(0, 0, 65, libtcod.BkgndNone);
 	libtcod.Flush();
-	world := MakeWorld();
+	world := NewWorld();
+
+	area := MakeBspMap(1, 1, 78, 38);
+	fmt.Printf("%v\n", area);
 
 	tickerLine := "                                                                                Teratogen online. ";
 
@@ -96,6 +214,19 @@ func main() {
 		libtcod.Clear();
 		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
 		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, tickerLine);
+
+		for y := 0; y < 40; y++ {
+			for x := 0; x < 80; x++ {
+				if area.ContainsPoint(x, y) {
+					libtcod.SetForeColor(libtcod.MakeColor(96, 96, 96));
+					libtcod.PutChar(x, y, '.', libtcod.BkgndNone);
+				} else {
+					libtcod.SetForeColor(libtcod.MakeColor(192, 192, 0));
+					libtcod.PutChar(x, y, '#', libtcod.BkgndNone);
+				}
+			}
+		}
+
 		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
 
 		libtcod.PutChar(world.PlayerX, world.PlayerY, '@', libtcod.BkgndNone);
