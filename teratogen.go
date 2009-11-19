@@ -1,6 +1,7 @@
 package main
 
 import "fmt"
+import "math"
 import "time"
 
 import "tcod"
@@ -56,13 +57,12 @@ func main() {
 	go func() {
 		for {
 			const lettersAtTime = 1;
-			// XXX: Originally had 0.2 as the delay, but that
-			// produces a const value that can't be casted to int
-			// since it ends up as non-integer due to rounding
-			// errors and Go won't allow using non-integer consts
-			// straight up in int casts.
-			const letterDelayNs = 1e9 * 0.25;
-			time.Sleep(int64(letterDelayNs * lettersAtTime));
+			const letterDelayNs = 1e9 * 0.20;
+			// XXX: lettesDelayNs doesn't evaluate to an exact
+			// integer due to rounding errors, and casting inexact
+			// floats to integers is a compile-time error, so we
+			// need an extra Floor operation here.
+			time.Sleep(int64(math.Floor(letterDelayNs) * lettersAtTime));
 			for x := 0; x <= lettersAtTime; x++ {
 				tickerLine = updateTicker(tickerLine, tickerWidth);
 			}
