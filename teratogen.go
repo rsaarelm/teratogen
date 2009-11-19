@@ -38,18 +38,9 @@ func (self *World) MovePlayer(dx, dy int) {
 }
 
 func main() {
+	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
 	getch := make(chan byte);
-
-	area := fomalhaut.NewMapField2();
-	area.Set(10, 10, "A");
-
-	fmt.Printf("Testing MapField2.\n");
-	test, found := area.Get(10, 10);
-	fmt.Printf("%v %v\n", test, found);
-
-	test, found = area.Get(11, 10);
-	fmt.Printf("%v %v\n", test, found);
 
 	tcod.Init(80, 50, "Teratogen");
 	tcod.SetForeColor(tcod.MakeColor(255, 255, 0));
