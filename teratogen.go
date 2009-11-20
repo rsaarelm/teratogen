@@ -62,8 +62,16 @@ func (self *BspRoom)VerticalSplit(pos int) {
 	self.ChildRight = NewBspRoom(
 		self.X, self.Y + pos + 1,
 		self.Width, self.Height - pos - 1);
+
+	self.ChildLeft.RoomNorth = self.RoomNorth;
+	self.ChildLeft.RoomEast = self.RoomEast;
+	self.ChildLeft.RoomWest = self.RoomWest;
 	self.ChildLeft.RoomSouth = self.ChildRight;
+
 	self.ChildRight.RoomNorth = self.ChildLeft;
+	self.ChildRight.RoomEast = self.RoomEast;
+	self.ChildRight.RoomWest = self.RoomWest;
+	self.ChildRight.RoomSouth = self.RoomSouth;
 }
 
 func (self *BspRoom)HorizontalSplit(pos int) {
@@ -78,8 +86,16 @@ func (self *BspRoom)HorizontalSplit(pos int) {
 	self.ChildRight = NewBspRoom(
 		self.X + pos + 1, self.Y,
 		self.Width - pos - 1, self.Height);
+
+	self.ChildLeft.RoomNorth = self.RoomNorth;
 	self.ChildLeft.RoomEast = self.ChildRight;
+	self.ChildLeft.RoomWest = self.RoomWest;
+	self.ChildLeft.RoomSouth = self.ChildRight;
+
+	self.ChildRight.RoomNorth = self.ChildLeft;
+	self.ChildRight.RoomEast = self.RoomEast;
 	self.ChildRight.RoomWest = self.ChildLeft;
+	self.ChildRight.RoomSouth = self.RoomSouth;
 }
 
 // Probability weight for vertical split, can't split below height 3.
