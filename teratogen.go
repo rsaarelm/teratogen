@@ -4,20 +4,16 @@ import "fmt"
 import "math"
 import "rand"
 import "time"
+import "unsafe"
 
 import "libtcod"
 import . "fomalhaut"
 import "sync"
 
+// TODO: Librarize Rect
 type IntRect struct {
 	X, Y int;
 	Width, Height int;
-}
-
-type BspRoom struct {
-	IntRect;
-	ChildLeft, ChildRight *BspRoom;
-	RoomNorth, RoomEast, RoomSouth, RoomWest *BspRoom;
 }
 
 func (self *IntRect)RectArea() int { return self.Width * self.Height; }
@@ -26,6 +22,15 @@ func (self *IntRect)ContainsPoint(x, y int) bool {
 	return x >= self.X && y >= self.Y &&
 		x < self.X + self.Width && y < self.Y + self.Height;
 }
+
+
+// TODO: Librarize BspRoom.
+type BspRoom struct {
+	IntRect;
+	ChildLeft, ChildRight *BspRoom;
+	RoomNorth, RoomEast, RoomSouth, RoomWest *BspRoom;
+}
+
 
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom);
@@ -40,14 +45,50 @@ func (self *BspRoom)IsLeaf() bool {
 	return self.ChildLeft == nil && self.ChildRight == nil;
 }
 
-func (self *BspRoom)ContainsPoint(x, y int) bool {
+func (self *BspRoom)RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
-		return self.IntRect.ContainsPoint(x, y);
+		if self.IntRect.ContainsPoint(x, y) {
+			return self;
+		}
+		return nil;
 	} else {
-		return self.ChildLeft.ContainsPoint(x, y) ||
-			self.ChildRight.ContainsPoint(x, y);
+		a := self.ChildLeft.RoomAtPoint(x, y);
+		if a != nil { return a; }
+		return self.ChildRight.RoomAtPoint(x, y);
 	}
 	panic("XXX: Issue 65");
+}
+
+func (self *BspRoom)FindConnectingWalls() {
+	for y := self.Y; y <= self.Y + self.Height; y++ {
+		for x := self.X; x <= self.X + self.Width; x++ {
+			// If the center point is a wall...
+			if self.RoomAtPoint(x, y) == nil {
+				// .. try to find two opposing room points and
+				// two opposing wall points, which means it's
+				// a wall between two rooms that could be
+				// turned into a doorway.
+				n := self.RoomAtPoint(x, y - 1);
+				e := self.RoomAtPoint(x + 1, y);
+				w := self.RoomAtPoint(x - 1, y);
+				s := self.RoomAtPoint(x, y + 1);
+				var room1, room2 *BspRoom;
+				if n != nil && s != nil && n != s &&
+					w == nil && e == nil {
+					room1, room2 = n, s;
+				}
+				if e != nil && w != nil && e != w &&
+					n == nil && s == nil {
+					room1, room2 = e, w;
+				}
+
+				if room1 != nil && room2 != nil {
+					// TODO: Mark point x, y to belong to the
+					// arc between room1 and room2.
+				}
+			}
+		}
+	}
 }
 
 func (self *BspRoom)VerticalSplit(pos int) {
@@ -184,7 +225,8 @@ func main() {
 	world := NewWorld();
 
 	area := MakeBspMap(1, 1, 78, 38);
-	fmt.Printf("%v\n", area);
+
+	fmt.Printf("%d\n", uintptr(unsafe.Pointer(area)));
 
 	tickerLine := "                                                                                Teratogen online. ";
 
@@ -228,24 +270,26 @@ func main() {
 	libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
 	for running {
 		libtcod.Clear();
-		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
-		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, tickerLine);
 
 		for y := 0; y < 40; y++ {
 			for x := 0; x < 80; x++ {
-				if area.ContainsPoint(x, y) {
+				if area.RoomAtPoint(x, y) != nil {
 					libtcod.SetForeColor(libtcod.MakeColor(96, 96, 96));
-					libtcod.PutChar(x, y, '.', libtcod.BkgndNone);
+					libtcod.PutChar(x, y + 1, '.', libtcod.BkgndNone);
 				} else {
 					libtcod.SetForeColor(libtcod.MakeColor(192, 192, 0));
-					libtcod.PutChar(x, y, '#', libtcod.BkgndNone);
+					libtcod.PutChar(x, y + 1, '#', libtcod.BkgndNone);
 				}
 			}
 		}
 
 		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
 
-		libtcod.PutChar(world.PlayerX, world.PlayerY, '@', libtcod.BkgndNone);
+		libtcod.PutChar(world.PlayerX, world.PlayerY + 1, '@', libtcod.BkgndNone);
+
+		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
+		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, tickerLine);
+
 		libtcod.Flush();
 
 		key := libtcod.CheckForKeypress();
