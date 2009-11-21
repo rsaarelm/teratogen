@@ -1,5 +1,6 @@
 package main
 
+import "container/vector"
 import "fmt"
 import "math"
 import "rand"
@@ -37,7 +38,6 @@ type BspRoom struct {
 	ChildLeft, ChildRight *BspRoom;
 }
 
-
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom);
 	if w < 1 || h < 1 {
@@ -65,7 +65,33 @@ func (self *BspRoom)RoomAtPoint(x, y int) *BspRoom {
 	panic("XXX: Issue 65");
 }
 
-func (self *BspRoom)FindConnectingWalls() {
+func AddPointToConnectingWall(
+	graph Graph, room1, room2 *BspRoom, x, y int) {
+	arc, found := graph.GetArc(room1, room2);
+	if !found {
+		// These rooms aren't in the graph yet. Add a bidirectional
+		// connection. Use a vector of points as the arc object. The
+		// same object is aliased in both arc directions.
+		arc = vector.New(0);
+		graph.AddArc(room1, room2, arc);
+		graph.AddArc(room2, room1, arc);
+	}
+	// Check for duplicate points
+	ptVec := arc.(*vector.Vector);
+
+	// Look for duplicates.
+	for pt := range ptVec.Iter() {
+		pt := pt.(*IntPoint2);
+		// If one is found, return.
+		if pt.X == x && pt.Y == y {
+			return;
+		}
+	}
+	// No duplicates, add the point to vector.
+	ptVec.Push(&IntPoint2{x, y});
+}
+
+func (self *BspRoom)FindConnectingWalls(graph Graph) {
 	for y := self.Y; y <= self.Y + self.Height; y++ {
 		for x := self.X; x <= self.X + self.Width; x++ {
 			// If the center point is a wall...
@@ -89,8 +115,8 @@ func (self *BspRoom)FindConnectingWalls() {
 				}
 
 				if room1 != nil && room2 != nil {
-					// TODO: Mark point x, y to belong to the
-					// arc between room1 and room2.
+					AddPointToConnectingWall(
+						graph, room1, room2, x, y);
 				}
 			}
 		}
@@ -212,6 +238,11 @@ func main() {
 
 	area := MakeBspMap(1, 1, 78, 38);
 
+	graph := NewSparseMatrixGraph();
+	area.FindConnectingWalls(graph);
+	_, tmpArcs := graph.Neighbors(graph.Nodes()[0]);
+	wall1 := tmpArcs[0].(*vector.Vector);
+
 	tickerLine := "                                                                                Teratogen online. ";
 
 	go func() {
@@ -265,6 +296,12 @@ func main() {
 					libtcod.PutChar(x, y + 1, '#', libtcod.BkgndNone);
 				}
 			}
+		}
+
+		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 255));
+		for pt := range wall1.Iter() {
+			pt := pt.(*IntPoint2);
+			libtcod.PutChar(pt.X, pt.Y + 1, '+', libtcod.BkgndNone);
 		}
 
 		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 0));
