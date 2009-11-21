@@ -7,8 +7,8 @@ type SparseMatrixGraph struct {
 func NewGraph() (result *SparseMatrixGraph) {
 	const initialNodeCapacity = 32;
 
-	result.arcMatrix = make(map[uintptr] (map[uintptr] interface{}));
 	result = new(SparseMatrixGraph);
+	result.arcMatrix = make(map[uintptr] (map[uintptr] interface{}));
 
 	return;
 }
@@ -18,7 +18,7 @@ func (self *SparseMatrixGraph)AddArc(node1, node2 interface{}, arcObj interface{
 	arcList, ok := self.arcMatrix[idx1];
 	// There aren't any arcs from node1 yet. Add a map for the arcs.
 	if !ok {
-		arcList := make(map[uintptr] interface{});
+		arcList = make(map[uintptr] interface{});
 		self.arcMatrix[idx1] = arcList;
 	}
 	arcList[idx2] = arcObj;
