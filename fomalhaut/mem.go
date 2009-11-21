@@ -60,3 +60,13 @@ func (self *ObjLookup)DecrObj(obj interface{}) {
 		}
 	} // if object not indexed, do nothing.
 }
+
+func (self *ObjLookup)Objects() (result []interface{}) {
+	result = make([]interface{}, len(self.lut));
+	i := 0;
+	for _, val := range self.lut {
+		result[i] = val;
+		i++;
+	}
+	return result;
+}

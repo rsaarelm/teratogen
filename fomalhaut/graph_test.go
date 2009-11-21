@@ -13,7 +13,7 @@ func TestGraph(t *testing.T) {
 	a.x = 11;
 	b.x = 22;
 
-	graph := NewGraph();
+	graph := NewSparseMatrixGraph();
 
 	graph.AddArc(a, b, nil);
 

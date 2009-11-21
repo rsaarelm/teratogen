@@ -1,11 +1,19 @@
 package fomalhaut
 
+type Graph interface {
+	AddArc(node1, node2 interface{}, arcObj interface{});
+	RemoveArc(node1, node2 interface{});
+	Nodes() []interface{};
+	Neighbors(node interface{}) (nodes []interface{}, arcs []interface{});
+	GetArc(node1, node2 interface{}) (arc interface{}, found bool);
+}
+
 type SparseMatrixGraph struct {
 	arcMatrix map[uintptr] (map[uintptr] interface{});
 	nodeLookup *ObjLookup;
 }
 
-func NewGraph() (result *SparseMatrixGraph) {
+func NewSparseMatrixGraph() (result *SparseMatrixGraph) {
 	const initialNodeCapacity = 32;
 
 	result = new(SparseMatrixGraph);
@@ -42,6 +50,10 @@ func (self *SparseMatrixGraph)RemoveArc(node1, node2 interface{}) {
 	}
 }
 
+func (self *SparseMatrixGraph)Nodes() []interface{} {
+	return self.nodeLookup.Objects();
+}
+
 // Returns the neighbor nodes and the arcs to them from a node.
 func (self *SparseMatrixGraph)Neighbors(node interface{}) (nodes []interface{}, arcs []interface{}) {
 	if neighbors, ok := self.arcMatrix[ObjId(node)]; ok {
@@ -69,12 +81,12 @@ func (self *SparseMatrixGraph)Neighbors(node interface{}) (nodes []interface{}, 
 // nil and the graph may still have valid arcs, build logic around the boolean
 // secondary return value.
 func (self *SparseMatrixGraph)GetArc(node1, node2 interface{})
-	(arc interface{}, ok bool) {
+	(arc interface{}, found bool) {
 
 	if neighbors, ok1 := self.arcMatrix[ObjId(node1)]; ok1 {
 		if a, ok2 := neighbors[ObjId(node2)]; ok2 {
 			arc = a;
-			ok = ok2;
+			found = ok2;
 		}
 	}
 	return;
