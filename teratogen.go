@@ -4,11 +4,18 @@ import "fmt"
 import "math"
 import "rand"
 import "time"
-import "unsafe"
 
 import "libtcod"
 import . "fomalhaut"
 import "sync"
+
+// TODO: Librarize Point2
+type IntPoint2 struct {
+	X, Y int;
+}
+
+func (self *IntPoint2)GetIntPoint2() (x, y int) { return self.X, self.Y; }
+
 
 // TODO: Librarize Rect
 type IntRect struct {
@@ -225,8 +232,6 @@ func main() {
 	world := NewWorld();
 
 	area := MakeBspMap(1, 1, 78, 38);
-
-	fmt.Printf("%d\n", uintptr(unsafe.Pointer(area)));
 
 	tickerLine := "                                                                                Teratogen online. ";
 
