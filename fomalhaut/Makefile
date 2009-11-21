@@ -7,6 +7,7 @@ GOFILES=\
 	graph.go\
 	mem.go\
 	num.go\
+	set.go\
 	string.go\
 
 include $(GOROOT)/src/Make.pkg

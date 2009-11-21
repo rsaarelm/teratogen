@@ -30,6 +30,13 @@ func (self *ObjLookup)GetObj(id uintptr) (result interface{}, found bool) {
 	return nil, false;
 }
 
+func (self *ObjLookup)ContainsObj(obj interface{}) bool {
+	if _, ok := self.lut[ObjId(obj)]; ok {
+		return true;
+	}
+	return false;
+}
+
 // Increment references to a specific object. If there were no previous
 // references, the object's id is added to the lookup table. Returns the id
 // for the object.
@@ -52,14 +59,22 @@ func (self *ObjLookup)DecrObj(obj interface{}) {
 	id := ObjId(obj);
 	if count, ok := self.objCount[id]; ok {
 		if count - 1 < 1 {
-			// No references,
-			self.lut[id] = obj, false;
-			self.objCount[id] = 0, false;
+			self.RemoveObj(obj);
 		} else {
 			self.objCount[id] = count - 1;
 		}
 	} // if object not indexed, do nothing.
 }
+
+func (self *ObjLookup)RemoveObj(obj interface{}) {
+	id := ObjId(obj);
+	if _, ok := self.objCount[id]; ok {
+		// Remove the object if found.
+		self.lut[id] = obj, false;
+		self.objCount[id] = 0, false;
+	} // if object not indexed, do nothing.
+}
+
 
 func (self *ObjLookup)Objects() (result []interface{}) {
 	result = make([]interface{}, len(self.lut));
@@ -70,3 +85,5 @@ func (self *ObjLookup)Objects() (result []interface{}) {
 	}
 	return result;
 }
+
+func (self *ObjLookup)Len() int { return len(self.lut); }

@@ -14,8 +14,6 @@ type SparseMatrixGraph struct {
 }
 
 func NewSparseMatrixGraph() (result *SparseMatrixGraph) {
-	const initialNodeCapacity = 32;
-
 	result = new(SparseMatrixGraph);
 	result.arcMatrix = make(map[uintptr] (map[uintptr] interface{}));
 	result.nodeLookup = NewObjLookup();
