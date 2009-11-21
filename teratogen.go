@@ -190,6 +190,37 @@ func MakeBspMap(x, y, w, h int) (result *BspRoom) {
 	return;
 }
 
+func MakeDoors(wallGraph *Graph) (result *vector.Vector) {
+	result := vector.New();
+	rooms := wallGraph.Nodes();
+	connectedRooms := NewMapSet();
+	edgeRooms := NewMapSet();
+
+	// The room list comes from a map, the order should be reasonably
+	// random so we don't need a specific rng op here.
+	startRoom := rooms[0];
+	connectedRooms.Add(startRoom);
+
+	nextNodes, _ := wallGraph.Neighbors(startRoom);
+	for i := range nextNodes {
+		edgeRooms.Add(i);
+	}
+
+	for edgeRooms.Len() > 0 {
+		nextRoom := edgeRooms.Items()[rand.Intn(edgeRooms.Len())];
+
+		// Implement Items() method
+
+		// Find edge from nextRoom to /some/ room in connectedRooms.
+
+		// Pick a random point in that edge.
+
+		// Add that point into result.
+	}
+
+	return;
+}
+
 const tickerWidth = 80;
 
 func updateTicker(str string, lineLength int) string {
