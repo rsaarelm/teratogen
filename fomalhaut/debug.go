@@ -17,6 +17,7 @@ func PrintBacktrace() {
 	}
 }
 
+// TODO: Formatting. (Dief?)
 func Die(msg string) {
 	panic(msg);
 	// fmt.Print(msg + "\n");
