@@ -4,6 +4,8 @@ TARG=fomalhaut
 GOFILES=\
 	debug.go\
 	field.go\
+	graph.go\
+	mem.go\
 	num.go\
 	string.go\
 
