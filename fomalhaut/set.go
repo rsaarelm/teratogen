@@ -5,8 +5,7 @@ type Set interface {
 	Remove(item interface{});
 	Contains(item interface{}) bool;
 	Len() int;
-	// TODO: Iter() <-chan interface{};
-	Items() []interface{};
+	Iter() <-chan interface{};
 }
 
 type MapSet struct {
@@ -31,6 +30,17 @@ func (self *MapSet)Remove(item interface{}) {
 
 func (self *MapSet)Contains(item interface{}) bool {
 	return self.items.ContainsObj(item);
+}
+
+func (self *MapSet)iterate(c chan<- interface{}) {
+	for i := range self.items.Iter() { c <- i; }
+	close(c);
+}
+
+func (self *MapSet)Iter() <-chan interface{} {
+	c := make(chan interface{});
+	go self.iterate(c);
+	return c;
 }
 
 func (self *MapSet)Len() int { return self.items.Len(); }

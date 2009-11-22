@@ -53,6 +53,7 @@ func (self *SparseMatrixGraph)Nodes() []interface{} {
 }
 
 // Returns the neighbor nodes and the arcs to them from a node.
+// XXX: Some kind of wrapper object here to make iterating this a bit less painful.
 func (self *SparseMatrixGraph)Neighbors(node interface{}) (nodes []interface{}, arcs []interface{}) {
 	if neighbors, ok := self.arcMatrix[ObjId(node)]; ok {
 		nodes = make([]interface{}, len(neighbors));

@@ -163,7 +163,7 @@ func MaybeSplitRoom(room *BspRoom) {
 	// medianArea, chance to split is 50 %.
 	splitProb := math.Atan(float64(room.RectArea()) / medianArea) / (0.5 * math.Pi);
 
-	if rand.Float64() < splitProb {
+	if WithProb(splitProb) {
 		vw := room.VerticalSplitWeight();
 		hw := room.HorizontalSplitWeight();
 		if vw == 0 && hw == 0 {
@@ -190,8 +190,10 @@ func MakeBspMap(x, y, w, h int) (result *BspRoom) {
 	return;
 }
 
-func MakeDoors(wallGraph *Graph) (result *vector.Vector) {
-	result := vector.New();
+func wallsToMakeDoorsIn(wallGraph *Graph) (result *vector.Vector) {
+	const extraDoorProb = 0.2;
+
+	result = vector.New(0);
 	rooms := wallGraph.Nodes();
 	connectedRooms := NewMapSet();
 	edgeRooms := NewMapSet();
@@ -207,15 +209,30 @@ func MakeDoors(wallGraph *Graph) (result *vector.Vector) {
 	}
 
 	for edgeRooms.Len() > 0 {
-		nextRoom := edgeRooms.Items()[rand.Intn(edgeRooms.Len())];
+		// Pick a room connected by an edge to the current set of
+		// connected rooms.
+		nextRoom := RandomFromIterable(edgeRooms);
 
-		// Implement Items() method
+		// Since we've been lazy with the sets and haven't recorded
+		// the walls by which the edge rooms are touching the set of
+		// connected rooms, we'll just iterate through every wall of
+		// the chosen edge room and punch the door through the first
+		// to show up.
 
-		// Find edge from nextRoom to /some/ room in connectedRooms.
-
-		// Pick a random point in that edge.
-
-		// Add that point into result.
+		rooms, walls := wallGraph.Neighbors(nextRoom);
+		doorsMade := 0;
+		for i := 0; i < len(rooms); i++ {
+			if connectedRooms.Contains(rooms[i]) {
+				if doorsMade == 0 || WithProb(extraDoorProb) {
+					// Always make at least one door. With
+					// some prob make doors to other
+					// connected rooms to make the map
+					// more interesting.
+					result.Push(walls[i]);
+					doorsMade++;
+				}
+			}
+		}
 	}
 
 	return;

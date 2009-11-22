@@ -86,4 +86,15 @@ func (self *ObjLookup)Objects() (result []interface{}) {
 	return result;
 }
 
+func (self *ObjLookup)iterate(c chan<- interface{}) {
+	for _, val := range self.lut { c <- val; }
+	close(c);
+}
+
+func (self *ObjLookup)Iter() <-chan interface{} {
+	c := make(chan interface{});
+	go self.iterate(c);
+	return c;
+}
+
 func (self *ObjLookup)Len() int { return len(self.lut); }
