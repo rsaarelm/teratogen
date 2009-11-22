@@ -204,6 +204,11 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 
 	result = vector.New(0);
 	rooms := iterable.Data(wallGraph);
+
+	if len(rooms) == 0 {
+		return;
+	}
+
 	connectedRooms := NewMapSet();
 	edgeRooms := NewMapSet();
 
