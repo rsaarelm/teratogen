@@ -40,5 +40,7 @@ func (f2 *MapField2) Get(x, y int) (ret interface{}, found bool) {
 func (f2 *MapField2) Set(x, y int, item interface{}) {
 	if f2.Contains(x, y) {
 		f2.data[f2.encodePoint(x, y)] = item;
+	} else {
+		Die("Point outside region this type of field can handle.");
 	}
 }
