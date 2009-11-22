@@ -159,15 +159,23 @@ func (self *BspRoom)VerticalSplitWeight() int { return IntMax(0, self.Height - 2
 func (self *BspRoom)HorizontalSplitWeight() int { return IntMax(0, self.Width - 2); }
 
 func MaybeSplitRoom(room *BspRoom) {
+	// The higher this is, the more the splitter will tend to pick a
+	// direction that brings subroom shapes closer to a square.
+	const aspectNormalizingExponent = 2.0;
+
+	// Split probability approaches 1 asymptotically as room size grows.
+	// When size is medianArea, chance to split is 50 %.
 	const medianArea = 60.0;
-	// Asymptotically approach 1 as room size grows. When size is
-	// medianArea, chance to split is 50 %.
 	splitProb := math.Atan(float64(room.RectArea()) / medianArea) / (0.5 * math.Pi);
 
 	if WithProb(splitProb) {
-		vw := room.VerticalSplitWeight();
-		hw := room.HorizontalSplitWeight();
-		if vw == 0 && hw == 0 {
+		vw := int(math.Pow(
+			float64(room.VerticalSplitWeight()),
+			aspectNormalizingExponent));
+		hw := int(math.Pow(
+			float64(room.HorizontalSplitWeight()),
+			aspectNormalizingExponent));
+		if vw < 1 && hw < 1 {
 			// Too small to split either way.
 			return;
 		}
