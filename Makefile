@@ -1,11 +1,12 @@
 LIBS=fomalhaut libtcod
 
 GOFILES=\
-	teratogen.go\
+	src/teratogen/teratogen.go\
+	src/teratogen/mapgen.go\
 
 TARG=teratogen
 
-MAINFILE=teratogen.go
+MAINFILE=src/teratogen/teratogen.go
 
 # Start default makefile
 include $(GOROOT)/src/Make.$(GOARCH)
@@ -32,16 +33,16 @@ run: $(TARG)
 	./$(TARG)
 
 %_build:
-	cd $* && make install
+	cd src/$* && make install
 
 %_clean:
-	cd $* && make clean
+	cd src/$* && make clean
 
 %_test:
-	cd $* && make test
+	cd src/$* && make test
 
 %_nuke:
-	cd $* && make nuke
+	cd src/$* && make nuke
 
 include $(GOROOT)/src/Make.cmd
 
