@@ -1,12 +1,13 @@
-LIBS=fomalhaut libtcod
+LIBS=fomalhaut libtcod teratogen
 
-GOFILES=\
-	src/teratogen/teratogen.go\
-	src/teratogen/mapgen.go\
+# Library dependencies.
+teratogen_build: fomalhaut_build libtcod_build
+
+GOFILES=src/main.go
 
 TARG=teratogen
 
-MAINFILE=src/teratogen/teratogen.go
+MAINFILE=src/main.go
 
 # Start default makefile
 include $(GOROOT)/src/Make.$(GOARCH)

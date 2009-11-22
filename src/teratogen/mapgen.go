@@ -1,5 +1,4 @@
-// TODO: Rename package to teratogen
-package main
+package teratogen
 
 import "container/vector"
 import "exp/iterable"

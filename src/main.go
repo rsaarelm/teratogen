@@ -8,8 +8,7 @@ import "sync"
 
 import "libtcod"
 import . "fomalhaut"
-
-
+import . "teratogen"
 
 const tickerWidth = 80;
 
