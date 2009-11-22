@@ -3,7 +3,8 @@ package fomalhaut
 type Graph interface {
 	AddArc(node1, node2 interface{}, arcObj interface{});
 	RemoveArc(node1, node2 interface{});
-	Nodes() []interface{};
+	// Iterate through the nodes of the graph.
+	Iter() <-chan interface{};
 	Neighbors(node interface{}) (nodes []interface{}, arcs []interface{});
 	GetArc(node1, node2 interface{}) (arc interface{}, found bool);
 }
@@ -48,9 +49,7 @@ func (self *SparseMatrixGraph)RemoveArc(node1, node2 interface{}) {
 	}
 }
 
-func (self *SparseMatrixGraph)Nodes() []interface{} {
-	return self.nodeLookup.Objects();
-}
+func (self *SparseMatrixGraph)Iter() <-chan interface{} { return self.nodeLookup.Iter(); }
 
 // Returns the neighbor nodes and the arcs to them from a node.
 // XXX: Some kind of wrapper object here to make iterating this a bit less painful.

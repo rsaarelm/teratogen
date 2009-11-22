@@ -203,7 +203,7 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 	const extraDoorProb = 0.2;
 
 	result = vector.New(0);
-	rooms := wallGraph.Nodes();
+	rooms := iterable.Data(wallGraph);
 	connectedRooms := NewMapSet();
 	edgeRooms := NewMapSet();
 
