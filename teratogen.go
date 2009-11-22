@@ -1,6 +1,7 @@
 package main
 
 import "container/vector"
+import "exp/iterable"
 import "fmt"
 import "math"
 import "rand"
@@ -190,7 +191,7 @@ func MakeBspMap(x, y, w, h int) (result *BspRoom) {
 	return;
 }
 
-func wallsToMakeDoorsIn(wallGraph *Graph) (result *vector.Vector) {
+func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 	const extraDoorProb = 0.2;
 
 	result = vector.New(0);
@@ -204,8 +205,9 @@ func wallsToMakeDoorsIn(wallGraph *Graph) (result *vector.Vector) {
 	connectedRooms.Add(startRoom);
 
 	nextNodes, _ := wallGraph.Neighbors(startRoom);
-	for i := range nextNodes {
-		edgeRooms.Add(i);
+
+	for _, e := range nextNodes {
+		edgeRooms.Add(e);
 	}
 
 	for edgeRooms.Len() > 0 {
@@ -231,8 +233,22 @@ func wallsToMakeDoorsIn(wallGraph *Graph) (result *vector.Vector) {
 					result.Push(walls[i]);
 					doorsMade++;
 				}
+			} else {
+				edgeRooms.Add(rooms[i]);
 			}
 		}
+		edgeRooms.Remove(nextRoom);
+		connectedRooms.Add(nextRoom);
+	}
+
+	return;
+}
+
+func DoorLocations(wallGraph Graph) (result *vector.Vector) {
+	result = vector.New(0);
+
+	for wall := range wallsToMakeDoorsIn(wallGraph).Iter() {
+		result.Push(RandomFromIterable(wall.(iterable.Iterable)));
 	}
 
 	return;
@@ -288,8 +304,7 @@ func main() {
 
 	graph := NewSparseMatrixGraph();
 	area.FindConnectingWalls(graph);
-	_, tmpArcs := graph.Neighbors(graph.Nodes()[0]);
-	wall1 := tmpArcs[0].(*vector.Vector);
+	doors := DoorLocations(graph);
 
 	tickerLine := "                                                                                Teratogen online. ";
 
@@ -347,7 +362,7 @@ func main() {
 		}
 
 		libtcod.SetForeColor(libtcod.MakeColor(0, 255, 255));
-		for pt := range wall1.Iter() {
+		for pt := range doors.Iter() {
 			pt := pt.(*IntPoint2);
 			libtcod.PutChar(pt.X, pt.Y + 1, '+', libtcod.BkgndNone);
 		}
