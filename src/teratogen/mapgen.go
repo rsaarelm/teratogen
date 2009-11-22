@@ -239,3 +239,4 @@ func DoorLocations(wallGraph Graph) (result *vector.Vector) {
 
 	return;
 }
+

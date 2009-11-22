@@ -1,7 +1,8 @@
 *.o
 *.8
 _obj/
-./teratogen
+teratogen
+!src/teratogen
 *.cgo?.go
 *.cgo?.?
 _test
