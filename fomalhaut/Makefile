@@ -7,6 +7,7 @@ GOFILES=\
 	graph.go\
 	mem.go\
 	num.go\
+	rng.go\
 	set.go\
 	string.go\
 
