@@ -273,15 +273,39 @@ func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }
 
+type Entity interface {
+	// TODO: Entity-common stuff.
+}
+
+type Guid string
+
+// Behavioral terrain types.
+type TerrainType byte const (
+	TerrainWall = iota;
+	TerrainFloor;
+)
+
+// Skinning data for a terrain tile set, describes the outward appearance of a
+// type of terrain.
+type TerrainTile struct {
+	Icon byte;
+	Color [3]byte;
+	Name string;
+}
+
 type World struct {
 	PlayerX, PlayerY int;
 	Lock *sync.RWMutex;
+	entities map[Guid] Entity;
+	terrain Field2;
 }
 
 func NewWorld() (result *World) {
 	result = new(World);
 	result.PlayerX = 40;
 	result.PlayerY = 20;
+	result.entities = make(map[Guid] Entity);
+	result.terrain = NewMapField2();
 	result.Lock = new(sync.RWMutex);
 	return;
 }
@@ -319,7 +343,7 @@ func main() {
 	area.FindConnectingWalls(graph);
 	doors := DoorLocations(graph);
 
-	tickerLine := "                                                                                Teratogen online. ";
+	tickerLine := "";
 
 	go func() {
 		for {
