@@ -58,6 +58,7 @@ type Drawable interface {
 
 
 type Entity interface {
+	Drawable;
 	// TODO: Entity-common stuff.
 	IsObstacle() bool;
 	GetPos() (int, int);
@@ -67,13 +68,22 @@ type Guid string
 
 
 type Creature struct {
-	Icon;
+	*Icon;
 	Name string;
 	X, Y int;
 }
 
+func (self *Creature) IsObstacle() bool {
+	return true;
+}
+
+func (self *Creature) GetPos() (x, y int) {
+	x, y = self.X, self.Y;
+	return;
+}
+
 type World struct {
-	PlayerX, PlayerY int;
+	playerId Guid;
 	Lock *sync.RWMutex;
 	entities map[Guid] Entity;
 	terrain Field2;
@@ -81,12 +91,20 @@ type World struct {
 
 func NewWorld() (result *World) {
 	result = new(World);
-	result.PlayerX = 40;
-	result.PlayerY = 20;
 	result.entities = make(map[Guid] Entity);
 	result.terrain = NewMapField2();
 	result.Lock = new(sync.RWMutex);
+
+	result.playerId = Guid("player");
+	// XXX: Horrible way to init creature data.
+	player := &Creature{&Icon{'@', RGB{0, 255, 0}}, "Protagonist", 0, 0};
+	result.entities[result.playerId] = player;
+
 	return;
+}
+
+func (self *World) GetPlayer() *Creature {
+	return self.entities[self.playerId].(*Creature);
 }
 
 // TODO: Event system for changing world, event handler does lock/unlock, all
@@ -96,17 +114,23 @@ func (self *World) MovePlayer(dx, dy int) {
 	self.Lock.Lock();
 	defer self.Lock.Unlock();
 
-	newX := self.PlayerX + dx;
-	newY := self.PlayerY + dy;
+	player := self.GetPlayer();
+	newX := player.X + dx;
+	newY := player.Y + dy;
 
 	if self.IsOpen(newX, newY) {
-		self.PlayerX, self.PlayerY = newX, newY;
+		player.X, player.Y = newX, newY;
 	}
 }
 
-func (self *World)InitLevel(num int, player Entity) {
+func (self *World)InitLevel(num int) {
+	// Keep the player around even though the other entities get munged.
+	// TODO: When we start having inventories, keep the player's items too.
+	player := self.GetPlayer();
+
 	self.terrain = NewMapField2();
 	self.entities = make(map[Guid] Entity);
+	self.entities[self.playerId] = player;
 
 	self.makeBSPMap();
 
@@ -115,8 +139,9 @@ func (self *World)InitLevel(num int, player Entity) {
 	if !ok {
 		Die("Couldn't find open position.");
 	}
-	self.PlayerX = x;
-	self.PlayerY = y;
+
+	player.X = x;
+	player.Y = y;
 }
 
 func (self *World)makeBSPMap() {
@@ -223,6 +248,8 @@ func (self *World)DrawTerrain() {
 }
 
 func (self *World)DrawEntities() {
-	// TODO: Proper entities instead of this hack.
-	DrawCharRGB(self.PlayerX, self.PlayerY, '@', RGB{0, 255, 0});
+	for _, e := range self.entities {
+		x, y := e.GetPos();
+		e.Draw(x, y);
+	}
 }

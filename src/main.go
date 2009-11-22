@@ -26,11 +26,7 @@ func main() {
 
 	world := NewWorld();
 
-	// TODO: Player entity struct
-	var player Entity;
-	player = nil;
-
-	world.InitLevel(1, player);
+	world.InitLevel(1);
 
 	tickerLine := "";
 
