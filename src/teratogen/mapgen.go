@@ -7,6 +7,8 @@ import "rand"
 
 import . "fomalhaut"
 
+const minRoomDim = 2
+
 type BspRoom struct {
 	IntRect;
 	ChildLeft, ChildRight *BspRoom;
@@ -101,7 +103,7 @@ func (self *BspRoom)VerticalSplit(pos int) {
 	if !self.IsLeaf() {
 		Die("Splitting a non-leaf BspRoom.");
 	}
-	if pos < 1 || pos > self.Height - 2 {
+	if pos < minRoomDim || pos > self.Height - 1 - minRoomDim {
 		Die("BspRoom split pos too close to wall.");
 	}
 	self.ChildLeft = NewBspRoom(
@@ -115,7 +117,7 @@ func (self *BspRoom)HorizontalSplit(pos int) {
 	if !self.IsLeaf() {
 		Die("Splitting a non-leaf BspRoom.");
 	}
-	if pos < 1 || pos > self.Width - 2 {
+	if pos < minRoomDim || pos > self.Width - 1 - minRoomDim {
 		Die("BspRoom split pos too close to wall.");
 	}
 	self.ChildLeft = NewBspRoom(
@@ -125,11 +127,15 @@ func (self *BspRoom)HorizontalSplit(pos int) {
 		self.Width - pos - 1, self.Height);
 }
 
-// Probability weight for vertical split, can't split below height 3.
-func (self *BspRoom)VerticalSplitWeight() int { return IntMax(0, self.Height - 2); }
+// Probability weight for vertical split, can't split below height minRoomDim * 2 + 1.
+func (self *BspRoom)VerticalSplitWeight() int {
+	return IntMax(0, self.Height - minRoomDim * 2);
+}
 
-// Probability weight for horizontal split, can't split below width 3.
-func (self *BspRoom)HorizontalSplitWeight() int { return IntMax(0, self.Width - 2); }
+// Probability weight for horizontal split, can't split below width minRoomDim * 2 + 1.
+func (self *BspRoom)HorizontalSplitWeight() int {
+	return IntMax(0, self.Width - minRoomDim * 2);
+}
 
 func MaybeSplitRoom(room *BspRoom) {
 	// The higher this is, the more the splitter will tend to pick a
@@ -154,9 +160,17 @@ func MaybeSplitRoom(room *BspRoom) {
 		}
 		isVert := rand.Intn(vw + hw) < vw;
 		if isVert {
-			room.VerticalSplit(rand.Intn(room.Height - 3) + 1);
+			// Do two random calls to concentrate distribution
+			// around the middle. The (span + 1) bit in the second
+			// one is a trick to get the whole range even when
+			// span is odd and gets truncated by integer division.
+			span := room.Height - (2 * minRoomDim + 1);
+			splitPos := rand.Intn(span / 2) + rand.Intn((span + 1) / 2) + minRoomDim;
+			room.VerticalSplit(splitPos);
 		} else {
-			room.HorizontalSplit(rand.Intn(room.Width - 3) + 1);
+			span := room.Width - (2 * minRoomDim + 1);
+			splitPos := rand.Intn(span / 2) + rand.Intn((span + 1) / 2) + minRoomDim;
+			room.HorizontalSplit(splitPos);
 		}
 
 		// XXX: Could split these into goroutines, but then we'd need
