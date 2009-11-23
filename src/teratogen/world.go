@@ -9,6 +9,8 @@ import . "fomalhaut"
 const mapWidth = 80
 const mapHeight = 40
 
+const numTerrainCells = mapWidth * mapHeight
+
 type Icon struct {
 	IconId byte;
 	Color RGB;
@@ -86,13 +88,13 @@ type World struct {
 	playerId Guid;
 	Lock *sync.RWMutex;
 	entities map[Guid] Entity;
-	terrain Field2;
+	terrain []TerrainType;
 }
 
 func NewWorld() (result *World) {
 	result = new(World);
 	result.entities = make(map[Guid] Entity);
-	result.terrain = NewMapField2();
+	result.initTerrain();
 	result.Lock = new(sync.RWMutex);
 
 	result.playerId = Guid("player");
@@ -128,7 +130,7 @@ func (self *World)InitLevel(num int) {
 	// TODO: When we start having inventories, keep the player's items too.
 	player := self.GetPlayer();
 
-	self.terrain = NewMapField2();
+	self.initTerrain();
 	self.entities = make(map[Guid] Entity);
 	self.entities[self.playerId] = player;
 
@@ -144,6 +146,10 @@ func (self *World)InitLevel(num int) {
 	player.Y = y;
 }
 
+func (self *World)initTerrain() {
+	self.terrain = make([]TerrainType, numTerrainCells);
+}
+
 func (self *World)makeBSPMap() {
 	area := MakeBspMap(1, 1, mapWidth - 2, mapHeight - 2);
 	graph := NewSparseMatrixGraph();
@@ -153,9 +159,9 @@ func (self *World)makeBSPMap() {
 	for y := 0; y < mapHeight; y++ {
 		for x := 0; x < mapWidth; x++ {
 			if area.RoomAtPoint(x, y) != nil {
-				self.terrain.Set(x, y, TerrainFloor);
+				self.SetTerrain(x, y, TerrainFloor);
 			} else {
-				self.terrain.Set(x, y, TerrainWall);
+				self.SetTerrain(x, y, TerrainWall);
 			}
 		}
 	}
@@ -163,19 +169,27 @@ func (self *World)makeBSPMap() {
 	for pt := range doors.Iter() {
 		pt := pt.(*IntPoint2);
 		// TODO: Door terrain
-		self.terrain.Set(pt.X, pt.Y, TerrainDoor);
+		self.SetTerrain(pt.X, pt.Y, TerrainDoor);
 	}
 
 }
 
+func inTerrain(x, y int) bool {
+	return x >= 0 && y >= 0 && x < mapWidth && y < mapHeight;
+}
+
 func (self *World)GetTerrain(x, y int) TerrainType {
-	if val, ok := self.terrain.Get(x, y); ok {
-		// XXX: Can't cast it straight to TerrainType for some reason.
-		return TerrainType(val.(int));
+	if inTerrain(x, y) {
+		return self.terrain[x + y * mapWidth];
 	}
 	return TerrainIndeterminate;
 }
 
+func (self *World)SetTerrain(x, y int, t TerrainType) {
+	if inTerrain(x, y) {
+		self.terrain[x + y * mapWidth] = t
+	}
+}
 
 func (self *World)EntitiesAt(x, y int) <-chan Entity {
 	c := make(chan Entity);
