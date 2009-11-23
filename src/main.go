@@ -15,6 +15,25 @@ func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }
 
+func dir8ToVec(dir int) (x, y int) {
+	switch dir {
+	case 0: return 0, -1;
+	case 1: return 1, -1;
+	case 2: return 1, 0;
+	case 3: return 1, 1;
+	case 4: return 0, 1;
+	case 5: return -1, 1;
+	case 6: return -1, 0;
+	case 7: return -1, -1;
+	}
+	panic("Invalid dir");
+}
+
+func movePlayerDir(world *World, dir int) {
+	x, y := dir8ToVec(dir);
+	world.MovePlayer(x, y);
+}
+
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
@@ -49,18 +68,31 @@ func main() {
 	go func() {
 		for {
 			key := <-getch;
+			// Colemak direction pad.
+
+			// Movement is hjklyubn (Colemak equivalent) move, with bn
+			// shifted to nm to keep things on one side on a
+			// ergonomic split keyboard.
+
 			switch key {
 			case 'q':
 				running = false;
-				// Colemak direction pad.
-			case 'n':
-				world.MovePlayer(-1, 0);
-			case ',':
-				world.MovePlayer(0, 1);
+			case 'e':
+				movePlayerDir(world, 0);
+			case 'l':
+				movePlayerDir(world, 1);
 			case 'i':
-				world.MovePlayer(1, 0);
-			case 'u':
-				world.MovePlayer(0, -1);
+				movePlayerDir(world, 2);
+			case 'm':
+				movePlayerDir(world, 3);
+			case 'n':
+				movePlayerDir(world, 4);
+			case 'k':
+				movePlayerDir(world, 5);
+			case 'h':
+				movePlayerDir(world, 6);
+			case 'j':
+				movePlayerDir(world, 7);
 			case 'p':
 				tickerLine += "Some text for the buffer... ";
 			}
