@@ -195,7 +195,7 @@ func (self *World) makeBSPMap() {
 	doors := DoorLocations(graph);
 
 	for pt := range (Vec2I{mapWidth, mapHeight}).Iter() {
-		x, y := pt[0], pt[1];
+		x, y := pt.X, pt.Y;
 		if area.RoomAtPoint(x, y) != nil {
 			self.SetTerrain(Vec2I{x, y}, TerrainFloor);
 		} else {
@@ -212,19 +212,19 @@ func (self *World) makeBSPMap() {
 }
 
 func inTerrain(pos Vec2I) bool {
-	return pos[0] >= 0 && pos[1] >= 0 && pos[0] < mapWidth && pos[1] < mapHeight;
+	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight;
 }
 
 func (self *World) GetTerrain(pos Vec2I) TerrainType {
 	if inTerrain(pos) {
-		return self.terrain[pos[0] + pos[1] * mapWidth];
+		return self.terrain[pos.X + pos.Y * mapWidth];
 	}
 	return TerrainIndeterminate;
 }
 
 func (self *World) SetTerrain(pos Vec2I, t TerrainType) {
 	if inTerrain(pos) {
-		self.terrain[pos[0] + pos[1] * mapWidth] = t
+		self.terrain[pos.X + pos.Y * mapWidth] = t
 	}
 }
 
@@ -304,7 +304,7 @@ func (self *World) drawTerrain() {
 func (self *World) drawEntities() {
 	for _, e := range self.entities {
 		pos := e.GetPos();
-		e.Draw(pos[0], pos[1]);
+		e.Draw(pos.X, pos.Y);
 	}
 }
 
