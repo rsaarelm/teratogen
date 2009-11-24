@@ -15,23 +15,22 @@ func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }
 
-func dir8ToVec(dir int) (x, y int) {
+func dir8ToVec(dir int) Vec2I {
 	switch dir {
-	case 0: return 0, -1;
-	case 1: return 1, -1;
-	case 2: return 1, 0;
-	case 3: return 1, 1;
-	case 4: return 0, 1;
-	case 5: return -1, 1;
-	case 6: return -1, 0;
-	case 7: return -1, -1;
+	case 0: return Vec2I{0, -1};
+	case 1: return Vec2I{1, -1};
+	case 2: return Vec2I{1, 0};
+	case 3: return Vec2I{1, 1};
+	case 4: return Vec2I{0, 1};
+	case 5: return Vec2I{-1, 1};
+	case 6: return Vec2I{-1, 0};
+	case 7: return Vec2I{-1, -1};
 	}
 	panic("Invalid dir");
 }
 
 func movePlayerDir(world *World, dir int) {
-	x, y := dir8ToVec(dir);
-	world.MovePlayer(x, y);
+	world.MovePlayer(dir8ToVec(dir));
 }
 
 func main() {
