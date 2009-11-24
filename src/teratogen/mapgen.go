@@ -10,7 +10,7 @@ import . "fomalhaut"
 const minRoomDim = 2
 
 type BspRoom struct {
-	IntRect;
+	RectI;
 	ChildLeft, ChildRight *BspRoom;
 }
 
@@ -19,7 +19,8 @@ func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	if w < 1 || h < 1 {
 		Die("Making a BspRoom with zero dimension.");
 	}
-	result.X, result.Y, result.Width, result.Height = x, y, w, h;
+	result.Pos = Pt2I{x, y};
+	result.Dim = Vec2I{w, h};
 	return;
 }
 
@@ -29,7 +30,7 @@ func (self *BspRoom)IsLeaf() bool {
 
 func (self *BspRoom)RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
-		if self.IntRect.ContainsPoint(x, y) {
+		if self.Contains(Pt2I{x, y}) {
 			return self;
 		}
 		return nil;
@@ -57,43 +58,41 @@ func AddPointToConnectingWall(
 
 	// Look for duplicates.
 	for pt := range ptVec.Iter() {
-		pt := pt.(*IntPoint2);
+		pt := pt.(Pt2I);
 		// If one is found, return.
 		if pt.X == x && pt.Y == y {
 			return;
 		}
 	}
 	// No duplicates, add the point to vector.
-	ptVec.Push(&IntPoint2{x, y});
+	ptVec.Push(Pt2I{x, y});
 }
 
 func (self *BspRoom)FindConnectingWalls(graph Graph) {
-	for y := self.Y; y <= self.Y + self.Height; y++ {
-		for x := self.X; x <= self.X + self.Width; x++ {
-			// If the center point is a wall...
-			if self.RoomAtPoint(x, y) == nil {
-				// .. try to find two opposing room points and
-				// two opposing wall points, which means it's
-				// a wall between two rooms that could be
-				// turned into a doorway.
-				n := self.RoomAtPoint(x, y - 1);
-				e := self.RoomAtPoint(x + 1, y);
-				w := self.RoomAtPoint(x - 1, y);
-				s := self.RoomAtPoint(x, y + 1);
-				var room1, room2 *BspRoom;
-				if n != nil && s != nil && n != s &&
-					w == nil && e == nil {
-					room1, room2 = n, s;
-				}
-				if e != nil && w != nil && e != w &&
-					n == nil && s == nil {
-					room1, room2 = e, w;
-				}
+	for pt := range self.Iter() {
+		// If the center point is a wall...
+		if self.RoomAtPoint(pt.X, pt.Y) == nil {
+			// .. try to find two opposing room points and
+			// two opposing wall points, which means it's
+			// a wall between two rooms that could be
+			// turned into a doorway.
+			n := self.RoomAtPoint(pt.X, pt.Y - 1);
+			e := self.RoomAtPoint(pt.X + 1, pt.Y);
+			w := self.RoomAtPoint(pt.X - 1, pt.Y);
+			s := self.RoomAtPoint(pt.X, pt.Y + 1);
+			var room1, room2 *BspRoom;
+			if n != nil && s != nil && n != s &&
+				w == nil && e == nil {
+				room1, room2 = n, s;
+			}
+			if e != nil && w != nil && e != w &&
+				n == nil && s == nil {
+				room1, room2 = e, w;
+			}
 
-				if room1 != nil && room2 != nil {
-					AddPointToConnectingWall(
-						graph, room1, room2, x, y);
-				}
+			if room1 != nil && room2 != nil {
+				AddPointToConnectingWall(
+					graph, room1, room2, pt.X, pt.Y);
 			}
 		}
 	}
@@ -103,38 +102,38 @@ func (self *BspRoom)VerticalSplit(pos int) {
 	if !self.IsLeaf() {
 		Die("Splitting a non-leaf BspRoom.");
 	}
-	if pos < minRoomDim || pos > self.Height - 1 - minRoomDim {
+	if pos < minRoomDim || pos > self.Dim.Y - 1 - minRoomDim {
 		Die("BspRoom split pos too close to wall.");
 	}
 	self.ChildLeft = NewBspRoom(
-		self.X, self.Y, self.Width, pos);
+		self.Pos.X, self.Pos.Y, self.Dim.X, pos);
 	self.ChildRight = NewBspRoom(
-		self.X, self.Y + pos + 1,
-		self.Width, self.Height - pos - 1);
+		self.Pos.X, self.Pos.Y + pos + 1,
+		self.Dim.X, self.Dim.Y - pos - 1);
 }
 
 func (self *BspRoom)HorizontalSplit(pos int) {
 	if !self.IsLeaf() {
 		Die("Splitting a non-leaf BspRoom.");
 	}
-	if pos < minRoomDim || pos > self.Width - 1 - minRoomDim {
+	if pos < minRoomDim || pos > self.Dim.X - 1 - minRoomDim {
 		Die("BspRoom split pos too close to wall.");
 	}
 	self.ChildLeft = NewBspRoom(
-		self.X, self.Y, pos, self.Height);
+		self.Pos.X, self.Pos.Y, pos, self.Dim.Y);
 	self.ChildRight = NewBspRoom(
-		self.X + pos + 1, self.Y,
-		self.Width - pos - 1, self.Height);
+		self.Pos.X + pos + 1, self.Pos.Y,
+		self.Dim.X - pos - 1, self.Dim.Y);
 }
 
 // Probability weight for vertical split, can't split below height minRoomDim * 2 + 1.
 func (self *BspRoom)VerticalSplitWeight() int {
-	return IntMax(0, self.Height - minRoomDim * 2);
+	return IntMax(0, self.Dim.Y - minRoomDim * 2);
 }
 
 // Probability weight for horizontal split, can't split below width minRoomDim * 2 + 1.
 func (self *BspRoom)HorizontalSplitWeight() int {
-	return IntMax(0, self.Width - minRoomDim * 2);
+	return IntMax(0, self.Dim.X - minRoomDim * 2);
 }
 
 func MaybeSplitRoom(room *BspRoom) {
@@ -164,11 +163,11 @@ func MaybeSplitRoom(room *BspRoom) {
 			// around the middle. The (span + 1) bit in the second
 			// one is a trick to get the whole range even when
 			// span is odd and gets truncated by integer division.
-			span := room.Height - (2 * minRoomDim + 1);
+			span := room.Dim.Y - (2 * minRoomDim + 1);
 			splitPos := rand.Intn(span / 2) + rand.Intn((span + 1) / 2) + minRoomDim;
 			room.VerticalSplit(splitPos);
 		} else {
-			span := room.Width - (2 * minRoomDim + 1);
+			span := room.Dim.X - (2 * minRoomDim + 1);
 			splitPos := rand.Intn(span / 2) + rand.Intn((span + 1) / 2) + minRoomDim;
 			room.HorizontalSplit(splitPos);
 		}

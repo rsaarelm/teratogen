@@ -204,9 +204,9 @@ func (self *World) makeBSPMap() {
 	}
 
 	for pt := range doors.Iter() {
-		pt := pt.(*IntPoint2);
+		pt := pt.(Pt2I);
 		// TODO: Convert bsp to use Pt2I
-		self.SetTerrain(Pt2I{pt.X, pt.Y}, TerrainDoor);
+		self.SetTerrain(pt, TerrainDoor);
 	}
 
 }

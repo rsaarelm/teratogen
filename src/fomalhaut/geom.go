@@ -54,3 +54,20 @@ func PtIter(x0, y0, width, height int) <-chan Pt2I {
 	}();
 	return c;
 }
+
+type RectI struct {
+	Pos Pt2I;
+	Dim Vec2I;
+}
+
+func (self RectI) Contains(pos Pt2I) bool {
+	return pos.X >= self.Pos.X && pos.Y >= self.Pos.Y &&
+		pos.X < self.Pos.X + self.Dim.X &&
+		pos.Y < self.Pos.Y + self.Dim.Y;
+}
+
+func (self RectI) RectArea() int { return self.Dim.X * self.Dim.Y; }
+
+func (self RectI) Iter() <-chan Pt2I {
+	return PtIter(self.Pos.X, self.Pos.Y, self.Dim.X, self.Dim.Y);
+}
