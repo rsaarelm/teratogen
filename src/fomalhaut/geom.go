@@ -7,7 +7,13 @@ type Vec2I struct {
 	Y int;
 }
 
+type Pt2I Vec2I
+
 func (lhs Vec2I) Equals(rhs Vec2I) bool {
+	return lhs.X == rhs.X && lhs.Y == rhs.Y;
+}
+
+func (lhs Pt2I) Equals(rhs Pt2I) bool {
 	return lhs.X == rhs.X && lhs.Y == rhs.Y;
 }
 
@@ -15,7 +21,15 @@ func (lhs Vec2I) Plus(rhs Vec2I) (result Vec2I) {
 	return Vec2I{lhs.X + rhs.X, lhs.Y + rhs.Y};
 }
 
+func (lhs Pt2I) Plus(rhs Vec2I) (result Pt2I) {
+	return Pt2I{lhs.X + rhs.X, lhs.Y + rhs.Y};
+}
+
 func (lhs Vec2I) Minus(rhs Vec2I) (result Vec2I) {
+	return Vec2I{lhs.X - rhs.X, lhs.Y - rhs.Y};
+}
+
+func (lhs Pt2I) Minus(rhs Pt2I) (result Vec2I) {
 	return Vec2I{lhs.X - rhs.X, lhs.Y - rhs.Y};
 }
 
@@ -27,13 +41,13 @@ func (self Vec2I) Abs() float64 {
 	return math.Sqrt(float64(self.Dot(self)));
 }
 
-// Iterate points where 0 <= x < self.X and 0 <= y < self.Y.
-func (self Vec2I) Iter() <-chan Vec2I {
-	c := make(chan Vec2I);
+// Iterate points where x0 <= x < x0 + width and y0 <= y < y0 + height.
+func PtIter(x0, y0, width, height int) <-chan Pt2I {
+	c := make(chan Pt2I);
 	go func() {
-		for y := 0; y < self.Y; y++ {
-			for x:= 0; x < self.X; x++ {
-				c <- Vec2I{x, y};
+		for y := y0; y < y0 + height; y++ {
+			for x:= x0; x < x0 + width; x++ {
+				c <- Pt2I{x, y};
 			}
 		}
 		close(c);

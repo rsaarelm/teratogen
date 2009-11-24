@@ -72,9 +72,9 @@ type Entity interface {
 	Drawable;
 	// TODO: Entity-common stuff.
 	IsObstacle() bool;
-	GetPos() Vec2I;
+	GetPos() Pt2I;
 	GetGuid() Guid;
-	MoveAbs(pos Vec2I);
+	MoveAbs(pos Pt2I);
 	Move(vec Vec2I);
 }
 
@@ -83,17 +83,17 @@ type Creature struct {
 	*Icon;
 	guid Guid;
 	Name string;
-	pos Vec2I;
+	pos Pt2I;
 }
 
 func (self *Creature) IsObstacle() bool { return true }
 
-func (self *Creature) GetPos() Vec2I { return self.pos }
+func (self *Creature) GetPos() Pt2I { return self.pos }
 
 func (self *Creature) GetGuid() Guid { return self.guid }
 
-// XXX: Assuming Vec2I to be a value type here.
-func (self *Creature) MoveAbs(pos Vec2I) { self.pos = pos }
+// XXX: Assuming Pt2I to be a value type here.
+func (self *Creature) MoveAbs(pos Pt2I) { self.pos = pos }
 
 func (self *Creature) Move(vec Vec2I) { self.pos = self.pos.Plus(vec) }
 
@@ -132,9 +132,9 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("");
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{&Icon{'@', RGB{0xdd, 0xff, 0xff}}, guid, "protagonist", Vec2I{-1, -1}};
+		result = &Creature{&Icon{'@', RGB{0xdd, 0xff, 0xff}}, guid, "protagonist", Pt2I{-1, -1}};
 	case EntityZombie:
-		result = &Creature{&Icon{'z', RGB{0x80, 0xa0, 0x80}}, guid, "zombie", Vec2I{-1, -1}};
+		result = &Creature{&Icon{'z', RGB{0x80, 0xa0, 0x80}}, guid, "zombie", Pt2I{-1, -1}};
 	default:
 		Die("Unknown entity type.");
 	}
@@ -142,7 +142,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	return;
 }
 
-func (self *World) SpawnAt(entityType EntityType, pos Vec2I) (result Entity) {
+func (self *World) SpawnAt(entityType EntityType, pos Pt2I) (result Entity) {
 	result = self.Spawn(entityType);
 	result.MoveAbs(pos);
 	return;
@@ -194,41 +194,41 @@ func (self *World) makeBSPMap() {
 	area.FindConnectingWalls(graph);
 	doors := DoorLocations(graph);
 
-	for pt := range (Vec2I{mapWidth, mapHeight}).Iter() {
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
 		x, y := pt.X, pt.Y;
 		if area.RoomAtPoint(x, y) != nil {
-			self.SetTerrain(Vec2I{x, y}, TerrainFloor);
+			self.SetTerrain(Pt2I{x, y}, TerrainFloor);
 		} else {
-			self.SetTerrain(Vec2I{x, y}, TerrainWall);
+			self.SetTerrain(Pt2I{x, y}, TerrainWall);
 		}
 	}
 
 	for pt := range doors.Iter() {
 		pt := pt.(*IntPoint2);
-		// TODO: Convert bsp to use Vec2I
-		self.SetTerrain(Vec2I{pt.X, pt.Y}, TerrainDoor);
+		// TODO: Convert bsp to use Pt2I
+		self.SetTerrain(Pt2I{pt.X, pt.Y}, TerrainDoor);
 	}
 
 }
 
-func inTerrain(pos Vec2I) bool {
+func inTerrain(pos Pt2I) bool {
 	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight;
 }
 
-func (self *World) GetTerrain(pos Vec2I) TerrainType {
+func (self *World) GetTerrain(pos Pt2I) TerrainType {
 	if inTerrain(pos) {
 		return self.terrain[pos.X + pos.Y * mapWidth];
 	}
 	return TerrainIndeterminate;
 }
 
-func (self *World) SetTerrain(pos Vec2I, t TerrainType) {
+func (self *World) SetTerrain(pos Pt2I, t TerrainType) {
 	if inTerrain(pos) {
 		self.terrain[pos.X + pos.Y * mapWidth] = t
 	}
 }
 
-func (self *World) EntitiesAt(pos Vec2I) <-chan Entity {
+func (self *World) EntitiesAt(pos Pt2I) <-chan Entity {
 	c := make(chan Entity);
 	go func() {
 		for _, ent := range self.entities {
@@ -242,7 +242,7 @@ func (self *World) EntitiesAt(pos Vec2I) <-chan Entity {
 }
 
 
-func (self *World) IsOpen(pos Vec2I) bool {
+func (self *World) IsOpen(pos Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return false;
 	}
@@ -255,48 +255,48 @@ func (self *World) IsOpen(pos Vec2I) bool {
 	return true;
 }
 
-func (self *World) GetSpawnPos() (pos Vec2I) {
+func (self *World) GetSpawnPos() (pos Pt2I) {
 	pos, ok := self.GetMatchingPos(
-		func(pos Vec2I) bool { return self.isSpawnPos(pos); });
+		func(pos Pt2I) bool { return self.isSpawnPos(pos); });
 	if !ok {
 		Die("Couldn't find open position.");
 	}
 	return;
 }
 
-func (self *World) isSpawnPos(pos Vec2I) bool {
+func (self *World) isSpawnPos(pos Pt2I) bool {
 	if !self.IsOpen(pos) { return false; }
 	if self.GetTerrain(pos) == TerrainDoor { return false; }
 	return true;
 }
 
-func (self *World) GetMatchingPos(f func (Vec2I) bool) (pos Vec2I, found bool) {
+func (self *World) GetMatchingPos(f func (Pt2I) bool) (pos Pt2I, found bool) {
 	const tries = 1024;
 
 	for i := 0; i < tries; i++ {
 		x, y := rand.Intn(mapWidth), rand.Intn(mapHeight);
-		pos = Vec2I{x, y};
+		pos = Pt2I{x, y};
 		if f(pos) {
 			return pos, true;
 		}
 	}
 
 	// RNG has failed us, let's do an exhaustive search...
-	for pt := range (Vec2I{mapWidth, mapHeight}).Iter() {
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
 		if f(pt) {
 			return pt, true;
 		}
 	}
 
 	// There really doesn't seem to be any open positions.
-	return Vec2I{0, 0}, false;
+	return Pt2I{0, 0}, false;
 }
 
 
 func (self *World) drawTerrain() {
 	for y := 0; y < mapHeight; y++ {
 		for x := 0; x < mapWidth; x++ {
-			tileset1[self.GetTerrain(Vec2I{x, y})].Draw(x, y);
+			tileset1[self.GetTerrain(Pt2I{x, y})].Draw(x, y);
 		}
 	}
 }
