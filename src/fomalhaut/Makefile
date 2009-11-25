@@ -10,5 +10,6 @@ GOFILES=\
 	rng.go\
 	set.go\
 	string.go\
+	tiles.go\
 
 include $(GOROOT)/src/Make.pkg

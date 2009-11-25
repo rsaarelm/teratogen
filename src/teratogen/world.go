@@ -37,6 +37,12 @@ type EntityType int const (
 	EntityZombie;
 )
 
+type LosState byte const (
+	LosUnknown = iota;
+	LosMapped;
+	LosSeen;
+)
+
 var tileset1 = []Icon{
 TerrainIndeterminate: Icon{'?', RGB{255, 0, 255}},
 TerrainWall: Icon{'#', RGB{196, 64, 0}},
@@ -103,6 +109,7 @@ type World struct {
 	Lock *sync.RWMutex;
 	entities map[Guid] Entity;
 	terrain []TerrainType;
+	los []LosState;
 	guidCounter uint64;
 }
 
@@ -186,6 +193,52 @@ func (self *World) InitLevel(num int) {
 
 func (self *World) initTerrain() {
 	self.terrain = make([]TerrainType, numTerrainCells);
+	self.los = make([]LosState, numTerrainCells);
+}
+
+func (self *World) ClearLosSight() {
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+		idx := pt.X + mapWidth * pt.Y;
+		if self.los[idx] == LosSeen { self.los[idx] = LosMapped; }
+	}
+}
+
+func (self *World) MarkSeen(pos Pt2I) {
+	if inTerrain(pos) {
+		self.los[pos.X + pos.Y * mapWidth] = LosSeen;
+	}
+}
+
+func (self *World) GetLos(pos Pt2I) LosState {
+	if inTerrain(pos) {
+		return self.los[pos.X + pos.Y * mapWidth];
+	}
+	return LosUnknown;
+}
+
+func (self *World) DoLos(center Pt2I) {
+	const losRadius = 8;
+
+	blocks := func(vec Vec2I) bool {
+		return self.BlocksSight(center.Plus(vec));
+	};
+
+	outOfRadius := func(vec Vec2I) bool {
+		return int(vec.Abs()) > losRadius;
+	};
+
+	for pt := range LineOfSight(blocks, outOfRadius) {
+		self.MarkSeen(center.Plus(pt));
+	}
+}
+
+func (self *World) BlocksSight(pos Pt2I) bool {
+	if IsObstacleTerrain(self.GetTerrain(pos)) {
+		return true;
+	}
+	if self.GetTerrain(pos) == TerrainDoor { return true; }
+
+	return false;
 }
 
 func (self *World) makeBSPMap() {
@@ -294,17 +347,19 @@ func (self *World) GetMatchingPos(f func (Pt2I) bool) (pos Pt2I, found bool) {
 
 
 func (self *World) drawTerrain() {
-	for y := 0; y < mapHeight; y++ {
-		for x := 0; x < mapWidth; x++ {
-			tileset1[self.GetTerrain(Pt2I{x, y})].Draw(x, y);
-		}
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+		if self.GetLos(pt) == LosUnknown { continue; }
+		tileset1[self.GetTerrain(pt)].Draw(pt.X, pt.Y);
 	}
 }
 
 func (self *World) drawEntities() {
 	for _, e := range self.entities {
 		pos := e.GetPos();
-		e.Draw(pos.X, pos.Y);
+		// TODO: Draw static (item) entities from map memory.
+		if self.GetLos(pos) == LosSeen {
+			e.Draw(pos.X, pos.Y);
+		}
 	}
 }
 

@@ -30,7 +30,9 @@ func dir8ToVec(dir int) Vec2I {
 }
 
 func movePlayerDir(world *World, dir int) {
+	world.ClearLosSight();
 	world.MovePlayer(dir8ToVec(dir));
+	world.DoLos(world.GetPlayer().GetPos());
 }
 
 func main() {
@@ -45,6 +47,8 @@ func main() {
 	world := NewWorld();
 
 	world.InitLevel(1);
+
+	world.DoLos(world.GetPlayer().GetPos());
 
 	tickerLine := "";
 
