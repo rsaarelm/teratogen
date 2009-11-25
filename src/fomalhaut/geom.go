@@ -33,6 +33,26 @@ func (lhs Pt2I) Minus(rhs Pt2I) (result Vec2I) {
 	return Vec2I{lhs.X - rhs.X, lhs.Y - rhs.Y};
 }
 
+func (self *Pt2I) Add(rhs Vec2I) {
+	self.X += rhs.X;
+	self.Y += rhs.Y;
+}
+
+func (self *Pt2I) Subtract(rhs Vec2I) {
+	self.X -= rhs.X;
+	self.Y -= rhs.Y;
+}
+
+func (self *Vec2I) Add(rhs Vec2I) {
+	self.X += rhs.X;
+	self.Y += rhs.Y;
+}
+
+func (self *Vec2I) Subtract(rhs Vec2I) {
+	self.X -= rhs.X;
+	self.Y -= rhs.Y;
+}
+
 func (lhs Vec2I) Dot(rhs Vec2I) int {
 	return lhs.X * rhs.X + lhs.Y * rhs.Y;
 }
