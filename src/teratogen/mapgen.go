@@ -49,7 +49,7 @@ func AddPointToConnectingWall(
 		// These rooms aren't in the graph yet. Add a bidirectional
 		// connection. Use a vector of points as the arc object. The
 		// same object is aliased in both arc directions.
-		arc = vector.New(0);
+		arc = new(vector.Vector);
 		graph.AddArc(room1, room2, arc);
 		graph.AddArc(room2, room1, arc);
 	}
@@ -188,7 +188,7 @@ func MakeBspMap(x, y, w, h int) (result *BspRoom) {
 func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 	const extraDoorProb = 0.2;
 
-	result = vector.New(0);
+	result = new(vector.Vector);
 	rooms := iterable.Data(wallGraph);
 
 	if len(rooms) == 0 {
@@ -244,7 +244,7 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 }
 
 func DoorLocations(wallGraph Graph) (result *vector.Vector) {
-	result = vector.New(0);
+	result = new(vector.Vector);
 
 	for wall := range wallsToMakeDoorsIn(wallGraph).Iter() {
 		result.Push(RandomFromIterable(wall.(iterable.Iterable)));

@@ -43,8 +43,7 @@ func (self *SparseMatrixGraph)RemoveArc(node1, node2 interface{}) {
 	if arcList, ok := self.arcMatrix[id1]; ok {
 		arcList[id2] = nil, false;
 		if len(arcList) == 0 {
-			// FIXME: Issue 288, deleting from map of maps won't work.
-//			self.arcMatrix[id1] = arcList, false;
+			self.arcMatrix[id1] = arcList, false;
 		}
 	}
 }
