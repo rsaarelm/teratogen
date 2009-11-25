@@ -1,7 +1,7 @@
 LIBS=fomalhaut libtcod teratogen
 
-# Library dependencies.
-teratogen_build: fomalhaut_build libtcod_build
+# TODO: Dependencies to make Teratogen rebuild when Fomalhaut or Libtcod has
+# been.
 
 GOFILES=src/main.go
 
