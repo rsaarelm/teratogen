@@ -1,8 +1,5 @@
 LIBS=fomalhaut libtcod teratogen
 
-# TODO: Dependencies to make Teratogen rebuild when Fomalhaut or Libtcod has
-# been.
-
 GOFILES=src/main.go
 
 TARG=teratogen
@@ -23,6 +20,10 @@ LIB_FILES:=$(LIBS:%=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)/%.$(LIBSUFFIX))
 all: $(TARG)
 
 $(TARG): $(LIB_FILES)
+
+# XXX: Hack to make the main object file get recompiled if the libraries have
+# been updated.
+_go_.8: $(LIB_FILES)
 
 # XXX: Hacky dependency to the main file to ensure that the libraries get
 # built before we try to compile the main file.
