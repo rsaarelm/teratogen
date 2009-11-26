@@ -37,6 +37,12 @@ type EntityType int const (
 	EntityZombie;
 )
 
+type EntityClass int const (
+	EmptyEntityClass = iota;
+	PlayerEntityClass;
+	EnemyEntityClass;
+)
+
 type LosState byte const (
 	LosUnknown = iota;
 	LosMapped;
@@ -90,6 +96,7 @@ type Creature struct {
 	guid Guid;
 	Name string;
 	pos Pt2I;
+	class EntityClass;
 }
 
 func (self *Creature) IsObstacle() bool { return true }
@@ -97,6 +104,8 @@ func (self *Creature) IsObstacle() bool { return true }
 func (self *Creature) GetPos() Pt2I { return self.pos }
 
 func (self *Creature) GetGuid() Guid { return self.guid }
+
+func (self *Creature) GetClass() EntityClass { return self.class; }
 
 // XXX: Assuming Pt2I to be a value type here.
 func (self *Creature) MoveAbs(pos Pt2I) { self.pos = pos }
@@ -135,13 +144,26 @@ func (self *World) GetPlayer() *Creature {
 	return self.entities[self.playerId].(*Creature);
 }
 
+func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
+	ent, ok = self.entities[guid];
+	return;
+}
+
+func (self *World) DestroyEntity(ent Entity) {
+	self.entities[ent.GetGuid()] = ent, false;
+}
+
 func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("");
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{&Icon{'@', RGB{0xdd, 0xff, 0xff}}, guid, "protagonist", Pt2I{-1, -1}};
+		result = &Creature{
+			&Icon{'@', RGB{0xdd, 0xff, 0xff}}, guid, "protagonist",
+			Pt2I{-1, -1}, PlayerEntityClass};
 	case EntityZombie:
-		result = &Creature{&Icon{'z', RGB{0x80, 0xa0, 0x80}}, guid, "zombie", Pt2I{-1, -1}};
+		result = &Creature{
+			&Icon{'z', RGB{0x80, 0xa0, 0x80}}, guid, "zombie",
+			Pt2I{-1, -1}, EnemyEntityClass};
 	default:
 		Die("Unknown entity type.");
 	}

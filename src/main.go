@@ -35,6 +35,21 @@ func movePlayerDir(world *World, dir int) {
 	world.DoLos(world.GetPlayer().GetPos());
 }
 
+func smartMove(world *World, dir int) {
+	player := world.GetPlayer();
+	vec := dir8ToVec(dir);
+	target := player.GetPos().Plus(vec);
+
+	for ent := range world.EntitiesAt(target) {
+		if world.IsEnemyOf(player, ent) {
+			world.Attack(player, ent);
+			return;
+		}
+	}
+	// No attack, move normally.
+	movePlayerDir(world, dir);
+}
+
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
@@ -81,21 +96,21 @@ func main() {
 			case 'q':
 				running = false;
 			case 'e':
-				movePlayerDir(world, 0);
+				smartMove(world, 0);
 			case 'l':
-				movePlayerDir(world, 1);
+				smartMove(world, 1);
 			case 'i':
-				movePlayerDir(world, 2);
-			case 'm':
-				movePlayerDir(world, 3);
-			case 'n':
-				movePlayerDir(world, 4);
+				smartMove(world, 2);
 			case 'k':
-				movePlayerDir(world, 5);
+				smartMove(world, 3);
+			case 'n':
+				smartMove(world, 4);
+			case 'b':
+				smartMove(world, 5);
 			case 'h':
-				movePlayerDir(world, 6);
+				smartMove(world, 6);
 			case 'j':
-				movePlayerDir(world, 7);
+				smartMove(world, 7);
 			case 'p':
 				tickerLine += "Some text for the buffer... ";
 			}
