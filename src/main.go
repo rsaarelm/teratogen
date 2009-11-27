@@ -9,8 +9,6 @@ import "libtcod"
 import . "fomalhaut"
 import . "teratogen"
 
-const tickerWidth = 80;
-
 func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }
@@ -50,6 +48,47 @@ func smartMove(world *World, dir int) {
 	movePlayerDir(world, dir);
 }
 
+type MsgOut struct {
+	tickerLine string;
+	input chan string;
+}
+
+func NewMsgOut() (result *MsgOut) {
+	result = new(MsgOut);
+	result.input = make(chan string);
+	go result.runTicker();
+	return;
+}
+
+func (self *MsgOut) runTicker() {
+	for {
+		const tickerWidth = 80;
+		const lettersAtTime = 1;
+		const letterDelayNs = 1e9 * 0.20;
+
+		if append, ok := <-self.input; ok {
+			self.tickerLine = self.tickerLine + append;
+		}
+
+		// XXX: lettesDelayNs doesn't evaluate to an exact integer due
+		// to rounding errors, and casting inexact floats to integers
+		// is a compile-time error, so we need an extra Floor
+		// operation here.
+		time.Sleep(int64(math.Floor(letterDelayNs) * lettersAtTime));
+		for x := 0; x <= lettersAtTime; x++ {
+			self.tickerLine = updateTicker(self.tickerLine, tickerWidth);
+		}
+	}
+}
+
+func (self *MsgOut) GetLine() string { return self.tickerLine; }
+
+func (self *MsgOut) WriteString(str string) {
+	self.input <- str;
+}
+
+// TODO: MsgOut io.Writer implemetation.
+
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
@@ -65,22 +104,7 @@ func main() {
 
 	world.DoLos(world.GetPlayer().GetPos());
 
-	tickerLine := "";
-
-	go func() {
-		for {
-			const lettersAtTime = 1;
-			const letterDelayNs = 1e9 * 0.20;
-			// XXX: lettesDelayNs doesn't evaluate to an exact
-			// integer due to rounding errors, and casting inexact
-			// floats to integers is a compile-time error, so we
-			// need an extra Floor operation here.
-			time.Sleep(int64(math.Floor(letterDelayNs) * lettersAtTime));
-			for x := 0; x <= lettersAtTime; x++ {
-				tickerLine = updateTicker(tickerLine, tickerWidth);
-			}
-		}
-	}();
+	msg := NewMsgOut();
 
 	// Game logic
 	go func() {
@@ -112,7 +136,7 @@ func main() {
 			case 'j':
 				smartMove(world, 7);
 			case 'p':
-				tickerLine += "Some text for the buffer... ";
+				msg.WriteString("Some text for the buffer... ");
 			}
 		}
 	}();
@@ -122,7 +146,7 @@ func main() {
 
 		world.Draw();
 		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
-		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, tickerLine);
+		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, msg.GetLine());
 
 		libtcod.Flush();
 
