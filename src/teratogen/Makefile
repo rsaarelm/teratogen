@@ -4,6 +4,7 @@ TARG=teratogen
 GOFILES=\
 	gfx.go\
 	mapgen.go\
+	msg.go\
 	rules.go\
 	world.go\
 

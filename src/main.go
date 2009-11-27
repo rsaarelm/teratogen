@@ -1,7 +1,6 @@
 package main
 
 import "fmt"
-import "math"
 import "rand"
 import "time"
 
@@ -9,9 +8,8 @@ import "libtcod"
 import . "fomalhaut"
 import . "teratogen"
 
-func updateTicker(str string, lineLength int) string {
-	return PadString(EatPrefix(str, 1), lineLength);
-}
+var msg *MsgOut;
+
 
 func dir8ToVec(dir int) Vec2I {
 	switch dir {
@@ -41,53 +39,13 @@ func smartMove(world *World, dir int) {
 	for ent := range world.EntitiesAt(target) {
 		if world.IsEnemyOf(player, ent) {
 			world.Attack(player, ent);
+			fmt.Fprintf(msg, "Smash! ");
 			return;
 		}
 	}
 	// No attack, move normally.
 	movePlayerDir(world, dir);
 }
-
-type MsgOut struct {
-	tickerLine string;
-	input chan string;
-}
-
-func NewMsgOut() (result *MsgOut) {
-	result = new(MsgOut);
-	result.input = make(chan string);
-	go result.runTicker();
-	return;
-}
-
-func (self *MsgOut) runTicker() {
-	for {
-		const tickerWidth = 80;
-		const lettersAtTime = 1;
-		const letterDelayNs = 1e9 * 0.20;
-
-		if append, ok := <-self.input; ok {
-			self.tickerLine = self.tickerLine + append;
-		}
-
-		// XXX: lettesDelayNs doesn't evaluate to an exact integer due
-		// to rounding errors, and casting inexact floats to integers
-		// is a compile-time error, so we need an extra Floor
-		// operation here.
-		time.Sleep(int64(math.Floor(letterDelayNs) * lettersAtTime));
-		for x := 0; x <= lettersAtTime; x++ {
-			self.tickerLine = updateTicker(self.tickerLine, tickerWidth);
-		}
-	}
-}
-
-func (self *MsgOut) GetLine() string { return self.tickerLine; }
-
-func (self *MsgOut) WriteString(str string) {
-	self.input <- str;
-}
-
-// TODO: MsgOut io.Writer implemetation.
 
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
@@ -98,13 +56,13 @@ func main() {
 
 	libtcod.Init(80, 50, "Teratogen");
 
+	msg = NewMsgOut();
+
 	world := NewWorld();
 
 	world.InitLevel(1);
 
 	world.DoLos(world.GetPlayer().GetPos());
-
-	msg := NewMsgOut();
 
 	// Game logic
 	go func() {
@@ -136,7 +94,7 @@ func main() {
 			case 'j':
 				smartMove(world, 7);
 			case 'p':
-				msg.WriteString("Some text for the buffer... ");
+				fmt.Fprint(msg, "Some text for the buffer... ");
 			}
 		}
 	}();
