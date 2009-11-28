@@ -239,7 +239,7 @@ func (self *World) GetLos(pos Pt2I) LosState {
 }
 
 func (self *World) DoLos(center Pt2I) {
-	const losRadius = 8;
+	const losRadius = 12;
 
 	blocks := func(vec Vec2I) bool {
 		return self.BlocksSight(center.Plus(vec));
