@@ -28,3 +28,7 @@ func Die(msg string) {
 	// PrintBacktrace();
 	// os.Exit(1);
 }
+
+func DieIfNil(val interface{}, name string) {
+	if val == nil { Die("Illegal nil value: "+name); }
+}

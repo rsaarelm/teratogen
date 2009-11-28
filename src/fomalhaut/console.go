@@ -1,5 +1,49 @@
 package fomalhaut
 
+type Console struct {
+	impl ConsoleBase;
+	fore, back RGB;
+}
+
+func NewConsole(impl ConsoleBase) (result *Console) {
+	DieIfNil(impl, "console implementation");
+	result = new(Console);
+	result.impl = impl;
+	result.fore = RGB{255, 255, 255};
+	result.back = RGB{0, 0, 0};
+	return;
+}
+
+func (self *Console) Clear() {
+	w, h := self.impl.GetDim();
+	for pt := range PtIter(0, 0, w, h) {
+		self.impl.Set(pt.X, pt.Y, ' ', self.fore, self.back);
+	}
+}
+
+func (self *Console) Set(x, y int, symbol int, foreColor, backColor RGB) {
+	self.impl.Set(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) Get(x, y int) (symbol int, foreColor, backColor RGB) {
+	return self.impl.Get(x, y);
+}
+
+func (self *Console) SetForeCol(col RGB) { self.fore = col; }
+
+func (self *Console) SetBackCol(col RGB) { self.back = col; }
+
+func (self *Console) Flush() { self.impl.Flush(); }
+
+func (self *Console) Events() <-chan ConsoleEvent { return self.impl.Events(); }
+
+// TODO: Color state.
+func (self *Console) Print(x, y int, txt string) {
+	for i := 0; i < len(txt); i++ {
+		self.impl.Set(x + i, y, int(txt[i]), self.fore, self.back);
+	}
+}
+
 // TODO: Canonical keycode enumeration. Use the ones from SDL.
 
 // Minimal features for implementing a console.
@@ -23,8 +67,7 @@ type ConsoleEvent interface {}
 type KeyEvent struct {
 	Code int;
         Printable int;
-	// True if key pressed, false if key released.
-        Pressed bool;
+	// TODO: KeyDown / KeyUp instead of just keypress?
 	// TODO: Modifier buttons
 }
 
@@ -46,6 +89,5 @@ type MouseAction byte const (
         MouseMove;
 )
 
-// Global console handle
-
-var Console ConsoleBase
+// Default console handle.
+var Con *Console

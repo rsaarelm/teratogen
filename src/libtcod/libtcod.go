@@ -131,7 +131,7 @@ func spawnEventListeners(events chan<- ConsoleEvent) {
 	keyListener := func() {
 		for {
 			key := C.wait_for_keypress(C.bool(0));
-			event := &KeyEvent{int(key.vk), int(key.c), key.pressed != 0};
+			event := &KeyEvent{int(key.vk), int(key.c)};
 			events <- event;
 		}
 	};
