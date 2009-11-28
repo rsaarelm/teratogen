@@ -1,5 +1,7 @@
 package libtcod
 
+import . "fomalhaut"
+
 // XXX: C interface has trouble with returned structs. Maybe it's specific to
 // the bit-level stuff in TCOD_key_t. Get rid of wrappers when FFI can handle
 // TCOD_key_t directly.
@@ -19,6 +21,16 @@ static TCOD_color_t make_color(uint8 r, uint8 g, uint8 b) {
   result.g = g;
   result.b = b;
   return result;
+}
+
+// Make an int that contains the bit pattern of the TCOD_color_t struct.
+// Relies on the assumption that all the bits fit in an int.
+static int pack_color(TCOD_color_t tcod_col) {
+  return *((int*)(&tcod_col)) & ((1 << sizeof(TCOD_color_t)) - 1);
+}
+
+static TCOD_color_t unpack_color(int col) {
+ return *((TCOD_color_t*)(&col));
 }
 
 // Golang can't handle structs with 1-bit fields, so we make a normalized
@@ -59,6 +71,89 @@ static void print_left(int x, int y, TCOD_bkgnd_flag_t flag, const char *txt) {
 import "C"
 import "unsafe"
 
+type libtcodConsole struct {
+	eventChannel chan ConsoleEvent;
+}
+
+func (self *libtcodConsole) Set(
+	x, y int, symbol int, foreColor, backColor ConsoleColor) {
+	C.TCOD_console_set_foreground_color(
+		nil, C.unpack_color(C.int(foreColor)));
+	C.TCOD_console_set_background_color(
+		nil, C.unpack_color(C.int(backColor)));
+	C.TCOD_console_put_char(
+		nil, C.int(x), C.int(y), C.int(symbol), C.TCOD_bkgnd_flag_t(0));
+}
+
+func (self *libtcodConsole) Get(
+	x, y int) (symbol int, foreColor, backColor ConsoleColor) {
+	symbol = int(C.TCOD_console_get_char(nil, C.int(x), C.int(y)));
+	foreColor = ConsoleColor(
+		C.pack_color(C.TCOD_console_get_fore(nil, C.int(x), C.int(y))));
+	backColor = ConsoleColor(
+		C.pack_color(C.TCOD_console_get_back(nil, C.int(x), C.int(y))));
+	return;
+}
+
+func (self *libtcodConsole) Events() <-chan ConsoleEvent {
+	return self.eventChannel;
+}
+
+func (self *libtcodConsole) GetDim() (width, height int) {
+	width = int(C.TCOD_console_get_width(nil));
+	height = int(C.TCOD_console_get_height(nil));
+	return;
+}
+
+func (self *libtcodConsole) EncodeColor(r, g, b byte) ConsoleColor {
+	return ConsoleColor(C.pack_color(C.make_color(
+		C.uint8(r), C.uint8(g), C.uint8(b))));
+}
+
+func (self *libtcodConsole) DecodeColor(col ConsoleColor) (r, g, b byte) {
+	tcod_col := C.unpack_color(C.int(col));
+	r, g, b = byte(tcod_col.r), byte(tcod_col.g), byte(tcod_col.b);
+	return;
+}
+
+func (self *libtcodConsole) ShowCursorAt(x, y int) {
+	// TODO
+}
+
+func (self *libtcodConsole) HideCursor() {
+	// TODO
+}
+
+func (self *libtcodConsole) Flush() {
+	C.TCOD_console_flush();
+}
+
+
+func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
+	result := new (libtcodConsole);
+
+	result.eventChannel = make(chan ConsoleEvent);
+
+	spawnEventListeners(result.eventChannel);
+
+	return result;
+}
+
+func spawnEventListeners(events chan<- ConsoleEvent) {
+	keyListener := func() {
+		for {
+			key := C.check_for_keypress();
+			event := &KeyEvent{int(key.vk), int(key.c), key.pressed != 0};
+			events <- event;
+		}
+	};
+
+	go keyListener();
+
+	// TODO mouse, resize, quit listeners.
+}
+
+// Obsolete stuff below.
 type Keycode byte
 const (
 	TCODK_NONE = iota;
