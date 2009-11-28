@@ -74,7 +74,7 @@ func processOctant(
 				if (v > 0) {
 					startSlope = Float64Max(
 						startSlope,
-						(float64(v) - 0.5) / (float64(u) / 0.5));
+						(float64(v) - 0.5) / (float64(u) - 0.5));
 				}
 			}
 		}
