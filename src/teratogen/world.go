@@ -209,7 +209,11 @@ func (self *World) InitLevel(num int) {
 	self.entities = make(map[Guid] Entity);
 	self.entities[self.playerId] = player;
 
-	self.makeBSPMap();
+	if WithProb(0.2) {
+		self.makeCaveMap();
+	} else {
+		self.makeBSPMap();
+	}
 
 	player.MoveAbs(self.GetSpawnPos());
 
@@ -288,7 +292,22 @@ func (self *World) makeBSPMap() {
 		// TODO: Convert bsp to use Pt2I
 		self.SetTerrain(pt, TerrainDoor);
 	}
+}
 
+func (self *World) makeCaveMap() {
+	area := MakeCaveMap(mapWidth, mapHeight, 0.50);
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+		switch area[pt.X][pt.Y] {
+		case CaveFloor:
+			self.SetTerrain(pt, TerrainFloor);
+		case CaveWall:
+			self.SetTerrain(pt, TerrainWall);
+		case CaveUnknown:
+			self.SetTerrain(pt, TerrainWall);
+		default:
+			Die("Bad data in generated cave map.");
+		}
+	}
 }
 
 func inTerrain(pos Pt2I) bool {

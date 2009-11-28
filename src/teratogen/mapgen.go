@@ -253,3 +253,91 @@ func DoorLocations(wallGraph Graph) (result *vector.Vector) {
 	return;
 }
 
+type CaveTile byte const (
+	CaveUnknown = iota;
+	CaveFloor;
+	CaveWall;
+)
+
+// Cave generator by Ray Dillinger, Message-Id: <48d8aa27$0$33580$742ec2ed@news.sonic.net>
+// Adapted from the original C to Golang.
+func MakeCaveMap(width, height int, floorPercent float) (result [][]CaveTile) {
+	const iterationsPerCell = 500;
+	const recarveProb = 0.01;
+	maxFloorCount := int(floorPercent * float(width * height));
+
+	result = make([][]CaveTile, width);
+	for x := 0; x < width; x++ { result[x] = make([]CaveTile, height); }
+
+	uncommittedCount := width * height - 1;
+	wallCount := 0;
+	floorCount := 1;
+
+	xmin, ymin := width / 2 - 1, height / 2 - 1;
+	xmax, ymax := xmin + 2, ymin + 2;
+
+	iterationLimit := 0;
+
+	// Clear a center starting point.
+	result[width / 2][height / 2] = CaveFloor;
+
+	for ; iterationLimit < width * height * iterationsPerCell && floorCount < maxFloorCount;  {
+		iterationLimit++;
+		x, y := xmin + rand.Intn(xmax - xmin + 1), ymin + rand.Intn(ymax - ymin + 1);
+		if result[x][y] == CaveUnknown || WithProb(recarveProb) {
+			if x == xmin && x > 1 { xmin--; }
+			if x == xmax && x < width - 2 { xmax++; }
+			if y == ymin && y > 1 { ymin--; }
+			if y == ymax && y < height - 2 { ymax++; }
+
+			adjFloors := 0;
+			if result[x-1][y] == CaveFloor { adjFloors++; }
+			if result[x+1][y] == CaveFloor { adjFloors++; }
+			if result[x][y-1] == CaveFloor { adjFloors++; }
+			if result[x][y+1] == CaveFloor { adjFloors++; }
+
+			adjWalls := 0;
+			if result[x-1][y] == CaveWall { adjWalls++; }
+			if result[x+1][y] == CaveWall { adjWalls++; }
+			if result[x][y-1] == CaveWall { adjWalls++; }
+			if result[x][y+1] == CaveWall { adjWalls++; }
+
+			if adjFloors > 0 {
+				if uncommittedCount + floorCount > width * height / 2 &&
+					(adjWalls > adjFloors || wallCount * 3 < floorCount * 2) {
+					if result[x][y] == CaveUnknown { uncommittedCount--; }
+					if result[x][y] == CaveFloor { floorCount--; }
+					if result[x][y] != CaveWall { wallCount++; }
+					result[x][y] = CaveWall;
+				} else {
+					if result[x][y] == CaveUnknown { uncommittedCount--; }
+					if result[x][y] == CaveWall { wallCount--; }
+					if result[x][y] != CaveFloor { floorCount++; }
+					result[x][y] = CaveFloor;
+				}
+			}
+		}
+	}
+
+	for x := 1; x < width - 1; x++ {
+		for y := 1; y < height - 1; y++ {
+			adjFloors := 0;
+			if result[x-1][y] == CaveFloor { adjFloors++; }
+			if result[x+1][y] == CaveFloor { adjFloors++; }
+			if result[x][y-1] == CaveFloor { adjFloors++; }
+			if result[x][y+1] == CaveFloor { adjFloors++; }
+
+			if adjFloors > 0 && result[x][y] == CaveUnknown {
+				result[x][y] = CaveWall;
+			}
+			if adjFloors == 4 {
+				result[x][y] = CaveFloor;
+			}
+			if adjFloors == 0 {
+				result[x][y] = CaveWall;
+			}
+		}
+	}
+
+	return;
+}
