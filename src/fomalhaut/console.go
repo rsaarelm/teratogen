@@ -1,5 +1,8 @@
 package fomalhaut
 
+// This is a wrapper class for consoles which implements complex display
+// logic. It holds a reference to a minimal implementation object which does
+// the implementation-specific things.
 type Console struct {
 	impl ConsoleBase;
 	fore, back RGB;
@@ -21,7 +24,32 @@ func (self *Console) Clear() {
 	}
 }
 
-func (self *Console) Set(x, y int, symbol int, foreColor, backColor RGB) {
+func (self *Console) SetCFB(x, y int, symbol int, foreColor, backColor RGB) {
+	self.impl.Set(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) SetC(x, y int, symbol int) {
+	_, foreColor, backColor := self.Get(x, y);
+	self.SetCFB(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) SetF(x, y int, foreColor RGB) {
+	symbol, _, backColor := self.Get(x, y);
+	self.SetCFB(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) SetB(x, y int, backColor RGB) {
+	symbol, foreColor, _ := self.Get(x, y);
+	self.SetCFB(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) SetCF(x, y int, symbol int, foreColor RGB) {
+	_, _, backColor := self.Get(x, y);
+	self.SetCFB(x, y, symbol, foreColor, backColor);
+}
+
+func (self *Console) SetFB(x, y int, foreColor, backColor RGB) {
+	symbol, _, _ := self.Get(x, y);
 	self.impl.Set(x, y, symbol, foreColor, backColor);
 }
 
@@ -37,11 +65,14 @@ func (self *Console) Flush() { self.impl.Flush(); }
 
 func (self *Console) Events() <-chan ConsoleEvent { return self.impl.Events(); }
 
-// TODO: Color state.
 func (self *Console) Print(x, y int, txt string) {
 	for i := 0; i < len(txt); i++ {
 		self.impl.Set(x + i, y, int(txt[i]), self.fore, self.back);
 	}
+}
+
+func (self *Console) ColorsDiffer(col1, col2 RGB) bool {
+	return self.impl.ColorsDiffer(col1, col2);
 }
 
 // TODO: Canonical keycode enumeration. Use the ones from SDL.

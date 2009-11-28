@@ -20,10 +20,9 @@ const xDrawOffset = 0
 const yDrawOffset = 1
 
 func (self *Icon)Draw(x, y int) {
-	// XXX: Hardcoded black background color.
-	Con.Set(
+	Con.SetCF(
 		x + xDrawOffset, y + yDrawOffset,
-		int(self.IconId), self.Color, RGB{0, 0, 0});
+		int(self.IconId), self.Color);
 }
 
 
