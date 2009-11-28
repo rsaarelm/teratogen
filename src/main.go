@@ -54,7 +54,8 @@ func main() {
 
 	rand.Seed(time.Nanoseconds());
 
-	libtcod.Init(80, 50, "Teratogen");
+	//libtcod.Init(80, 50, "Teratogen");
+	Console = libtcod.NewLibtcodConsole(80, 50, "Teratogen");
 
 	msg = NewMsgOut();
 
@@ -100,17 +101,18 @@ func main() {
 	}();
 
 	for running {
-		libtcod.Clear();
+		ConsoleClear(Console);
 
 		world.Draw();
-		libtcod.SetForeColor(libtcod.MakeColor(192, 192, 192));
-		libtcod.PrintLeft(0, 0, libtcod.BkgndNone, msg.GetLine());
 
-		libtcod.Flush();
+		ConsolePrint(Console, 0, 0, msg.GetLine(), RGB{192, 192, 192}, RGB{0, 0, 0});
+		Console.Flush();
 
-		key := libtcod.CheckForKeypress();
-		if key != 0 {
-			getch <- byte(key);
+		if evt, ok := <-Console.Events(); ok {
+			switch e := evt.(type) {
+			case *KeyEvent:
+				getch <- byte(e.Printable);
+			}
 		}
 	}
 }

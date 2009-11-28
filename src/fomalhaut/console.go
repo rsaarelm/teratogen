@@ -1,13 +1,16 @@
 package fomalhaut
 
+// TODO: Canonical keycode enumeration. Use the ones from SDL.
+
 // Minimal features for implementing a console.
 type ConsoleBase interface {
-	Set(x, y int, symbol int, foreColor, backColor ConsoleColor);
-        Get(x, y int) (symbol int, foreColor, backColor ConsoleColor);
+	Set(x, y int, symbol int, foreColor, backColor RGB);
+        Get(x, y int) (symbol int, foreColor, backColor RGB);
         Events() <-chan ConsoleEvent;
 	GetDim() (width, height int);
-        EncodeColor(r, g, b byte) ConsoleColor;
-        DecodeColor(col ConsoleColor) (r, g, b byte);
+	// Return whether the console is able to differentiate between the two
+	// colors.
+	ColorsDiffer(col1, col2 RGB) bool;
         ShowCursorAt(x, y int);
         HideCursor();
         Flush();
@@ -22,6 +25,7 @@ type KeyEvent struct {
         Printable int;
 	// True if key pressed, false if key released.
         Pressed bool;
+	// TODO: Modifier buttons
 }
 
 type MouseEvent struct {
@@ -42,3 +46,6 @@ type MouseAction byte const (
         MouseMove;
 )
 
+// Global console handle
+
+var Console ConsoleBase

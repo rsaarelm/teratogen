@@ -16,8 +16,14 @@ type Icon struct {
 	Color RGB;
 }
 
+const xDrawOffset = 0
+const yDrawOffset = 1
+
 func (self *Icon)Draw(x, y int) {
-	DrawCharRGB(x, y, int(self.IconId), self.Color);
+	// XXX: Hardcoded black background color.
+	Console.Set(
+		x + xDrawOffset, y + yDrawOffset,
+		int(self.IconId), self.Color, RGB{0, 0, 0});
 }
 
 

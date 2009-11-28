@@ -23,16 +23,6 @@ static TCOD_color_t make_color(uint8 r, uint8 g, uint8 b) {
   return result;
 }
 
-// Make an int that contains the bit pattern of the TCOD_color_t struct.
-// Relies on the assumption that all the bits fit in an int.
-static int pack_color(TCOD_color_t tcod_col) {
-  return *((int*)(&tcod_col)) & ((1 << sizeof(TCOD_color_t)) - 1);
-}
-
-static TCOD_color_t unpack_color(int col) {
- return *((TCOD_color_t*)(&col));
-}
-
 // Golang can't handle structs with 1-bit fields, so we make a normalized
 // version of the TCOD_key_t struct.
 typedef struct {
@@ -59,39 +49,50 @@ static unpacked_tcod_key_t unpack_key_t(TCOD_key_t key) {
   return result;
 }
 
-static unpacked_tcod_key_t check_for_keypress(void) {
- return unpack_key_t(TCOD_console_check_for_keypress(TCOD_KEY_PRESSED));
-}
-
-static void print_left(int x, int y, TCOD_bkgnd_flag_t flag, const char *txt) {
- TCOD_console_print_left(NULL, x, y, flag, "%s", txt);
+static unpacked_tcod_key_t wait_for_keypress(bool flush) {
+ return unpack_key_t(TCOD_console_wait_for_keypress(flush));
 }
 
 */
 import "C"
 import "unsafe"
 
+func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
+	result := new (libtcodConsole);
+
+	// Init libtcod.
+	c_title := C.CString(title);
+	C.TCOD_console_init_root(C.int(w), C.int(h), c_title, 0);
+	C.free(unsafe.Pointer(c_title));
+
+	result.eventChannel = make(chan ConsoleEvent);
+
+	spawnEventListeners(result.eventChannel);
+
+	return result;
+}
+
 type libtcodConsole struct {
 	eventChannel chan ConsoleEvent;
 }
 
 func (self *libtcodConsole) Set(
-	x, y int, symbol int, foreColor, backColor ConsoleColor) {
-	C.TCOD_console_set_foreground_color(
-		nil, C.unpack_color(C.int(foreColor)));
-	C.TCOD_console_set_background_color(
-		nil, C.unpack_color(C.int(backColor)));
+	x, y int, symbol int, foreColor, backColor RGB) {
+	C.TCOD_console_set_foreground_color(nil, C.make_color(
+		C.uint8(foreColor[0]), C.uint8(foreColor[1]), C.uint8(foreColor[2])));
+	C.TCOD_console_set_background_color(nil, C.make_color(
+		C.uint8(backColor[0]), C.uint8(backColor[1]), C.uint8(backColor[2])));
 	C.TCOD_console_put_char(
 		nil, C.int(x), C.int(y), C.int(symbol), C.TCOD_bkgnd_flag_t(0));
 }
 
 func (self *libtcodConsole) Get(
-	x, y int) (symbol int, foreColor, backColor ConsoleColor) {
+	x, y int) (symbol int, foreColor, backColor RGB) {
 	symbol = int(C.TCOD_console_get_char(nil, C.int(x), C.int(y)));
-	foreColor = ConsoleColor(
-		C.pack_color(C.TCOD_console_get_fore(nil, C.int(x), C.int(y))));
-	backColor = ConsoleColor(
-		C.pack_color(C.TCOD_console_get_back(nil, C.int(x), C.int(y))));
+	foreColor = unpackColor(
+		C.TCOD_console_get_fore(nil, C.int(x), C.int(y)));
+	backColor = unpackColor(
+		C.TCOD_console_get_back(nil, C.int(x), C.int(y)));
 	return;
 }
 
@@ -105,15 +106,9 @@ func (self *libtcodConsole) GetDim() (width, height int) {
 	return;
 }
 
-func (self *libtcodConsole) EncodeColor(r, g, b byte) ConsoleColor {
-	return ConsoleColor(C.pack_color(C.make_color(
-		C.uint8(r), C.uint8(g), C.uint8(b))));
-}
-
-func (self *libtcodConsole) DecodeColor(col ConsoleColor) (r, g, b byte) {
-	tcod_col := C.unpack_color(C.int(col));
-	r, g, b = byte(tcod_col.r), byte(tcod_col.g), byte(tcod_col.b);
-	return;
+func (self *libtcodConsole) ColorsDiffer(col1, col2 RGB) bool {
+	// Full-color console.
+	return true;
 }
 
 func (self *libtcodConsole) ShowCursorAt(x, y int) {
@@ -128,21 +123,14 @@ func (self *libtcodConsole) Flush() {
 	C.TCOD_console_flush();
 }
 
-
-func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
-	result := new (libtcodConsole);
-
-	result.eventChannel = make(chan ConsoleEvent);
-
-	spawnEventListeners(result.eventChannel);
-
-	return result;
+func unpackColor(tcodColor C.TCOD_color_t) RGB {
+	return RGB{byte(tcodColor.r), byte(tcodColor.g), byte(tcodColor.b)};
 }
 
 func spawnEventListeners(events chan<- ConsoleEvent) {
 	keyListener := func() {
 		for {
-			key := C.check_for_keypress();
+			key := C.wait_for_keypress(C.bool(0));
 			event := &KeyEvent{int(key.vk), int(key.c), key.pressed != 0};
 			events <- event;
 		}
@@ -223,77 +211,3 @@ const (
 	TCODK_SPACE;
 	TCODK_CHAR;
 )
-
-type KeyT struct {
-	Vk Keycode;
-	C byte;
-	Pressed bool;
-	Lalt bool;
-	Lctrl bool;
-	Ralt bool;
-	Rctrl bool;
-	Shift bool;
-}
-
-type BkgndFlag int
-const (
-	BkgndNone = iota;
-	BkgndSet;
-	BkgndMultiply;
-	BkgndLighten;
-	BkgndDarken;
-	BkgndScreen;
-	BkgndColorDodge;
-	BkgndColorBurn;
-	BkgndAdd;
-	BkgndAddAlpha;
-	BkgndBurn;
-	BkgndOverlay;
-	BkgndAlpha;
-)
-
-type Color struct {
-	tcodColor C.TCOD_color_t;
-}
-
-func Init(w int, h int, title string) {
-	c_title := C.CString(title);
-	C.TCOD_console_init_root(C.int(w), C.int(h), c_title, 0);
-	C.free(unsafe.Pointer(c_title));
-}
-
-func PutChar(x int, y int, c int, bkg BkgndFlag) {
-	C.TCOD_console_put_char(
-		nil, C.int(x), C.int(y), C.int(c), C.TCOD_bkgnd_flag_t(bkg))
-}
-
-// TODO: Return a keypress struct instead of char value only.
-func CheckForKeypress() int {
-	key := C.check_for_keypress();
-	return int(key.c);
-}
-
-func Flush() {
-	C.TCOD_console_flush();
-}
-
-func MakeColor(r, g, b uint8) (ret *Color) {
-	ret = new(Color);
-	ret.tcodColor = C.make_color(C.uint8(r), C.uint8(g), C.uint8(b));
-	return;
-}
-
-// TODO: varargs for the string, Sprintf for TCOD.
-func PrintLeft(x, y int, bkg BkgndFlag, fmt string) {
-	c_fmt := C.CString(fmt);
-	C.print_left(C.int(x), C.int(y), C.TCOD_bkgnd_flag_t(bkg), c_fmt);
-	C.free(unsafe.Pointer(c_fmt));
-}
-
-func SetForeColor(color *Color) {
-	C.TCOD_console_set_foreground_color(nil, color.tcodColor);
-}
-
-func Clear() {
-	C.TCOD_console_clear(nil);
-}
