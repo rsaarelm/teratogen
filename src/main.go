@@ -78,21 +78,21 @@ func main() {
 			switch key {
 			case 'q':
 				running = false;
-			case 'e':
+			case 'u':
 				smartMove(world, 0);
-			case 'l':
+			case 'y':
 				smartMove(world, 1);
 			case 'i':
 				smartMove(world, 2);
-			case 'k':
+			case '.':
 				smartMove(world, 3);
-			case 'n':
+			case ',':
 				smartMove(world, 4);
-			case 'b':
+			case 'm':
 				smartMove(world, 5);
-			case 'h':
+			case 'n':
 				smartMove(world, 6);
-			case 'j':
+			case 'l':
 				smartMove(world, 7);
 			case 'p':
 				fmt.Fprint(msg, "Some text for the buffer... ");

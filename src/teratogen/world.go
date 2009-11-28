@@ -209,7 +209,7 @@ func (self *World) InitLevel(num int) {
 	self.entities = make(map[Guid] Entity);
 	self.entities[self.playerId] = player;
 
-	if WithProb(0.2) {
+	if WithProb(0.5) {
 		self.makeCaveMap();
 	} else {
 		self.makeBSPMap();
