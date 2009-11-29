@@ -8,9 +8,6 @@ import "libtcod"
 import . "fomalhaut"
 import . "teratogen"
 
-var msg *MsgOut;
-
-
 func dir8ToVec(dir int) Vec2I {
 	switch dir {
 	case 0: return Vec2I{0, -1};
@@ -57,7 +54,7 @@ func main() {
 	//libtcod.Init(80, 50, "Teratogen");
 	Con = NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"));
 
-	msg = NewMsgOut();
+	Msg = NewMsgOut();
 
 	world := NewWorld();
 
@@ -95,7 +92,7 @@ func main() {
 			case 'l':
 				smartMove(world, 7);
 			case 'p':
-				fmt.Fprint(msg, "Some text for the buffer... ");
+				fmt.Fprint(Msg, "Some text for the buffer... ");
 			}
 		}
 	}();
@@ -105,7 +102,7 @@ func main() {
 
 		world.Draw();
 
-		Con.Print(0, 0, msg.GetLine());
+		Con.Print(0, 0, Msg.GetLine());
 		Con.Flush();
 
 		if evt, ok := <-Con.Events(); ok {

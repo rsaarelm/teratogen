@@ -6,6 +6,8 @@ import "time"
 
 import . "fomalhaut"
 
+var Msg *MsgOut;
+
 func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }
@@ -48,9 +50,6 @@ func (self *MsgOut) GetLine() string { return self.tickerLine; }
 func (self *MsgOut) WriteString(str string) {
 	self.input <- str;
 }
-
-// TODO: MsgOut io.Writer implemetation.
-
 
 func (self *MsgOut) Write(p []byte) (n int, err os.Error) {
 	self.input <- string(p);
