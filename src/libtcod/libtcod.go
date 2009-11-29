@@ -106,7 +106,12 @@ func (self *libtcodConsole) GetDim() (width, height int) {
 	return;
 }
 
-func (self *libtcodConsole) ColorsDiffer(col1, col2 RGB) bool {
+func (self *libtcodConsole) ForeColorsDiffer(col1, col2 RGB) bool {
+	// Full-color console.
+	return true;
+}
+
+func (self *libtcodConsole) BackColorsDiffer(col1, col2 RGB) bool {
 	// Full-color console.
 	return true;
 }

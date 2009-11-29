@@ -71,8 +71,12 @@ func (self *Console) Print(x, y int, txt string) {
 	}
 }
 
-func (self *Console) ColorsDiffer(col1, col2 RGB) bool {
-	return self.impl.ColorsDiffer(col1, col2);
+func (self *Console) ForeColorsDiffer(col1, col2 RGB) bool {
+	return self.impl.ForeColorsDiffer(col1, col2);
+}
+
+func (self *Console) BackColorsDiffer(col1, col2 RGB) bool {
+	return self.impl.BackColorsDiffer(col1, col2);
 }
 
 // TODO: Canonical keycode enumeration. Use the ones from SDL.
@@ -84,14 +88,14 @@ type ConsoleBase interface {
         Events() <-chan ConsoleEvent;
 	GetDim() (width, height int);
 	// Return whether the console is able to differentiate between the two
-	// colors.
-	ColorsDiffer(col1, col2 RGB) bool;
+	// colors. Different for foreground and background, because the
+	// standard curses console has less background color resolution.
+	ForeColorsDiffer(col1, col2 RGB) bool;
+	BackColorsDiffer(col1, col2 RGB) bool;
         ShowCursorAt(x, y int);
         HideCursor();
         Flush();
 }
-
-type ConsoleColor uint32
 
 type ConsoleEvent interface {}
 
