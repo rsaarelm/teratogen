@@ -36,7 +36,6 @@ func smartMove(world *World, dir int) {
 	for ent := range world.EntitiesAt(target) {
 		if world.IsEnemyOf(player, ent) {
 			world.Attack(player, ent);
-			fmt.Fprintf(msg, "Smash! ");
 			return;
 		}
 	}

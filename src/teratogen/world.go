@@ -102,6 +102,11 @@ type Creature struct {
 	Name string;
 	pos Pt2I;
 	class EntityClass;
+	Strength int;
+	Scale int;
+	Constitution int;
+	Scratches int;
+	Wounds int;
 }
 
 func (self *Creature) IsObstacle() bool { return true }
@@ -162,13 +167,24 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("");
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{
-			&Icon{'@', RGB{0xdd, 0xff, 0xff}}, guid, "protagonist",
-			Pt2I{-1, -1}, PlayerEntityClass};
+		result = &Creature{Icon:&Icon{'@', RGB{0xdd, 0xff, 0xff}},
+		guid:guid,
+		Name:"protagonist",
+		pos:Pt2I{-1, -1},
+		class:PlayerEntityClass,
+			// XXX: Give player superstrength until we get some weapons in play.
+		Strength:Superb,
+		Constitution:Good,
+		};
 	case EntityZombie:
-		result = &Creature{
-			&Icon{'z', RGB{0x80, 0xa0, 0x80}}, guid, "zombie",
-			Pt2I{-1, -1}, EnemyEntityClass};
+		result = &Creature{Icon:&Icon{'z', RGB{0x80, 0xa0, 0x80}},
+            	guid:guid,
+		Name:"zombie",
+		pos:Pt2I{-1, -1},
+		class:EnemyEntityClass,
+		Strength:Mediocre,
+		Constitution:Poor,
+		};
 	default:
 		Die("Unknown entity type.");
 	}
