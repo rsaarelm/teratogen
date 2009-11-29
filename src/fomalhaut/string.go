@@ -1,5 +1,7 @@
 package fomalhaut
 
+import "strings"
+
 func EatPrefix(str string, length int) (result string) {
 	if len(str) < length {
 		result = ""
@@ -15,4 +17,8 @@ func PadString(str string, minLength int) (result string) {
 		result += " ";
 	}
 	return;
+}
+
+func Capitalize(str string) (result string) {
+	return strings.ToUpper(str[0:1]) + str[1:];
 }

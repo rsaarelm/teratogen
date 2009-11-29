@@ -3,6 +3,8 @@ package teratogen
 import "fmt"
 import "rand"
 
+import . "fomalhaut"
+
 // Game mechanics stuff.
 
 type ResolutionLevel int const (
@@ -12,6 +14,7 @@ type ResolutionLevel int const (
 	Mediocre;
 	Fair;
 	Good;
+	Great;
 	Superb;
 	Legendary;
 )
@@ -28,6 +31,23 @@ func WoundDescription(wounds int) string {
 		return "grazed";
 	}
 	return "unhurt";
+}
+
+func LevelDescription(level int) string {
+	switch {
+	case level < -4: return fmt.Sprintf("abysmal %d", level + 4);
+	case level == -4: return "abysmal"
+	case level == -3: return "terrible";
+	case level == -2: return "poor";
+	case level == -1: return "mediocre";
+	case level == 0: return "fair";
+	case level == 1: return "good";
+	case level == 2: return "great";
+	case level == 3: return "superb";
+	case level == 4: return "legendary";
+	case level > 4: return fmt.Sprintf("legendary +%d", level - 4);
+	}
+	panic("Switch fallthrough in LevelDescription");
 }
 
 func IsDeadlyWound(wounds int) bool {
@@ -66,17 +86,18 @@ func (self *World) Attack(attacker Entity, defender Entity) {
 			// TODO: Armor effects to defense factor.
 
 			result := FudgeRoll(woundFactor, defenseFactor);
+
 			if result > 0 {
 				e2.Wounds += result;
 				if IsDeadlyWound(e2.Wounds) {
- 					fmt.Fprintf(Msg, "%v killed. ", e2.Name);
+ 					fmt.Fprintf(Msg, "%v killed. ", Capitalize(e2.Name));
 					self.DestroyEntity(defender);
 				} else {
  					fmt.Fprintf(Msg, "%v %v. ",
-						e2.Name, WoundDescription(e2.Wounds));
+						Capitalize(e2.Name), WoundDescription(e2.Wounds));
 				}
 			} else {
- 				fmt.Fprintf(Msg, "%v missed. ", e2.Name);
+ 				fmt.Fprintf(Msg, "%v missed. ", Capitalize(e2.Name));
 			}
 		}
 	}

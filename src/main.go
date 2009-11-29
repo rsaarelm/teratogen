@@ -102,6 +102,11 @@ func main() {
 		world.Draw();
 
 		Con.Print(0, 0, Msg.GetLine());
+		Con.Print(0, 42, fmt.Sprintf("Strength: %v",
+			Capitalize(LevelDescription(world.GetPlayer().Strength))));
+		Con.Print(20, 42, fmt.Sprintf("%v",
+			Capitalize(WoundDescription(world.GetPlayer().Wounds))));
+
 		Con.Flush();
 
 		if evt, ok := <-Con.Events(); ok {

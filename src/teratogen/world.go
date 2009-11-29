@@ -105,7 +105,6 @@ type Creature struct {
 	Strength int;
 	Scale int;
 	Constitution int;
-	Scratches int;
 	Wounds int;
 }
 
