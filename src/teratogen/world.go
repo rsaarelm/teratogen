@@ -159,6 +159,11 @@ func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 }
 
 func (self *World) DestroyEntity(ent Entity) {
+	if ent == Entity(self.GetPlayer()) {
+		// TODO: End game when player dies.
+		fmt.Fprintf(Msg, "A mysterious anthropic effect prevents your discorporation. ");
+		return;
+	}
 	self.entities[ent.GetGuid()] = ent, false;
 }
 
@@ -204,14 +209,12 @@ func (self *World) SpawnRandomPos(entityType EntityType) (result Entity) {
 // TODO: Event system for changing world, event handler does lock/unlock, all
 // changes in events. "Transactional database".
 
-func (self *World) MovePlayer(vec Vec2I) {
+func (self *World) MoveCreature(crit *Creature, vec Vec2I) {
 	self.Lock.Lock();
 	defer self.Lock.Unlock();
 
-	player := self.GetPlayer();
-
-	if self.IsOpen(player.GetPos().Plus(vec)) {
-		player.Move(vec)
+	if self.IsOpen(crit.GetPos().Plus(vec)) {
+		crit.Move(vec)
 	}
 }
 
@@ -348,6 +351,31 @@ func (self *World) EntitiesAt(pos Pt2I) <-chan Entity {
 		for _, ent := range self.entities {
 			if ent.GetPos().Equals(pos) {
 				c <- ent;
+			}
+		}
+		close(c);
+	}();
+	return c;
+}
+
+func (self *World) IterEntities() <-chan Entity {
+	c := make(chan Entity);
+	go func() {
+		for _, ent := range self.entities {
+			c <- ent;
+		}
+		close(c);
+	}();
+	return c;
+}
+
+func (self *World) IterCreatures() <-chan *Creature {
+	c := make(chan *Creature);
+	go func() {
+		for _, ent := range self.entities {
+			switch crit := ent.(type) {
+			case *Creature:
+				c <- crit;
 			}
 		}
 		close(c);

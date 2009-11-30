@@ -2,6 +2,7 @@ include $(GOROOT)/src/Make.$(GOARCH)
 
 TARG=teratogen
 GOFILES=\
+	ai.go\
 	gfx.go\
 	mapgen.go\
 	msg.go\
