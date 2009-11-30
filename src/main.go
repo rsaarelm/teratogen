@@ -29,6 +29,12 @@ func smartMove(world *World, dir int) {
 	movePlayerDir(world, dir);
 }
 
+func RunAI(world *World) {
+	for crit := range world.IterCreatures() {
+		world.DoAI(crit);
+	}
+}
+
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
@@ -79,6 +85,8 @@ func main() {
 			case 'p':
 				fmt.Fprint(Msg, "Some text for the buffer... ");
 			}
+
+			RunAI(world);
 		}
 	}();
 
