@@ -17,7 +17,7 @@ type Icon struct {
 }
 
 const xDrawOffset = 0
-const yDrawOffset = 1
+const yDrawOffset = 2
 
 func (self *Icon)Draw(x, y int) {
 	Con.SetCF(
@@ -161,7 +161,7 @@ func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 func (self *World) DestroyEntity(ent Entity) {
 	if ent == Entity(self.GetPlayer()) {
 		// TODO: End game when player dies.
-		fmt.Fprintf(Msg, "A mysterious anthropic effect prevents your discorporation. ");
+		fmt.Fprintf(Msg, "A mysterious anthropic effect prevents your discorporation.\n");
 		return;
 	}
 	self.entities[ent.GetGuid()] = ent, false;

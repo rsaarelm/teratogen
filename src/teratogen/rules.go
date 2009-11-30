@@ -90,14 +90,14 @@ func (self *World) Attack(attacker Entity, defender Entity) {
 			if result > 0 {
 				e2.Wounds += result;
 				if IsDeadlyWound(e2.Wounds) {
- 					fmt.Fprintf(Msg, "%v killed. ", Capitalize(e2.Name));
+ 					fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
 					self.DestroyEntity(defender);
 				} else {
- 					fmt.Fprintf(Msg, "%v %v. ",
+ 					fmt.Fprintf(Msg, "%v %v.\n",
 						Capitalize(e2.Name), WoundDescription(e2.Wounds));
 				}
 			} else {
- 				fmt.Fprintf(Msg, "%v missed. ", Capitalize(e2.Name));
+ 				fmt.Fprintf(Msg, "%v missed.\n", Capitalize(e2.Name));
 			}
 		}
 	}

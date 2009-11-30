@@ -1,8 +1,8 @@
 package teratogen
 
-import "math"
+import "container/vector"
 import "os"
-import "time"
+import "strings"
 
 import . "fomalhaut"
 
@@ -13,46 +13,51 @@ func updateTicker(str string, lineLength int) string {
 }
 
 type MsgOut struct {
-	tickerLine string;
+	lines *vector.StringVector;
 	input chan string;
 }
 
 func NewMsgOut() (result *MsgOut) {
 	result = new(MsgOut);
+	result.lines = new(vector.StringVector);
+	result.newLine();
 	result.input = make(chan string);
-	go result.runTicker();
 	return;
 }
 
-func (self *MsgOut) runTicker() {
-	for {
-		const tickerWidth = 80;
-		const lettersAtTime = 1;
-		const letterDelayNs = 1e9 * 0.20;
+func (self *MsgOut) newLine() {
+	self.lines.Push("");
+}
 
-		if append, ok := <-self.input; ok {
-			self.tickerLine = self.tickerLine + append;
-		}
+// Can use negative indices to get the last lines.
+func (self *MsgOut) GetLine(idx int) string {
+	if idx < 0 {
+		idx = self.lines.Len() + idx;
+	}
+	if idx < 0 || idx >= self.lines.Len() {
+		return "";
+	}
+	return self.lines.At(idx);
+}
 
-		// XXX: lettesDelayNs doesn't evaluate to an exact integer due
-		// to rounding errors, and casting inexact floats to integers
-		// is a compile-time error, so we need an extra Floor
-		// operation here.
-		time.Sleep(int64(math.Floor(letterDelayNs) * lettersAtTime));
-		for x := 0; x <= lettersAtTime; x++ {
-			self.tickerLine = updateTicker(self.tickerLine, tickerWidth);
-		}
+func (self *MsgOut) NumLines() int { return self.lines.Len(); }
+
+func (self *MsgOut) WriteString(str string) {
+	newLineIdx := strings.Index(str, "\n");
+	if newLineIdx != -1 {
+		// If newline found, make a new line.
+		self.WriteString(str[0:newLineIdx - 1]);
+		self.newLine();
+		self.WriteString(str[newLineIdx + 1:]);
+	} else {
+		// Append text to last line.
+		idx := self.lines.Len() - 1;
+		self.lines.Set(idx, self.lines.At(idx) + str);
 	}
 }
 
-func (self *MsgOut) GetLine() string { return self.tickerLine; }
-
-func (self *MsgOut) WriteString(str string) {
-	self.input <- str;
-}
-
 func (self *MsgOut) Write(p []byte) (n int, err os.Error) {
-	self.input <- string(p);
+	self.WriteString(string(p));
 	n = len(p);
 	return;
 }

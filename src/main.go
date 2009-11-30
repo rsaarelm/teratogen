@@ -39,6 +39,7 @@ func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
 	getch := make(chan byte);
+	oldestLineSeen := 0;
 
 	rand.Seed(time.Nanoseconds());
 
@@ -57,6 +58,9 @@ func main() {
 	go func() {
 		for {
 			key := <-getch;
+			// When key pressed, clear the message buffer.
+			oldestLineSeen = Msg.NumLines() - 1;
+
 			// Colemak direction pad.
 
 			// Movement is hjklyubn (Colemak equivalent) move, with bn
@@ -83,7 +87,7 @@ func main() {
 			case 'l':
 				smartMove(world, 7);
 			case 'p':
-				fmt.Fprint(Msg, "Some text for the buffer... ");
+				fmt.Fprint(Msg, "Some text for the buffer...\n");
 			}
 
 			RunAI(world);
@@ -95,10 +99,13 @@ func main() {
 
 		world.Draw();
 
-		Con.Print(0, 0, Msg.GetLine());
-		Con.Print(0, 42, fmt.Sprintf("Strength: %v",
+		for i := oldestLineSeen; i < Msg.NumLines(); i++ {
+			Con.Print(0, 42 + (i - oldestLineSeen), Msg.GetLine(i));
+		}
+
+		Con.Print(0, 0, fmt.Sprintf("Strength: %v",
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
-		Con.Print(24, 42, fmt.Sprintf("%v",
+		Con.Print(24, 0, fmt.Sprintf("%v",
 			Capitalize(WoundDescription(world.GetPlayer().Wounds))));
 
 		Con.Flush();
