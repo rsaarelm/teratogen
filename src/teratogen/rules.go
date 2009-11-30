@@ -35,7 +35,7 @@ func WoundDescription(wounds int) string {
 
 func LevelDescription(level int) string {
 	switch {
-	case level < -4: return fmt.Sprintf("abysmal %d", level + 4);
+	case level < -4: return fmt.Sprintf("abysmal %d", -(level + 3));
 	case level == -4: return "abysmal"
 	case level == -3: return "terrible";
 	case level == -2: return "poor";
@@ -45,7 +45,7 @@ func LevelDescription(level int) string {
 	case level == 2: return "great";
 	case level == 3: return "superb";
 	case level == 4: return "legendary";
-	case level > 4: return fmt.Sprintf("legendary +%d", level - 4);
+	case level > 4: return fmt.Sprintf("legendary %d", level - 3);
 	}
 	panic("Switch fallthrough in LevelDescription");
 }

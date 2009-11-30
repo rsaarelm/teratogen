@@ -17,3 +17,8 @@ func Float64Max(a, b float64) float64 {
 }
 
 func Round(x float64) float64 { return math.Floor(x + 0.5); }
+
+func Iabs(x int) int {
+	if x < 0 { return -x; }
+	return x;
+}

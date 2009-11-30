@@ -95,3 +95,42 @@ func processOctant(
 			u + 1);
 	}
 }
+
+// Determine the 1/16th sector of a circle a point in the XY plane points
+// towards. Sector 0 is clockwise from the y-axis, and subsequent sectors are
+// clockwise from there. The origin point is handled in the same way as in
+// math.Atan2.
+func Hexadecant(x, y float64) int {
+	const hexadecantWidth = math.Pi / 8.0;
+	radian := math.Atan2(x, -y);
+	if radian < 0 { radian += 2.0 * math.Pi }
+	return int(math.Floor(radian / hexadecantWidth));
+}
+
+func Vec2IToDir8(vec Vec2I) int {
+	return ((Hexadecant(float64(vec.X), float64(vec.Y)) + 1) % 16) / 2;
+}
+
+func Vec2IToDir4(vec Vec2I) int {
+	return ((Hexadecant(float64(vec.X), float64(vec.Y)) + 2) % 16) / 4;
+}
+
+func Dir8ToVec(dir int) Vec2I {
+	switch dir {
+	case 0: return Vec2I{0, -1};
+	case 1: return Vec2I{1, -1};
+	case 2: return Vec2I{1, 0};
+	case 3: return Vec2I{1, 1};
+	case 4: return Vec2I{0, 1};
+	case 5: return Vec2I{-1, 1};
+	case 6: return Vec2I{-1, 0};
+	case 7: return Vec2I{-1, -1};
+	}
+	panic("Invalid dir");
+}
+
+func PosAdjacent(p1, p2 Pt2I) bool {
+	diff := p1.Minus(p2);
+	x, y := Iabs(diff.X), Iabs(diff.Y);
+	return x < 2 && y < 2 && x + y > 0;
+}

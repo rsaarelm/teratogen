@@ -8,29 +8,15 @@ import "libtcod"
 import . "fomalhaut"
 import . "teratogen"
 
-func dir8ToVec(dir int) Vec2I {
-	switch dir {
-	case 0: return Vec2I{0, -1};
-	case 1: return Vec2I{1, -1};
-	case 2: return Vec2I{1, 0};
-	case 3: return Vec2I{1, 1};
-	case 4: return Vec2I{0, 1};
-	case 5: return Vec2I{-1, 1};
-	case 6: return Vec2I{-1, 0};
-	case 7: return Vec2I{-1, -1};
-	}
-	panic("Invalid dir");
-}
-
 func movePlayerDir(world *World, dir int) {
 	world.ClearLosSight();
-	world.MovePlayer(dir8ToVec(dir));
+	world.MoveCreature(world.GetPlayer(), Dir8ToVec(dir));
 	world.DoLos(world.GetPlayer().GetPos());
 }
 
 func smartMove(world *World, dir int) {
 	player := world.GetPlayer();
-	vec := dir8ToVec(dir);
+	vec := Dir8ToVec(dir);
 	target := player.GetPos().Plus(vec);
 
 	for ent := range world.EntitiesAt(target) {
@@ -104,7 +90,7 @@ func main() {
 		Con.Print(0, 0, Msg.GetLine());
 		Con.Print(0, 42, fmt.Sprintf("Strength: %v",
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
-		Con.Print(20, 42, fmt.Sprintf("%v",
+		Con.Print(24, 42, fmt.Sprintf("%v",
 			Capitalize(WoundDescription(world.GetPlayer().Wounds))));
 
 		Con.Flush();
