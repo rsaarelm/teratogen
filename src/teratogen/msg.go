@@ -46,7 +46,7 @@ func (self *MsgOut) WriteString(str string) {
 	newLineIdx := strings.Index(str, "\n");
 	if newLineIdx != -1 {
 		// If newline found, make a new line.
-		self.WriteString(str[0:newLineIdx - 1]);
+		self.WriteString(str[0:newLineIdx]);
 		self.newLine();
 		self.WriteString(str[newLineIdx + 1:]);
 	} else {
