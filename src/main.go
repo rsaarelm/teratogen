@@ -106,7 +106,7 @@ func main() {
 		Con.Print(0, 0, fmt.Sprintf("Strength: %v",
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
 		Con.Print(24, 0, fmt.Sprintf("%v",
-			Capitalize(WoundDescription(world.GetPlayer().Wounds))));
+			Capitalize(world.GetPlayer().WoundDescription())));
 
 		Con.Flush();
 

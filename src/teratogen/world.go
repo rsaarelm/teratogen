@@ -104,8 +104,10 @@ type Creature struct {
 	class EntityClass;
 	Strength int;
 	Scale int;
-	Constitution int;
+	Toughness int;
 	Wounds int;
+	Offense int;
+	Defense int;
 }
 
 func (self *Creature) IsObstacle() bool { return true }
@@ -178,7 +180,9 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		class:PlayerEntityClass,
 			// XXX: Give player superstrength until we get some weapons in play.
 		Strength:Superb,
-		Constitution:Good,
+		Toughness:Good,
+		Offense:Good,
+		Defense:Fair,
 		};
 	case EntityZombie:
 		result = &Creature{Icon:&Icon{'z', RGB{0x80, 0xa0, 0x80}},
@@ -186,8 +190,10 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		Name:"zombie",
 		pos:Pt2I{-1, -1},
 		class:EnemyEntityClass,
-		Strength:Mediocre,
-		Constitution:Poor,
+		Strength:Fair,
+		Toughness:Poor,
+		Offense:Mediocre,
+		Defense:Mediocre,
 		};
 	default:
 		Die("Unknown entity type.");

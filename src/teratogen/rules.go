@@ -1,6 +1,7 @@
 package teratogen
 
 import "fmt"
+import "math"
 import "rand"
 
 import . "fomalhaut"
@@ -19,18 +20,27 @@ type ResolutionLevel int const (
 	Legendary;
 )
 
-func WoundDescription(wounds int) string {
+func (self *Creature) MaxWounds() int {
+	return IntMax(1, (self.Toughness + 3) * 2 + 1);
+}
+
+// TODO: Make take the creature too, requires toughness
+func (self *Creature) WoundDescription() string {
+	maxWounds := self.MaxWounds();
+	wounds := self.Wounds;
 	switch {
-	case wounds > 6:
-		return "near death";
-	case wounds > 4:
-		return "badly hurt";
-	case wounds > 2:
-		return "hurt";
-	case wounds > 0:
-		return "grazed";
+	case maxWounds - wounds < 2: return "near death";
+	case maxWounds - wounds < 4: return "badly hurt";
+	case maxWounds - wounds < 6: return "hurt";
+	// Now describing grazed statuses, which there can be more if the
+	// creature is very tough and takes a long time to get to Hurt.
+	case wounds < 1: return "unhurt"
+	case wounds < 3: return "grazed";
+	case wounds < 5: return "cut";
+	case wounds < 7: return "battered";
 	}
-	return "unhurt";
+	// Lots of wounds, but still not really Hurt.
+	return "mangled";
 }
 
 func LevelDescription(level int) string {
@@ -50,8 +60,8 @@ func LevelDescription(level int) string {
 	panic("Switch fallthrough in LevelDescription");
 }
 
-func IsDeadlyWound(wounds int) bool {
-	return wounds > 7;
+func (self *Creature)IsKilledByWounds() bool {
+	return self.Wounds > self.MaxWounds();
 }
 
 // Return whether an entity considers another entity an enemy.
@@ -78,23 +88,42 @@ func (self *World) Attack(attacker Entity, defender Entity) {
 	case *Creature:
 		switch e2 := defender.(type) {
 		case *Creature:
-			woundFactor, defenseFactor := 0, 0;
-			// XXX: Assuming melee attack.
-			woundFactor += e1.Strength + e1.Scale;
-			// TODO: Weapon effects to wound Factor.
-			defenseFactor += e2.Constitution + e2.Scale;
-			// TODO: Armor effects to defense factor.
+			// Determine hit chance, bigger things are easier to hit.
+			toHit := e1.Offense - e1.Scale;
+			defense := e2.Defense - e2.Scale;
+//			fmt.Printf("%v needs %v success to hit %v.\n",
+//				Capitalize(e1.Name),
+//				LevelDescription(defense - toHit),
+//				e2.Name);
 
-			result := FudgeRoll(woundFactor, defenseFactor);
+			hit := FudgeRoll(toHit, defense);
 
-			if result > 0 {
-				e2.Wounds += result;
-				if IsDeadlyWound(e2.Wounds) {
+			if hit > 0 {
+				// XXX: Assuming melee attack.
+
+				// Fudge the wound factor with a bonus so that
+				// you need a clear armor disadvantage before
+				// doing damage becomes uncertain.
+				const defaultWoundBonus = 2;
+				woundFactor := e1.Strength + e1.Scale + defaultWoundBonus;
+				// TODO: Weapon effects to wound Factor.
+
+				armorFactor := e2.Scale;
+				// TODO: Armor effects to defense actor.
+
+				damage := IntMax(0, FudgeRoll(woundFactor, armorFactor));
+//				fmt.Printf("%v needs %v success to damage %v.\n",
+//					Capitalize(e1.Name),
+//					LevelDescription(armorFactor - woundFactor),
+//					e2.Name);
+//
+				e2.Wounds += int(math.Ceil(float64(damage / 2)));
+				if e2.IsKilledByWounds() {
  					fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
 					self.DestroyEntity(defender);
 				} else {
  					fmt.Fprintf(Msg, "%v %v.\n",
-						Capitalize(e2.Name), WoundDescription(e2.Wounds));
+						Capitalize(e2.Name), e2.WoundDescription());
 				}
 			} else {
  				fmt.Fprintf(Msg, "%v missed.\n", Capitalize(e2.Name));
