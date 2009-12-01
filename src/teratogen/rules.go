@@ -83,41 +83,34 @@ func (self *World) IsEnemyOf(ent Entity, possibleEnemy Entity) bool {
 	return false;
 }
 
+func HitsInMelee(attacker *Creature, defender *Creature) (success int) {
+	// Determine hit chance, bigger things are easier to hit.
+	toHit := attacker.MeleeSkill - attacker.Scale;
+	defend := defender.MeleeSkill - defender.Scale;
+
+	success = FudgeOpposed(toHit, defend);
+	return;
+}
+
 func (self *World) Attack(attacker Entity, defender Entity) {
 	switch e1 := attacker.(type) {
 	case *Creature:
 		switch e2 := defender.(type) {
 		case *Creature:
-			// Determine hit chance, bigger things are easier to hit.
-			toHit := e1.Offense - e1.Scale;
-			defense := e2.Defense - e2.Scale;
-//			fmt.Printf("%v needs %v success to hit %v.\n",
-//				Capitalize(e1.Name),
-//				LevelDescription(defense - toHit),
-//				e2.Name);
-
-			hit := FudgeRoll(toHit, defense);
+			hit := HitsInMelee(e1, e2);
 
 			if hit > 0 {
 				// XXX: Assuming melee attack.
 
-				// Fudge the wound factor with a bonus so that
-				// you need a clear armor disadvantage before
-				// doing damage becomes uncertain.
-				const defaultWoundBonus = 2;
-				woundFactor := e1.Strength + e1.Scale + defaultWoundBonus;
+				damageFactor := e1.Strength + e1.Scale + hit + FudgeDice();
 				// TODO: Weapon effects to wound Factor.
 
-				armorFactor := e2.Scale;
+				armorFactor := e2.Scale + e2.Toughness;
 				// TODO: Armor effects to defense actor.
 
-				damage := IntMax(0, FudgeRoll(woundFactor, armorFactor));
-//				fmt.Printf("%v needs %v success to damage %v.\n",
-//					Capitalize(e1.Name),
-//					LevelDescription(armorFactor - woundFactor),
-//					e2.Name);
-//
-				e2.Wounds += int(math.Ceil(float64(damage / 2)));
+				woundLevel := IntMax(0, damageFactor - armorFactor);
+				e2.Wounds += (woundLevel + 1) / 2;
+
 				if e2.IsKilledByWounds() {
  					fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
 					self.DestroyEntity(defender);
@@ -139,6 +132,6 @@ func FudgeDice() (result int) {
 	return;
 }
 
-func FudgeRoll(ability, difficulty int) int {
-	return FudgeDice() + ability - difficulty;
+func FudgeOpposed(ability, difficulty int) int {
+	return (FudgeDice() + ability) - (FudgeDice() + difficulty);
 }
