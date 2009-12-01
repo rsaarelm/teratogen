@@ -8,6 +8,8 @@ import "libtcod"
 import . "fomalhaut"
 import . "teratogen"
 
+var currentLevel int = 1
+
 func movePlayerDir(world *World, dir int) {
 	world.ClearLosSight();
 	world.MoveCreature(world.GetPlayer(), Dir8ToVec(dir));
@@ -30,8 +32,17 @@ func smartMove(world *World, dir int) {
 }
 
 func RunAI(world *World) {
+	enemyCount := 0;
 	for crit := range world.IterCreatures() {
+		if crit != world.GetPlayer() { enemyCount++; }
 		world.DoAI(crit);
+	}
+
+	// Go to next level when all creatures are killed.
+	// TODO: Show message, get keypress, before flipping to the next level.
+	if enemyCount == 0 {
+		currentLevel++;
+		world.InitLevel(currentLevel);
 	}
 }
 
@@ -50,7 +61,7 @@ func main() {
 
 	world := NewWorld();
 
-	world.InitLevel(1);
+	world.InitLevel(currentLevel);
 
 	world.DoLos(world.GetPlayer().GetPos());
 
