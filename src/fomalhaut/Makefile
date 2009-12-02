@@ -2,6 +2,7 @@ include $(GOROOT)/src/Make.$(GOARCH)
 
 TARG=fomalhaut
 GOFILES=\
+	alg.go\
 	color.go\
 	console.go\
 	debug.go\
