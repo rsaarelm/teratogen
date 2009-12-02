@@ -24,6 +24,16 @@ func (self *Creature) MaxWounds() int {
 	return IntMax(1, (self.Toughness + 3) * 2 + 1);
 }
 
+func Log2Modifier(x int) int {
+	absMod := int(Round(Log2(math.Fabs(float64(x)) + 2) - 1));
+	return Isignum(x) * absMod;
+}
+
+// Smaller things are logarithmically harder to hit.
+func MinToHit(scaleDiff int) int {
+	return Poor - Log2Modifier(scaleDiff);
+}
+
 // TODO: Make take the creature too, requires toughness
 func (self *Creature) WoundDescription() string {
 	maxWounds := self.MaxWounds();
@@ -83,12 +93,16 @@ func (self *World) IsEnemyOf(ent Entity, possibleEnemy Entity) bool {
 	return false;
 }
 
-func HitsInMelee(attacker *Creature, defender *Creature) (success int) {
-	// Determine hit chance, bigger things are easier to hit.
-	toHit := attacker.MeleeSkill - attacker.Scale;
-	defend := defender.MeleeSkill - defender.Scale;
+// The scaleDifference is defender scale - attacker scale.
+func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
+	// Hitting requires a minimal absolute success based on the scale of
+	// the target and defeating the target's defense ability.
+	threshold := MinToHit(scaleDifference);
+	hitRoll := FudgeDice() + toHit;
+	defenseRoll := FudgeDice() + defense;
 
-	success = FudgeOpposed(toHit, defend);
+	degree = hitRoll - defenseRoll;
+	success = hitRoll >= threshold && degree > 0;
 	return;
 }
 
@@ -97,18 +111,35 @@ func (self *World) Attack(attacker Entity, defender Entity) {
 	case *Creature:
 		switch e2 := defender.(type) {
 		case *Creature:
-			hit := HitsInMelee(e1, e2);
+			doesHit, hitDegree := IsMeleeHit(
+				e1.MeleeSkill, e2.MeleeSkill, e2.Scale - e1.Scale);
 
-			if hit > 0 {
+			if doesHit {
 				// XXX: Assuming melee attack.
 
-				damageFactor := e1.Strength + e1.Scale + hit + FudgeDice();
+				damageFactor := e1.Strength + e1.Scale + hitDegree;
 				// TODO: Weapon effects to wound Factor.
 
 				armorFactor := e2.Scale + e2.Toughness;
 				// TODO: Armor effects to defense actor.
 
-				woundLevel := IntMax(0, damageFactor - armorFactor);
+				woundLevel := damageFactor - armorFactor;
+
+				// Not doing any wounds even though hit was
+				// successful. Mostly this is when a little
+				// critter tries to hit a big one.
+				if woundLevel < 1 {
+					// If you scored a good hit, you get
+					// one chance in the amount woundLevel
+					// went below 1 to hit anyway.
+					if hitDegree > Log2Modifier(-woundLevel) &&
+						OneChanceIn(1 - woundLevel) {
+						woundLevel = 1;
+					} else {
+						woundLevel = 0;
+					}
+				}
+
 				e2.Wounds += (woundLevel + 1) / 2;
 
 				if e2.IsKilledByWounds() {
