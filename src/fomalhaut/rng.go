@@ -11,3 +11,7 @@ func RandomFromIterable(iter iterable.Iterable) interface{} {
 func WithProb(prob float64) bool {
 	return rand.Float64() < prob;
 }
+
+func OneChanceIn(num int) bool {
+	return rand.Intn(num) == 0;
+}
