@@ -40,6 +40,7 @@ type EntityType int const (
 	EntityUnknown = iota;
 	EntityPlayer;
 	EntityZombie;
+	EntityBigboss;
 )
 
 type EntityClass int const (
@@ -163,6 +164,7 @@ func (self *World) DestroyEntity(ent Entity) {
 	if ent == Entity(self.GetPlayer()) {
 		// TODO: End game when player dies.
 		fmt.Fprintf(Msg, "A mysterious anthropic effect prevents your discorporation.\n");
+		ent.(*Creature).Wounds = 0;
 		return;
 	}
 	self.entities[ent.GetGuid()] = ent, false;
@@ -191,6 +193,17 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		Strength:Fair,
 		Toughness:Poor,
 		MeleeSkill:Fair,
+		};
+	case EntityBigboss:
+		result = &Creature{Icon:&Icon{'Q', RGB{0xa0, 0x00, 0xa0}},
+            	guid:guid,
+		Name:"elder spawn",
+		pos:Pt2I{-1, -1},
+		class:EnemyEntityClass,
+		Strength:Legendary,
+		Toughness:Legendary,
+		MeleeSkill:Superb,
+		Scale:15,
 		};
 	default:
 		Die("Unknown entity type.");
@@ -241,6 +254,7 @@ func (self *World) InitLevel(num int) {
 	for i := 0; i < 10 + num * 4; i++ {
 		self.SpawnRandomPos(EntityZombie);
 	}
+//	self.SpawnRandomPos(EntityBigboss);
 }
 
 func (self *World) initTerrain() {
