@@ -20,10 +20,6 @@ type ResolutionLevel int const (
 	Legendary;
 )
 
-func (self *Creature) MaxWounds() int {
-	return IntMax(1, (self.Toughness + 3) * 2 + 1);
-}
-
 func Log2Modifier(x int) int {
 	absMod := int(Round(Log2(math.Fabs(float64(x)) + 2) - 1));
 	return Isignum(x) * absMod;
@@ -32,25 +28,6 @@ func Log2Modifier(x int) int {
 // Smaller things are logarithmically harder to hit.
 func MinToHit(scaleDiff int) int {
 	return Poor - Log2Modifier(scaleDiff);
-}
-
-// TODO: Make take the creature too, requires toughness
-func (self *Creature) WoundDescription() string {
-	maxWounds := self.MaxWounds();
-	wounds := self.Wounds;
-	switch {
-	case maxWounds - wounds < 2: return "near death";
-	case maxWounds - wounds < 4: return "badly hurt";
-	case maxWounds - wounds < 6: return "hurt";
-	// Now describing grazed statuses, which there can be more if the
-	// creature is very tough and takes a long time to get to Hurt.
-	case wounds < 1: return "unhurt"
-	case wounds < 3: return "grazed";
-	case wounds < 5: return "cut";
-	case wounds < 7: return "battered";
-	}
-	// Lots of wounds, but still not really Hurt.
-	return "mangled";
 }
 
 func LevelDescription(level int) string {
@@ -68,10 +45,6 @@ func LevelDescription(level int) string {
 	case level > 4: return fmt.Sprintf("legendary %d", level - 3);
 	}
 	panic("Switch fallthrough in LevelDescription");
-}
-
-func (self *Creature)IsKilledByWounds() bool {
-	return self.Wounds > self.MaxWounds();
 }
 
 // Return whether an entity considers another entity an enemy.
@@ -116,38 +89,18 @@ func (self *World) Attack(attacker Entity, defender Entity) {
 
 			if doesHit {
 				// XXX: Assuming melee attack.
+				woundLevel := e1.MeleeWoundLevelAgainst(e2, hitDegree);
 
-				damageFactor := e1.Strength + e1.Scale + hitDegree;
-				// TODO: Weapon effects to wound Factor.
+				if woundLevel > 0 {
+					e2.Damage(woundLevel);
 
-				armorFactor := e2.Scale + e2.Toughness;
-				// TODO: Armor effects to defense actor.
-
-				woundLevel := damageFactor - armorFactor;
-
-				// Not doing any wounds even though hit was
-				// successful. Mostly this is when a little
-				// critter tries to hit a big one.
-				if woundLevel < 1 {
-					// If you scored a good hit, you get
-					// one chance in the amount woundLevel
-					// went below 1 to hit anyway.
-					if hitDegree > Log2Modifier(-woundLevel) &&
-						OneChanceIn(1 - woundLevel) {
-						woundLevel = 1;
+					if e2.IsKilledByWounds() {
+ 						fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
+						self.DestroyEntity(defender);
 					} else {
-						woundLevel = 0;
+ 						fmt.Fprintf(Msg, "%v %v.\n",
+							Capitalize(e2.Name), e2.WoundDescription());
 					}
-				}
-
-				e2.Wounds += (woundLevel + 1) / 2;
-
-				if e2.IsKilledByWounds() {
- 					fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
-					self.DestroyEntity(defender);
-				} else {
- 					fmt.Fprintf(Msg, "%v %v.\n",
-						Capitalize(e2.Name), e2.WoundDescription());
 				}
 			} else {
  				fmt.Fprintf(Msg, "%v missed.\n", Capitalize(e2.Name));

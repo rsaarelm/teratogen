@@ -19,6 +19,8 @@ type Icon struct {
 const xDrawOffset = 0
 const yDrawOffset = 2
 
+var world *World
+
 func (self *Icon)Draw(x, y int) {
 	Con.SetCF(
 		x + xDrawOffset, y + yDrawOffset,
@@ -97,33 +99,6 @@ type Entity interface {
 }
 
 
-type Creature struct {
-	*Icon;
-	guid Guid;
-	Name string;
-	pos Pt2I;
-	class EntityClass;
-	Strength int;
-	Scale int;
-	Toughness int;
-	Wounds int;
-	MeleeSkill int;
-}
-
-func (self *Creature) IsObstacle() bool { return true }
-
-func (self *Creature) GetPos() Pt2I { return self.pos }
-
-func (self *Creature) GetGuid() Guid { return self.guid }
-
-func (self *Creature) GetClass() EntityClass { return self.class; }
-
-// XXX: Assuming Pt2I to be a value type here.
-func (self *Creature) MoveAbs(pos Pt2I) { self.pos = pos }
-
-func (self *Creature) Move(vec Vec2I) { self.pos = self.pos.Plus(vec) }
-
-
 type World struct {
 	playerId Guid;
 	Lock *sync.RWMutex;
@@ -135,6 +110,7 @@ type World struct {
 
 func NewWorld() (result *World) {
 	result = new(World);
+	world = result;
 	result.entities = make(map[Guid] Entity);
 	result.initTerrain();
 	result.Lock = new(sync.RWMutex);
@@ -144,6 +120,13 @@ func NewWorld() (result *World) {
 	result.playerId = player.GetGuid();
 
 	return;
+}
+
+func GetWorld() *World {
+	if world == nil {
+		Die("World not initialized.");
+	}
+	return world;
 }
 
 func (self *World) Draw() {
