@@ -85,8 +85,9 @@ func (self *Creature) Damage(woundLevel int, cause Entity) {
 				msg = "killed.";
 			}
 			GameOver(msg);
+		} else {
+ 			Msg("%v killed.\n", Capitalize(self.Name));
 		}
- 		Msg("%v killed.\n", Capitalize(self.Name));
 		world.DestroyEntity(self);
 	} else {
  		Msg("%v %v.\n",

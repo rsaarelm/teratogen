@@ -150,6 +150,7 @@ func RunAI() {
 	// TODO: Show message, get keypress, before flipping to the next level.
 	if enemyCount == 0 {
 		Msg("Area cleared!\n");
+		GetKey();
 		world.InitLevel(world.CurrentLevelNum() + 1);
 	}
 }
