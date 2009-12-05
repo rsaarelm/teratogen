@@ -17,10 +17,13 @@ func main() {
 
 	world.InitLevel(currentLevel);
 
+	sync := make(chan int, 1);
+
 	// Game logic
 	go func() {
 		for {
 			key := <-Getch();
+
 			// When key pressed, clear the message buffer.
 			MarkMsgLinesSeen();
 
@@ -29,6 +32,8 @@ func main() {
 			// Movement is hjklyubn (Colemak equivalent) move, with bn
 			// shifted to nm to keep things on one side on a
 			// ergonomic split keyboard.
+
+			<-sync;
 
 			switch key.Printable {
 			case 'q':
@@ -54,8 +59,10 @@ func main() {
 			}
 
 			RunAI();
+			sync <- 1;
 		}
 	}();
 
-	MainUILoop();
+	sync <- 1;
+	MainUILoop(sync);
 }

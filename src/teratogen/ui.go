@@ -1,9 +1,13 @@
 package teratogen
 
 import "fmt"
+import "time"
 
 import "libtcod"
 import . "gamelib"
+
+const redrawIntervalNs = 30e6
+const capFps = true
 
 type UI struct {
 	getch chan KeyEvent;
@@ -19,7 +23,7 @@ var ui = newUI();
 
 func newUI() (result *UI) {
 	result = new(UI);
-	result.getch = make(chan KeyEvent);
+	result.getch = make(chan KeyEvent, 16);
 	result.msg = NewMsgOut();
 	result.con = NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"));
 	result.running = true;
@@ -47,12 +51,27 @@ func Getch() <-chan KeyEvent {
 	return ui.getch;
 }
 
-func MainUILoop() {
+func MainUILoop(sync chan int) {
 	con := ui.con;
-	world := GetWorld();
+
+	updater := time.Tick(redrawIntervalNs);
 
 	for ui.running {
+		// XXX: Can't put grabbing and releasing sync next to each
+		// other, to the very beginning and end of the loop, or the
+		// script side will never get sync.
+
+		if capFps {
+			// Wait for the next tick before repainting.
+			<-updater;
+		}
+
 		con.Clear();
+
+		// Synched block which accesses the game world. Don't run
+		// scripts during this.
+		<-sync;
+		world := GetWorld();
 
 		world.Draw();
 
@@ -64,14 +83,38 @@ func MainUILoop() {
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
 		con.Print(41, 1, fmt.Sprintf("%v",
 			Capitalize(world.GetPlayer().WoundDescription())));
+		sync <- 1;
 
 		con.Flush();
 
-		if evt, ok := <-con.Events(); ok {
-			switch e := evt.(type) {
-			case *KeyEvent:
-				ui.getch <- *e;
-			}
+		handleInput();
+	}
+}
+
+func handleInput() {
+	if evt, ok := <-ui.con.Events(); ok {
+		switch e := evt.(type) {
+		case *KeyEvent:
+			bufferKeypress(e);
 		}
+	}
+}
+
+func bufferKeypress(e *KeyEvent) {
+	// Non-blocking send.
+	ok := ui.getch <- *e;
+	if !ok {
+		// If the key buffer is full, drop the
+		// oldest input and push the new one
+		// in.
+
+		// XXX: Possible to lose input here,
+		// if another goroutine grabbed the
+		// head input between the line above
+		// and this.
+		<-ui.getch;
+		ok2 := ui.getch <- *e;
+
+		Assert(ok2, "Couldn't write to key buffer after dropping a value.");
 	}
 }
