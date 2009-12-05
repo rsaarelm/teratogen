@@ -72,7 +72,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Warning: No data found.\n");
 	}
 
-	fmt.Fprintf(output, "var %v = [%v]byte{\n", *variableName, len(data));
+	printByteArray(output, *variableName, data);
+}
+
+func printByteArray(output *os.File, variableName string, data byte[]) {
+	fmt.Fprintf(output, "var %v = [...]byte{\n", variableName);
 
 	const bytesPerLine = 16;
 
