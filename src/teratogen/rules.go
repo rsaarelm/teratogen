@@ -120,3 +120,43 @@ func FudgeDice() (result int) {
 func FudgeOpposed(ability, difficulty int) int {
 	return (FudgeDice() + ability) - (FudgeDice() + difficulty);
 }
+
+func MovePlayerDir(dir int) {
+	world := GetWorld();
+	world.ClearLosSight();
+	world.GetPlayer().TryMove(Dir8ToVec(dir));
+	world.DoLos(world.GetPlayer().GetPos());
+}
+
+func SmartMovePlayer(dir int) {
+	world := GetWorld();
+	player := world.GetPlayer();
+	vec := Dir8ToVec(dir);
+	target := player.GetPos().Plus(vec);
+
+	for ent := range world.EntitiesAt(target) {
+		if IsEnemyOf(player, ent) {
+			Attack(player, ent);
+			return;
+		}
+	}
+	// No attack, move normally.
+	MovePlayerDir(dir);
+}
+
+func RunAI() {
+	world := GetWorld();
+	enemyCount := 0;
+	for crit := range world.IterCreatures() {
+		if crit != world.GetPlayer() { enemyCount++; }
+		DoAI(crit);
+	}
+
+	// Go to next level when all creatures are killed.
+	// TODO: Show message, get keypress, before flipping to the next level.
+	if enemyCount == 0 {
+		Msg("Area cleared!\n");
+		world.InitLevel(world.CurrentLevelNum() + 1);
+	}
+}
+

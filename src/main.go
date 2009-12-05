@@ -9,45 +9,6 @@ import . "teratogen"
 
 var currentLevel int = 1
 
-func movePlayerDir(dir int) {
-	world := GetWorld();
-	world.ClearLosSight();
-	world.GetPlayer().TryMove(Dir8ToVec(dir));
-	world.DoLos(world.GetPlayer().GetPos());
-}
-
-func smartMove(dir int) {
-	world := GetWorld();
-	player := world.GetPlayer();
-	vec := Dir8ToVec(dir);
-	target := player.GetPos().Plus(vec);
-
-	for ent := range world.EntitiesAt(target) {
-		if IsEnemyOf(player, ent) {
-			Attack(player, ent);
-			return;
-		}
-	}
-	// No attack, move normally.
-	movePlayerDir(dir);
-}
-
-func RunAI() {
-	world := GetWorld();
-	enemyCount := 0;
-	for crit := range world.IterCreatures() {
-		if crit != world.GetPlayer() { enemyCount++; }
-		DoAI(crit);
-	}
-
-	// Go to next level when all creatures are killed.
-	// TODO: Show message, get keypress, before flipping to the next level.
-	if enemyCount == 0 {
-		currentLevel++;
-		world.InitLevel(currentLevel);
-	}
-}
-
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
 	running := true;
@@ -77,21 +38,21 @@ func main() {
 			case 'q':
 				running = false;
 			case 'u':
-				smartMove(0);
+				SmartMovePlayer(0);
 			case 'y':
-				smartMove(1);
+				SmartMovePlayer(1);
 			case 'i':
-				smartMove(2);
+				SmartMovePlayer(2);
 			case '.':
-				smartMove(3);
+				SmartMovePlayer(3);
 			case ',':
-				smartMove(4);
+				SmartMovePlayer(4);
 			case 'm':
-				smartMove(5);
+				SmartMovePlayer(5);
 			case 'n':
-				smartMove(6);
+				SmartMovePlayer(6);
 			case 'l':
-				smartMove(7);
+				SmartMovePlayer(7);
 			case 'p':
 				Msg("Some text for the buffer...\n");
 			}

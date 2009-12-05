@@ -106,6 +106,7 @@ type World struct {
 	terrain []TerrainType;
 	los []LosState;
 	guidCounter uint64;
+	currentLevel int;
 }
 
 func NewWorld() (result *World) {
@@ -118,6 +119,8 @@ func NewWorld() (result *World) {
 	result.playerId = Guid("player");
 	player := result.Spawn(EntityPlayer);
 	result.playerId = player.GetGuid();
+
+	result.InitLevel(1);
 
 	return;
 }
@@ -210,6 +213,8 @@ func (self *World) InitLevel(num int) {
 	// TODO: When we start having inventories, keep the player's items too.
 	player := self.GetPlayer();
 
+	self.currentLevel = 1;
+
 	self.initTerrain();
 	self.entities = make(map[Guid] Entity);
 	self.entities[self.playerId] = player;
@@ -227,6 +232,8 @@ func (self *World) InitLevel(num int) {
 	}
 //	self.SpawnRandomPos(EntityBigboss);
 }
+
+func (self *World) CurrentLevelNum() int { return self.currentLevel; }
 
 func (self *World) initTerrain() {
 	self.terrain = make([]TerrainType, numTerrainCells);
