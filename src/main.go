@@ -56,6 +56,10 @@ func main() {
 			case 'd':
 				Msg("You decide to blow up a bit.\n");
 				GameOver("died of exploding head syndrome.");
+			case 'c':
+				world.ClearLosMapped();
+				world.DoLos(world.GetPlayer().GetPos());
+				Msg("You feel like you've forgotten something.\n");
 			}
 
 			RunAI();

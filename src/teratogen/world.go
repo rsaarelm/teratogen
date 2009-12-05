@@ -244,6 +244,13 @@ func (self *World) ClearLosSight() {
 	}
 }
 
+func (self *World) ClearLosMapped() {
+	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+		idx := pt.X + mapWidth * pt.Y;
+		self.los[idx] = LosUnknown; 
+	}
+}
+
 func (self *World) MarkSeen(pos Pt2I) {
 	if inTerrain(pos) {
 		self.los[pos.X + pos.Y * mapWidth] = LosSeen;
