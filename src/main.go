@@ -63,8 +63,6 @@ func main() {
 
 	world.InitLevel(currentLevel);
 
-	world.DoLos(world.GetPlayer().GetPos());
-
 	// Game logic
 	go func() {
 		for {

@@ -233,7 +233,7 @@ func (self *World) InitLevel(num int) {
 	}
 
 	player.MoveAbs(self.GetSpawnPos());
-
+	self.DoLos(player.GetPos());
 	for i := 0; i < 10 + num * 4; i++ {
 		self.SpawnRandomPos(EntityZombie);
 	}
