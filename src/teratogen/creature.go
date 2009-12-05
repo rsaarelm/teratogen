@@ -5,7 +5,7 @@ import "fmt"
 import . "gamelib"
 
 type Creature struct {
-	*Icon;
+	Icon;
 	guid Guid;
 	Name string;
 	pos Pt2I;

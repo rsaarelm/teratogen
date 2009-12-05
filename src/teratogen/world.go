@@ -157,7 +157,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("");
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{Icon:&Icon{'@', RGB{0xdd, 0xff, 0xff}},
+		result = &Creature{Icon:Icon{'@', RGB{0xdd, 0xff, 0xff}},
 		guid:guid,
 		Name:"protagonist",
 		pos:Pt2I{-1, -1},
@@ -168,7 +168,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		MeleeSkill:Good,
 		};
 	case EntityZombie:
-		result = &Creature{Icon:&Icon{'z', RGB{0x80, 0xa0, 0x80}},
+		result = &Creature{Icon:Icon{'z', RGB{0x80, 0xa0, 0x80}},
             	guid:guid,
 		Name:"zombie",
 		pos:Pt2I{-1, -1},
@@ -178,7 +178,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		MeleeSkill:Fair,
 		};
 	case EntityBigboss:
-		result = &Creature{Icon:&Icon{'Q', RGB{0xa0, 0x00, 0xa0}},
+		result = &Creature{Icon:Icon{'Q', RGB{0xa0, 0x00, 0xa0}},
             	guid:guid,
 		Name:"elder spawn",
 		pos:Pt2I{-1, -1},
