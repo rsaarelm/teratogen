@@ -112,9 +112,9 @@ func main() {
 			Con.Print(0, 42 + (i - oldestLineSeen), Msg.GetLine(i));
 		}
 
-		Con.Print(0, 0, fmt.Sprintf("Strength: %v",
+		Con.Print(41, 0, fmt.Sprintf("Strength: %v",
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
-		Con.Print(24, 0, fmt.Sprintf("%v",
+		Con.Print(41, 1, fmt.Sprintf("%v",
 			Capitalize(world.GetPlayer().WoundDescription())));
 
 		Con.Flush();

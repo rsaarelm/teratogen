@@ -6,7 +6,7 @@ import "sync"
 
 import . "fomalhaut"
 
-const mapWidth = 80
+const mapWidth = 40
 const mapHeight = 40
 
 const numTerrainCells = mapWidth * mapHeight
@@ -17,7 +17,7 @@ type Icon struct {
 }
 
 const xDrawOffset = 0
-const yDrawOffset = 2
+const yDrawOffset = 0
 
 var world *World
 
