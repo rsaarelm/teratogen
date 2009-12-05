@@ -96,15 +96,15 @@ func Attack(attacker Entity, defender Entity) {
 					e2.Damage(woundLevel);
 
 					if e2.IsKilledByWounds() {
- 						fmt.Fprintf(Msg, "%v killed.\n", Capitalize(e2.Name));
-						self.DestroyEntity(defender);
+ 						Msg("%v killed.\n", Capitalize(e2.Name));
+						world.DestroyEntity(defender);
 					} else {
- 						fmt.Fprintf(Msg, "%v %v.\n",
+ 						Msg("%v %v.\n",
 							Capitalize(e2.Name), e2.WoundDescription());
 					}
 				}
 			} else {
- 				fmt.Fprintf(Msg, "%v missed.\n", Capitalize(e2.Name));
+ 				Msg("%v missed.\n", Capitalize(e2.Name));
 			}
 		}
 	}

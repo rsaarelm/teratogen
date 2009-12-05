@@ -123,6 +123,3 @@ type MouseAction byte const (
         MouseUp;
         MouseMove;
 )
-
-// Default console handle.
-var Con *Console

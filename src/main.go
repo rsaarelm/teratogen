@@ -4,7 +4,6 @@ import "fmt"
 import "rand"
 import "time"
 
-import "libtcod"
 import . "gamelib"
 import . "teratogen"
 
@@ -57,11 +56,6 @@ func main() {
 
 	rand.Seed(time.Nanoseconds());
 
-	//libtcod.Init(80, 50, "Teratogen");
-	Con = NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"));
-
-	Msg = NewMsgOut();
-
 	world := NewWorld();
 
 	world.InitLevel(currentLevel);
@@ -71,7 +65,7 @@ func main() {
 		for {
 			key := <-getch;
 			// When key pressed, clear the message buffer.
-			oldestLineSeen = Msg.NumLines() - 1;
+			oldestLineSeen = GetMsg().NumLines() - 1;
 
 			// Colemak direction pad.
 
@@ -99,7 +93,7 @@ func main() {
 			case 'l':
 				smartMove(7);
 			case 'p':
-				fmt.Fprint(Msg, "Some text for the buffer...\n");
+				Msg("Some text for the buffer...\n");
 			}
 
 			RunAI();
@@ -107,22 +101,22 @@ func main() {
 	}();
 
 	for running {
-		Con.Clear();
+		GetConsole().Clear();
 
 		world.Draw();
 
-		for i := oldestLineSeen; i < Msg.NumLines(); i++ {
-			Con.Print(0, 42 + (i - oldestLineSeen), Msg.GetLine(i));
+		for i := oldestLineSeen; i < GetMsg().NumLines(); i++ {
+			GetConsole().Print(0, 42 + (i - oldestLineSeen), GetMsg().GetLine(i));
 		}
 
-		Con.Print(41, 0, fmt.Sprintf("Strength: %v",
+		GetConsole().Print(41, 0, fmt.Sprintf("Strength: %v",
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
-		Con.Print(41, 1, fmt.Sprintf("%v",
+		GetConsole().Print(41, 1, fmt.Sprintf("%v",
 			Capitalize(world.GetPlayer().WoundDescription())));
 
-		Con.Flush();
+		GetConsole().Flush();
 
-		if evt, ok := <-Con.Events(); ok {
+		if evt, ok := <-GetConsole().Events(); ok {
 			switch e := evt.(type) {
 			case *KeyEvent:
 				getch <- byte(e.Printable);

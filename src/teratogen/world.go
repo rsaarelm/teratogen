@@ -22,7 +22,7 @@ const yDrawOffset = 0
 var world *World
 
 func (self *Icon)Draw(x, y int) {
-	Con.SetCF(
+	GetConsole().SetCF(
 		x + xDrawOffset, y + yDrawOffset,
 		int(self.IconId), self.Color);
 }
@@ -146,7 +146,7 @@ func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 func (self *World) DestroyEntity(ent Entity) {
 	if ent == Entity(self.GetPlayer()) {
 		// TODO: End game when player dies.
-		fmt.Fprintf(Msg, "A mysterious anthropic effect prevents your discorporation.\n");
+		Msg("A mysterious anthropic effect prevents your discorporation.\n");
 		ent.(*Creature).Wounds = 0;
 		return;
 	}

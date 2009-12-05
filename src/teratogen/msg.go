@@ -6,10 +6,6 @@ import "strings"
 
 import . "gamelib"
 
-var Msg *MsgOut;
-
-var Debug *os.File = os.Stdout
-
 func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);
 }

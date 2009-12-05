@@ -8,6 +8,7 @@ GOFILES=\
 	mapgen.go\
 	msg.go\
 	rules.go\
+	ui.go\
 	world.go\
 
 include $(GOROOT)/src/Make.pkg
