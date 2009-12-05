@@ -40,8 +40,6 @@ func main() {
 	input := os.Stdin;
 	output := os.Stdout;
 
-	fmt.Printf("Args: %v\n", flag.Args());
-
 	// Get input file.
 	if flag.NArg() > 0 && flag.Arg(0) != pipeName {
 		var err os.Error;
@@ -57,7 +55,7 @@ func main() {
 
 		// Open file with read and write permissions for owner and
 		// read permission for others.
-		output, err = os.Open(flag.Arg(1), os.O_TRUNC | os.O_CREATE, 0644);
+		output, err = os.Open(flag.Arg(1), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644);
 		defer output.Close();
 		dieIfErr("Output file error:", err);
 	}
@@ -70,12 +68,11 @@ func main() {
 	data, err := io.ReadAll(input);
 	dieIfErr("Read error:", err);
 
-	fmt.Printf("%v bytes of data!\n", len(data));
 	if len(data) == 0 {
 		fmt.Fprintf(os.Stderr, "Warning: No data found.\n");
 	}
 
-	fmt.Fprintf(output, "%v = [...]byte{\n", *variableName);
+	fmt.Fprintf(output, "var %v = [%v]byte{\n", *variableName, len(data));
 
 	const bytesPerLine = 16;
 
