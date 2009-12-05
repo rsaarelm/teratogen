@@ -35,16 +35,16 @@ run: $(TARG)
 	./$(TARG)
 
 %_build:
-	cd src/$* && make install
+	$(MAKE) -C src/$* install
 
 %_clean:
-	cd src/$* && make clean
+	$(MAKE) -C src/$* clean
 
 %_test:
-	cd src/$* && make test
+	$(MAKE) -C src/$* test
 
 %_nuke:
-	cd src/$* && make nuke
+	$(MAKE) -C src/$* nuke
 
 include $(GOROOT)/src/Make.cmd
 
