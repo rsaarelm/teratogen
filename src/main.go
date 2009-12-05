@@ -10,13 +10,15 @@ import . "teratogen"
 
 var currentLevel int = 1
 
-func movePlayerDir(world *World, dir int) {
+func movePlayerDir(dir int) {
+	world := GetWorld();
 	world.ClearLosSight();
 	world.MoveCreature(world.GetPlayer(), Dir8ToVec(dir));
 	world.DoLos(world.GetPlayer().GetPos());
 }
 
-func smartMove(world *World, dir int) {
+func smartMove(dir int) {
+	world := GetWorld();
 	player := world.GetPlayer();
 	vec := Dir8ToVec(dir);
 	target := player.GetPos().Plus(vec);
@@ -28,10 +30,11 @@ func smartMove(world *World, dir int) {
 		}
 	}
 	// No attack, move normally.
-	movePlayerDir(world, dir);
+	movePlayerDir(dir);
 }
 
-func RunAI(world *World) {
+func RunAI() {
+	world := GetWorld();
 	enemyCount := 0;
 	for crit := range world.IterCreatures() {
 		if crit != world.GetPlayer() { enemyCount++; }
@@ -80,26 +83,26 @@ func main() {
 			case 'q':
 				running = false;
 			case 'u':
-				smartMove(world, 0);
+				smartMove(0);
 			case 'y':
-				smartMove(world, 1);
+				smartMove(1);
 			case 'i':
-				smartMove(world, 2);
+				smartMove(2);
 			case '.':
-				smartMove(world, 3);
+				smartMove(3);
 			case ',':
-				smartMove(world, 4);
+				smartMove(4);
 			case 'm':
-				smartMove(world, 5);
+				smartMove(5);
 			case 'n':
-				smartMove(world, 6);
+				smartMove(6);
 			case 'l':
-				smartMove(world, 7);
+				smartMove(7);
 			case 'p':
 				fmt.Fprint(Msg, "Some text for the buffer...\n");
 			}
 
-			RunAI(world);
+			RunAI();
 		}
 	}();
 
