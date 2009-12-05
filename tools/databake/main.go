@@ -5,7 +5,7 @@ package main
 import (
 	"flag";
 	"fmt";
-	"io";
+	"io/ioutil";
 	"os";
 	"regexp";
 )
@@ -65,7 +65,7 @@ func main() {
 	}
 
 
-	data, err := io.ReadAll(input);
+	data, err := ioutil.ReadAll(input);
 	dieIfErr("Read error:", err);
 
 	if len(data) == 0 {
