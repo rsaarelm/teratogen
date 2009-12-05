@@ -1,5 +1,6 @@
 package teratogen
 
+import "container/vector"
 import "fmt"
 import "rand"
 
@@ -42,10 +43,20 @@ type EntityType int const (
 	EntityPlayer;
 	EntityZombie;
 	EntityBigboss;
+	EntityMinorHealthGlobe;
 )
 
+// Put item classes before creature classes, so we can use this to control
+// draw order as well.
 type EntityClass int const (
 	EmptyEntityClass = iota;
+
+	// Item classes
+	GlobeEntityClass; // Globe items are used when stepped on.
+
+	// Creature classes
+	CreatureEntityClassStartMarker;
+
 	PlayerEntityClass;
 	EnemyEntityClass;
 )
@@ -57,10 +68,10 @@ type LosState byte const (
 )
 
 var tileset1 = []Icon{
-TerrainIndeterminate: Icon{'?', RGB{255, 0, 255}},
-TerrainWall: Icon{'#', RGB{196, 64, 0}},
-TerrainFloor: Icon{'.', RGB{196, 196, 196}},
-TerrainDoor: Icon{'+', RGB{0, 196, 196}},
+TerrainIndeterminate: Icon{'?', RGB{0xff, 0, 0xff}},
+TerrainWall: Icon{'#', RGB{0x55, 0x55, 0x55}},
+TerrainFloor: Icon{'.', RGB{0xaa, 0xaa, 0xaa}},
+TerrainDoor: Icon{'+', RGB{0x00, 0xcc, 0xcc}},
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
@@ -96,6 +107,7 @@ type Entity interface {
 	MoveAbs(pos Pt2I);
 	Move(vec Vec2I);
 	GetName() string;
+	GetClass() EntityClass;
 }
 
 
@@ -188,6 +200,13 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		MeleeSkill:Superb,
 		Scale:15,
 		};
+	case EntityMinorHealthGlobe:
+		result = &Item{Icon:Icon{'%', RGB{0xff, 0x44, 0x44}},
+            	guid:guid,
+		Name:"health globe",
+		pos:Pt2I{-1, -1},
+		class:GlobeEntityClass,
+		};
 	default:
 		Die("Unknown entity type %v.", entityType);
 	}
@@ -227,6 +246,10 @@ func (self *World) InitLevel(num int) {
 	for i := 0; i < 10 + num * 4; i++ {
 		self.SpawnRandomPos(EntityZombie);
 	}
+
+	for i := 0; i < 10; i++ {
+		self.SpawnRandomPos(EntityMinorHealthGlobe);
+	}
 //	self.SpawnRandomPos(EntityBigboss);
 }
 
@@ -247,7 +270,7 @@ func (self *World) ClearLosSight() {
 func (self *World) ClearLosMapped() {
 	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth * pt.Y;
-		self.los[idx] = LosUnknown; 
+		self.los[idx] = LosUnknown;
 	}
 }
 
@@ -442,13 +465,27 @@ func (self *World) drawTerrain() {
 }
 
 func (self *World) drawEntities() {
-	for _, e := range self.entities {
+	// Make a vector of the entities sorted in draw order.
+	seq := new(vector.Vector);
+	for e := range self.IterEntities() { seq.Push(e); }
+	PredicateSort(entityEarlierInDrawOrder, seq);
+
+	for sorted := range seq.Iter() {
+		e := sorted.(Entity);
 		pos := e.GetPos();
+		seen := self.GetLos(pos) == LosSeen;
+		mapped := seen || self.GetLos(pos) == LosMapped;
 		// TODO: Draw static (item) entities from map memory.
-		if self.GetLos(pos) == LosSeen {
-			e.Draw(pos.X, pos.Y);
+		if mapped {
+			if seen || !IsMobile(e) {
+				e.Draw(pos.X, pos.Y);
+			}
 		}
 	}
+}
+
+func entityEarlierInDrawOrder(i, j interface{}) bool {
+	return i.(Entity).GetClass() < j.(Entity).GetClass();
 }
 
 func (self *World) getGuid(name string) (result Guid) {

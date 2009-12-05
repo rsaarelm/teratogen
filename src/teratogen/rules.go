@@ -117,9 +117,28 @@ func FudgeOpposed(ability, difficulty int) int {
 
 func MovePlayerDir(dir int) {
 	world := GetWorld();
+	player := world.GetPlayer();
 	world.ClearLosSight();
-	world.GetPlayer().TryMove(Dir8ToVec(dir));
-	world.DoLos(world.GetPlayer().GetPos());
+	player.TryMove(Dir8ToVec(dir));
+
+	// TODO: More general collision code, do collisions for AI creatures
+	// too.
+
+	// See if the player collided with something fun.
+	for e := range world.EntitiesAt(player.GetPos()) {
+		if e == Entity(player) { continue; }
+		if e.GetClass() == GlobeEntityClass {
+			// TODO: Different globe effects.
+			if player.Wounds > 0 {
+				Msg("The globe bursts. You feel better.\n");
+				player.Wounds -= 1;
+				// Deferring this until the iteration is over.
+				defer world.DestroyEntity(e);
+			}
+		}
+	}
+
+	world.DoLos(player.GetPos());
 }
 
 func SmartMovePlayer(dir int) {
@@ -160,4 +179,10 @@ func GameOver(reason string) {
 	GetKey();
 	fmt.Printf("%v %v\n", Capitalize(GetWorld().GetPlayer().Name), reason);
 	Quit();
+}
+
+// Return whether the entity moves around by itself and shouldn't be shown in
+// map memory.
+func IsMobile(entity Entity) bool {
+	return entity.GetClass() > CreatureEntityClassStartMarker;
 }

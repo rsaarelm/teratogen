@@ -5,6 +5,7 @@ GOFILES=\
 	ai.go\
 	creature.go\
 	gfx.go\
+	item.go\
 	mapgen.go\
 	msg.go\
 	rules.go\
