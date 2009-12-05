@@ -4,16 +4,12 @@ import "fmt"
 import "rand"
 import "time"
 
-import . "gamelib"
 import . "teratogen"
 
 var currentLevel int = 1
 
 func main() {
 	fmt.Print("Welcome to Teratogen.\n");
-	running := true;
-	getch := make(chan byte);
-	oldestLineSeen := 0;
 
 	rand.Seed(time.Nanoseconds());
 
@@ -24,9 +20,9 @@ func main() {
 	// Game logic
 	go func() {
 		for {
-			key := <-getch;
+			key := <-Getch();
 			// When key pressed, clear the message buffer.
-			oldestLineSeen = GetMsg().NumLines() - 1;
+			MarkMsgLinesSeen();
 
 			// Colemak direction pad.
 
@@ -34,9 +30,9 @@ func main() {
 			// shifted to nm to keep things on one side on a
 			// ergonomic split keyboard.
 
-			switch key {
+			switch key.Printable {
 			case 'q':
-				running = false;
+				Quit();
 			case 'u':
 				SmartMovePlayer(0);
 			case 'y':
@@ -61,27 +57,5 @@ func main() {
 		}
 	}();
 
-	for running {
-		GetConsole().Clear();
-
-		world.Draw();
-
-		for i := oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			GetConsole().Print(0, 42 + (i - oldestLineSeen), GetMsg().GetLine(i));
-		}
-
-		GetConsole().Print(41, 0, fmt.Sprintf("Strength: %v",
-			Capitalize(LevelDescription(world.GetPlayer().Strength))));
-		GetConsole().Print(41, 1, fmt.Sprintf("%v",
-			Capitalize(world.GetPlayer().WoundDescription())));
-
-		GetConsole().Flush();
-
-		if evt, ok := <-GetConsole().Events(); ok {
-			switch e := evt.(type) {
-			case *KeyEvent:
-				getch <- byte(e.Printable);
-			}
-		}
-	}
+	MainUILoop();
 }
