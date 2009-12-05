@@ -79,7 +79,7 @@ func processOctant(
 			}
 		}
 
-		if startSlope < endSlope && !outsideRadius(pos) {
+		if startSlope <= endSlope && !outsideRadius(pos) {
 			c <- pos;
 		}
         }
