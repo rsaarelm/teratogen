@@ -95,6 +95,7 @@ type Entity interface {
 	GetGuid() Guid;
 	MoveAbs(pos Pt2I);
 	Move(vec Vec2I);
+	GetName() string;
 }
 
 
@@ -144,8 +145,9 @@ func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 func (self *World) DestroyEntity(ent Entity) {
 	if ent == Entity(self.GetPlayer()) {
 		// TODO: End game when player dies.
-		Msg("A mysterious anthropic effect prevents your discorporation.\n");
-		ent.(*Creature).Wounds = 0;
+//		Msg("A mysterious anthropic effect prevents your discorporation.\n");
+//		ent.(*Creature).Wounds = 0;
+		GameOver("was wiped out of existence.");
 		return;
 	}
 	self.entities[ent.GetGuid()] = ent, false;

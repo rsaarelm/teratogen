@@ -54,8 +54,13 @@ func MarkMsgLinesSeen() {
 	ui.oldestLineSeen = ui.msg.NumLines() - 1;
 }
 
-func Getch() <-chan KeyEvent {
-	return ui.getch;
+// Blocking getkey function to be called from within an UI-locking game
+// script. Unlocks the UI while waiting for key.
+func GetKey() (result KeyEvent) {
+	ReleaseUISync();
+	result = <-ui.getch;
+	GetUISync();
+	return;
 }
 
 func MainUILoop() {

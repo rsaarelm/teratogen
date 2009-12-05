@@ -80,7 +80,6 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 }
 
 func Attack(attacker Entity, defender Entity) {
-	world := GetWorld();
 	switch e1 := attacker.(type) {
 	case *Creature:
 		switch e2 := defender.(type) {
@@ -89,22 +88,17 @@ func Attack(attacker Entity, defender Entity) {
 				e1.MeleeSkill, e2.MeleeSkill, e2.Scale - e1.Scale);
 
 			if doesHit {
+				Msg("%v hits. ", Capitalize(attacker.GetName()));
 				// XXX: Assuming melee attack.
 				woundLevel := e1.MeleeWoundLevelAgainst(e2, hitDegree);
 
 				if woundLevel > 0 {
-					e2.Damage(woundLevel);
-
-					if e2.IsKilledByWounds() {
- 						Msg("%v killed.\n", Capitalize(e2.Name));
-						world.DestroyEntity(defender);
-					} else {
- 						Msg("%v %v.\n",
-							Capitalize(e2.Name), e2.WoundDescription());
-					}
+					e2.Damage(woundLevel, e1);
+				} else {
+					Msg("%v undamaged.", Capitalize(defender.GetName()));
 				}
 			} else {
- 				Msg("%v missed.\n", Capitalize(e2.Name));
+ 				Msg("%v missed.\n", Capitalize(attacker.GetName()));
 			}
 		}
 	}
@@ -160,3 +154,9 @@ func RunAI() {
 	}
 }
 
+func GameOver(reason string) {
+	Msg("--more--");
+	GetKey();
+	fmt.Printf("%v %v\n", Capitalize(GetWorld().GetPlayer().Name), reason);
+	Quit();
+}

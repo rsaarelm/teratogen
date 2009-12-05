@@ -1,5 +1,7 @@
 package teratogen
 
+import "fmt"
+
 import . "gamelib"
 
 type Creature struct {
@@ -25,6 +27,8 @@ func (self *Creature) GetPos() Pt2I { return self.pos }
 func (self *Creature) GetGuid() Guid { return self.guid }
 
 func (self *Creature) GetClass() EntityClass { return self.class; }
+
+func (self *Creature) GetName() string { return self.Name; }
 
 // XXX: Assuming Pt2I to be a value type here.
 func (self *Creature) MoveAbs(pos Pt2I) { self.pos = pos }
@@ -67,8 +71,27 @@ func (self *Creature) ArmorFactor() int {
 	// TODO: Effects from worn armor.
 }
 
-func (self *Creature) Damage(woundLevel int) {
+func (self *Creature) Damage(woundLevel int, cause Entity) {
+	world := GetWorld();
 	self.Wounds += (woundLevel + 1) / 2;
+
+	if self.IsKilledByWounds() {
+		if self == world.GetPlayer() {
+			Msg("You die.\n");
+			var msg string;
+			if cause != nil {
+				msg = fmt.Sprintf("killed by %v.", cause.GetName());
+			} else {
+				msg = "killed.";
+			}
+			GameOver(msg);
+		}
+ 		Msg("%v killed.\n", Capitalize(self.Name));
+		world.DestroyEntity(self);
+	} else {
+ 		Msg("%v %v.\n",
+			Capitalize(self.Name), self.WoundDescription());
+	}
 }
 
 func (self *Creature) MeleeWoundLevelAgainst(

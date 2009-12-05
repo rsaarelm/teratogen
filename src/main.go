@@ -20,10 +20,6 @@ func main() {
 	// Game logic
 	go func() {
 		for {
-			key := <-Getch();
-
-			// When key pressed, clear the message buffer.
-			MarkMsgLinesSeen();
 
 			// Colemak direction pad.
 
@@ -32,6 +28,9 @@ func main() {
 			// ergonomic split keyboard.
 
 			GetUISync();
+			key := GetKey();
+			// When key pressed, clear the message buffer.
+			MarkMsgLinesSeen();
 
 			switch key.Printable {
 			case 'q':
@@ -54,6 +53,9 @@ func main() {
 				SmartMovePlayer(7);
 			case 'p':
 				Msg("Some text for the buffer...\n");
+			case 'd':
+				Msg("You decide to blow up a bit.\n");
+				GameOver("died of exploding head syndrome.");
 			}
 
 			RunAI();
