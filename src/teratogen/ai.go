@@ -2,8 +2,9 @@ package teratogen
 
 import . "gamelib"
 
-func (self *World) DoAI(crit *Creature) {
-	player := self.GetPlayer();
+func DoAI(crit *Creature) {
+	world := GetWorld();
+	player := world.GetPlayer();
 	if player == nil || player == crit {
 		return;
 	}
@@ -13,9 +14,9 @@ func (self *World) DoAI(crit *Creature) {
 	moveVec := Dir8ToVec(dir8);
 
 	if crit.GetPos().Plus(moveVec).Equals(player.GetPos()) {
-		self.Attack(crit, player);
+		Attack(crit, player);
 	} else {
 		// TODO: Going around obstacles.
-		self.MoveCreature(crit, moveVec);
+		crit.TryMove(moveVec);
 	}
 }

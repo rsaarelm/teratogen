@@ -94,3 +94,13 @@ func (self *Creature) MeleeWoundLevelAgainst(
 	}
 	return;
 }
+
+func (self *Creature) TryMove(vec Vec2I) (success bool) {
+	world := GetWorld();
+
+	if world.IsOpen(self.GetPos().Plus(vec)) {
+		self.Move(vec);
+		return true;
+	}
+	return false;
+}

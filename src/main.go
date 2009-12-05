@@ -13,7 +13,7 @@ var currentLevel int = 1
 func movePlayerDir(dir int) {
 	world := GetWorld();
 	world.ClearLosSight();
-	world.MoveCreature(world.GetPlayer(), Dir8ToVec(dir));
+	world.GetPlayer().TryMove(Dir8ToVec(dir));
 	world.DoLos(world.GetPlayer().GetPos());
 }
 
@@ -24,8 +24,8 @@ func smartMove(dir int) {
 	target := player.GetPos().Plus(vec);
 
 	for ent := range world.EntitiesAt(target) {
-		if world.IsEnemyOf(player, ent) {
-			world.Attack(player, ent);
+		if IsEnemyOf(player, ent) {
+			Attack(player, ent);
 			return;
 		}
 	}
@@ -38,7 +38,7 @@ func RunAI() {
 	enemyCount := 0;
 	for crit := range world.IterCreatures() {
 		if crit != world.GetPlayer() { enemyCount++; }
-		world.DoAI(crit);
+		DoAI(crit);
 	}
 
 	// Go to next level when all creatures are killed.

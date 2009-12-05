@@ -205,18 +205,6 @@ func (self *World) SpawnRandomPos(entityType EntityType) (result Entity) {
 	return self.SpawnAt(entityType, self.GetSpawnPos());
 }
 
-// TODO: Event system for changing world, event handler does lock/unlock, all
-// changes in events. "Transactional database".
-
-func (self *World) MoveCreature(crit *Creature, vec Vec2I) {
-	self.Lock.Lock();
-	defer self.Lock.Unlock();
-
-	if self.IsOpen(crit.GetPos().Plus(vec)) {
-		crit.Move(vec)
-	}
-}
-
 func (self *World) InitLevel(num int) {
 	// Keep the player around even though the other entities get munged.
 	// TODO: When we start having inventories, keep the player's items too.

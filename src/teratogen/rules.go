@@ -48,7 +48,7 @@ func LevelDescription(level int) string {
 }
 
 // Return whether an entity considers another entity an enemy.
-func (self *World) IsEnemyOf(ent Entity, possibleEnemy Entity) bool {
+func IsEnemyOf(ent Entity, possibleEnemy Entity) bool {
 	switch e1 := ent.(type) {
 	case *Creature:
 		switch e2 := possibleEnemy.(type) {
@@ -79,7 +79,8 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 	return;
 }
 
-func (self *World) Attack(attacker Entity, defender Entity) {
+func Attack(attacker Entity, defender Entity) {
+	world := GetWorld();
 	switch e1 := attacker.(type) {
 	case *Creature:
 		switch e2 := defender.(type) {
