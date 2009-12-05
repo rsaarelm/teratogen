@@ -16,9 +16,7 @@ type BspRoom struct {
 
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom);
-	if w < 1 || h < 1 {
-		Die("Making a BspRoom with zero dimension.");
-	}
+	Assert(w > 0 && h > 0, "Making a BspRoom with zero dimension.");
 	result.Pos = Pt2I{x, y};
 	result.Dim = Vec2I{w, h};
 	return;
@@ -99,12 +97,9 @@ func (self *BspRoom)FindConnectingWalls(graph Graph) {
 }
 
 func (self *BspRoom)VerticalSplit(pos int) {
-	if !self.IsLeaf() {
-		Die("Splitting a non-leaf BspRoom.");
-	}
-	if pos < minRoomDim || pos > self.Dim.Y - 1 - minRoomDim {
-		Die("BspRoom split pos too close to wall.");
-	}
+	Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.");
+	Assert(pos >= minRoomDim && pos < self.Dim.Y - minRoomDim,
+		"BspRoom split pos too close to wall.");
 	self.ChildLeft = NewBspRoom(
 		self.Pos.X, self.Pos.Y, self.Dim.X, pos);
 	self.ChildRight = NewBspRoom(
@@ -113,12 +108,9 @@ func (self *BspRoom)VerticalSplit(pos int) {
 }
 
 func (self *BspRoom)HorizontalSplit(pos int) {
-	if !self.IsLeaf() {
-		Die("Splitting a non-leaf BspRoom.");
-	}
-	if pos < minRoomDim || pos > self.Dim.X - 1 - minRoomDim {
-		Die("BspRoom split pos too close to wall.");
-	}
+	Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.");
+	Assert(pos >= minRoomDim && pos < self.Dim.X - minRoomDim,
+		"BspRoom split pos too close to wall.");
 	self.ChildLeft = NewBspRoom(
 		self.Pos.X, self.Pos.Y, pos, self.Dim.Y);
 	self.ChildRight = NewBspRoom(

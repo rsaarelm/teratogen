@@ -126,9 +126,7 @@ func NewWorld() (result *World) {
 }
 
 func GetWorld() *World {
-	if world == nil {
-		Die("World not initialized.");
-	}
+	AssertNotNil(world, "World not initialized.");
 	return world;
 }
 
@@ -192,7 +190,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		Scale:15,
 		};
 	default:
-		Die("Unknown entity type.");
+		Die("Unknown entity type %v.", entityType);
 	}
 	self.entities[guid] = result;
 	return;
@@ -318,7 +316,7 @@ func (self *World) makeCaveMap() {
 		case CaveUnknown:
 			self.SetTerrain(pt, TerrainWall);
 		default:
-			Die("Bad data in generated cave map.");
+			Die("Bad data %v in generated cave map.", area[pt.X][pt.Y]);
 		}
 	}
 }
@@ -395,9 +393,9 @@ func (self *World) IsOpen(pos Pt2I) bool {
 func (self *World) GetSpawnPos() (pos Pt2I) {
 	pos, ok := self.GetMatchingPos(
 		func(pos Pt2I) bool { return self.isSpawnPos(pos); });
-	if !ok {
-		Die("Couldn't find open position.");
-	}
+	// XXX: Maybe this shouldn't be an assert, since a situation where no
+	// spawn pos can be found can occur during play.
+	Assert(ok, "Couldn't find open spawn position.");
 	return;
 }
 

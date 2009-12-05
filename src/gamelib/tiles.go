@@ -51,7 +51,7 @@ func processOctant(
 		case 5: pos = Vec2I{-u, v};
 		case 6: pos = Vec2I{-u, -v};
 		case 7: pos = Vec2I{-v, -u};
-		default: Die("Bad octant");
+		default: Die("Bad octant %v", octant);
 		}
 
 		if isBlocked(pos) {
