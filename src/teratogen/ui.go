@@ -1,6 +1,7 @@
 package teratogen
 
 import "fmt"
+import "sync"
 import "time"
 
 import "libtcod"
@@ -20,6 +21,12 @@ type UI struct {
 }
 
 var ui = newUI();
+
+var uiMutex = new(sync.Mutex);
+
+func GetUISync() { uiMutex.Lock(); }
+
+func ReleaseUISync() { uiMutex.Unlock(); }
 
 func newUI() (result *UI) {
 	result = new(UI);
@@ -51,7 +58,7 @@ func Getch() <-chan KeyEvent {
 	return ui.getch;
 }
 
-func MainUILoop(sync chan int) {
+func MainUILoop() {
 	con := ui.con;
 
 	updater := time.Tick(redrawIntervalNs);
@@ -70,7 +77,8 @@ func MainUILoop(sync chan int) {
 
 		// Synched block which accesses the game world. Don't run
 		// scripts during this.
-		<-sync;
+		GetUISync();
+
 		world := GetWorld();
 
 		world.Draw();
@@ -83,7 +91,7 @@ func MainUILoop(sync chan int) {
 			Capitalize(LevelDescription(world.GetPlayer().Strength))));
 		con.Print(41, 1, fmt.Sprintf("%v",
 			Capitalize(world.GetPlayer().WoundDescription())));
-		sync <- 1;
+		ReleaseUISync();
 
 		con.Flush();
 

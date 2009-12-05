@@ -2,7 +2,6 @@ package teratogen
 
 import "fmt"
 import "rand"
-import "sync"
 
 import . "gamelib"
 
@@ -101,7 +100,6 @@ type Entity interface {
 
 type World struct {
 	playerId Guid;
-	Lock *sync.RWMutex;
 	entities map[Guid] Entity;
 	terrain []TerrainType;
 	los []LosState;
@@ -114,7 +112,6 @@ func NewWorld() (result *World) {
 	world = result;
 	result.entities = make(map[Guid] Entity);
 	result.initTerrain();
-	result.Lock = new(sync.RWMutex);
 
 	result.playerId = Guid("player");
 	player := result.Spawn(EntityPlayer);
