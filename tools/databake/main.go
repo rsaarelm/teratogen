@@ -72,10 +72,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Warning: No data found.\n");
 	}
 
-	printByteArray(output, *variableName, data);
+	// XXX: As of 2009-12-05, emitting a byte array literal seems to
+	// produce a *much* larger object (x22) code block than the number of
+	// bytes in the data. So it's not really usable for embedding
+	// purposes. The current implementation uses a string constant
+	// instead.
+
+	// printByteArray(output, *variableName, data);
+	printConstString(output, *variableName, data);
 }
 
-func printByteArray(output *os.File, variableName string, data byte[]) {
+func printByteArray(output *os.File, variableName string, data []byte) {
 	fmt.Fprintf(output, "var %v = [...]byte{\n", variableName);
 
 	const bytesPerLine = 16;
@@ -87,6 +94,26 @@ func printByteArray(output *os.File, variableName string, data byte[]) {
 		fmt.Fprintf(output, "\n");
 	}
 	fmt.Fprintf(output, "}\n");
+}
+
+func printConstString(output *os.File, variableName string, data []byte) {
+	fmt.Fprintf(output, "const %v =\n", variableName);
+
+	const bytesPerLine = 16;
+	const printCleartext = false;
+
+	for i := 0; i < len(data); i += bytesPerLine {
+		fmt.Fprintf(output, "\"");
+		for j := 0; j < bytesPerLine && i + j < len(data); j++ {
+			byte := data[i + j];
+			if printCleartext && byte >= ' ' && byte <= '~' {
+				fmt.Fprintf(output, "%c", byte);
+			} else {
+				fmt.Fprintf(output, "\\x%02x", byte);
+			}
+		}
+		fmt.Fprintf(output, "\"\n");
+	}
 }
 
 func isSymbolName(name string) bool {
