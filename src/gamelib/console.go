@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 // This is a wrapper class for consoles which implements complex display
 // logic. It holds a reference to a minimal implementation object which does

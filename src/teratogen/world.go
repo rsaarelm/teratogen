@@ -4,7 +4,7 @@ import "fmt"
 import "rand"
 import "sync"
 
-import . "fomalhaut"
+import . "gamelib"
 
 const mapWidth = 40
 const mapHeight = 40

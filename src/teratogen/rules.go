@@ -4,7 +4,7 @@ import "fmt"
 import "math"
 import "rand"
 
-import . "fomalhaut"
+import . "gamelib"
 
 // Game mechanics stuff.
 

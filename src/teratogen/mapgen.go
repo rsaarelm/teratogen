@@ -5,7 +5,7 @@ import "exp/iterable"
 import "math"
 import "rand"
 
-import . "fomalhaut"
+import . "gamelib"
 
 const minRoomDim = 2
 

@@ -1,6 +1,6 @@
 package teratogen
 
-import . "fomalhaut"
+import . "gamelib"
 
 type Creature struct {
 	*Icon;

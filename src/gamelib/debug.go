@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 import "fmt"
 // import "os"

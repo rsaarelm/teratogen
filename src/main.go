@@ -5,7 +5,7 @@ import "rand"
 import "time"
 
 import "libtcod"
-import . "fomalhaut"
+import . "gamelib"
 import . "teratogen"
 
 var currentLevel int = 1

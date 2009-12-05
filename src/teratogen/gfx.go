@@ -1,6 +1,6 @@
 package teratogen
 
-import . "fomalhaut"
+import . "gamelib"
 
 func ConsoleClear(console ConsoleBase) {
 	w, h := console.GetDim();

@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 import "exp/iterable"
 import "rand"

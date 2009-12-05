@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 type Set interface {
 	Add(item interface{});

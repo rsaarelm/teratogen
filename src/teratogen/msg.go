@@ -4,7 +4,7 @@ import "container/vector"
 import "os"
 import "strings"
 
-import . "fomalhaut"
+import . "gamelib"
 
 var Msg *MsgOut;
 

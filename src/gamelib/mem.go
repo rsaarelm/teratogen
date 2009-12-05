@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 import "reflect"
 

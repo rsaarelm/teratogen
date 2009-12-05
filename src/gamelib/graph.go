@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 type Graph interface {
 	AddArc(node1, node2 interface{}, arcObj interface{});

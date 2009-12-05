@@ -1,6 +1,6 @@
 package teratogen
 
-import . "fomalhaut"
+import . "gamelib"
 
 func (self *World) DoAI(crit *Creature) {
 	player := self.GetPlayer();

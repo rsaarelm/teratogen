@@ -1,3 +1,3 @@
-package fomalhaut
+package gamelib
 
 type RGB [3]byte;

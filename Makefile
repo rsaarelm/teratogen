@@ -1,4 +1,4 @@
-LIBS=fomalhaut libtcod teratogen
+LIBS=gamelib libtcod teratogen
 
 GOFILES=src/main.go
 

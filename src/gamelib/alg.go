@@ -1,4 +1,4 @@
-package fomalhaut
+package gamelib
 
 // Ternary expression replacement.
 func IfElse(exp bool, a interface{}, b interface{}) interface{} {

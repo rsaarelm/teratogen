@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=fomalhaut
+TARG=gamelib
 GOFILES=\
 	alg.go\
 	color.go\
