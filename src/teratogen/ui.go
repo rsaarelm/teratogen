@@ -20,7 +20,7 @@ type UI struct {
 	oldestLineSeen int;
 }
 
-var ui = newUI();
+var ui *UI
 
 var uiMutex = new(sync.Mutex);
 
@@ -36,6 +36,11 @@ func newUI() (result *UI) {
 	result.running = true;
 
 	return;
+}
+
+func InitUI()
+{
+	ui = newUI();
 }
 
 func GetConsole() *Console { return ui.con; }

@@ -13,6 +13,8 @@ func main() {
 
 	rand.Seed(time.Nanoseconds());
 
+	InitUI();
+
 	world := NewWorld();
 
 	world.InitLevel(currentLevel);
