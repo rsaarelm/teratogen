@@ -36,6 +36,7 @@ type TerrainType byte const (
 	TerrainWall;
 	TerrainFloor;
 	TerrainDoor;
+	TerrainStairDown;
 )
 
 type EntityType int const (
@@ -72,6 +73,7 @@ TerrainIndeterminate: Icon{'?', RGB{0xff, 0, 0xff}},
 TerrainWall: Icon{'#', RGB{0x55, 0x55, 0x55}},
 TerrainFloor: Icon{'.', RGB{0xaa, 0xaa, 0xaa}},
 TerrainDoor: Icon{'+', RGB{0x00, 0xcc, 0xcc}},
+TerrainStairDown: Icon{'>', RGB{0xff, 0xff, 0xff}},
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
@@ -240,6 +242,8 @@ func (self *World) InitLevel(num int) {
 	} else {
 		self.makeBSPMap();
 	}
+
+	self.SetTerrain(self.GetSpawnPos(), TerrainStairDown);
 
 	player.MoveAbs(self.GetSpawnPos());
 	self.DoLos(player.GetPos());
@@ -431,6 +435,7 @@ func (self *World) GetSpawnPos() (pos Pt2I) {
 func (self *World) isSpawnPos(pos Pt2I) bool {
 	if !self.IsOpen(pos) { return false; }
 	if self.GetTerrain(pos) == TerrainDoor { return false; }
+	if self.GetTerrain(pos) == TerrainStairDown { return false; }
 	return true;
 }
 

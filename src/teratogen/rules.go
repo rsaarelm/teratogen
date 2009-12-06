@@ -164,14 +164,6 @@ func RunAI() {
 		if crit != world.GetPlayer() { enemyCount++; }
 		DoAI(crit);
 	}
-
-	// Go to next level when all creatures are killed.
-	// TODO: Show message, get keypress, before flipping to the next level.
-	if enemyCount == 0 {
-		Msg("Area cleared!\n");
-		GetKey();
-		world.InitLevel(world.CurrentLevelNum() + 1);
-	}
 }
 
 func GameOver(reason string) {
@@ -185,4 +177,18 @@ func GameOver(reason string) {
 // map memory.
 func IsMobile(entity Entity) bool {
 	return entity.GetClass() > CreatureEntityClassStartMarker;
+}
+
+func PlayerEnterStairs() {
+	world := GetWorld();
+	if world.GetTerrain(world.GetPlayer().GetPos()) == TerrainStairDown {
+		Msg("Going down...\n");
+		NextLevel();
+	} else {
+		Msg("There are no stairs here.\n");
+	}
+}
+
+func NextLevel() {
+	world.InitLevel(world.CurrentLevelNum() + 1);
 }
