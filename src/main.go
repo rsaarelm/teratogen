@@ -1,17 +1,12 @@
 package main
 
-import "fmt"
-import "rand"
-import "time"
-
+import . "gamelib"
 import . "teratogen"
 
 var currentLevel int = 1
 
 func main() {
-	fmt.Print("Welcome to Teratogen.\n");
-
-	rand.Seed(time.Nanoseconds());
+	RngSeedFromClock();
 
 	InitUI();
 
