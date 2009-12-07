@@ -36,3 +36,7 @@ func Assert(exp bool, format string, a ...) {
 func AssertNotNil(val interface{}, format string, a ...) {
 	Assert(val != nil, format, a);
 }
+
+func AssertNil(val interface{}, format string, a ...) {
+	Assert(val == nil, format, a);
+}
