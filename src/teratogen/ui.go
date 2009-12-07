@@ -94,7 +94,7 @@ func MainUILoop() {
 		world.Draw();
 
 		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			con.Print(0, 42 + (i - ui.oldestLineSeen), GetMsg().GetLine(i));
+			con.Print(0, 21 + (i - ui.oldestLineSeen), GetMsg().GetLine(i));
 		}
 
 		con.Print(41, 0, fmt.Sprintf("Strength: %v",

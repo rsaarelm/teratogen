@@ -7,7 +7,7 @@ import "rand"
 import . "gamelib"
 
 const mapWidth = 40
-const mapHeight = 40
+const mapHeight = 20
 
 const numTerrainCells = mapWidth * mapHeight
 
