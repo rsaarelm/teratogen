@@ -1,6 +1,8 @@
 package gamelib
 
-import "reflect"
+import (
+	"reflect";
+)
 
 // Create an identifier for an object from its memory address.
 func ObjId(obj interface{}) uintptr {
@@ -87,3 +89,32 @@ func (self *ObjLookup)Iter() <-chan interface{} {
 }
 
 func (self *ObjLookup)Len() int { return len(self.lut); }
+
+// A factory object that matches the typenames to the type values of
+// registered object types and is able to manufacture these objects given the
+// string typename.
+type BlankObjectFactory struct {
+	typenames map[string] reflect.Type;
+}
+
+func NewBlankObjectFactory() (result *BlankObjectFactory) {
+	result = new(BlankObjectFactory);
+	result.typenames = make(map[string] reflect.Type);
+	return;
+}
+
+// Register an object type in the factory.
+func (self *BlankObjectFactory)Register(example interface{}) {
+	val := reflect.Indirect(reflect.NewValue(example));
+	typ := val.Type();
+	name := typ.Name();
+	Assert(name != "", "Unnamed type");
+	self.typenames[name] = typ;
+}
+
+// Create a blank object of a registered type.
+func (self *BlankObjectFactory)Make(name string) interface{} {
+	typ, ok := self.typenames[name];
+	Assert(ok, "Unknown typename %v", name);
+	return reflect.MakeZero(typ).Interface();
+}
