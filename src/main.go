@@ -31,30 +31,30 @@ func main() {
 
 			switch key.Printable {
 			case 'q':
-				Quit();
+				Quit()
 			case 'u':
-				SmartMovePlayer(0);
+				SmartMovePlayer(0)
 			case 'y':
-				SmartMovePlayer(1);
+				SmartMovePlayer(1)
 			case 'i':
-				SmartMovePlayer(2);
+				SmartMovePlayer(2)
 			case '.':
-				SmartMovePlayer(3);
+				SmartMovePlayer(3)
 			case ',':
-				SmartMovePlayer(4);
+				SmartMovePlayer(4)
 			case 'm':
-				SmartMovePlayer(5);
+				SmartMovePlayer(5)
 			case 'n':
-				SmartMovePlayer(6);
+				SmartMovePlayer(6)
 			case 'l':
-				SmartMovePlayer(7);
+				SmartMovePlayer(7)
 			case 'p':
-				Msg("Some text for the buffer...\n");
+				Msg("Some text for the buffer...\n")
 			case 'd':
 				Msg("You decide to blow up a bit.\n");
 				GameOver("died of exploding head syndrome.");
 			case '>':
-				PlayerEnterStairs();
+				PlayerEnterStairs()
 			case 'c':
 				world.ClearLosMapped();
 				world.DoLos(world.GetPlayer().GetPos());
