@@ -1,8 +1,9 @@
 package gamelib
 
-import "fmt"
-// import "os"
-import "runtime"
+import (
+	"fmt";
+	"runtime";
+)
 
 func PrintBacktrace() {
 	fmt.Print("\nStack trace:\n");

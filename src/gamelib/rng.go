@@ -1,8 +1,10 @@
 package gamelib
 
-import "exp/iterable"
-import "rand"
-import "time"
+import (
+	"exp/iterable";
+	"rand";
+	"time";
+)
 
 type RandState int64
 

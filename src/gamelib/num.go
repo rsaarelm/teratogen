@@ -1,6 +1,8 @@
 package gamelib
 
-import "math"
+import (
+	"math";
+)
 
 func IntMax(a, b int) int {
 	if a > b {

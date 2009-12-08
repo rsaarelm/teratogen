@@ -1,6 +1,8 @@
 package gamelib
 
-import "strings"
+import (
+	"strings"
+)
 
 func EatPrefix(str string, length int) (result string) {
 	if len(str) < length {

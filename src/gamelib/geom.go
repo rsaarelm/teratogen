@@ -1,6 +1,8 @@
 package gamelib
 
-import "math"
+import (
+	"math";
+)
 
 type Vec2I struct {
 	X int;

@@ -1,6 +1,8 @@
 package gamelib
 
-import "math"
+import (
+	"math";
+)
 
 func LineOfSight(
 	isBlocked func(Vec2I) bool,

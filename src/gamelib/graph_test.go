@@ -1,6 +1,8 @@
 package gamelib
 
-import "testing";
+import (
+	"testing";
+)
 
 type Typ struct {
 	x int;

@@ -1,7 +1,9 @@
 package gamelib
 
-import "container/vector"
-import "sort"
+import (
+	"container/vector";
+	"sort";
+)
 
 // Ternary expression replacement.
 func IfElse(exp bool, a interface{}, b interface{}) interface{} {

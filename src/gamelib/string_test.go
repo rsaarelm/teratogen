@@ -1,6 +1,8 @@
 package gamelib
 
-import "testing";
+import (
+	"testing";
+)
 
 func strEqual(t *testing.T, actual, expected string) {
 	if expected != actual {
