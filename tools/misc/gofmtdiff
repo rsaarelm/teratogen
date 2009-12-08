@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gofmt $1 | diff - $1

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+TEMP=$(tempfile)
+gofmt $1 > $TEMP
+cp $TEMP $1
+rm $TEMP
