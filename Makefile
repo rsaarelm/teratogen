@@ -1,4 +1,4 @@
-LIBS=gamelib libtcod teratogen
+LIBS=gamelib forgo libtcod teratogen
 
 GOFILES=src/main.go
 
