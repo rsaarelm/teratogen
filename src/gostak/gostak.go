@@ -47,12 +47,17 @@ func NewGostakState() (result *GostakState) {
 }
 
 func (self *GostakState) Push(val interface{}) {
-	fmt.Printf("Pushed %v\n", val);
 	self.dataStack.Push(val);
 }
 
 func (self *GostakState) Pop() interface{} {
 	return self.dataStack.Pop();
+}
+
+func (self *GostakState) Len() int { return self.dataStack.Len(); }
+
+func (self *GostakState) At(pos int) interface{} {
+	return self.dataStack.At(self.dataStack.Len() - 1 - pos);
 }
 
 func (self *GostakState) Eval(cells []GostakCell) {
@@ -102,10 +107,17 @@ func (self *GostakState) ApplyFunc(fn interface{}) {
 		// Pop stack values to input list, starting from the end of
 		// the list.
 		for i := len(inputs) - 1; i >= 0; i-- {
-			inputs[i] = reflect.NewValue(self.Pop());
-			fmt.Printf("Popped %v\n", inputs[i]);
+			// XXX: FuncValue.Call must get an InterfaceValue if
+			// the parameter is InterfaceType. Making an interface
+			// value seems to be a bit kludgy. Wrapped it up
+			// below.
+			switch _ := typ.In(i).(type) {
+			case *reflect.InterfaceType:
+				inputs[i] = interfaceValue(self.Pop())
+			default:
+				inputs[i] = reflect.NewValue(self.Pop())
+			}
 		}
-		fmt.Printf("Calling %v\n", val);
 
 		// TODO: Type checking.
 		outputs := val.Call(inputs);
@@ -116,4 +128,11 @@ func (self *GostakState) ApplyFunc(fn interface{}) {
 	} else {
 		panic("Tried to apply a non-func value.");
 	}
+}
+
+// A hacky trick to make the reflect value be an interface value.
+func interfaceValue(val interface{}) reflect.Value {
+	var wrapper struct { elt interface{}; }
+	wrapper.elt = val;
+	return reflect.NewValue(wrapper).(*reflect.StructValue).Field(0);
 }
