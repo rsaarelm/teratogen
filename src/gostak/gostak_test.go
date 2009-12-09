@@ -1,4 +1,4 @@
-package forgo
+package gostak
 
 import (
 	"testing";
@@ -6,7 +6,7 @@ import (
 
 func TestArith(t *testing.T) {
 	// TODO dynamic typing with graceful error handling...
-	fg := NewForgoState();
+	fg := NewGostakState();
 	fg.Push(2);
 	fg.Push(4);
 	fg.ApplyFunc(func (x, y int) int { return x + y; });
