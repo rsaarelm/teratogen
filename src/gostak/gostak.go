@@ -5,30 +5,33 @@ package gostak
 
 import (
 	"container/vector";
+	"fmt";
 	"reflect";
 )
 
-type gostakMode byte const (
-	ImmediateMode = iota;
-	CompileMode;
-)
-
-type opType byte const (
+type CellType byte const (
 	LiteralNum = iota;
 	LiteralString;
+	LiteralBool;
 	Word;
+	Quotation;
 )
 
-type gostakOp struct {
-	numValue float64;
-	stringValue string;
-	typ opType;
+type GostakCell struct {
+	typ CellType;
+	data interface{};
 }
 
-type gostakWord struct {
-	// Immediate words are executed even when encountered at compile time.
-	immediate bool;
-	content []gostakOp;
+func newNumCell(num float64) *GostakCell {
+	return &GostakCell{LiteralNum, num};
+}
+
+func newStringCell(str string) *GostakCell {
+	return &GostakCell{LiteralString, str};
+}
+
+func newBoolCell(b bool) *GostakCell {
+	return &GostakCell{LiteralBool, b};
 }
 
 type GostakState struct {
@@ -44,11 +47,46 @@ func NewGostakState() (result *GostakState) {
 }
 
 func (self *GostakState) Push(val interface{}) {
+	fmt.Printf("Pushed %v\n", val);
 	self.dataStack.Push(val);
 }
 
 func (self *GostakState) Pop() interface{} {
 	return self.dataStack.Pop();
+}
+
+func (self *GostakState) Eval(cells []GostakCell) {
+	for _, cell := range cells {
+		switch cell.typ {
+		case LiteralNum, LiteralString, LiteralBool, Quotation: self.Push(cell.data)
+		case Word:
+			prog, ok := self.words[cell.data.(string)];
+			if !ok {
+				panic(fmt.Sprintf("Word %v not defined.", cell.data.(string)));
+			}
+
+			typ := reflect.Typeof(prog);
+			if _, ok2 := typ.(*reflect.FuncType); ok2 {
+				self.ApplyFunc(prog);
+			} else {
+				seq := prog.([]GostakCell);
+				self.Eval(seq);
+			}
+		}
+	}
+}
+
+func (self *GostakState) DefineWord(word string, data []GostakCell) {
+	self.words[word] = data;
+}
+
+func (self *GostakState) DefineNativeWord(word string, fn interface{}) {
+	typ := reflect.Typeof(fn);
+	if _, ok := typ.(*reflect.FuncType); !ok {
+		panic("Native word definition not a func value.");
+	}
+
+	self.words[word] = fn;
 }
 
 // Use reflection API to convert a function that takes n and returns m values
@@ -64,8 +102,10 @@ func (self *GostakState) ApplyFunc(fn interface{}) {
 		// Pop stack values to input list, starting from the end of
 		// the list.
 		for i := len(inputs) - 1; i >= 0; i-- {
-			inputs[i] = reflect.NewValue(self.Pop())
+			inputs[i] = reflect.NewValue(self.Pop());
+			fmt.Printf("Popped %v\n", inputs[i]);
 		}
+		fmt.Printf("Calling %v\n", val);
 
 		// TODO: Type checking.
 		outputs := val.Call(inputs);
