@@ -1,4 +1,4 @@
-LIBS=gamelib libtcod
+LIBS=gamelib libtcod forgo
 CMDS=teratogen databake
 
 TARG=teratogen
