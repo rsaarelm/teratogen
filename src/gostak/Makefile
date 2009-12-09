@@ -1,7 +1,7 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=forgo
+TARG=gostak
 GOFILES=\
-	forgo.go\
+	gostak.go\
 
 include $(GOROOT)/src/Make.pkg
