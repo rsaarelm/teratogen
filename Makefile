@@ -28,7 +28,7 @@ $(MAINFILE): $(SUB_BUILD)
 test: $(SUB_TEST)
 
 run: cmd/$(TARG)_build
-	./cmd/$(TARG)/$(TARG)
+	(cd ./cmd/$(TARG); $(TARG))
 
 %_build:
 	$(MAKE) -C $* install
