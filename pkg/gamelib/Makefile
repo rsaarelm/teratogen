@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=gamelib
+TARG=hyades/gamelib
 GOFILES=\
 	alg.go\
 	color.go\

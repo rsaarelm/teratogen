@@ -7,9 +7,10 @@ GOFILES=\
 	gfx.go\
 	item.go\
 	mapgen.go\
+	main.go\
 	msg.go\
 	rules.go\
 	ui.go\
 	world.go\
 
-include $(GOROOT)/src/Make.pkg
+include $(GOROOT)/src/Make.cmd

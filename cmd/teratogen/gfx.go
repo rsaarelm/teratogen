@@ -1,6 +1,6 @@
-package teratogen
+package main
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 func ConsoleClear(console ConsoleBase) {
 	w, h := console.GetDim();

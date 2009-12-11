@@ -4,7 +4,7 @@ CGO_CFLAGS = -I$(LIBTCOD)/include
 
 CGO_LDFLAGS = -L$(LIBTCOD) -ltcod
 
-TARG=libtcod
+TARG=hyades/libtcod
 CGOFILES=\
 	libtcod.go
 

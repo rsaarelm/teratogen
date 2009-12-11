@@ -1,10 +1,10 @@
-package teratogen
+package main
 
 import "container/vector"
 import "os"
 import "strings"
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 func updateTicker(str string, lineLength int) string {
 	return PadString(EatPrefix(str, 1), lineLength);

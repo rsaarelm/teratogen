@@ -1,11 +1,11 @@
-package teratogen
+package main
 
 import "container/vector"
 import "exp/iterable"
 import "math"
 import "rand"
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 const minRoomDim = 2
 

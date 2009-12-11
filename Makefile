@@ -1,53 +1,47 @@
-LIBS=gamelib libtcod teratogen
-
-GOFILES=src/main.go
+LIBS=gamelib libtcod
+CMDS=teratogen databake
 
 TARG=teratogen
 
-MAINFILE=src/main.go
-
-# Start default makefile
-include $(GOROOT)/src/Make.$(GOARCH)
+SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
 LIBSUFFIX=a
 
-LIBS_BUILD:=$(LIBS:%=%_build)
-LIBS_CLEAN:=$(LIBS:%=%_clean)
-LIBS_TEST:=$(LIBS:%=%_test)
-LIBS_NUKE:=$(LIBS:%=%_nuke)
+SUB_BUILD:=$(SUB:%=%_build)
+SUB_CLEAN:=$(SUB:%=%_clean)
+SUB_TEST:=$(SUB:%=%_test)
+SUB_NUKE:=$(SUB:%=%_nuke)
 LIB_FILES:=$(LIBS:%=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)/%.$(LIBSUFFIX))
 
-all: $(TARG)
+all: cmd/$(TARG)_build
 
-$(TARG): $(LIB_FILES)
+cmd/$(TARG)_build: $(LIBS:%=pkg/%_build)
 
 # XXX: Hack to make the main object file get recompiled if the libraries have
 # been updated.
-_go_.8: $(LIB_FILES)
+cmd/$(TARG)/_go_.8: $(LIB_FILES)
 
 # XXX: Hacky dependency to the main file to ensure that the libraries get
 # built before we try to compile the main file.
-$(MAINFILE): $(LIBS_BUILD)
+$(MAINFILE): $(SUB_BUILD)
 
-test: $(LIBS_TEST)
+test: $(SUB_TEST)
 
-run: $(TARG)
-	./$(TARG)
+run: cmd/$(TARG)_build
+	./cmd/$(TARG)/$(TARG)
 
 %_build:
-	$(MAKE) -C src/$* install
+	$(MAKE) -C $* install
 
 %_clean:
-	$(MAKE) -C src/$* clean
+	$(MAKE) -C $* clean
 
 %_test:
-	$(MAKE) -C src/$* test
+	$(MAKE) -C $* test
 
 %_nuke:
-	$(MAKE) -C src/$* nuke
+	$(MAKE) -C $* nuke
 
-include $(GOROOT)/src/Make.cmd
+clean: $(SUB_CLEAN)
 
-clean: $(LIBS_CLEAN)
-
-nuke: $(LIBS_NUKE)
+nuke: $(SUB_NUKE)

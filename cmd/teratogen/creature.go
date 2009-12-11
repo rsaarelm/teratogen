@@ -1,8 +1,8 @@
-package teratogen
+package main
 
 import "fmt"
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 type Creature struct {
 	Icon;

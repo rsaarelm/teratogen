@@ -1,10 +1,10 @@
-package teratogen
+package main
 
 import "container/vector"
 import "fmt"
 import "rand"
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 const mapWidth = 40
 const mapHeight = 20

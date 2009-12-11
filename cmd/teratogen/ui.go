@@ -1,11 +1,11 @@
-package teratogen
+package main
 
 import "fmt"
 import "sync"
 import "time"
 
-import "libtcod"
-import . "gamelib"
+import "hyades/libtcod"
+import . "hyades/gamelib"
 
 const redrawIntervalNs = 30e6
 const capFps = true

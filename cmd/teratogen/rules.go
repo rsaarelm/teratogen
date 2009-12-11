@@ -1,10 +1,10 @@
-package teratogen
+package main
 
 import "fmt"
 import "math"
 import "rand"
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 // Game mechanics stuff.
 

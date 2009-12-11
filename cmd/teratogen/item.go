@@ -1,6 +1,6 @@
-package teratogen
+package main
 
-import . "gamelib"
+import . "hyades/gamelib"
 
 type Item struct {
 	Icon;
