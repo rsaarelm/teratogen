@@ -68,6 +68,12 @@ func GetKey() (result KeyEvent) {
 	return;
 }
 
+// Print --more-- and wait until the user presses space until proceeding.
+func MsgMore() {
+	Msg("--more--");
+	for ; GetKey().Printable != ' '; { }
+}
+
 func MainUILoop() {
 	con := ui.con;
 

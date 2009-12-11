@@ -167,8 +167,7 @@ func RunAI() {
 }
 
 func GameOver(reason string) {
-	Msg("--more--");
-	GetKey();
+	MsgMore();
 	fmt.Printf("%v %v\n", Capitalize(GetWorld().GetPlayer().Name), reason);
 	Quit();
 }
