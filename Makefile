@@ -1,5 +1,5 @@
-LIBS=gamelib libtcod
-CMDS=teratogen databake
+LIBS=gamelib libtcod sdl
+CMDS=teratogen databake sdltest
 
 TARG=teratogen
 
