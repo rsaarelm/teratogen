@@ -101,9 +101,15 @@ func printConstString(output *os.File, variableName string, data []byte) {
 	const bytesPerLine = 16
 	const printCleartext = false
 
+	lastLine := false
+
 	for i := 0; i < len(data); i += bytesPerLine {
 		fmt.Fprintf(output, "\"")
-		for j := 0; j < bytesPerLine && i+j < len(data); j++ {
+		for j := 0; j < bytesPerLine; j++ {
+			if i+j >= len(data) {
+				lastLine = true
+				break
+			}
 			byte := data[i+j]
 			if printCleartext && byte >= ' ' && byte <= '~' {
 				fmt.Fprintf(output, "%c", byte)
@@ -111,7 +117,11 @@ func printConstString(output *os.File, variableName string, data []byte) {
 				fmt.Fprintf(output, "\\x%02x", byte)
 			}
 		}
-		fmt.Fprintf(output, "\"\n")
+		if !lastLine {
+			fmt.Fprintf(output, "\"+\n")
+		} else {
+			fmt.Fprintf(output, "\"\n\n")
+		}
 	}
 }
 
