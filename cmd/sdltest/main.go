@@ -35,6 +35,7 @@ func main() {
 
 	sprite2 := doubleSprite(sprite)
 	sprite.FreeSurface()
+	sprite2.Convert(sdl.GetVideoSurface())
 
 	sdl.GetVideoSurface().FillRect(0, 0, 320, 240, image.RGBAColor{0, 0, 96, 255})
 	sprite2.Blit(sdl.GetVideoSurface(), 128, 32)

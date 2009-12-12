@@ -21,6 +21,10 @@ func InitSdl(width, height int, title string, fullscreen bool) {
 
 func ExitSdl()	{ C.SDL_Quit() }
 
+//////////////////////////////////////////////////////////////////
+// Video
+//////////////////////////////////////////////////////////////////
+
 func Flip() {
 	C.SDL_Flip(C.SDL_GetVideoSurface())
 }
@@ -133,6 +137,22 @@ func (self *Surface) At(x, y int) image.Color {
 // For compliance wth the image.Image interface
 func (self *Surface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
+}
+
+// Convert the pixel format of this surface to match that of the other one.
+// Converting sprite surfaces to match the format of the display surface makes
+// blitting them much faster.
+func (self *Surface) Convert(other *Surface) {
+	// TODO: More graceful error handling.
+	newSurface := C.SDL_ConvertSurface(
+		(*C.SDL_Surface)(unsafe.Pointer(self.surf)),
+		(*C.SDL_PixelFormat)(unsafe.Pointer(other.surf.Format)),
+		C.Uint32(self.surf.Flags))
+	if newSurface == nil {
+		panic("Surface conversion failed")
+	}
+	self.FreeSurface()
+	self.surf = (*surface)(unsafe.Pointer(newSurface))
 }
 
 func (self *Surface) writePixelData(offset int, data byte) {
