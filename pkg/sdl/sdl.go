@@ -150,6 +150,17 @@ func (self *Surface) Blit(target *Surface, x, y int) {
 		(*C.SDL_Rect)(unsafe.Pointer(dstRect)))
 }
 
+func (self *Surface) BlitRect(target *Surface, area IntRect, x, y int) {
+	var srcRect, dstRect *rect
+	srcRect = convertRect(area)
+	dstRect = &rect{int16(x), int16(y), 0, 0}
+	C.SDL_BlitSurface(
+		(*C.SDL_Surface)(unsafe.Pointer(self.surf)),
+		(*C.SDL_Rect)(unsafe.Pointer(srcRect)),
+		(*C.SDL_Surface)(unsafe.Pointer(target.surf)),
+		(*C.SDL_Rect)(unsafe.Pointer(dstRect)))
+}
+
 func (self *Surface) Width() int { return int(self.surf.W) }
 
 func (self *Surface) Height() int { return int(self.surf.H) }
