@@ -38,8 +38,7 @@ func newUI() (result *UI) {
 	return;
 }
 
-func InitUI()
-{
+func InitUI() {
 	ui = newUI();
 }
 

@@ -8,7 +8,8 @@ import . "hyades/gamelib"
 
 // Game mechanics stuff.
 
-type ResolutionLevel int const (
+type ResolutionLevel int
+const (
 	Abysmal = -4 + iota;
 	Terrible;
 	Poor;

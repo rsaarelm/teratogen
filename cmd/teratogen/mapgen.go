@@ -245,7 +245,8 @@ func DoorLocations(wallGraph Graph) (result *vector.Vector) {
 	return;
 }
 
-type CaveTile byte const (
+type CaveTile byte
+const (
 	CaveUnknown = iota;
 	CaveFloor;
 	CaveWall;
