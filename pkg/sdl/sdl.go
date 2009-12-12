@@ -6,25 +6,93 @@ package sdl
 */
 import "C"
 
+import (
+	"image"
+	"unsafe"
+)
+
 func InitSdl(width, height int, title string, fullscreen bool) {
-	C.SDL_Init(INIT_VIDEO);
-	C.SDL_SetVideoMode(C.int(width), C.int(height), C.int(32),
-		DOUBLEBUF);
+	C.SDL_Init(INIT_VIDEO)
+	C.SDL_SetVideoMode(C.int(width), C.int(height), C.int(32), DOUBLEBUF)
 }
 
-func ExitSdl() {
-	C.SDL_Quit();
+func ExitSdl()	{ C.SDL_Quit() }
+
+func Flip() {
+	C.SDL_Flip(C.SDL_GetVideoSurface())
 }
 
-type SdlSurface struct {
-	surf *C.SDL_Surface;
+type Surface struct {
+	surf *surface
 }
 
-func (self *SdlSurface) freeSurface() {
-	C.SDL_FreeSurface(self.surf);
+func GetVideoSurface() (result *Surface) {
+	result = new(Surface)
+	result.surf = (*surface)(unsafe.Pointer(C.SDL_GetVideoSurface()))
+	return
 }
 
-//func (self *SdlSurface) make32BitSoftwareSurface(width, height int) {
-//	self.freeSurface();
-//	self.surf = C.SDL_CreateRGBSurface(
-//}
+func (self *Surface) FreeSurface() {
+	if self.surf != nil {
+		C.SDL_FreeSurface((*C.SDL_Surface)(unsafe.Pointer(self.surf)))
+	}
+}
+
+func Make32BitSurface(flags int, width, height int) (result *Surface) {
+	result = new(Surface)
+
+	var rmask, gmask, bmask, amask uint32
+
+	if BYTEORDER == BIG_ENDIAN {
+		rmask, gmask, bmask, amask = 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
+	} else {
+		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+	}
+
+	result.surf = (*surface)(unsafe.Pointer(C.SDL_CreateRGBSurface(
+		C.Uint32(flags), C.int(width), C.int(height), 32,
+		C.Uint32(rmask), C.Uint32(gmask), C.Uint32(bmask), C.Uint32(amask))))
+	return
+}
+
+func (self *Surface) Set(x, y int, c image.Color) {
+	r32, g32, b32, a32 := c.RGBA()
+	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
+	r8, g8, b8, a8 := byte(r32 >> 24), byte(g32 >> 24), byte(b32 >> 24), byte(a32 >> 24)
+
+	color := C.SDL_MapRGBA((*C.SDL_PixelFormat)(unsafe.Pointer(self.surf.Format)),
+		C.Uint8(r8), C.Uint8(g8), C.Uint8(b8), C.Uint8(a8))
+
+	offset := y * int(self.surf.Pitch) + x * int(self.surf.Format.BytesPerPixel)
+
+	// XXX: Calling another method here is pretty slow probably. Also
+	// should unroll the loop for fixed ops for 1, 2, 3 and 4 bytes per
+	// pixel.
+	for i := 0; i < int(self.surf.Format.BytesPerPixel); i++ {
+		self.writePixelData(int(offset) + i, byte(color % 0x100))
+			color = color >> 8
+	}
+}
+
+func (self *Surface) Blit(target *Surface, x, y int) {
+	var srcRect, dstRect *rect
+	dstRect = &rect{int16(x), int16(y), 0, 0}
+	C.SDL_BlitSurface(
+		(*C.SDL_Surface)(unsafe.Pointer(self.surf)),
+		(*C.SDL_Rect)(unsafe.Pointer(srcRect)),
+		(*C.SDL_Surface)(unsafe.Pointer(target.surf)),
+		(*C.SDL_Rect)(unsafe.Pointer(dstRect)))
+}
+
+func (self *Surface) writePixelData(offset int, data byte) {
+	pixPtr := (uintptr)(unsafe.Pointer(self.surf.Pixels)) + uintptr(offset)
+	*(*byte)(unsafe.Pointer(pixPtr)) = data
+}
+
+func (self *Surface) mustLock() bool {
+	// Reimplement this macro from SDL_video.h:
+	//#define SDL_MUSTLOCK(surface)   \
+	//  (surface->offset ||           \
+	//  ((surface->flags & (SDL_HWSURFACE|SDL_ASYNCBLIT|SDL_RLEACCEL)) != 0))
+	return self.surf.Offset != 0 || self.surf.Flags & (HWSURFACE|ASYNCBLIT|RLEACCEL) != 0
+}

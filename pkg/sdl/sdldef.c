@@ -3,42 +3,49 @@
 /* Template for converting SDL types and constants into Go.
  * After banthar's Go-SDL bindings (http://github.com/banthar/Go-SDL). */
 
-typedef SDL_Surface $Surface;
-typedef SDL_PixelFormat $PixelFormat;
-typedef SDL_Rect $Rect;
-typedef SDL_Color $Color;
-typedef SDL_Palette $Palette;
-typedef SDL_VideoInfo $VideoInfo;
-typedef SDL_Overlay $Overlay;
+typedef SDL_Surface $surface;
+typedef SDL_PixelFormat $pixelFormat;
+typedef SDL_Rect $rect;
+typedef SDL_Color $color;
+typedef SDL_Palette $palette;
+typedef SDL_VideoInfo $videoInfo;
+typedef SDL_Overlay $overlay;
 
-typedef SDL_ActiveEvent $ActiveEvent;
-typedef SDL_KeyboardEvent $KeyboardEvent;
-typedef SDL_MouseMotionEvent $MouseMotionEvent;
-typedef SDL_MouseButtonEvent $MouseButtonEvent;
-typedef SDL_JoyAxisEvent $JoyAxisEvent;
-typedef SDL_JoyBallEvent $JoyBallEvent;
-typedef SDL_JoyHatEvent $JoyHatEvent;
-typedef SDL_JoyButtonEvent $JoyButtonEvent;
-typedef SDL_ResizeEvent $ResizeEvent;
-typedef SDL_ExposeEvent $ExposeEvent;
-typedef SDL_QuitEvent $QuitEvent;
-typedef SDL_UserEvent $UserEvent;
-typedef SDL_SysWMmsg $SysWMmsg;
-typedef SDL_SysWMEvent $SysWMEvent;
-typedef SDL_Event $Event;
-typedef SDL_keysym $Keysym;
+typedef SDL_ActiveEvent $activeEvent;
+typedef SDL_KeyboardEvent $keyboardEvent;
+typedef SDL_MouseMotionEvent $mouseMotionEvent;
+typedef SDL_MouseButtonEvent $mouseButtonEvent;
+typedef SDL_JoyAxisEvent $joyAxisEvent;
+typedef SDL_JoyBallEvent $joyBallEvent;
+typedef SDL_JoyHatEvent $joyHatEvent;
+typedef SDL_JoyButtonEvent $joyButtonEvent;
+typedef SDL_ResizeEvent $resizeEvent;
+typedef SDL_ExposeEvent $exposeEvent;
+typedef SDL_QuitEvent $quitEvent;
+typedef SDL_UserEvent $userEvent;
+typedef SDL_SysWMmsg $sysWMmsg;
+typedef SDL_SysWMEvent $sysWMEvent;
+typedef SDL_Event $event;
+typedef SDL_keysym $keysym;
 
 enum {
+  // Byte order
+  $BYTEORDER = SDL_BYTEORDER,
+  $BIG_ENDIAN = SDL_BIG_ENDIAN,
+  $LIL_ENDIAN = SDL_LIL_ENDIAN,
+
   // Init flags
   $INIT_AUDIO = SDL_INIT_AUDIO,
   $INIT_VIDEO = SDL_INIT_VIDEO,
 
   // Video flags
   $SWSURFACE = SDL_SWSURFACE,
-  $HWSURFACU = SDL_HWSURFACE,
+  $HWSURFACE = SDL_HWSURFACE,
   $DOUBLEBUF = SDL_DOUBLEBUF,
   $FULLSCREEN = SDL_FULLSCREEN,
   $RESIZABLE = SDL_RESIZABLE,
+  $RLEACCEL = SDL_RLEACCEL,
+  $ASYNCBLIT = SDL_ASYNCBLIT,
 
   // Event types
   $NOEVENT = SDL_NOEVENT,
