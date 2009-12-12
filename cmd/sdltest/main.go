@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// A png sprite by oryx for the Assemblee contest at tigsource
-// (http://forums.tigsource.com/index.php?topic=8970.0)
+// A png sprite by Oddball for the Assemblee contest at tigsource
+// (http://forums.tigsource.com/index.php?topic=8834.0)
 const Elf_png =
 "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52" +
 "\x00\x00\x00\x08\x00\x00\x00\x08\x08\x06\x00\x00\x00\xc4\x0f\xbe" +
