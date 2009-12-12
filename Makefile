@@ -7,39 +7,36 @@ SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
 LIBSUFFIX=a
 
-SUB_BUILD:=$(SUB:%=%_build)
-SUB_CLEAN:=$(SUB:%=%_clean)
-SUB_TEST:=$(SUB:%=%_test)
-SUB_NUKE:=$(SUB:%=%_nuke)
+LIB_BUILD:=$(LIBS:%=%-lib)
+CMD_BUILD:=$(CMDS:%=%-cmd)
+CMD_RUN:=$(CMDS:%=%-run)
+SUB_CLEAN:=$(SUB:%=%-clean)
+LIB_TEST:=$(LIBS:%=%-test)
+SUB_NUKE:=$(SUB:%=%-nuke)
 LIB_FILES:=$(LIBS:%=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)/%.$(LIBSUFFIX))
 
-all: cmd/$(TARG)_build
+all: $(CMD_BUILD)
 
-cmd/$(TARG)_build: $(LIBS:%=pkg/%_build)
+$(CMD_BUILD): $(LIB_BUILD)
 
-# XXX: Hack to make the main object file get recompiled if the libraries have
-# been updated.
-cmd/$(TARG)/_go_.8: $(LIB_FILES)
+test: $(LIB_TEST)
 
-# XXX: Hacky dependency to the main file to ensure that the libraries get
-# built before we try to compile the main file.
-$(MAINFILE): $(SUB_BUILD)
+%-run: %-cmd
+	(cd ./cmd/$*; $*)
 
-test: $(SUB_TEST)
+%-lib:
+	$(MAKE) -C pkg/$* install
 
-run: cmd/$(TARG)_build
-	./cmd/$(TARG)/$(TARG)
+%-cmd:
+	$(MAKE) -C cmd/$*
 
-%_build:
-	$(MAKE) -C $* install
-
-%_clean:
+%-clean:
 	$(MAKE) -C $* clean
 
-%_test:
-	$(MAKE) -C $* test
+%-test:
+	$(MAKE) -C pkg/$* test
 
-%_nuke:
+%-nuke:
 	$(MAKE) -C $* nuke
 
 clean: $(SUB_CLEAN)

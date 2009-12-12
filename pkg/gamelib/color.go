@@ -1,3 +1,3 @@
 package gamelib
 
-type RGB [3]byte;
+type RGB [3]byte

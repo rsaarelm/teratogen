@@ -29,7 +29,8 @@ func (self *Icon)Draw(x, y int) {
 
 
 // Behavioral terrain types.
-type TerrainType byte const (
+type TerrainType byte
+const (
 	// Used for terrain generation algorithms, set map to indeterminate
 	// initially.
 	TerrainIndeterminate = iota;
@@ -39,7 +40,8 @@ type TerrainType byte const (
 	TerrainStairDown;
 )
 
-type EntityType int const (
+type EntityType int
+const (
 	EntityUnknown = iota;
 	EntityPlayer;
 	EntityZombie;
@@ -49,7 +51,8 @@ type EntityType int const (
 
 // Put item classes before creature classes, so we can use this to control
 // draw order as well.
-type EntityClass int const (
+type EntityClass int
+const (
 	EmptyEntityClass = iota;
 
 	// Item classes
@@ -62,7 +65,8 @@ type EntityClass int const (
 	EnemyEntityClass;
 )
 
-type LosState byte const (
+type LosState byte
+const (
 	LosUnknown = iota;
 	LosMapped;
 	LosSeen;

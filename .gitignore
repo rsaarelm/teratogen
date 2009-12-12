@@ -1,8 +1,8 @@
 *.o
 *.8
 _obj/
-teratogen
-!src/teratogen
+cmd/databake/databake
+cmd/teratogen/teratogen
 *.cgo?.go
 *.cgo?.?
 _test

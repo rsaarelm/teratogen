@@ -8,7 +8,8 @@ import . "hyades/gamelib"
 
 // Game mechanics stuff.
 
-type ResolutionLevel int const (
+type ResolutionLevel int
+const (
 	Abysmal = -4 + iota;
 	Terrible;
 	Poor;
@@ -167,8 +168,7 @@ func RunAI() {
 }
 
 func GameOver(reason string) {
-	Msg("--more--");
-	GetKey();
+	MsgMore();
 	fmt.Printf("%v %v\n", Capitalize(GetWorld().GetPlayer().Name), reason);
 	Quit();
 }

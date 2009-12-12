@@ -38,8 +38,7 @@ func newUI() (result *UI) {
 	return;
 }
 
-func InitUI()
-{
+func InitUI() {
 	ui = newUI();
 }
 
@@ -66,6 +65,12 @@ func GetKey() (result KeyEvent) {
 	result = <-ui.getch;
 	GetUISync();
 	return;
+}
+
+// Print --more-- and wait until the user presses space until proceeding.
+func MsgMore() {
+	Msg("--more--");
+	for ; GetKey().Printable != ' '; { }
 }
 
 func MainUILoop() {
