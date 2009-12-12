@@ -7,7 +7,10 @@ package sdl
 import "C"
 
 import (
+	"io"
 	"image"
+	"image/png"
+	"os"
 	"unsafe"
 )
 
@@ -32,12 +35,6 @@ func GetVideoSurface() (result *Surface) {
 	return
 }
 
-func (self *Surface) FreeSurface() {
-	if self.surf != nil {
-		C.SDL_FreeSurface((*C.SDL_Surface)(unsafe.Pointer(self.surf)))
-	}
-}
-
 func Make32BitSurface(flags int, width, height int) (result *Surface) {
 	result = new(Surface)
 
@@ -55,23 +52,58 @@ func Make32BitSurface(flags int, width, height int) (result *Surface) {
 	return
 }
 
+func MakePngSurface(input io.Reader) (result *Surface, err os.Error) {
+	pic, err := png.Decode(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return MakeImageSurface(pic), nil
+}
+
+func MakeImageSurface(img image.Image) (result *Surface) {
+	result = Make32BitSurface(0, img.Width(), img.Height())
+	for x, w := 0, img.Width(); x < w; x++ {
+		for y, h := 0, img.Height(); y < h; y++ {
+			result.Set(x, y, img.At(x, y))
+		}
+	}
+	return result
+}
+
+func (self *Surface) FreeSurface() {
+	if self.surf != nil {
+		C.SDL_FreeSurface((*C.SDL_Surface)(unsafe.Pointer(self.surf)))
+		self.surf = nil
+	}
+}
+
 func (self *Surface) Set(x, y int, c image.Color) {
-	r32, g32, b32, a32 := c.RGBA()
-	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
-	r8, g8, b8, a8 := byte(r32 >> 24), byte(g32 >> 24), byte(b32 >> 24), byte(a32 >> 24)
-
-	color := C.SDL_MapRGBA((*C.SDL_PixelFormat)(unsafe.Pointer(self.surf.Format)),
-		C.Uint8(r8), C.Uint8(g8), C.Uint8(b8), C.Uint8(a8))
-
-	offset := y * int(self.surf.Pitch) + x * int(self.surf.Format.BytesPerPixel)
+	color := self.mapRGBA(c)
 
 	// XXX: Calling another method here is pretty slow probably. Also
 	// should unroll the loop for fixed ops for 1, 2, 3 and 4 bytes per
 	// pixel.
 	for i := 0; i < int(self.surf.Format.BytesPerPixel); i++ {
-		self.writePixelData(int(offset) + i, byte(color % 0x100))
-			color = color >> 8
+		self.writePixelData(self.pixelOffset(x, y) + i, byte(color % 0x100))
+		color = color >> 8
 	}
+}
+
+func (self *Surface) FillRect(x, y, w, h int, c image.Color) {
+	C.SDL_FillRect((*C.SDL_Surface)(unsafe.Pointer(self.surf)),
+		(*C.SDL_Rect)(unsafe.Pointer(&rect{int16(x), int16(y), uint16(w), uint16(h)})),
+		C.Uint32(self.mapRGBA(c)))
+}
+
+func (self *Surface) mapRGBA(c image.Color) uint32 {
+	r32, g32, b32, a32 := c.RGBA()
+	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
+	r, g, b, a := byte(r32 >> 24), byte(g32 >> 24), byte(b32 >> 24), byte(a32 >> 24)
+
+	return uint32(C.SDL_MapRGBA((*C.SDL_PixelFormat)(unsafe.Pointer(self.surf.Format)),
+		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
 }
 
 func (self *Surface) Blit(target *Surface, x, y int) {
@@ -84,9 +116,37 @@ func (self *Surface) Blit(target *Surface, x, y int) {
 		(*C.SDL_Rect)(unsafe.Pointer(dstRect)))
 }
 
+func (self *Surface) Width() int { return int(self.surf.W) }
+
+func (self *Surface) Height() int { return int(self.surf.H) }
+
+func (self *Surface) At(x, y int) image.Color {
+	bitMask := uint32(0xffffffff) >> (32 - self.surf.Format.BitsPerPixel)
+	color := self.readPixelData(self.pixelOffset(x, y)) & uint32(bitMask)
+	var r, g, b, a byte
+	C.SDL_GetRGBA(C.Uint32(color),
+		(*C.SDL_PixelFormat)(unsafe.Pointer(self.surf.Format)),
+		(*C.Uint8)(&r), (*C.Uint8)(&g), (*C.Uint8)(&b), (*C.Uint8)(&a))
+	return image.RGBAColor{r, g, b, a}
+}
+
+// For compliance wth the image.Image interface
+func (self *Surface) ColorModel() image.ColorModel {
+	return image.RGBAColorModel
+}
+
 func (self *Surface) writePixelData(offset int, data byte) {
 	pixPtr := (uintptr)(unsafe.Pointer(self.surf.Pixels)) + uintptr(offset)
 	*(*byte)(unsafe.Pointer(pixPtr)) = data
+}
+
+func (self *Surface) readPixelData(offset int) uint32 {
+	pixPtr := (uintptr)(unsafe.Pointer(self.surf.Pixels)) + uintptr(offset)
+	return *(*uint32)(unsafe.Pointer(pixPtr))
+}
+
+func (self *Surface) pixelOffset(x, y int) int {
+	return y * int(self.surf.Pitch) + x * int(self.surf.Format.BytesPerPixel)
 }
 
 func (self *Surface) mustLock() bool {

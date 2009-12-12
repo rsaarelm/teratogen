@@ -3,21 +3,52 @@ package main
 import (
 	"hyades/sdl"
 	"image"
+	"strings"
 	"time"
 )
+
+// A png sprite by oryx for the Assemblee contest at tigsource
+// (http://forums.tigsource.com/index.php?topic=8970.0)
+const Elf_png =
+"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52" +
+"\x00\x00\x00\x08\x00\x00\x00\x08\x08\x06\x00\x00\x00\xc4\x0f\xbe" +
+"\x8b\x00\x00\x00\x01\x73\x52\x47\x42\x00\xae\xce\x1c\xe9\x00\x00" +
+"\x00\x79\x49\x44\x41\x54\x18\xd3\x63\x5c\x7c\x4e\xfd\x3f\x03\x1a" +
+"\x88\x35\xba\xc9\xb8\x24\x45\xe9\x7f\xcc\x9c\x7b\x8c\x8c\x0c\x0c" +
+"\x0c\x0c\xf8\x14\xb1\xc0\x04\x42\x44\x5c\x18\x38\xe5\xa6\x32\x7c" +
+"\x7f\x94\xcd\xc0\x29\x37\x15\xae\x90\x09\x26\xc9\xc0\xc0\xc0\xf0" +
+"\xfd\x51\x36\x0a\xcd\xc0\xc0\xc0\xc0\x88\xcd\x78\x64\x53\x59\x42" +
+"\x44\x5c\x18\xd6\x36\x6d\x87\x0b\xfe\xb4\xac\x66\x60\x3f\xde\xca" +
+"\x10\x33\xe7\x1e\x23\x63\xca\xef\xff\x04\x1d\xc9\xc0\xc0\xc0\xc0" +
+"\x00\x67\x40\xc1\x92\x14\xa5\xff\x30\x31\x00\x02\xa6\x31\x83\x52" +
+"\x2e\xa8\xf4\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"
+
 
 func main() {
 	sdl.InitSdl(640, 480, "Hello SDL", false)
 
-	sprite := sdl.Make32BitSurface(0, 32, 32)
+	sprite, err := sdl.MakePngSurface(strings.NewReader(Elf_png))
 
-	for x := 0; x < 32; x++ {
-		for y := 0; y < 32; y++ {
-			sprite.Set(x, y, image.RGBAColor{byte(x*8), byte(y*8), 255, 255})
-		}
+	if err != nil {
+		panic("Image loading error" + err.String())
 	}
-	sprite.Blit(sdl.GetVideoSurface(), 128, 32)
+
+	sprite2 := doubleSprite(sprite)
+	sprite.FreeSurface()
+
+	sdl.GetVideoSurface().FillRect(0, 0, 320, 240, image.RGBAColor{0, 0, 96, 255})
+	sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
 	sdl.Flip()
 	time.Sleep(2e9)
 	sdl.ExitSdl()
+}
+
+func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
+	dst = sdl.Make32BitSurface(0, src.Width() * 2, src.Height() * 2)
+	for x := 0; x < dst.Width(); x++ {
+		for y := 0; y < dst.Height(); y++ {
+			dst.Set(x, y, src.At(x / 2, y / 2))
+		}
+	}
+	return
 }
