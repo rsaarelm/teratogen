@@ -11,7 +11,7 @@ LIB_BUILD:=$(LIBS:%=%-lib)
 CMD_BUILD:=$(CMDS:%=%-cmd)
 CMD_RUN:=$(CMDS:%=%-run)
 SUB_CLEAN:=$(SUB:%=%-clean)
-SUB_TEST:=$(SUB:%=%-test)
+LIB_TEST:=$(LIBS:%=%-test)
 SUB_NUKE:=$(SUB:%=%-nuke)
 LIB_FILES:=$(LIBS:%=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)/%.$(LIBSUFFIX))
 
@@ -19,7 +19,7 @@ all: $(CMD_BUILD)
 
 $(CMD_BUILD): $(LIB_BUILD)
 
-test: $(SUB_TEST)
+test: $(LIB_TEST)
 
 %-run: %-cmd
 	(cd ./cmd/$*; $*)
@@ -34,7 +34,7 @@ test: $(SUB_TEST)
 	$(MAKE) -C $* clean
 
 %-test:
-	$(MAKE) -C $* test
+	$(MAKE) -C pkg/$* test
 
 %-nuke:
 	$(MAKE) -C $* nuke
