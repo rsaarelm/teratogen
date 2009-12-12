@@ -75,8 +75,7 @@ func (self *SparseMatrixGraph)Neighbors(node interface{}) (nodes []interface{}, 
 // Get the arc between two nodes if one exists. Note that arc objects may be
 // nil and the graph may still have valid arcs, build logic around the boolean
 // secondary return value.
-func (self *SparseMatrixGraph)GetArc(node1, node2 interface{})
-	(arc interface{}, found bool) {
+func (self *SparseMatrixGraph)GetArc(node1, node2 interface{}) (arc interface{}, found bool) {
 
 	if neighbors, ok1 := self.arcMatrix[ObjId(node1)]; ok1 {
 		if a, ok2 := neighbors[ObjId(node2)]; ok2 {

@@ -118,8 +118,20 @@ type ResizeEvent struct {
 
 type QuitEvent struct {}
 
-type MouseAction byte const (
+type MouseAction byte
+const (
 	MouseDown = iota;
         MouseUp;
         MouseMove;
+)
+
+type ByteSize float64
+const (
+	_ = iota;	// ignore first value by assigning to blank identifier
+	KB ByteSize = 1<<(10*iota);
+	MB;
+	GB;
+	TB;
+	PB;
+	YB;
 )
