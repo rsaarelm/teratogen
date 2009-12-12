@@ -1,32 +1,28 @@
 package gamelib
 
 import (
-	"exp/iterable";
-	"rand";
-	"time";
+	"exp/iterable"
+	"rand"
+	"time"
 )
 
 type RandState int64
 
 func RandomFromIterable(iter iterable.Iterable) interface{} {
-	seq := iterable.Data(iter);
-	return seq[rand.Intn(len(seq))];
+	seq := iterable.Data(iter)
+	return seq[rand.Intn(len(seq))]
 }
 
-func WithProb(prob float64) bool {
-	return rand.Float64() < prob;
-}
+func WithProb(prob float64) bool	{ return rand.Float64() < prob }
 
-func OneChanceIn(num int) bool {
-	return rand.Intn(num) == 0;
-}
+func OneChanceIn(num int) bool	{ return rand.Intn(num) == 0 }
 
 // Seed the random number generator from the system clock. Return the
 // generator state so that the same value can be re-used if desired.
 func RngSeedFromClock() (result RandState) {
-	result = RandState(time.Nanoseconds());
-	RestoreRngState(result);
-	return;
+	result = RandState(time.Nanoseconds())
+	RestoreRngState(result)
+	return
 }
 
 // Generate a new random number generator state, allow returning the generator
@@ -39,11 +35,9 @@ func SaveRngState() (result RandState) {
 	// generator to that value and return the value. Now this value can be
 	// used as a checkpoint to get the rng to returning the exact same
 	// subsequent results every time.
-	result = RandState(rand.Int63());
-	RestoreRngState(result);
-	return;
+	result = RandState(rand.Int63())
+	RestoreRngState(result)
+	return
 }
 
-func RestoreRngState(state RandState) {
-	rand.Seed(int64(state));
-}
+func RestoreRngState(state RandState)	{ rand.Seed(int64(state)) }
