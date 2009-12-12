@@ -83,3 +83,11 @@ func (self RectI) RectArea() int	{ return self.Dim.X * self.Dim.Y }
 func (self RectI) Iter() <-chan Pt2I {
 	return PtIter(self.Pos.X, self.Pos.Y, self.Dim.X, self.Dim.Y)
 }
+
+func (self RectI) X() int { return self.Pos.X }
+
+func (self RectI) Y() int { return self.Pos.Y }
+
+func (self RectI) Width() int { return self.Dim.X }
+
+func (self RectI) Height() int { return self.Dim.Y }

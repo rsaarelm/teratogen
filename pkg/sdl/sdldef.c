@@ -5,7 +5,8 @@
 
 typedef SDL_Surface $surface;
 typedef SDL_PixelFormat $pixelFormat;
-typedef SDL_Rect $rect;
+/* Omitting SDL_Rect, since it's field names collide with the IntRect
+ * interface used. Writing it by hand instead. */
 typedef SDL_Color $color;
 typedef SDL_Palette $palette;
 typedef SDL_VideoInfo $videoInfo;

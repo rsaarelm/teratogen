@@ -21,6 +21,36 @@ func InitSdl(width, height int, title string, fullscreen bool) {
 
 func ExitSdl()	{ C.SDL_Quit() }
 
+type IntRect interface {
+	X() int
+	Y() int
+	Width() int
+	Height() int
+}
+
+// Structurally equivalent to SDL_Rect
+type rect struct {
+	x, y int16
+	w, h uint16
+}
+
+func Rect(x, y int16, width, height uint16) IntRect {
+	return &rect{x, y, width, height}
+}
+
+func (self *rect) X() int { return int(self.x) }
+
+func (self *rect) Y() int { return int(self.y) }
+
+func (self *rect) Width() int { return int(self.w) }
+
+func (self *rect) Height() int { return int(self.h) }
+
+func convertRect(rec IntRect) *rect {
+	return &rect{int16(rec.X()), int16(rec.Y()),
+		uint16(rec.Width()), uint16(rec.Height())}
+}
+
 //////////////////////////////////////////////////////////////////
 // Video
 //////////////////////////////////////////////////////////////////
@@ -95,9 +125,9 @@ func (self *Surface) Set(x, y int, c image.Color) {
 	}
 }
 
-func (self *Surface) FillRect(x, y, w, h int, c image.Color) {
+func (self *Surface) FillRect(rec IntRect, c image.Color) {
 	C.SDL_FillRect((*C.SDL_Surface)(unsafe.Pointer(self.surf)),
-		(*C.SDL_Rect)(unsafe.Pointer(&rect{int16(x), int16(y), uint16(w), uint16(h)})),
+		(*C.SDL_Rect)(unsafe.Pointer(convertRect(rec))),
 		C.Uint32(self.mapRGBA(c)))
 }
 
