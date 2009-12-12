@@ -5,13 +5,13 @@ import . "hyades/gamelib"
 var currentLevel int = 1
 
 func main() {
-	RngSeedFromClock();
+	RngSeedFromClock()
 
-	InitUI();
+	InitUI()
 
-	world := NewWorld();
+	world := NewWorld()
 
-	world.InitLevel(currentLevel);
+	world.InitLevel(currentLevel)
 
 	// Game logic
 	go func() {
@@ -23,10 +23,10 @@ func main() {
 			// shifted to nm to keep things on one side on a
 			// ergonomic split keyboard.
 
-			GetUISync();
-			key := GetKey();
+			GetUISync()
+			key := GetKey()
 			// When key pressed, clear the message buffer.
-			MarkMsgLinesSeen();
+			MarkMsgLinesSeen()
 
 			switch key.Printable {
 			case 'q':
@@ -50,20 +50,20 @@ func main() {
 			case 'p':
 				Msg("Some text for the buffer...\n")
 			case 'd':
-				Msg("You decide to blow up a bit.\n");
-				GameOver("died of exploding head syndrome.");
+				Msg("You decide to blow up a bit.\n")
+				GameOver("died of exploding head syndrome.")
 			case '>':
 				PlayerEnterStairs()
 			case 'c':
-				world.ClearLosMapped();
-				world.DoLos(world.GetPlayer().GetPos());
-				Msg("You feel like you've forgotten something.\n");
+				world.ClearLosMapped()
+				world.DoLos(world.GetPlayer().GetPos())
+				Msg("You feel like you've forgotten something.\n")
 			}
 
-			RunAI();
-			ReleaseUISync();
+			RunAI()
+			ReleaseUISync()
 		}
-	}();
+	}()
 
-	MainUILoop();
+	MainUILoop()
 }
