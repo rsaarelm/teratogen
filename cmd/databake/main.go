@@ -19,7 +19,7 @@ var (
 
 func usage() {
 	fmt.Fprintf(os.Stderr,
-		"usage: databake [OPTION]... [SOURCE] [DEST]\n"
+		"usage: databake [OPTION]... [SOURCE] [DEST]\n" +
 		"       If SOURCE or DEST is omitted or '-', use stdin / stdout.\n");
 	flag.PrintDefaults();
 	os.Exit(2);
