@@ -4,10 +4,15 @@ import (
 	"image"
 )
 
+type DrawImage interface {
+	image.Image
+	Set(x, y int, c image.Color)
+}
+
 // Convert the pixels beneath mask with return values of filter given the
 // original pixel and the mask value.
 func BlitMask(
-	img interface { image.Image; Set(x, y int, c image.Color) },
+	img DrawImage,
 	mask [][]byte,
 	filter func(maskVal byte, srcVal image.Color) (dstVal image.Color),
 	ox, oy int) {
@@ -31,4 +36,18 @@ func MakeMask(
 		}
 	}
 	return
+}
+
+func BlitColorMask(
+	img DrawImage,
+	mask [][]byte,
+	col image.Color,
+	ox, oy int) {
+	BlitMask(img,
+		mask,
+		func (maskVal byte, srcVal image.Color) image.Color {
+			if maskVal > 127 { return col }
+			return srcVal
+		},
+		ox, oy)
 }
