@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"container/vector"
-//	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -40,7 +39,7 @@ func UnpackGz(fileData []byte) (data []byte, err os.Error) {
 
 	sites := magicSites(fileData, gzMagic)
 
-	for n := range sites {
+	for _, n := range sites {
 		inf, e1 := gzip.NewInflater(bytes.NewBuffer(fileData[n:]))
 		if e1 != nil { continue } // It wasn't really gzip data.
 		unpacked, e2 := ioutil.ReadAll(inf)
@@ -69,17 +68,4 @@ func magicSites(data []byte, magic[]byte) (result []int) {
 		result[i] = points.At(i).(int)
 	}
 	return
-}
-
-func looksLikeGz(data []byte) bool {
-	// Try to init the reader. Seems to only check for the magic number,
-	// so not that much use since we already identify the candidates by
-	// that.
-	inf, e1 := gzip.NewInflater(bytes.NewBuffer(data))
-	if e1 != nil { return false }
-	// Try to read a few bytes. This is generally where random occurrences
-	// of the magic id fail.
-	_, e2 := inf.Read(make([]byte, 16))
-	if e2 != nil { return false }
-	return true
 }
