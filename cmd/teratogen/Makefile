@@ -8,6 +8,7 @@ GOFILES=\
 	item.go\
 	mapgen.go\
 	main.go\
+	media.go\
 	msg.go\
 	rules.go\
 	ui.go\

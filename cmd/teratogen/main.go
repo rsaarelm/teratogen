@@ -23,6 +23,7 @@ func main() {
 
 	InitUI()
 
+	InitMedia()
 	world := NewWorld()
 
 	world.InitLevel(currentLevel)

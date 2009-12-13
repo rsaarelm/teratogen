@@ -9,6 +9,7 @@ import (
 	"container/vector"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 )
@@ -52,7 +53,15 @@ func (self *Archive)ReadFile(name string) (data []byte, err os.Error) {
 			return
 		}
 		if header.Name == name {
-			data, err = ioutil.ReadAll(tr)
+// ReadAll doesn't work with tar?
+//			data, err = ioutil.ReadAll(tr)
+			data = make([]byte, header.Size)
+			n, err := io.ReadFull(tr, data)
+			if err == nil && int64(n) != header.Size {
+				err = os.NewError(fmt.Sprintf(
+					"File was %v bytes, but read %v bytes",
+					header.Size, n))
+			}
 			break
 		}
 	}
