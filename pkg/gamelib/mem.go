@@ -1,6 +1,7 @@
 package gamelib
 
 import (
+	. "hyades/common"
 	"reflect"
 )
 

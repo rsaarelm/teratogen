@@ -5,7 +5,6 @@ GOFILES=\
 	alg.go\
 	color.go\
 	console.go\
-	debug.go\
 	graph.go\
 	mem.go\
 	set.go\

@@ -1,11 +1,13 @@
 package main
 
-import "fmt"
-import "sync"
-import "time"
-
-import "hyades/libtcod"
-import . "hyades/gamelib"
+import (
+	"fmt"
+	. "hyades/common"
+	. "hyades/gamelib"
+	"hyades/libtcod"
+	"sync"
+	"time"
+)
 
 const redrawIntervalNs = 30e6
 const capFps = true

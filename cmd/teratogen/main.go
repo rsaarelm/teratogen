@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"container/vector"
 	"fmt"
-	. "hyades/gamelib"
+	. "hyades/common"
 	"hyades/num"
 	"io/ioutil"
 )

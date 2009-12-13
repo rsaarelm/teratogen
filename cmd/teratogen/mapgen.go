@@ -3,6 +3,7 @@ package main
 import (
 	"container/vector"
 	"exp/iterable"
+	. "hyades/common"
 	. "hyades/gamelib"
 	"hyades/geom"
 	"hyades/num"
@@ -21,8 +22,8 @@ type BspRoom struct {
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom)
 	Assert(w > 0 && h > 0, "Making a BspRoom with zero dimension.")
-	result.Pos = geom.Pt2I{x, y}
-	result.Dim = geom.Vec2I{w, h}
+	result.Pos = Pt2I{x, y}
+	result.Dim = Vec2I{w, h}
 	return
 }
 
@@ -30,7 +31,7 @@ func (self *BspRoom) IsLeaf() bool	{ return self.ChildLeft == nil && self.ChildR
 
 func (self *BspRoom) RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
-		if self.Contains(geom.Pt2I{x, y}) {
+		if self.Contains(Pt2I{x, y}) {
 			return self
 		}
 		return nil
@@ -59,14 +60,14 @@ func AddPointToConnectingWall(graph Graph, room1, room2 *BspRoom, x, y int) {
 
 	// Look for duplicates.
 	for pt := range ptVec.Iter() {
-		pt := pt.(geom.Pt2I)
+		pt := pt.(Pt2I)
 		// If one is found, return.
 		if pt.X == x && pt.Y == y {
 			return
 		}
 	}
 	// No duplicates, add the point to vector.
-	ptVec.Push(geom.Pt2I{x, y})
+	ptVec.Push(Pt2I{x, y})
 }
 
 func (self *BspRoom) FindConnectingWalls(graph Graph) {

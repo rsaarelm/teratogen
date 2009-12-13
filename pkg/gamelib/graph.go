@@ -1,5 +1,9 @@
 package gamelib
 
+import (
+	. "hyades/common"
+)
+
 type Graph interface {
 	AddArc(node1, node2 interface{}, arcObj interface{})
 	RemoveArc(node1, node2 interface{})
