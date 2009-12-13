@@ -1,5 +1,5 @@
-LIBS=gamelib gostak libtcod
-CMDS=teratogen databake
+LIBS=alg common fs geom gostak libtcod mem num sdl txt
+CMDS=teratogen databake sdltest
 
 TARG=teratogen
 
@@ -42,3 +42,9 @@ test: $(LIB_TEST)
 clean: $(SUB_CLEAN)
 
 nuke: $(SUB_NUKE)
+
+# Library interdependencies
+alg-lib: common-lib mem-lib
+geom-lib: num-lib common-lib
+libtcod-lib: console-lib
+mem-lib: common-lib

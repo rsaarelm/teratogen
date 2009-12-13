@@ -1,9 +1,18 @@
-package gamelib
+package geom
 
 import (
+	. "hyades/common"
+	"hyades/num"
+	"log"
 	"math"
 )
 
+// Recursive shadowcasting line-of-sight algorithm. Always starts from 0, 0.
+// Function parameter isBlocked tells if a tile relative to the origin blocks
+// sight, and function parameter outsideRadius is false for points within
+// sight radius and true for points outside it. The algorithm will span a
+// connected and convex area based on outsideRadius and yield the visible
+// points in the returned channel.
 func LineOfSight(isBlocked func(Vec2I) bool, outsideRadius func(Vec2I) bool) <-chan Vec2I {
 	c := make(chan Vec2I)
 
@@ -32,7 +41,7 @@ func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius fun
 
 	traversingObstacle := true
 
-	for v, ev := int(Round(float64(u)*startSlope)), int(math.Ceil(float64(u)*endSlope)); v <= ev; v++ {
+	for v, ev := int(num.Round(float64(u)*startSlope)), int(math.Ceil(float64(u)*endSlope)); v <= ev; v++ {
 		var pos Vec2I
 		switch octant {
 		case 0:
@@ -52,7 +61,7 @@ func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius fun
 		case 7:
 			pos = Vec2I{-v, -u}
 		default:
-			Die("Bad octant %v", octant)
+			log.Crashf("Bad octant %v", octant)
 		}
 
 		if isBlocked(pos) {
@@ -73,7 +82,7 @@ func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius fun
 				// Risen above an obstacle.
 				traversingObstacle = false
 				if v > 0 {
-					startSlope = Float64Max(
+					startSlope = num.Float64Max(
 						startSlope,
 						(float64(v)-0.5)/(float64(u)-0.5))
 				}
@@ -118,7 +127,7 @@ func Vec2IToDir4(vec Vec2I) int {
 	return ((Hexadecant(float64(vec.X), float64(vec.Y)) + 2) % 16) / 4
 }
 
-func Dir8ToVec(dir int) Vec2I {
+func Dir8ToVec(dir int) (result Vec2I) {
 	switch dir {
 	case 0:
 		return Vec2I{0, -1}
@@ -137,11 +146,12 @@ func Dir8ToVec(dir int) Vec2I {
 	case 7:
 		return Vec2I{-1, -1}
 	}
-	panic("Invalid dir")
+	log.Crashf("Invalid dir %v", dir)
+	return;
 }
 
 func PosAdjacent(p1, p2 Pt2I) bool {
 	diff := p1.Minus(p2)
-	x, y := Iabs(diff.X), Iabs(diff.Y)
+	x, y := num.Iabs(diff.X), num.Iabs(diff.Y)
 	return x < 2 && y < 2 && x+y > 0
 }

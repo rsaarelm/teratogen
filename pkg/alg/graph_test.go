@@ -1,4 +1,4 @@
-package gamelib
+package alg
 
 import (
 	"testing"

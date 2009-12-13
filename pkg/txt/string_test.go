@@ -1,4 +1,4 @@
-package gamelib
+package txt
 
 import (
 	"testing"

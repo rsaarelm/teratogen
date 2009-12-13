@@ -1,6 +1,6 @@
-package main
+!package main
 
-import "testing";
+import "testing"
 
 func TestEmpty(t *testing.T) {
 	// Placeholder to keep gotest from returning an error for no tests
