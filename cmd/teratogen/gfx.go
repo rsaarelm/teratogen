@@ -1,10 +1,13 @@
 package main
 
-import . "hyades/gamelib"
+import (
+	. "hyades/gamelib"
+	"hyades/geom"
+)
 
 func ConsoleClear(console ConsoleBase) {
 	w, h := console.GetDim()
-	for pt := range PtIter(0, 0, w, h) {
+	for pt := range geom.PtIter(0, 0, w, h) {
 		console.Set(pt.X, pt.Y, ' ', RGB{0, 0, 0}, RGB{0, 0, 0})
 	}
 }

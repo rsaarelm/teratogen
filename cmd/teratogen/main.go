@@ -6,6 +6,7 @@ import (
 	"container/vector"
 	"fmt"
 	. "hyades/gamelib"
+	"hyades/num"
 	"io/ioutil"
 )
 
@@ -13,7 +14,7 @@ var currentLevel int = 1
 
 func main() {
 	findArchive()
-	RngSeedFromClock()
+	num.RngSeedFromClock()
 
 	InitUI()
 

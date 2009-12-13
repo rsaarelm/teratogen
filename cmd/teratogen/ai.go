@@ -1,6 +1,8 @@
 package main
 
-import . "hyades/gamelib"
+import (
+	"hyades/geom"
+)
 
 func DoAI(crit *Creature) {
 	world := GetWorld()
@@ -10,8 +12,8 @@ func DoAI(crit *Creature) {
 	}
 
 	dirVec := player.GetPos().Minus(crit.GetPos())
-	dir8 := Vec2IToDir8(dirVec)
-	moveVec := Dir8ToVec(dir8)
+	dir8 := geom.Vec2IToDir8(dirVec)
+	moveVec := geom.Dir8ToVec(dir8)
 
 	if crit.GetPos().Plus(moveVec).Equals(player.GetPos()) {
 		Attack(crit, player)

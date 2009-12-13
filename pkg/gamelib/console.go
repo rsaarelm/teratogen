@@ -1,5 +1,9 @@
 package gamelib
 
+import (
+	"hyades/geom"
+)
+
 // This is a wrapper class for consoles which implements complex display
 // logic. It holds a reference to a minimal implementation object which does
 // the implementation-specific things.
@@ -19,7 +23,7 @@ func NewConsole(impl ConsoleBase) (result *Console) {
 
 func (self *Console) Clear() {
 	w, h := self.impl.GetDim()
-	for pt := range PtIter(0, 0, w, h) {
+	for pt := range geom.PtIter(0, 0, w, h) {
 		self.impl.Set(pt.X, pt.Y, ' ', self.fore, self.back)
 	}
 }

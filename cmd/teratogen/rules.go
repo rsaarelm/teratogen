@@ -1,10 +1,13 @@
 package main
 
-import "fmt"
-import "math"
-import "rand"
-
-import . "hyades/gamelib"
+import (
+	"fmt"
+	. "hyades/gamelib"
+	"hyades/geom"
+	"hyades/num"
+	"math"
+	"rand"
+)
 
 // Game mechanics stuff.
 
@@ -23,8 +26,8 @@ const (
 )
 
 func Log2Modifier(x int) int {
-	absMod := int(Round(Log2(math.Fabs(float64(x))+2) - 1))
-	return Isignum(x) * absMod
+	absMod := int(num.Round(num.Log2(math.Fabs(float64(x))+2) - 1))
+	return num.Isignum(x) * absMod
 }
 
 // Smaller things are logarithmically harder to hit.
@@ -130,7 +133,7 @@ func MovePlayerDir(dir int) {
 	world := GetWorld()
 	player := world.GetPlayer()
 	world.ClearLosSight()
-	player.TryMove(Dir8ToVec(dir))
+	player.TryMove(geom.Dir8ToVec(dir))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
@@ -157,7 +160,7 @@ func MovePlayerDir(dir int) {
 func SmartMovePlayer(dir int) {
 	world := GetWorld()
 	player := world.GetPlayer()
-	vec := Dir8ToVec(dir)
+	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
 	for ent := range world.EntitiesAt(target) {

@@ -1,4 +1,4 @@
-package gamelib
+package num
 
 import (
 	"exp/iterable"

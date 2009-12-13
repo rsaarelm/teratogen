@@ -1,4 +1,4 @@
-package gamelib
+package geom
 
 import (
 	"math"

@@ -1,24 +1,28 @@
 package main
 
-import "container/vector"
-import "exp/iterable"
-import "math"
-import "rand"
+import (
+	"container/vector"
+	"exp/iterable"
+	. "hyades/gamelib"
+	"hyades/geom"
+	"hyades/num"
+	"math"
+	"rand"
+)
 
-import . "hyades/gamelib"
 
 const minRoomDim = 2
 
 type BspRoom struct {
-	RectI
+	geom.RectI
 	ChildLeft, ChildRight	*BspRoom
 }
 
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom)
 	Assert(w > 0 && h > 0, "Making a BspRoom with zero dimension.")
-	result.Pos = Pt2I{x, y}
-	result.Dim = Vec2I{w, h}
+	result.Pos = geom.Pt2I{x, y}
+	result.Dim = geom.Vec2I{w, h}
 	return
 }
 
@@ -26,7 +30,7 @@ func (self *BspRoom) IsLeaf() bool	{ return self.ChildLeft == nil && self.ChildR
 
 func (self *BspRoom) RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
-		if self.Contains(Pt2I{x, y}) {
+		if self.Contains(geom.Pt2I{x, y}) {
 			return self
 		}
 		return nil
@@ -55,14 +59,14 @@ func AddPointToConnectingWall(graph Graph, room1, room2 *BspRoom, x, y int) {
 
 	// Look for duplicates.
 	for pt := range ptVec.Iter() {
-		pt := pt.(Pt2I)
+		pt := pt.(geom.Pt2I)
 		// If one is found, return.
 		if pt.X == x && pt.Y == y {
 			return
 		}
 	}
 	// No duplicates, add the point to vector.
-	ptVec.Push(Pt2I{x, y})
+	ptVec.Push(geom.Pt2I{x, y})
 }
 
 func (self *BspRoom) FindConnectingWalls(graph Graph) {
@@ -118,11 +122,13 @@ func (self *BspRoom) HorizontalSplit(pos int) {
 }
 
 // Probability weight for vertical split, can't split below height minRoomDim * 2 + 1.
-func (self *BspRoom) VerticalSplitWeight() int	{ return IntMax(0, self.Dim.Y-minRoomDim*2) }
+func (self *BspRoom) VerticalSplitWeight() int {
+	return num.IntMax(0, self.Dim.Y-minRoomDim*2)
+}
 
 // Probability weight for horizontal split, can't split below width minRoomDim * 2 + 1.
 func (self *BspRoom) HorizontalSplitWeight() int {
-	return IntMax(0, self.Dim.X-minRoomDim*2)
+	return num.IntMax(0, self.Dim.X-minRoomDim*2)
 }
 
 func MaybeSplitRoom(room *BspRoom) {
@@ -135,7 +141,7 @@ func MaybeSplitRoom(room *BspRoom) {
 	const medianArea = 60.0
 	splitProb := math.Atan(float64(room.RectArea())/medianArea) / (0.5 * math.Pi)
 
-	if WithProb(splitProb) {
+	if num.WithProb(splitProb) {
 		vw := int(math.Pow(
 			float64(room.VerticalSplitWeight()),
 			aspectNormalizingExponent))
@@ -201,7 +207,7 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 	for edgeRooms.Len() > 0 {
 		// Pick a room connected by an edge to the current set of
 		// connected rooms.
-		nextRoom := RandomFromIterable(edgeRooms)
+		nextRoom := num.RandomFromIterable(edgeRooms)
 
 		// Since we've been lazy with the sets and haven't recorded
 		// the walls by which the edge rooms are touching the set of
@@ -213,7 +219,7 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 		doorsMade := 0
 		for i := 0; i < len(rooms); i++ {
 			if connectedRooms.Contains(rooms[i]) {
-				if doorsMade == 0 || WithProb(extraDoorProb) {
+				if doorsMade == 0 || num.WithProb(extraDoorProb) {
 					// Always make at least one door. With
 					// some prob make doors to other
 					// connected rooms to make the map
@@ -236,7 +242,7 @@ func DoorLocations(wallGraph Graph) (result *vector.Vector) {
 	result = new(vector.Vector)
 
 	for wall := range wallsToMakeDoorsIn(wallGraph).Iter() {
-		result.Push(RandomFromIterable(wall.(iterable.Iterable)))
+		result.Push(num.RandomFromIterable(wall.(iterable.Iterable)))
 	}
 
 	return
@@ -277,7 +283,7 @@ func MakeCaveMap(width, height int, floorPercent float) (result [][]CaveTile) {
 	for iterationLimit < width*height*iterationsPerCell && floorCount < maxFloorCount {
 		iterationLimit++
 		x, y := xmin+rand.Intn(xmax-xmin+1), ymin+rand.Intn(ymax-ymin+1)
-		if result[x][y] == CaveUnknown || WithProb(recarveProb) {
+		if result[x][y] == CaveUnknown || num.WithProb(recarveProb) {
 			if x == xmin && x > 1 {
 				xmin--
 			}

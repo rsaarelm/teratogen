@@ -1,5 +1,8 @@
-LIBS=gamelib libtcod sdl
+LIBS=geom num gamelib libtcod sdl
 CMDS=teratogen databake sdltest
+
+geom-lib: num-lib
+gamelib-lib: geom-lib num-lib
 
 TARG=teratogen
 

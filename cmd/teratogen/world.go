@@ -1,10 +1,13 @@
 package main
 
-import "container/vector"
-import "fmt"
-import "rand"
-
-import . "hyades/gamelib"
+import (
+	"container/vector"
+	"fmt"
+	. "hyades/gamelib"
+	"hyades/geom"
+	"hyades/num"
+	"rand"
+)
 
 const mapWidth = 40
 const mapHeight = 20
@@ -112,10 +115,10 @@ type Entity interface {
 	Drawable
 	// TODO: Entity-common stuff.
 	IsObstacle() bool
-	GetPos() Pt2I
+	GetPos() geom.Pt2I
 	GetGuid() Guid
-	MoveAbs(pos Pt2I)
-	Move(vec Vec2I)
+	MoveAbs(pos geom.Pt2I)
+	Move(vec geom.Vec2I)
 	GetName() string
 	GetClass() EntityClass
 }
@@ -180,7 +183,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		result = &Creature{Icon: Icon{'@', RGB{0xdd, 0xff, 0xff}},
 			guid: guid,
 			Name: "protagonist",
-			pos: Pt2I{-1, -1},
+			pos: geom.Pt2I{-1, -1},
 			class: PlayerEntityClass,
 			// XXX: Give player superstrength until we get some weapons in play.
 			Strength: Superb,
@@ -191,7 +194,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		result = &Creature{Icon: Icon{'z', RGB{0x80, 0xa0, 0x80}},
 			guid: guid,
 			Name: "zombie",
-			pos: Pt2I{-1, -1},
+			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
 			Strength: Fair,
 			Toughness: Poor,
@@ -201,7 +204,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		result = &Creature{Icon: Icon{'Q', RGB{0xa0, 0x00, 0xa0}},
 			guid: guid,
 			Name: "elder spawn",
-			pos: Pt2I{-1, -1},
+			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
 			Strength: Legendary,
 			Toughness: Legendary,
@@ -212,7 +215,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 		result = &Item{Icon: Icon{'%', RGB{0xff, 0x44, 0x44}},
 			guid: guid,
 			Name: "health globe",
-			pos: Pt2I{-1, -1},
+			pos: geom.Pt2I{-1, -1},
 			class: GlobeEntityClass,
 		}
 	default:
@@ -222,7 +225,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	return
 }
 
-func (self *World) SpawnAt(entityType EntityType, pos Pt2I) (result Entity) {
+func (self *World) SpawnAt(entityType EntityType, pos geom.Pt2I) (result Entity) {
 	result = self.Spawn(entityType)
 	result.MoveAbs(pos)
 	return
@@ -232,7 +235,7 @@ func (self *World) SpawnRandomPos(entityType EntityType) (result Entity) {
 	return self.SpawnAt(entityType, self.GetSpawnPos())
 }
 
-func (self *World) InitLevel(num int) {
+func (self *World) InitLevel(depth int) {
 	// Keep the player around even though the other entities get munged.
 	// TODO: When we start having inventories, keep the player's items too.
 	player := self.GetPlayer()
@@ -243,7 +246,7 @@ func (self *World) InitLevel(num int) {
 	self.entities = make(map[Guid]Entity)
 	self.entities[self.playerId] = player
 
-	if WithProb(0.5) {
+	if num.WithProb(0.5) {
 		self.makeCaveMap()
 	} else {
 		self.makeBSPMap()
@@ -253,7 +256,7 @@ func (self *World) InitLevel(num int) {
 
 	player.MoveAbs(self.GetSpawnPos())
 	self.DoLos(player.GetPos())
-	for i := 0; i < 10+num*4; i++ {
+	for i := 0; i < 10+depth*4; i++ {
 		self.SpawnRandomPos(EntityZombie)
 	}
 
@@ -271,7 +274,7 @@ func (self *World) initTerrain() {
 }
 
 func (self *World) ClearLosSight() {
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
 		if self.los[idx] == LosSeen {
 			self.los[idx] = LosMapped
@@ -280,38 +283,38 @@ func (self *World) ClearLosSight() {
 }
 
 func (self *World) ClearLosMapped() {
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
 		self.los[idx] = LosUnknown
 	}
 }
 
-func (self *World) MarkSeen(pos Pt2I) {
+func (self *World) MarkSeen(pos geom.Pt2I) {
 	if inTerrain(pos) {
 		self.los[pos.X+pos.Y*mapWidth] = LosSeen
 	}
 }
 
-func (self *World) GetLos(pos Pt2I) LosState {
+func (self *World) GetLos(pos geom.Pt2I) LosState {
 	if inTerrain(pos) {
 		return self.los[pos.X+pos.Y*mapWidth]
 	}
 	return LosUnknown
 }
 
-func (self *World) DoLos(center Pt2I) {
+func (self *World) DoLos(center geom.Pt2I) {
 	const losRadius = 12
 
-	blocks := func(vec Vec2I) bool { return self.BlocksSight(center.Plus(vec)) }
+	blocks := func(vec geom.Vec2I) bool { return self.BlocksSight(center.Plus(vec)) }
 
-	outOfRadius := func(vec Vec2I) bool { return int(vec.Abs()) > losRadius }
+	outOfRadius := func(vec geom.Vec2I) bool { return int(vec.Abs()) > losRadius }
 
-	for pt := range LineOfSight(blocks, outOfRadius) {
+	for pt := range geom.LineOfSight(blocks, outOfRadius) {
 		self.MarkSeen(center.Plus(pt))
 	}
 }
 
-func (self *World) BlocksSight(pos Pt2I) bool {
+func (self *World) BlocksSight(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return true
 	}
@@ -328,25 +331,25 @@ func (self *World) makeBSPMap() {
 	area.FindConnectingWalls(graph)
 	doors := DoorLocations(graph)
 
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		x, y := pt.X, pt.Y
 		if area.RoomAtPoint(x, y) != nil {
-			self.SetTerrain(Pt2I{x, y}, TerrainFloor)
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
 		} else {
-			self.SetTerrain(Pt2I{x, y}, TerrainWall)
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainWall)
 		}
 	}
 
 	for pt := range doors.Iter() {
-		pt := pt.(Pt2I)
-		// TODO: Convert bsp to use Pt2I
+		pt := pt.(geom.Pt2I)
+		// TODO: Convert bsp to use geom.Pt2I
 		self.SetTerrain(pt, TerrainDoor)
 	}
 }
 
 func (self *World) makeCaveMap() {
 	area := MakeCaveMap(mapWidth, mapHeight, 0.50)
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		switch area[pt.X][pt.Y] {
 		case CaveFloor:
 			self.SetTerrain(pt, TerrainFloor)
@@ -360,24 +363,24 @@ func (self *World) makeCaveMap() {
 	}
 }
 
-func inTerrain(pos Pt2I) bool {
+func inTerrain(pos geom.Pt2I) bool {
 	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight
 }
 
-func (self *World) GetTerrain(pos Pt2I) TerrainType {
+func (self *World) GetTerrain(pos geom.Pt2I) TerrainType {
 	if inTerrain(pos) {
 		return self.terrain[pos.X+pos.Y*mapWidth]
 	}
 	return TerrainIndeterminate
 }
 
-func (self *World) SetTerrain(pos Pt2I, t TerrainType) {
+func (self *World) SetTerrain(pos geom.Pt2I, t TerrainType) {
 	if inTerrain(pos) {
 		self.terrain[pos.X+pos.Y*mapWidth] = t
 	}
 }
 
-func (self *World) EntitiesAt(pos Pt2I) <-chan Entity {
+func (self *World) EntitiesAt(pos geom.Pt2I) <-chan Entity {
 	c := make(chan Entity)
 	go func() {
 		for _, ent := range self.entities {
@@ -416,7 +419,7 @@ func (self *World) IterCreatures() <-chan *Creature {
 }
 
 
-func (self *World) IsOpen(pos Pt2I) bool {
+func (self *World) IsOpen(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return false
 	}
@@ -429,16 +432,16 @@ func (self *World) IsOpen(pos Pt2I) bool {
 	return true
 }
 
-func (self *World) GetSpawnPos() (pos Pt2I) {
+func (self *World) GetSpawnPos() (pos geom.Pt2I) {
 	pos, ok := self.GetMatchingPos(
-		func(pos Pt2I) bool { return self.isSpawnPos(pos) })
+		func(pos geom.Pt2I) bool { return self.isSpawnPos(pos) })
 	// XXX: Maybe this shouldn't be an assert, since a situation where no
 	// spawn pos can be found can occur during play.
 	Assert(ok, "Couldn't find open spawn position.")
 	return
 }
 
-func (self *World) isSpawnPos(pos Pt2I) bool {
+func (self *World) isSpawnPos(pos geom.Pt2I) bool {
 	if !self.IsOpen(pos) {
 		return false
 	}
@@ -451,31 +454,31 @@ func (self *World) isSpawnPos(pos Pt2I) bool {
 	return true
 }
 
-func (self *World) GetMatchingPos(f func(Pt2I) bool) (pos Pt2I, found bool) {
+func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found bool) {
 	const tries = 1024
 
 	for i := 0; i < tries; i++ {
 		x, y := rand.Intn(mapWidth), rand.Intn(mapHeight)
-		pos = Pt2I{x, y}
+		pos = geom.Pt2I{x, y}
 		if f(pos) {
 			return pos, true
 		}
 	}
 
 	// RNG has failed us, let's do an exhaustive search...
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if f(pt) {
 			return pt, true
 		}
 	}
 
 	// There really doesn't seem to be any open positions.
-	return Pt2I{0, 0}, false
+	return geom.Pt2I{0, 0}, false
 }
 
 
 func (self *World) drawTerrain() {
-	for pt := range PtIter(0, 0, mapWidth, mapHeight) {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if self.GetLos(pt) == LosUnknown {
 			continue
 		}
