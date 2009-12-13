@@ -1,4 +1,4 @@
-LIBS=alg common geom libtcod mem num sdl txt
+LIBS=alg common fs geom libtcod mem num sdl txt
 CMDS=teratogen databake sdltest
 
 TARG=teratogen
@@ -43,6 +43,7 @@ clean: $(SUB_CLEAN)
 
 nuke: $(SUB_NUKE)
 
+# Library interdependencies
 alg-lib: common-lib mem-lib
 geom-lib: num-lib common-lib
 libtcod-lib: console-lib
