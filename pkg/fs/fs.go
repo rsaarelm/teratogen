@@ -3,12 +3,80 @@
 package fs
 
 import (
+	"archive/tar"
 	"bytes"
 	"compress/gzip"
 	"container/vector"
+	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
+
+type Archive struct {
+	tarball []byte
+}
+
+func ArchiveFromTarGzFile(filename string) (result *Archive, err os.Error) {
+	tarball, e := UnpackGzFile(filename)
+	if e != nil {
+		err = e
+		return
+	}
+	result = NewTarArchive(tarball)
+	return
+}
+
+func NewTarArchive(tarData []byte) (result *Archive) {
+	result = new(Archive)
+	// XXX: Stupid verbose array copy
+	result.tarball = make([]byte, len(tarData))
+	for i, v := range tarData {
+		result.tarball[i] = v
+	}
+
+	return
+}
+
+func (self *Archive)ReadFile(name string) (data []byte, err os.Error) {
+	// XXX: Should we use some kind of caching here?
+	tr := tar.NewReader(bytes.NewBuffer(self.tarball))
+	for {
+		header, e := tr.Next()
+		if e != nil {
+			err = e
+			return
+		}
+		if header == nil {
+			err = os.NewError(fmt.Sprintf("File '%s' not found in archive.", name))
+			return
+		}
+		if header.Name == name {
+			data, err = ioutil.ReadAll(tr)
+			break
+		}
+	}
+	return
+}
+
+func (self *Archive)ListFiles() (list []string, err os.Error) {
+	names := new(vector.StringVector)
+	tr := tar.NewReader(bytes.NewBuffer(self.tarball))
+	for {
+		header, e := tr.Next()
+		if e != nil {
+			err = e
+			return
+		}
+		if header == nil {
+			break
+		}
+		names.Push(header.Name)
+	}
+
+	list = names.Data()
+	return
+}
 
 // Returns a file name that can be used to access the currently run binary.
 func SelfExe() string {
@@ -26,16 +94,11 @@ func UnpackGzFile(filename string) (data []byte, err os.Error) {
 }
 
 func UnpackGz(fileData []byte) (data []byte, err os.Error) {
-	// Don't write the magic byte as a straight literal, as that'll then
-	// show up as an extra magic string in the binary code. The third
-	// character is not an official part of the gz file magic sequence. It
-	// indicates compression method deflate, which seems to be used in
-	// most gz files. This is great for decreasing false positives, but it
-	// may fail with exotic gz files.
-	gzMagic := make([]byte, 3)
-	gzMagic[0] = 0x1f
-	gzMagic[1] = 0x8b
-	gzMagic[2] = 0x08
+	// The third character of the magic string is not an official part of
+	// the gz file magic sequence. It indicates compression method
+	// deflate, which seems to be used in most gz files. This is great for
+	// decreasing false positives, but it may fail with exotic gz files.
+	gzMagic, _ := hex.DecodeString("1f8b08")
 
 	sites := magicSites(fileData, gzMagic)
 
@@ -52,8 +115,8 @@ func UnpackGz(fileData []byte) (data []byte, err os.Error) {
 }
 
 // Return places where the magic byte sequence appears in data.
-func magicSites(data []byte, magic[]byte) (result []int) {
-	points := new(vector.Vector)
+func magicSites(data []byte, magic[]byte) []int {
+	points := new(vector.IntVector)
 
         for i := 0; i < len(data) - len(magic); i++ {
 		found := true
@@ -63,9 +126,5 @@ func magicSites(data []byte, magic[]byte) (result []int) {
 		if found { points.Push(i) }
 	}
 
-	result = make([]int, points.Len())
-	for i := 0; i < points.Len(); i++ {
-		result[i] = points.At(i).(int)
-	}
-	return
+	return points.Data()
 }

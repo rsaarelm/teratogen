@@ -1,20 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"hyades/fs"
+//	"fmt"
+//	"hyades/fs"
 	"hyades/num"
 )
 
 var currentLevel int = 1
 
 func main() {
-	dat, err := fs.UnpackGzFile(fs.SelfExe())
-	if err != nil {
-		fmt.Printf("Self exe archive error: %v\n", err)
-	} else {
-		fmt.Printf("Read %v gzipped bytes from self exe.\n", len(dat))
-	}
+//	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
+//	if err != nil {
+//		fmt.Printf("Self exe archive error: %v\n", err)
+//	} else {
+//		files, _ := arch.ListFiles()
+//		for _, name := range files {
+//			fmt.Println(name)
+//		}
+//	}
 
 	num.RngSeedFromClock()
 
