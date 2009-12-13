@@ -1,9 +1,11 @@
-package gamelib
+package console
 
 import (
 	. "hyades/common"
 	"hyades/geom"
 )
+
+type RGB [3]byte
 
 // This is a wrapper class for consoles which implements complex display
 // logic. It holds a reference to a minimal implementation object which does
@@ -68,7 +70,7 @@ func (self *Console) SetBackCol(col RGB)	{ self.back = col }
 
 func (self *Console) Flush()	{ self.impl.Flush() }
 
-func (self *Console) Events() <-chan ConsoleEvent {
+func (self *Console) Events() <-chan Event {
 	return self.impl.Events()
 }
 
@@ -92,7 +94,7 @@ func (self *Console) BackColorsDiffer(col1, col2 RGB) bool {
 type ConsoleBase interface {
 	Set(x, y int, symbol int, foreColor, backColor RGB)
 	Get(x, y int) (symbol int, foreColor, backColor RGB)
-	Events() <-chan ConsoleEvent
+	Events() <-chan Event
 	GetDim() (width, height int)
 	// Return whether the console is able to differentiate between the two
 	// colors. Different for foreground and background, because the
@@ -104,7 +106,7 @@ type ConsoleBase interface {
 	Flush()
 }
 
-type ConsoleEvent interface{}
+type Event interface{}
 
 type KeyEvent struct {
 	Code		int

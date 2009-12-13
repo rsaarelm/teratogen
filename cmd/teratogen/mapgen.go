@@ -3,8 +3,8 @@ package main
 import (
 	"container/vector"
 	"exp/iterable"
+	"hyades/alg"
 	. "hyades/common"
-	. "hyades/gamelib"
 	"hyades/geom"
 	"hyades/num"
 	"math"
@@ -45,7 +45,7 @@ func (self *BspRoom) RoomAtPoint(x, y int) *BspRoom {
 	panic("XXX: Issue 65")
 }
 
-func AddPointToConnectingWall(graph Graph, room1, room2 *BspRoom, x, y int) {
+func AddPointToConnectingWall(graph alg.Graph, room1, room2 *BspRoom, x, y int) {
 	arc, found := graph.GetArc(room1, room2)
 	if !found {
 		// These rooms aren't in the graph yet. Add a bidirectional
@@ -70,7 +70,7 @@ func AddPointToConnectingWall(graph Graph, room1, room2 *BspRoom, x, y int) {
 	ptVec.Push(Pt2I{x, y})
 }
 
-func (self *BspRoom) FindConnectingWalls(graph Graph) {
+func (self *BspRoom) FindConnectingWalls(graph alg.Graph) {
 	for pt := range self.Iter() {
 		// If the center point is a wall...
 		if self.RoomAtPoint(pt.X, pt.Y) == nil {
@@ -181,7 +181,7 @@ func MakeBspMap(x, y, w, h int) (result *BspRoom) {
 	return
 }
 
-func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
+func wallsToMakeDoorsIn(wallGraph alg.Graph) (result *vector.Vector) {
 	const extraDoorProb = 0.2
 
 	result = new(vector.Vector)
@@ -191,8 +191,8 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 		return
 	}
 
-	connectedRooms := NewMapSet()
-	edgeRooms := NewMapSet()
+	connectedRooms := alg.NewMapSet()
+	edgeRooms := alg.NewMapSet()
 
 	// The room list comes from a map, the order should be reasonably
 	// random so we don't need a specific rng op here.
@@ -239,7 +239,7 @@ func wallsToMakeDoorsIn(wallGraph Graph) (result *vector.Vector) {
 	return
 }
 
-func DoorLocations(wallGraph Graph) (result *vector.Vector) {
+func DoorLocations(wallGraph alg.Graph) (result *vector.Vector) {
 	result = new(vector.Vector)
 
 	for wall := range wallsToMakeDoorsIn(wallGraph).Iter() {

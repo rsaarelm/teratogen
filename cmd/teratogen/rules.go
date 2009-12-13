@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	. "hyades/gamelib"
 	"hyades/geom"
 	"hyades/num"
+	"hyades/txt"
 	"math"
 	"rand"
 )
@@ -102,17 +102,17 @@ func Attack(attacker Entity, defender Entity) {
 				e1.MeleeSkill, e2.MeleeSkill, e2.Scale-e1.Scale)
 
 			if doesHit {
-				Msg("%v hits. ", Capitalize(attacker.GetName()))
+				Msg("%v hits. ", txt.Capitalize(attacker.GetName()))
 				// XXX: Assuming melee attack.
 				woundLevel := e1.MeleeWoundLevelAgainst(e2, hitDegree)
 
 				if woundLevel > 0 {
 					e2.Damage(woundLevel, e1)
 				} else {
-					Msg("%v undamaged.", Capitalize(defender.GetName()))
+					Msg("%v undamaged.", txt.Capitalize(defender.GetName()))
 				}
 			} else {
-				Msg("%v missed.\n", Capitalize(attacker.GetName()))
+				Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
 			}
 		}
 	}
@@ -186,7 +186,7 @@ func RunAI() {
 
 func GameOver(reason string) {
 	MsgMore()
-	fmt.Printf("%v %v\n", Capitalize(GetWorld().GetPlayer().Name), reason)
+	fmt.Printf("%v %v\n", txt.Capitalize(GetWorld().GetPlayer().Name), reason)
 	Quit()
 }
 

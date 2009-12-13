@@ -1,6 +1,8 @@
 package libtcod
 
-import . "hyades/gamelib"
+import (
+	"hyades/console"
+)
 
 // XXX: C interface has trouble with returned structs. Maybe it's specific to
 // the bit-level stuff in TCOD_key_t. Get rid of wrappers when FFI can handle
@@ -57,7 +59,7 @@ static unpacked_tcod_key_t wait_for_keypress(bool flush) {
 import "C"
 import "unsafe"
 
-func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
+func NewLibtcodConsole(w, h int, title string) (console.ConsoleBase) {
 	result := new (libtcodConsole);
 
 	// Init libtcod.
@@ -65,7 +67,7 @@ func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
 	C.TCOD_console_init_root(C.int(w), C.int(h), c_title, 0);
 	C.free(unsafe.Pointer(c_title));
 
-	result.eventChannel = make(chan ConsoleEvent);
+	result.eventChannel = make(chan console.Event);
 
 	spawnEventListeners(result.eventChannel);
 
@@ -73,11 +75,11 @@ func NewLibtcodConsole(w, h int, title string) (ConsoleBase) {
 }
 
 type libtcodConsole struct {
-	eventChannel chan ConsoleEvent;
+	eventChannel chan console.Event;
 }
 
 func (self *libtcodConsole) Set(
-	x, y int, symbol int, foreColor, backColor RGB) {
+	x, y int, symbol int, foreColor, backColor console.RGB) {
 	C.TCOD_console_set_foreground_color(nil, C.make_color(
 		C.uint8(foreColor[0]), C.uint8(foreColor[1]), C.uint8(foreColor[2])));
 	C.TCOD_console_set_background_color(nil, C.make_color(
@@ -87,7 +89,7 @@ func (self *libtcodConsole) Set(
 }
 
 func (self *libtcodConsole) Get(
-	x, y int) (symbol int, foreColor, backColor RGB) {
+	x, y int) (symbol int, foreColor, backColor console.RGB) {
 	symbol = int(C.TCOD_console_get_char(nil, C.int(x), C.int(y)));
 	foreColor = unpackColor(
 		C.TCOD_console_get_fore(nil, C.int(x), C.int(y)));
@@ -96,7 +98,7 @@ func (self *libtcodConsole) Get(
 	return;
 }
 
-func (self *libtcodConsole) Events() <-chan ConsoleEvent {
+func (self *libtcodConsole) Events() <-chan console.Event {
 	return self.eventChannel;
 }
 
@@ -106,12 +108,12 @@ func (self *libtcodConsole) GetDim() (width, height int) {
 	return;
 }
 
-func (self *libtcodConsole) ForeColorsDiffer(col1, col2 RGB) bool {
+func (self *libtcodConsole) ForeColorsDiffer(col1, col2 console.RGB) bool {
 	// Full-color console.
 	return true;
 }
 
-func (self *libtcodConsole) BackColorsDiffer(col1, col2 RGB) bool {
+func (self *libtcodConsole) BackColorsDiffer(col1, col2 console.RGB) bool {
 	// Full-color console.
 	return true;
 }
@@ -128,15 +130,15 @@ func (self *libtcodConsole) Flush() {
 	C.TCOD_console_flush();
 }
 
-func unpackColor(tcodColor C.TCOD_color_t) RGB {
-	return RGB{byte(tcodColor.r), byte(tcodColor.g), byte(tcodColor.b)};
+func unpackColor(tcodColor C.TCOD_color_t) console.RGB {
+	return console.RGB{byte(tcodColor.r), byte(tcodColor.g), byte(tcodColor.b)};
 }
 
-func spawnEventListeners(events chan<- ConsoleEvent) {
+func spawnEventListeners(events chan<- console.Event) {
 	keyListener := func() {
 		for {
 			key := C.wait_for_keypress(C.bool(0));
-			event := &KeyEvent{int(key.vk), int(key.c)};
+			event := &console.KeyEvent{int(key.vk), int(key.c)};
 			events <- event;
 		}
 	};

@@ -1,4 +1,4 @@
-package gamelib
+package mem
 
 import (
 	. "hyades/common"

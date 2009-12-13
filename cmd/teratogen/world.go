@@ -3,8 +3,9 @@ package main
 import (
 	"container/vector"
 	"fmt"
+	"hyades/alg"
+	"hyades/console"
 	. "hyades/common"
-	. "hyades/gamelib"
 	"hyades/geom"
 	"hyades/num"
 	"rand"
@@ -17,7 +18,7 @@ const numTerrainCells = mapWidth * mapHeight
 
 type Icon struct {
 	IconId	byte
-	Color	RGB
+	Color	console.RGB
 }
 
 const xDrawOffset = 0
@@ -81,11 +82,11 @@ const (
 )
 
 var tileset1 = []Icon{
-	TerrainIndeterminate: Icon{'?', RGB{0xff, 0, 0xff}},
-	TerrainWall: Icon{'#', RGB{0x55, 0x55, 0x55}},
-	TerrainFloor: Icon{'.', RGB{0xaa, 0xaa, 0xaa}},
-	TerrainDoor: Icon{'+', RGB{0x00, 0xcc, 0xcc}},
-	TerrainStairDown: Icon{'>', RGB{0xff, 0xff, 0xff}},
+	TerrainIndeterminate: Icon{'?', console.RGB{0xff, 0, 0xff}},
+	TerrainWall: Icon{'#', console.RGB{0x55, 0x55, 0x55}},
+	TerrainFloor: Icon{'.', console.RGB{0xaa, 0xaa, 0xaa}},
+	TerrainDoor: Icon{'+', console.RGB{0x00, 0xcc, 0xcc}},
+	TerrainStairDown: Icon{'>', console.RGB{0xff, 0xff, 0xff}},
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
@@ -181,7 +182,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("")
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{Icon: Icon{'@', RGB{0xdd, 0xff, 0xff}},
+		result = &Creature{Icon: Icon{'@', console.RGB{0xdd, 0xff, 0xff}},
 			guid: guid,
 			Name: "protagonist",
 			pos: Pt2I{-1, -1},
@@ -192,7 +193,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			MeleeSkill: Good,
 		}
 	case EntityZombie:
-		result = &Creature{Icon: Icon{'z', RGB{0x80, 0xa0, 0x80}},
+		result = &Creature{Icon: Icon{'z', console.RGB{0x80, 0xa0, 0x80}},
 			guid: guid,
 			Name: "zombie",
 			pos: Pt2I{-1, -1},
@@ -202,7 +203,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			MeleeSkill: Fair,
 		}
 	case EntityBigboss:
-		result = &Creature{Icon: Icon{'Q', RGB{0xa0, 0x00, 0xa0}},
+		result = &Creature{Icon: Icon{'Q', console.RGB{0xa0, 0x00, 0xa0}},
 			guid: guid,
 			Name: "elder spawn",
 			pos: Pt2I{-1, -1},
@@ -213,7 +214,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Scale: 15,
 		}
 	case EntityMinorHealthGlobe:
-		result = &Item{Icon: Icon{'%', RGB{0xff, 0x44, 0x44}},
+		result = &Item{Icon: Icon{'%', console.RGB{0xff, 0x44, 0x44}},
 			guid: guid,
 			Name: "health globe",
 			pos: Pt2I{-1, -1},
@@ -328,7 +329,7 @@ func (self *World) BlocksSight(pos Pt2I) bool {
 
 func (self *World) makeBSPMap() {
 	area := MakeBspMap(1, 1, mapWidth-2, mapHeight-2)
-	graph := NewSparseMatrixGraph()
+	graph := alg.NewSparseMatrixGraph()
 	area.FindConnectingWalls(graph)
 	doors := DoorLocations(graph)
 
@@ -492,7 +493,7 @@ func (self *World) drawEntities() {
 	for e := range self.IterEntities() {
 		seq.Push(e)
 	}
-	PredicateSort(entityEarlierInDrawOrder, seq)
+	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 
 	for sorted := range seq.Iter() {
 		e := sorted.(Entity)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	. "hyades/common"
 	"hyades/num"
-	. "hyades/gamelib"
+	"hyades/txt"
 )
 
 type Creature struct {
@@ -92,12 +92,12 @@ func (self *Creature) Damage(woundLevel int, cause Entity) {
 			}
 			GameOver(msg)
 		} else {
-			Msg("%v killed.\n", Capitalize(self.Name))
+			Msg("%v killed.\n", txt.Capitalize(self.Name))
 		}
 		world.DestroyEntity(self)
 	} else {
 		Msg("%v %v.\n",
-			Capitalize(self.Name), self.WoundDescription())
+			txt.Capitalize(self.Name), self.WoundDescription())
 	}
 }
 

@@ -1,4 +1,8 @@
-package gamelib
+package alg
+
+import (
+	"hyades/mem"
+)
 
 type Set interface {
 	Add(item interface{})
@@ -9,12 +13,12 @@ type Set interface {
 }
 
 type MapSet struct {
-	items *ObjLookup
+	items *mem.ObjLookup
 }
 
 func NewMapSet() (result *MapSet) {
 	result = new(MapSet)
-	result.items = NewObjLookup()
+	result.items = mem.NewObjLookup()
 
 	return
 }

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	. "hyades/common"
-	. "hyades/gamelib"
+	"hyades/console"
 	"hyades/libtcod"
+	"hyades/txt"
 	"sync"
 	"time"
 )
@@ -13,9 +14,9 @@ const redrawIntervalNs = 30e6
 const capFps = true
 
 type UI struct {
-	getch	chan KeyEvent
+	getch	chan console.KeyEvent
 	msg	*MsgOut
-	con	*Console
+	con	*console.Console
 	running	bool
 
 	// Show message lines beyond this to player.
@@ -32,9 +33,9 @@ func ReleaseUISync()	{ uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	result.getch = make(chan KeyEvent, 16)
+	result.getch = make(chan console.KeyEvent, 16)
 	result.msg = NewMsgOut()
-	result.con = NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"))
+	result.con = console.NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"))
 	result.running = true
 
 	return
@@ -42,7 +43,7 @@ func newUI() (result *UI) {
 
 func InitUI()	{ ui = newUI() }
 
-func GetConsole() *Console	{ return ui.con }
+func GetConsole() *console.Console	{ return ui.con }
 
 func GetMsg() *MsgOut	{ return ui.msg }
 
@@ -54,7 +55,7 @@ func MarkMsgLinesSeen()	{ ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 
 // Blocking getkey function to be called from within an UI-locking game
 // script. Unlocks the UI while waiting for key.
-func GetKey() (result KeyEvent) {
+func GetKey() (result console.KeyEvent) {
 	ReleaseUISync()
 	result = <-ui.getch
 	GetUISync()
@@ -98,9 +99,9 @@ func MainUILoop() {
 		}
 
 		con.Print(41, 0, fmt.Sprintf("Strength: %v",
-			Capitalize(LevelDescription(world.GetPlayer().Strength))))
+			txt.Capitalize(LevelDescription(world.GetPlayer().Strength))))
 		con.Print(41, 1, fmt.Sprintf("%v",
-			Capitalize(world.GetPlayer().WoundDescription())))
+			txt.Capitalize(world.GetPlayer().WoundDescription())))
 		ReleaseUISync()
 
 		con.Flush()
@@ -112,13 +113,13 @@ func MainUILoop() {
 func handleInput() {
 	if evt, ok := <-ui.con.Events(); ok {
 		switch e := evt.(type) {
-		case *KeyEvent:
+		case *console.KeyEvent:
 			bufferKeypress(e)
 		}
 	}
 }
 
-func bufferKeypress(e *KeyEvent) {
+func bufferKeypress(e *console.KeyEvent) {
 	// Non-blocking send.
 	ok := ui.getch <- *e
 	if !ok {

@@ -1,13 +1,14 @@
 package main
 
-import "container/vector"
-import "os"
-import "strings"
-
-import . "hyades/gamelib"
+import (
+	"container/vector"
+	"hyades/txt"
+	"os"
+	"strings"
+)
 
 func updateTicker(str string, lineLength int) string {
-	return PadString(EatPrefix(str, 1), lineLength)
+	return txt.PadString(txt.EatPrefix(str, 1), lineLength)
 }
 
 type MsgOut struct {

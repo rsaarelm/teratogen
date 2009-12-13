@@ -1,7 +1,8 @@
-package gamelib
+package alg
 
 import (
 	. "hyades/common"
+	"hyades/mem"
 )
 
 type Graph interface {
@@ -15,13 +16,13 @@ type Graph interface {
 
 type SparseMatrixGraph struct {
 	arcMatrix	map[uintptr](map[uintptr]interface{})
-	nodeLookup	*ObjLookup
+	nodeLookup	*mem.ObjLookup
 }
 
 func NewSparseMatrixGraph() (result *SparseMatrixGraph) {
 	result = new(SparseMatrixGraph)
 	result.arcMatrix = make(map[uintptr](map[uintptr]interface{}))
-	result.nodeLookup = NewObjLookup()
+	result.nodeLookup = mem.NewObjLookup()
 
 	return
 }
@@ -40,7 +41,7 @@ func (self *SparseMatrixGraph) AddArc(node1, node2 interface{}, arcObj interface
 }
 
 func (self *SparseMatrixGraph) RemoveArc(node1, node2 interface{}) {
-	id1, id2 := ObjId(node1), ObjId(node2)
+	id1, id2 := mem.ObjId(node1), mem.ObjId(node2)
 	self.nodeLookup.DecrObj(node1)
 	self.nodeLookup.DecrObj(node2)
 
@@ -59,7 +60,7 @@ func (self *SparseMatrixGraph) Iter() <-chan interface{} {
 // Returns the neighbor nodes and the arcs to them from a node.
 // XXX: Some kind of wrapper object here to make iterating this a bit less painful.
 func (self *SparseMatrixGraph) Neighbors(node interface{}) (nodes []interface{}, arcs []interface{}) {
-	if neighbors, ok := self.arcMatrix[ObjId(node)]; ok {
+	if neighbors, ok := self.arcMatrix[mem.ObjId(node)]; ok {
 		nodes = make([]interface{}, len(neighbors))
 		arcs = make([]interface{}, len(neighbors))
 		i := 0
@@ -83,8 +84,8 @@ func (self *SparseMatrixGraph) Neighbors(node interface{}) (nodes []interface{},
 // secondary return value.
 func (self *SparseMatrixGraph) GetArc(node1, node2 interface{}) (arc interface{}, found bool) {
 
-	if neighbors, ok1 := self.arcMatrix[ObjId(node1)]; ok1 {
-		if a, ok2 := neighbors[ObjId(node2)]; ok2 {
+	if neighbors, ok1 := self.arcMatrix[mem.ObjId(node1)]; ok1 {
+		if a, ok2 := neighbors[mem.ObjId(node2)]; ok2 {
 			arc = a
 			found = ok2
 		}
