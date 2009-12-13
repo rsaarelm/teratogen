@@ -196,6 +196,32 @@ func (self *Surface) Convert(other *Surface) {
 	self.surf = (*surface)(unsafe.Pointer(newSurface))
 }
 
+func (self *Surface) MakeTiles(width, height int,
+	offsetX, offsetY int,
+	gapX, gapY int) (result []*Surface) {
+	numX := (self.Width() - offsetX) / (width + gapX)
+	numY := (self.Height() - offsetY) / (width + gapY)
+
+	result = make([]*Surface, numX * numY)
+	i := 0
+
+	for x := 0; x < numX; x++ {
+		for y := 0; y < numY; y++ {
+			tile := Make32BitSurface(int(self.surf.Flags), width, height)
+			rect := Rect(int16(offsetX + x * (width + gapX)),
+				int16(offsetY + y * (height + gapY)),
+				uint16(width), uint16(height))
+
+			tile.Convert(self)
+			self.BlitRect(tile, rect, 0, 0)
+
+			result[i] = tile
+			i++
+		}
+	}
+	return
+}
+
 func (self *Surface) writePixelData(offset int, data byte) {
 	pixPtr := (uintptr)(unsafe.Pointer(self.surf.Pixels)) + uintptr(offset)
 	*(*byte)(unsafe.Pointer(pixPtr)) = data
