@@ -280,3 +280,11 @@ func EventListener(ch chan<- event.Event) {
 		ch <- mapEvent(evt)
 	}
 }
+
+func KeyRepeatOn() {
+	C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL)
+}
+
+func KeyRepeatOff() {
+	C.SDL_EnableKeyRepeat(0, 0)
+}
