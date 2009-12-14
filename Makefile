@@ -1,4 +1,4 @@
-LIBS=alg common fs geom gfx gostak libtcod mem num sdl txt
+LIBS=alg common event fs geom gfx gostak libtcod mem num sdl txt
 CMDS=teratogen databake sdltest
 
 TARG=teratogen
