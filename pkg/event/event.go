@@ -2,15 +2,19 @@ package event
 
 type Event interface {}
 
-type keyEvent struct {
-	KeyCode int
-	Printable byte
-	ModifierFlag uint
-}
-
 type KeyDown struct { keyEvent }
 
 type KeyUp struct { keyEvent }
+
+type MouseMove struct { mouseEvent }
+
+type MouseUp struct { mouseEvent }
+
+type MouseDown struct { mouseEvent }
+
+type ResizeEvent struct { X, Y int }
+
+type QuitEvent struct { }
 
 // Mouse buttons
 const (
@@ -20,19 +24,6 @@ const (
 	MOUSE_WHEELUP
 	MOUSE_WHEELDOWN
 )
-
-type mouseEvent struct {
-	X, Y int
-	Dx, Dy int
-	ButtonStates uint
-	ChangedButton int
-}
-
-type MouseMove struct { mouseEvent }
-
-type MouseUp struct { mouseEvent }
-
-type MouseDown struct { mouseEvent }
 
 // Modifier key flags
 const (
@@ -192,3 +183,16 @@ const (
 	K_EURO = 321
 	K_UNDO = 322
 )
+
+type keyEvent struct {
+	KeyCode int
+	Printable byte
+	ModifierFlag uint
+}
+
+type mouseEvent struct {
+	X, Y int
+	Dx, Dy int
+	ButtonStates uint
+	ChangedButton int
+}
