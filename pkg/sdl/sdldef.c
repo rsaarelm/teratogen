@@ -26,7 +26,8 @@ typedef SDL_QuitEvent $quitEvent;
 typedef SDL_UserEvent $userEvent;
 typedef SDL_SysWMmsg $sysWMmsg;
 typedef SDL_SysWMEvent $sysWMEvent;
-typedef SDL_Event $event;
+// Underscore in name so it won't clash with hyades/event package name.
+typedef SDL_Event $_event;
 typedef SDL_keysym $keysym;
 
 enum {

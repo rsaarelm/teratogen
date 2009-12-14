@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"io"
+	"hyades/event"
 	"image"
 	"image/png"
 	"os"
@@ -242,4 +243,40 @@ func (self *Surface) mustLock() bool {
 	//  (surface->offset ||           \
 	//  ((surface->flags & (SDL_HWSURFACE|SDL_ASYNCBLIT|SDL_RLEACCEL)) != 0))
 	return self.surf.Offset != 0 || self.surf.Flags & (HWSURFACE|ASYNCBLIT|RLEACCEL) != 0
+}
+
+//////////////////////////////////////////////////////////////////
+// Events
+//////////////////////////////////////////////////////////////////
+
+func mapEvent(evt *C.SDL_Event) event.Event {
+	switch ((*_event)(unsafe.Pointer(evt))).Type {
+	case KEYDOWN:
+		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
+		return &event.KeyDown{int(keyEvt.Keysym.Sym),
+			int(keyEvt.Keysym.Unicode), uint(C.SDL_GetModState())}
+	case KEYUP:
+		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
+		return &event.KeyUp{int(keyEvt.Keysym.Sym),
+			int(keyEvt.Keysym.Unicode), uint(C.SDL_GetModState())}
+	// TODO: Mouse events
+	case VIDEORESIZE:
+		resEvt := ((*resizeEvent)(unsafe.Pointer(evt)))
+		return &event.Resize{int(resEvt.W), int(resEvt.H)}
+	case QUIT:
+		result := new(event.Quit)
+		return result
+	}
+	return nil
+}
+
+// Loops forever waiting for SDL events, converting them to Hyades events and
+// pushing them into the channel. Run as goroutine.
+func EventListener(ch chan<- event.Event) {
+	var evt *C.SDL_Event
+	for {
+		err := C.SDL_WaitEvent(evt)
+		if err == 0 { continue /* TODO: Error handling. */ }
+		ch <- mapEvent(evt)
+	}
 }

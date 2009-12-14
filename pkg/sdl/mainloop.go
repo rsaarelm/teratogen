@@ -1,6 +1,7 @@
 package sdl
 
 import (
+	"hyades/event"
 	"time"
 )
 
@@ -12,11 +13,16 @@ type Screen interface {
 func StartLoop(width, height int, title string, fullscreen bool) {
 	InitSdl(width, height, title, fullscreen)
 	running = true
+	go EventListener(eventChan)
 	go mainLoop()
 }
 
 func StopLoop() {
 	running = false
+}
+
+func GetEvent() event.Event {
+	return <-eventChan
 }
 
 func mainLoop() {
@@ -40,3 +46,4 @@ func mainLoop() {
 var screen Screen
 var running bool
 var delayNs int64 = 30 * 1e6
+var eventChan chan event.Event

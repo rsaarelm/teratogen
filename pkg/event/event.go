@@ -2,23 +2,46 @@ package event
 
 type Event interface {}
 
-type KeyDown struct { keyEvent }
+type KeyDown struct {
+	KeySym int
+	Printable int
+	ModifierFlags uint
+}
 
-type KeyUp struct { keyEvent }
+type KeyUp struct {
+	KeySym int
+	Printable int
+	ModifierFlags uint
+}
 
-type MouseMove struct { mouseEvent }
+type MouseMove struct {
+	X, Y int
+	Dx, Dy int
+	ButtonStates uint
+	ChangedButton int
+}
 
-type MouseUp struct { mouseEvent }
+type MouseUp struct {
+	X, Y int
+	Dx, Dy int
+	ButtonStates uint
+	ChangedButton int
+}
 
-type MouseDown struct { mouseEvent }
+type MouseDown struct {
+	X, Y int
+	Dx, Dy int
+	ButtonStates uint
+	ChangedButton int
+}
 
-type ResizeEvent struct { X, Y int }
+type Resize struct { Width, Height int }
 
-type QuitEvent struct { }
+type Quit struct { }
 
 // Mouse buttons
 const (
-	MOUSE_LEFT = iota
+	MOUSE_LEFT = iota + 1
 	MOUSE_MIDDLE
 	MOUSE_RIGHT
 	MOUSE_WHEELUP
@@ -27,8 +50,8 @@ const (
 
 // Modifier key flags
 const (
-	MOD_NONE = 1 << iota
-	MOD_LSHIFT
+	MOD_NONE = 0
+	MOD_LSHIFT = 1 << iota
 	MOD_RSHIFT
 	MOD_LCTRL
 	MOD_RCTRL
@@ -39,10 +62,10 @@ const (
 	MOD_NUM
 	MOD_CAPS
 	MOD_MODE
-	MOD_CTRL
-	MOD_SHIFT
-	MOD_ALT
-	MOD_META
+	MOD_CTRL = MOD_LCTRL | MOD_RCTRL
+	MOD_SHIFT = MOD_LSHIFT | MOD_RSHIFT
+	MOD_ALT = MOD_LALT | MOD_RALT
+	MOD_META = MOD_LMETA | MOD_RMETA
 )
 
 // Keysyms
@@ -183,16 +206,3 @@ const (
 	K_EURO = 321
 	K_UNDO = 322
 )
-
-type keyEvent struct {
-	KeyCode int
-	Printable byte
-	ModifierFlag uint
-}
-
-type mouseEvent struct {
-	X, Y int
-	Dx, Dy int
-	ButtonStates uint
-	ChangedButton int
-}
