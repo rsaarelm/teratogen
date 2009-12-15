@@ -296,7 +296,10 @@ func EventListener(ch chan<- event.Event) {
 	var evt C.SDL_Event
 	for {
 		err := C.SDL_WaitEvent(&evt)
-		if err == 0 { continue /* TODO: Error handling. */ }
+		if err == 0 {
+			// TODO: Error handling
+			continue
+		}
 		localEvt := mapEvent(&evt)
 		if localEvt != nil {
 			ch <- localEvt
