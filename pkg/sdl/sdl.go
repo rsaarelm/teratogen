@@ -18,6 +18,7 @@ import (
 func InitSdl(width, height int, title string, fullscreen bool) {
 	C.SDL_Init(INIT_VIDEO)
 	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, DOUBLEBUF)
+	C.SDL_EnableUNICODE(1)
 }
 
 func ExitSdl()	{ C.SDL_Quit() }
@@ -255,15 +256,18 @@ func (self *Surface) mustLock() bool {
 
 func mapEvent(evt *C.SDL_Event) event.Event {
 	if evt == nil { return nil }
+
 	switch ((*_event)(unsafe.Pointer(evt))).Type {
 	case KEYDOWN:
 		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
-		return &event.KeyDown{int(keyEvt.Keysym.Sym),
-			int(keyEvt.Keysym.Unicode), uint(C.SDL_GetModState())}
+		sym := ((*keysym)(unsafe.Pointer(&keyEvt.Keysym)))
+		return &event.KeyDown{int(sym.Sym),
+			int(sym.Unicode), uint(C.SDL_GetModState())}
 	case KEYUP:
 		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
-		return &event.KeyUp{int(keyEvt.Keysym.Sym),
-			int(keyEvt.Keysym.Unicode), uint(C.SDL_GetModState())}
+		sym := ((*keysym)(unsafe.Pointer(&keyEvt.Keysym)))
+		return &event.KeyUp{int(sym.Sym),
+			int(sym.Unicode), uint(C.SDL_GetModState())}
 	case MOUSEMOTION:
 		motEvt := ((*mouseMotionEvent)(unsafe.Pointer(evt)))
 		return &event.MouseMove{int(motEvt.X), int(motEvt.Y), int(motEvt.Xrel), int(motEvt.Yrel),
@@ -306,4 +310,12 @@ func KeyRepeatOn() {
 
 func KeyRepeatOff() {
 	C.SDL_EnableKeyRepeat(0, 0)
+}
+
+// Written out manually since godefs gets the layout wrong.
+type keysym struct {
+	Scancode uint8
+	Sym uint32
+	Mod uint32
+	Unicode uint16
 }

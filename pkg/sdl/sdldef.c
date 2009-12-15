@@ -28,7 +28,9 @@ typedef SDL_SysWMmsg $sysWMmsg;
 typedef SDL_SysWMEvent $sysWMEvent;
 // Underscore in name so it won't clash with hyades/event package name.
 typedef SDL_Event $_event;
-typedef SDL_keysym $keysym;
+
+// The layout of SDL_keysym doesn't come out right via godefs, writing this by hand.
+// typedef SDL_keysym $keysym;
 
 enum {
   // Byte order
