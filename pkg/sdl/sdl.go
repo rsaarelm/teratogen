@@ -17,7 +17,7 @@ import (
 
 func InitSdl(width, height int, title string, fullscreen bool) {
 	C.SDL_Init(INIT_VIDEO)
-	C.SDL_SetVideoMode(C.int(width), C.int(height), C.int(32), DOUBLEBUF)
+	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, DOUBLEBUF)
 }
 
 func ExitSdl()	{ C.SDL_Quit() }
@@ -50,6 +50,10 @@ func (self *rect) Height() int { return int(self.h) }
 func convertRect(rec IntRect) *rect {
 	return &rect{int16(rec.X()), int16(rec.Y()),
 		uint16(rec.Width()), uint16(rec.Height())}
+}
+
+func GetError() string {
+	return C.GoString(C.SDL_GetError())
 }
 
 //////////////////////////////////////////////////////////////////
@@ -250,6 +254,7 @@ func (self *Surface) mustLock() bool {
 //////////////////////////////////////////////////////////////////
 
 func mapEvent(evt *C.SDL_Event) event.Event {
+	if evt == nil { return nil }
 	switch ((*_event)(unsafe.Pointer(evt))).Type {
 	case KEYDOWN:
 		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
@@ -259,7 +264,18 @@ func mapEvent(evt *C.SDL_Event) event.Event {
 		keyEvt := ((*keyboardEvent)(unsafe.Pointer(evt)))
 		return &event.KeyUp{int(keyEvt.Keysym.Sym),
 			int(keyEvt.Keysym.Unicode), uint(C.SDL_GetModState())}
-	// TODO: Mouse events
+	case MOUSEMOTION:
+		motEvt := ((*mouseMotionEvent)(unsafe.Pointer(evt)))
+		return &event.MouseMove{int(motEvt.X), int(motEvt.Y), int(motEvt.Xrel), int(motEvt.Yrel),
+			uint(motEvt.State), 0}
+	case MOUSEBUTTONDOWN:
+		btnEvt := ((*mouseButtonEvent)(unsafe.Pointer(evt)))
+		return &event.MouseDown{int(btnEvt.X), int(btnEvt.Y), 0, 0,
+			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.Button)}
+	case MOUSEBUTTONUP:
+		btnEvt := ((*mouseButtonEvent)(unsafe.Pointer(evt)))
+		return &event.MouseUp{int(btnEvt.X), int(btnEvt.Y), 0, 0,
+			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.Button)}
 	case VIDEORESIZE:
 		resEvt := ((*resizeEvent)(unsafe.Pointer(evt)))
 		return &event.Resize{int(resEvt.W), int(resEvt.H)}
@@ -273,11 +289,14 @@ func mapEvent(evt *C.SDL_Event) event.Event {
 // Loops forever waiting for SDL events, converting them to Hyades events and
 // pushing them into the channel. Run as goroutine.
 func EventListener(ch chan<- event.Event) {
-	var evt *C.SDL_Event
+	var evt C.SDL_Event
 	for {
-		err := C.SDL_WaitEvent(evt)
+		err := C.SDL_WaitEvent(&evt)
 		if err == 0 { continue /* TODO: Error handling. */ }
-		ch <- mapEvent(evt)
+		localEvt := mapEvent(&evt)
+		if localEvt != nil {
+			ch <- localEvt
+		}
 	}
 }
 

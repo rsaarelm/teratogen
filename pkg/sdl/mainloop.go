@@ -13,6 +13,7 @@ type Screen interface {
 func StartLoop(width, height int, title string, fullscreen bool) {
 	InitSdl(width, height, title, fullscreen)
 	running = true
+	eventChan = make(chan event.Event)
 	go EventListener(eventChan)
 	go mainLoop()
 }

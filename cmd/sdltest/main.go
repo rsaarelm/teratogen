@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"hyades/event"
 	"hyades/sdl"
 	"image"
 	"strings"
-	"time"
 )
 
 // A png sprite by Oddball for the Assemblee contest at tigsource
@@ -25,7 +26,7 @@ const Elf_png =
 
 
 func main() {
-	sdl.InitSdl(640, 480, "Hello SDL", false)
+	sdl.StartLoop(640, 480, "Hello SDL", false)
 
 	sprite, err := sdl.MakePngSurface(strings.NewReader(Elf_png))
 
@@ -37,11 +38,23 @@ func main() {
 	sprite.FreeSurface()
 	sprite2.Convert(sdl.GetVideoSurface())
 
-	sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
-	sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
-	sdl.Flip()
-	time.Sleep(2e9)
-	sdl.ExitSdl()
+	Outer: for {
+		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
+		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
+		sdl.Flip()
+		evt := sdl.GetEvent()
+		switch e2 := evt.(type) {
+		case *event.KeyDown:
+			fmt.Printf("%T: %+v\n", evt, evt)
+			if e2.KeySym == event.K_Q { break Outer }
+		case *event.Quit:
+			break Outer
+		default:
+			fmt.Printf("%T: %+v\n", evt, evt)
+		}
+	}
+
+	sdl.StopLoop()
 }
 
 func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {

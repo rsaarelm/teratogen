@@ -14,9 +14,9 @@ type keyEvent struct {
 
 type MouseMove mouseEvent
 
-type MouseUp mouseEvent
-
 type MouseDown mouseEvent
+
+type MouseUp mouseEvent
 
 type mouseEvent struct {
 	X, Y int
@@ -28,6 +28,9 @@ type mouseEvent struct {
 type Resize struct { Width, Height int }
 
 type Quit struct { }
+
+// Mouse button, modifier key and keysym codes are the same as in SDL, so the
+// values from SDL can be passed straight to the event system.
 
 // Mouse buttons
 const (
