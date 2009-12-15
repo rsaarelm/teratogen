@@ -22,8 +22,8 @@ func main() {
 	num.RngSeedFromClock()
 
 	InitUI()
-
 	InitMedia()
+
 	world := NewWorld()
 
 	world.InitLevel(currentLevel)

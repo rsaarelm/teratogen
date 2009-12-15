@@ -38,7 +38,8 @@ func makeTiles(basename string,
 	result = sheet.MakeTiles(width, height, xoff, yoff, xgap, ygap)
 	sheet.FreeSurface()
 	for i, x := range result {
-		cache[fmt.Sprintf("%v:%v", basename, i)] = x
+		id := fmt.Sprintf("%v:%v", basename, i)
+		cache[id] = x
 	}
 	return
 }
@@ -48,6 +49,7 @@ func InitMedia() {
 	makeTiles("font", "media/font.png", 8, 8, 0, 0, 0, 0)
 	makeTiles("guys", "media/chars_1.png", 8, 8, 0, 0, 0, 0)
 	makeTiles("tiles", "media/tiles_2.png", 8, 8, 0, 0, 0, 0)
+	makeTiles("items", "media/items_1.png", 8, 8, 0, 0, 0, 0)
 }
 
 func Media(name string) interface{} {

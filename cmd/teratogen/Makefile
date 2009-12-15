@@ -4,7 +4,6 @@ TARG=teratogen_base
 GOFILES=\
 	ai.go\
 	creature.go\
-	gfx.go\
 	item.go\
 	mapgen.go\
 	main.go\

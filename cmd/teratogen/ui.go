@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	. "hyades/common"
-	"hyades/console"
-	"hyades/libtcod"
-	"hyades/txt"
+//	. "hyades/common"
+	"hyades/event"
+	"hyades/sdl"
+//	"hyades/txt"
+	"image"
 	"sync"
 	"time"
 )
@@ -13,10 +14,11 @@ import (
 const redrawIntervalNs = 30e6
 const capFps = true
 
+const screenWidth = 640
+const screenHeight = 480
+
 type UI struct {
-	getch	chan console.KeyEvent
 	msg	*MsgOut
-	con	*console.Console
 	running	bool
 
 	// Show message lines beyond this to player.
@@ -33,9 +35,8 @@ func ReleaseUISync()	{ uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	result.getch = make(chan console.KeyEvent, 16)
+	sdl.StartLoop(screenWidth, screenHeight, "Teratogen", false)
 	result.msg = NewMsgOut()
-	result.con = console.NewConsole(libtcod.NewLibtcodConsole(80, 50, "Teratogen"))
 	result.running = true
 
 	return
@@ -43,7 +44,10 @@ func newUI() (result *UI) {
 
 func InitUI()	{ ui = newUI() }
 
-func GetConsole() *console.Console	{ return ui.con }
+func DrawSprite(name string, x, y int) {
+	sprite := Media(name).(*sdl.Surface)
+	sprite.Blit(sdl.GetVideoSurface(), x, y)
+}
 
 func GetMsg() *MsgOut	{ return ui.msg }
 
@@ -55,9 +59,14 @@ func MarkMsgLinesSeen()	{ ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 
 // Blocking getkey function to be called from within an UI-locking game
 // script. Unlocks the UI while waiting for key.
-func GetKey() (result console.KeyEvent) {
+func GetKey() (result *event.KeyDown) {
 	ReleaseUISync()
-	result = <-ui.getch
+	for {
+		switch evt := (<-sdl.Events()).(type) {
+		case *event.KeyDown:
+			return evt
+		}
+	}
 	GetUISync()
 	return
 }
@@ -70,8 +79,6 @@ func MsgMore() {
 }
 
 func MainUILoop() {
-	con := ui.con
-
 	updater := time.Tick(redrawIntervalNs)
 
 	for ui.running {
@@ -84,7 +91,9 @@ func MainUILoop() {
 			<-updater
 		}
 
-		con.Clear()
+		sdl.GetVideoSurface().FillRect(
+			sdl.Rect(0, 0, screenWidth, screenHeight),
+			image.RGBAColor{0, 0, 0, 255})
 
 		// Synched block which accesses the game world. Don't run
 		// scripts during this.
@@ -94,46 +103,16 @@ func MainUILoop() {
 
 		world.Draw()
 
-		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			con.Print(0, 21+(i-ui.oldestLineSeen), GetMsg().GetLine(i))
-		}
-
-		con.Print(41, 0, fmt.Sprintf("Strength: %v",
-			txt.Capitalize(LevelDescription(world.GetPlayer().Strength))))
-		con.Print(41, 1, fmt.Sprintf("%v",
-			txt.Capitalize(world.GetPlayer().WoundDescription())))
+//		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
+//			con.Print(0, 21+(i-ui.oldestLineSeen), GetMsg().GetLine(i))
+//		}
+//
+//		con.Print(41, 0, fmt.Sprintf("Strength: %v",
+//			txt.Capitalize(LevelDescription(world.GetPlayer().Strength))))
+//		con.Print(41, 1, fmt.Sprintf("%v",
+//			txt.Capitalize(world.GetPlayer().WoundDescription())))
 		ReleaseUISync()
 
-		con.Flush()
-
-		handleInput()
-	}
-}
-
-func handleInput() {
-	if evt, ok := <-ui.con.Events(); ok {
-		switch e := evt.(type) {
-		case *console.KeyEvent:
-			bufferKeypress(e)
-		}
-	}
-}
-
-func bufferKeypress(e *console.KeyEvent) {
-	// Non-blocking send.
-	ok := ui.getch <- *e
-	if !ok {
-		// If the key buffer is full, drop the
-		// oldest input and push the new one
-		// in.
-
-		// XXX: Possible to lose input here,
-		// if another goroutine grabbed the
-		// head input between the line above
-		// and this.
-		<-ui.getch
-		ok2 := ui.getch <- *e
-
-		Assert(ok2, "Couldn't write to key buffer after dropping a value.")
+		sdl.Flip()
 	}
 }
