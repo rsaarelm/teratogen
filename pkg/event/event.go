@@ -2,33 +2,23 @@ package event
 
 type Event interface {}
 
-type KeyDown struct {
+type KeyDown keyEvent
+
+type KeyUp keyEvent
+
+type keyEvent struct {
 	KeySym int
 	Printable int
 	ModifierFlags uint
 }
 
-type KeyUp struct {
-	KeySym int
-	Printable int
-	ModifierFlags uint
-}
+type MouseMove mouseEvent
 
-type MouseMove struct {
-	X, Y int
-	Dx, Dy int
-	ButtonStates uint
-	ChangedButton int
-}
+type MouseUp mouseEvent
 
-type MouseUp struct {
-	X, Y int
-	Dx, Dy int
-	ButtonStates uint
-	ChangedButton int
-}
+type MouseDown mouseEvent
 
-type MouseDown struct {
+type mouseEvent struct {
 	X, Y int
 	Dx, Dy int
 	ButtonStates uint
