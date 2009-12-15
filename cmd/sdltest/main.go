@@ -37,21 +37,22 @@ func main() {
 	sprite2 := doubleSprite(sprite)
 	sprite.FreeSurface()
 	sprite2.Convert(sdl.GetVideoSurface())
+	sdl.SetMaxFps(60.0)
 
 	Outer: for {
 		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
 		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
 		sdl.Flip()
-		evt := sdl.GetEvent()
-		switch e2 := evt.(type) {
+		switch evt := (<-sdl.Events()).(type) {
 		case *event.KeyDown:
 			fmt.Printf("%T: %+v\n", evt, evt)
-			if e2.KeySym == event.K_Q { break Outer }
+			if evt.KeySym == event.K_Q { break Outer }
 		case *event.Quit:
 			break Outer
 		default:
 			fmt.Printf("%T: %+v\n", evt, evt)
 		}
+		sdl.WaitFrame()
 	}
 
 	sdl.StopLoop()

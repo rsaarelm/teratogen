@@ -1,6 +1,7 @@
 package sdl
 
 import (
+	. "hyades/common"
 	"hyades/event"
 	"time"
 )
@@ -22,8 +23,18 @@ func StopLoop() {
 	running = false
 }
 
-func GetEvent() event.Event {
-	return <-eventChan
+func Events() <-chan event.Event { return eventChan }
+
+// Sets the FPS cap. The WaitFrame function will sleep if it's called faster
+// than the FPS interval.
+func SetMaxFps(fps float) {
+	Assert(fps > 0, "Bad FPS")
+	delayNs = int64(1e9 / fps)
+	ticker = time.NewTicker(delayNs)
+}
+
+func WaitFrame() {
+	<-ticker.C
 }
 
 func mainLoop() {
@@ -48,3 +59,4 @@ var screen Screen
 var running bool
 var delayNs int64 = 30 * 1e6
 var eventChan chan event.Event
+var ticker *time.Ticker = time.NewTicker(delayNs)
