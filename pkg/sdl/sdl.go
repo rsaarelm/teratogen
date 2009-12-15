@@ -16,8 +16,10 @@ import (
 )
 
 func InitSdl(width, height int, title string, fullscreen bool) {
+	flags := int64(DOUBLEBUF)
+	if fullscreen { flags |= FULLSCREEN }
 	C.SDL_Init(INIT_VIDEO)
-	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, DOUBLEBUF)
+	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, C.Uint32(flags))
 	C.SDL_EnableUNICODE(1)
 }
 
@@ -89,6 +91,9 @@ func Make32BitSurface(flags int, width, height int) (result *Surface) {
 	result.surf = (*surface)(unsafe.Pointer(C.SDL_CreateRGBSurface(
 		C.Uint32(flags), C.int(width), C.int(height), 32,
 		C.Uint32(rmask), C.Uint32(gmask), C.Uint32(bmask), C.Uint32(amask))))
+	// XXX: Need to init all to opaque alpha or blits won't set alpha.
+	result.FillRect(Rect(0, 0, uint16(result.Width()), uint16(result.Height())),
+		image.RGBAColor{0, 0, 0, 255})
 	return
 }
 
@@ -211,15 +216,15 @@ func (self *Surface) MakeTiles(width, height int,
 	result = make([]*Surface, numX * numY)
 	i := 0
 
-	for x := 0; x < numX; x++ {
-		for y := 0; y < numY; y++ {
-			tile := Make32BitSurface(int(self.surf.Flags), width, height)
+	for y := 0; y < numY; y++ {
+		for x := 0; x < numX; x++ {
+			tile := Make32BitSurface(int(self.surf.Flags)|SRCALPHA, width, height)
 			rect := Rect(int16(offsetX + x * (width + gapX)),
 				int16(offsetY + y * (height + gapY)),
 				uint16(width), uint16(height))
 
+			self.Blit(tile, -rect.X(), -rect.Y())
 			tile.Convert(self)
-			self.BlitRect(tile, rect, 0, 0)
 
 			result[i] = tile
 			i++

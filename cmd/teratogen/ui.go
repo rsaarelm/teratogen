@@ -35,7 +35,8 @@ func ReleaseUISync()	{ uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	sdl.StartLoop(screenWidth, screenHeight, "Teratogen", false)
+	sdl.StartLoop(640, 480, "Teratogen", false)
+	sdl.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true
 
