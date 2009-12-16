@@ -36,7 +36,6 @@ func makeTiles(basename string,
 	sheet, err := sdl.MakePngSurface(bytes.NewBuffer(data))
 	AssertNil(err, "%v", err)
 	result = sheet.MakeTiles(width, height, xoff, yoff, xgap, ygap)
-	sheet.FreeSurface()
 	for i, x := range result {
 		id := fmt.Sprintf("%v:%v", basename, i)
 		cache[id] = x
