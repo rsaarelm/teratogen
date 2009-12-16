@@ -1,36 +1,7 @@
 #include <SDL/SDL.h>
 
-/* Template for converting SDL types and constants into Go.
+/* Template for converting SDL constants into Go.
  * After banthar's Go-SDL bindings (http://github.com/banthar/Go-SDL). */
-
-typedef SDL_Surface $surface;
-typedef SDL_PixelFormat $pixelFormat;
-/* Omitting SDL_Rect, since it's field names collide with the IntRect
- * interface used. Writing it by hand instead. */
-typedef SDL_Color $color;
-typedef SDL_Palette $palette;
-typedef SDL_VideoInfo $videoInfo;
-typedef SDL_Overlay $overlay;
-
-typedef SDL_ActiveEvent $activeEvent;
-typedef SDL_KeyboardEvent $keyboardEvent;
-typedef SDL_MouseMotionEvent $mouseMotionEvent;
-typedef SDL_MouseButtonEvent $mouseButtonEvent;
-typedef SDL_JoyAxisEvent $joyAxisEvent;
-typedef SDL_JoyBallEvent $joyBallEvent;
-typedef SDL_JoyHatEvent $joyHatEvent;
-typedef SDL_JoyButtonEvent $joyButtonEvent;
-typedef SDL_ResizeEvent $resizeEvent;
-typedef SDL_ExposeEvent $exposeEvent;
-typedef SDL_QuitEvent $quitEvent;
-typedef SDL_UserEvent $userEvent;
-typedef SDL_SysWMmsg $sysWMmsg;
-typedef SDL_SysWMEvent $sysWMEvent;
-// Underscore in name so it won't clash with hyades/event package name.
-typedef SDL_Event $_event;
-
-// The layout of SDL_keysym doesn't come out right via godefs, writing this by hand.
-// typedef SDL_keysym $keysym;
 
 enum {
   // Byte order
