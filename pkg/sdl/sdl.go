@@ -2,7 +2,7 @@ package sdl
 
 /*
 #include <SDL.h>
-
+#include <SDL_mixer.h>
 */
 import "C"
 
@@ -18,12 +18,33 @@ import (
 func Init(width, height int, title string, fullscreen bool) {
 	flags := int64(DOUBLEBUF)
 	if fullscreen { flags |= FULLSCREEN }
-	C.SDL_Init(INIT_VIDEO)
+	C.SDL_Init(INIT_VIDEO|INIT_AUDIO)
 	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, C.Uint32(flags))
 	C.SDL_EnableUNICODE(1)
+//	initAudio()
 }
 
-func Exit()	{ C.SDL_Quit() }
+func initAudio() {
+	audioRate := C.int(22050)
+	audioFormat := C.Uint16(AUDIO_S16SYS)
+	audioChannels := C.int(2)
+	audioBuffers := C.int(4096)
+
+	ok := C.Mix_OpenAudio(audioRate, audioFormat, audioChannels, audioBuffers)
+
+	if ok != 0 {
+		panic("Mixer error" + GetError())
+	}
+}
+
+func exitAudio() {
+//	C.Mix_CloseAudio();
+}
+
+func Exit() {
+	exitAudio()
+	C.SDL_Quit();
+}
 
 type IntRect interface {
 	X() int
@@ -326,4 +347,36 @@ func eventType(evt *C.SDL_Event) byte {
 	// struct. This isn't totally guaranteed, but I think SDL exploits it
 	// too, so they're not that likely to change it.
 	return *((*byte)(unsafe.Pointer(evt)))
+}
+
+//////////////////////////////////////////////////////////////////
+// Audio
+//////////////////////////////////////////////////////////////////
+
+type Sound struct {
+	chunk *C.Mix_Chunk
+}
+
+func LoadWav(data []byte) (result *Sound, err os.Error) {
+	// XXX: This isn't working?
+	rw := C.SDL_RWFromMem(unsafe.Pointer(&data[0]), C.int(len(data)))
+	chunk := C.Mix_LoadWAV_RW(rw, 1)
+	if chunk == nil {
+		err = os.NewError(GetError())
+		return
+	}
+	result = &Sound{chunk}
+	return
+}
+
+// Loops -1 plays forever, loops 0 plays once, loops 1 twice and so on.
+func (self *Sound) Play(loops int) {
+	C.Mix_PlayChannelTimed(-1, self.chunk, C.int(loops), -1)
+}
+
+func (self *Sound) FreeSound() {
+	if self.chunk != nil {
+		C.Mix_FreeChunk(self.chunk)
+		self.chunk = nil
+	}
 }

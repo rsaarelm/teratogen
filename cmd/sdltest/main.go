@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hyades/event"
 	"hyades/sdl"
+	"hyades/sfx"
 	"image"
 	"strings"
 )
@@ -23,7 +24,6 @@ const Elf_png =
 "\x10\x33\xe7\x1e\x23\x63\xca\xef\xff\x04\x1d\xc9\xc0\xc0\xc0\xc0" +
 "\x00\x67\x40\xc1\x92\x14\xa5\xff\x30\x31\x00\x02\xa6\x31\x83\x52" +
 "\x2e\xa8\xf4\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"
-
 
 func main() {
 	sdl.StartLoop(640, 480, "Hello SDL", false)
@@ -66,4 +66,18 @@ func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
 		}
 	}
 	return
+}
+
+func sfxTest() {
+	squareWave := sfx.MakeMono8Wav(
+		func (t float) float { if int(t * 500.0) % 2 == 0 { return -0.1 }; return 0.1 },
+		22050,
+		4.0)
+	sfx, err := sdl.LoadWav(squareWave)
+
+	if err != nil {
+		panic("Wav loading error: "+err.String())
+	}
+
+	sfx.Play(0)
 }
