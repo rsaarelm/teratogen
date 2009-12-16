@@ -25,7 +25,12 @@ func writeUint16(out io.Writer, val uint16) {
 		byte((val >> 8) % 0xff)})
 }
 
-func MakeMono8Wav(data []byte, rateHz uint32) []byte {
+func MakeMono8Wav(wave func(float) float, rateHz uint32, durationSec float) []byte {
+	return MakeMono8WavFrom(MakeSound8Bit(wave, rateHz, durationSec),
+		rateHz)
+}
+
+func MakeMono8WavFrom(data []byte, rateHz uint32) []byte {
 	const headerLen = 44
 	const extraLength = headerLen - 8
 
@@ -46,7 +51,7 @@ func MakeMono8Wav(data []byte, rateHz uint32) []byte {
 	// FORMAT Chunk
 	buf.WriteString("fmt ")
 	// FORMAT chunk length
-	writeUint32(buf, 10)
+	writeUint32(buf, 16)
 	// unknown
 	writeUint16(buf, 1)
 	writeUint16(buf, numChannels)
