@@ -15,7 +15,7 @@ import (
 	"unsafe"
 )
 
-func InitSdl(width, height int, title string, fullscreen bool) {
+func Init(width, height int, title string, fullscreen bool) {
 	flags := int64(DOUBLEBUF)
 	if fullscreen { flags |= FULLSCREEN }
 	C.SDL_Init(INIT_VIDEO)
@@ -23,7 +23,7 @@ func InitSdl(width, height int, title string, fullscreen bool) {
 	C.SDL_EnableUNICODE(1)
 }
 
-func ExitSdl()	{ C.SDL_Quit() }
+func Exit()	{ C.SDL_Quit() }
 
 type IntRect interface {
 	X() int
@@ -259,6 +259,22 @@ func EventListener(ch chan<- event.Event) {
 			ch <- localEvt
 		}
 	}
+}
+
+func WaitEvent() event.Event {
+	var evt C.SDL_Event
+	for {
+		err := C.SDL_WaitEvent(&evt)
+		if err == 0 {
+			// TODO: Error handling
+			continue
+		}
+		localEvt := mapEvent(&evt)
+		if localEvt != nil {
+			return localEvt
+		}
+	}
+	panic("WaitEvent broke out of loop.")
 }
 
 func KeyRepeatOn() {

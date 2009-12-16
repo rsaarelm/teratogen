@@ -116,4 +116,5 @@ func MainUILoop() {
 
 		sdl.Flip()
 	}
+	sdl.StopLoop()
 }

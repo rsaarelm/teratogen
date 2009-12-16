@@ -12,15 +12,16 @@ type Screen interface {
 }
 
 func StartLoop(width, height int, title string, fullscreen bool) {
-	InitSdl(width, height, title, fullscreen)
+	Init(width, height, title, fullscreen)
 	running = true
 	eventChan = make(chan event.Event)
-	go EventListener(eventChan)
-	go mainLoop()
+	go eventListener(eventChan)
+//	go mainLoop()
 }
 
 func StopLoop() {
 	running = false
+	Exit()
 }
 
 func Events() <-chan event.Event { return eventChan }
@@ -35,6 +36,12 @@ func SetMaxFps(fps float) {
 
 func WaitFrame() {
 	<-ticker.C
+}
+
+func eventListener(ch chan event.Event) {
+	for running {
+		ch <- WaitEvent()
+	}
 }
 
 func mainLoop() {
@@ -52,7 +59,7 @@ func mainLoop() {
 		// TODO Event handling with channels.
 	}
 
-	ExitSdl()
+	Exit()
 }
 
 var screen Screen
