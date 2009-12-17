@@ -1,6 +1,7 @@
 package gfx
 
 import (
+	. "hyades/common"
 	"image"
 	"image/png"
 	"once"
@@ -10,6 +11,38 @@ import (
 type DrawImage interface {
 	image.Image
 	Set(x, y int, c image.Color)
+}
+
+// An Image implementation from a function that maps ([0..1), [0..1)) to RGBA.
+type procImage struct {
+	colorF func(x, y float) image.Color
+	width, height int
+}
+
+func ProceduralImage(colorF func(float, float) image.Color, width, height int) image.Image {
+	Assert(width > 0 && height > 0, "Procedural Image must have nonzero dimensions.")
+	return &procImage{colorF, width, height}
+}
+
+func (self *procImage) ColorModel() image.ColorModel { return image.RGBAColorModel }
+
+func (self *procImage) Width() int { return self.width }
+
+func (self *procImage) Height() int { return self.height }
+
+func (self *procImage) At(x, y int) image.Color {
+	return self.colorF(float(x) / float(self.width), float(y) / float(self.height))
+}
+
+// An image filter that returns the contents of a source image exactly as they are.
+func IdFilter(src image.Image) (result func(float, float) image.Color) {
+	return func(x, y float) image.Color {
+		return src.At(int(x * float(src.Width())), int(y * float(src.Height())))
+	}
+}
+
+func DoubleScaleImage(src image.Image) image.Image {
+	return ProceduralImage(IdFilter(src), src.Width() * 2, src.Height() * 2)
 }
 
 type Mask [][]byte

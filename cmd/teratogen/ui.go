@@ -14,8 +14,8 @@ import (
 const redrawIntervalNs = 30e6
 const capFps = true
 
-const screenWidth = 640
-const screenHeight = 480
+const screenWidth = 640 * 2
+const screenHeight = 480 * 2
 
 type UI struct {
 	msg	*MsgOut
@@ -35,7 +35,7 @@ func ReleaseUISync()	{ uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	sdl.StartLoop(640, 480, "Teratogen", false)
+	sdl.StartLoop(screenWidth, screenHeight, "Teratogen", false)
 	sdl.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true

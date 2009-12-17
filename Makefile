@@ -46,6 +46,7 @@ nuke: $(SUB_NUKE)
 # Library interdependencies
 alg-lib: common-lib mem-lib
 geom-lib: num-lib common-lib
+gfx-lib: common-lib
 libtcod-lib: console-lib
 mem-lib: common-lib
 sdl-lib: event-lib

@@ -24,8 +24,8 @@ type Icon struct {
 const xDrawOffset = 0
 const yDrawOffset = 0
 
-const TileW = 8
-const TileH = 8
+const TileW = 16
+const TileH = 16
 
 var world *World
 
