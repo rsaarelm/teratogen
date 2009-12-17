@@ -39,6 +39,8 @@ func main() {
 	sprite2.Convert(sdl.GetVideoSurface())
 	sdl.SetMaxFps(60.0)
 
+	sfxTest()
+
 	Outer: for {
 		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
 		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
@@ -71,8 +73,8 @@ func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
 func sfxTest() {
 	squareWave := sfx.MakeMono8Wav(
 		func (t float) float { if int(t * 500.0) % 2 == 0 { return -0.1 }; return 0.1 },
-		22050,
-		4.0)
+		4000,
+		1.0)
 	sfx, err := sdl.LoadWav(squareWave)
 
 	if err != nil {

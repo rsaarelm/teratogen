@@ -13,16 +13,16 @@ import (
 // Little-endian byte output
 func writeUint32(out io.Writer, val uint32) {
 	out.Write([]byte{
-		byte(val % 0xff),
-		byte((val >> 8) % 0xff),
-		byte((val >> 16) % 0xff),
-		byte((val >> 24) % 0xff)})
+		byte(val % 0x100),
+		byte((val >> 8) % 0x100),
+		byte((val >> 16) % 0x100),
+		byte((val >> 24) % 0x100)})
 }
 
 func writeUint16(out io.Writer, val uint16) {
 	out.Write([]byte{
-		byte(val % 0xff),
-		byte((val >> 8) % 0xff)})
+		byte(val % 0x100),
+		byte((val >> 8) % 0x100)})
 }
 
 func MakeMono8Wav(wave func(float) float, rateHz uint32, durationSec float) []byte {

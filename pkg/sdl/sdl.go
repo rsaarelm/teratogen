@@ -22,7 +22,7 @@ func Init(width, height int, title string, fullscreen bool) {
 	C.SDL_Init(INIT_VIDEO|INIT_AUDIO)
 	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, C.Uint32(flags))
 	C.SDL_EnableUNICODE(1)
-//	initAudio()
+	initAudio()
 }
 
 func initAudio() {
@@ -39,7 +39,7 @@ func initAudio() {
 }
 
 func exitAudio() {
-//	C.Mix_CloseAudio();
+	C.Mix_CloseAudio();
 }
 
 func Exit() {
