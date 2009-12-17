@@ -5,7 +5,7 @@ import (
 //	. "hyades/common"
 	"hyades/event"
 	"hyades/sdl"
-//	"hyades/txt"
+	"hyades/txt"
 	"image"
 	"sync"
 	"time"
@@ -16,6 +16,8 @@ const capFps = true
 
 const screenWidth = 640 * 2
 const screenHeight = 480 * 2
+
+const numFont = 384
 
 type UI struct {
 	msg	*MsgOut
@@ -48,6 +50,20 @@ func InitUI()	{ ui = newUI() }
 func DrawSprite(name string, x, y int) {
 	sprite := Media(name).(*sdl.Surface)
 	sprite.Blit(sdl.GetVideoSurface(), x, y)
+}
+
+func DrawChar(char int, x, y int) {
+	// XXX: Ineffctive string composition...
+	if char > numFont { return }
+	Media(fmt.Sprintf("font:%d", char)).(*sdl.Surface).Blit(sdl.GetVideoSurface(), x, y)
+}
+
+// TODO: Support color
+func DrawString(txt string, x, y int) {
+	for _, char := range txt {
+		DrawChar(char, x, y)
+		x += TileW
+	}
 }
 
 func GetMsg() *MsgOut	{ return ui.msg }
@@ -104,14 +120,14 @@ func MainUILoop() {
 
 		world.Draw()
 
-//		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-//			con.Print(0, 21+(i-ui.oldestLineSeen), GetMsg().GetLine(i))
-//		}
-//
-//		con.Print(41, 0, fmt.Sprintf("Strength: %v",
-//			txt.Capitalize(LevelDescription(world.GetPlayer().Strength))))
-//		con.Print(41, 1, fmt.Sprintf("%v",
-//			txt.Capitalize(world.GetPlayer().WoundDescription())))
+		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
+			DrawString(GetMsg().GetLine(i), TileW * 0, TileH * (21+(i-ui.oldestLineSeen)))
+		}
+		DrawString(fmt.Sprintf("Strength: %v",txt.Capitalize(LevelDescription(world.GetPlayer().Strength))),
+			TileW * 41, TileH * 0)
+		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
+			TileW * 41, TileH * 1)
+
 		ReleaseUISync()
 
 		sdl.Flip()
