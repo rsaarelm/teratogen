@@ -4,6 +4,7 @@ import (
 	. "hyades/common"
 	"image"
 	"image/png"
+	"hyades/num"
 	"once"
 	"strings"
 )
@@ -31,13 +32,15 @@ func (self *procImage) Width() int { return self.width }
 func (self *procImage) Height() int { return self.height }
 
 func (self *procImage) At(x, y int) image.Color {
-	return self.colorF(float(x) / float(self.width), float(y) / float(self.height))
+	return self.colorF(float(x) / float(self.width - 1), float(y) / float(self.height - 1))
 }
 
 // An image filter that returns the contents of a source image exactly as they are.
 func IdFilter(src image.Image) (result func(float, float) image.Color) {
 	return func(x, y float) image.Color {
-		return src.At(int(x * float(src.Width())), int(y * float(src.Height())))
+		return src.At(
+			int(num.Round(float64(x) * float64(src.Width() - 1))),
+			int(num.Round(float64(y) * float64(src.Height() - 1))))
 	}
 }
 
