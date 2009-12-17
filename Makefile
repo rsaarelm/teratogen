@@ -21,7 +21,9 @@ $(CMD_BUILD): $(LIB_BUILD)
 
 test: $(LIB_TEST)
 
-%-run: %-cmd
+# XXX: Hardwired to clean, since library dependencies from cmds don't work
+# right otherwise.
+%-run: clean %-cmd
 	(cd ./cmd/$*; $*)
 
 %-lib:
