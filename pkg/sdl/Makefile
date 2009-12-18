@@ -7,7 +7,6 @@ CGO_LDFLAGS = $(shell sdl-config --libs) -lSDL_mixer
 TARG=hyades/sdl
 
 GOFILES=\
-	mainloop.go\
 	sdldef.go\
 
 CGOFILES=\

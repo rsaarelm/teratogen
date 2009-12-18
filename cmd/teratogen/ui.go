@@ -36,7 +36,7 @@ func ReleaseUISync()	{ uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	sdl.StartLoop(screenWidth, screenHeight, "Teratogen", false)
+	sdl.Init(screenWidth, screenHeight, "Teratogen", false)
 	sdl.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true
@@ -78,7 +78,7 @@ func MarkMsgLinesSeen()	{ ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 func GetKey() (result *event.KeyDown) {
 	ReleaseUISync()
 	for {
-		switch evt := (<-sdl.Events()).(type) {
+		switch evt := sdl.WaitEvent().(type) {
 		case *event.KeyDown:
 			return evt
 		}
@@ -131,5 +131,5 @@ func MainUILoop() {
 
 		sdl.Flip()
 	}
-	sdl.StopLoop()
+	sdl.Exit()
 }

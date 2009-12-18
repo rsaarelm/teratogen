@@ -26,7 +26,7 @@ const Elf_png =
 "\x2e\xa8\xf4\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"
 
 func main() {
-	sdl.StartLoop(640, 480, "Hello SDL", false)
+	sdl.Init(640, 480, "Hello SDL", false)
 
 	sprite, err := sdl.MakePngSurface(strings.NewReader(Elf_png))
 
@@ -37,7 +37,6 @@ func main() {
 	sprite2 := doubleSprite(sprite)
 	sprite.FreeSurface()
 	sprite2.Convert(sdl.GetVideoSurface())
-	sdl.SetMaxFps(60.0)
 
 	sfxTest()
 
@@ -45,7 +44,7 @@ func main() {
 		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
 		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
 		sdl.Flip()
-		switch evt := (<-sdl.Events()).(type) {
+		switch evt := sdl.WaitEvent().(type) {
 		case *event.KeyDown:
 			fmt.Printf("%T: %+v\n", evt, evt)
 			if evt.KeySym == event.K_Q { break Outer }
@@ -54,10 +53,9 @@ func main() {
 		default:
 			fmt.Printf("%T: %+v\n", evt, evt)
 		}
-		sdl.WaitFrame()
 	}
 
-	sdl.StopLoop()
+	sdl.Exit()
 }
 
 func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
