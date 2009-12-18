@@ -1,0 +1,67 @@
+package sfx
+
+import (
+	. "hyades/common"
+	"hyades/num"
+	"math"
+)
+
+// 1 Hz sine wave
+func Sine(t float) float {
+	return float(math.Sin(float64(t * 2.0 * math.Pi)))
+}
+
+// Make a pulse wave that spends duty = (0..1) in active phase.
+func MakePulse(duty float) WaveFunc {
+	Assert(duty > 0.0 && duty < 1.0, "Invalid pulse wave duty %v.", duty)
+	return func(t float) float {
+		t = float(num.Fracf(float64(t)))
+		if t < duty {
+			return -1.0
+		}
+		return 1.0
+	}
+}
+
+// Square wave, wave = -1.0 from t 0.0..0.5, wave = 1.0 from t 0.5..1.0, then
+// repeat.
+func Square(t float) float {
+	t = float(num.Fracf(float64(t)))
+	if t < 0.5 {
+		return -1.0
+	}
+	return 1.0
+}
+
+func Triangle(t float) float {
+	t = float(num.Fracf(float64(t)))
+	if t < 0.5 {
+		return -1.0 + t * 4
+	}
+	t -= 0.5
+	return 1.0 - (t * 4)
+}
+
+func Sawtooth(t float) float {
+	t = float(num.Fracf(float64(t)))
+	return t
+}
+
+// Noise wave is like a square wave with random levels instead of 1.0, -1.0.
+// Change frequency to modify the sound.
+func Noise(t float) float {
+	return float(num.Noise(int(t * 2.0)))
+}
+
+func FreqFilter(hz float, wave WaveFunc) WaveFunc {
+	Assert(hz > 0.0, "Zero hz.")
+	return func(t float) float {
+		return wave(t * hz)
+	}
+}
+
+func AmpFilter(amplitude float, wave WaveFunc) WaveFunc {
+	return func(t float) float {
+		return amplitude * wave(t)
+	}
+}

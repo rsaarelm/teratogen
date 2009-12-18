@@ -7,9 +7,12 @@ import (
 	"io"
 )
 
+type WaveFunc func(float) float
+
 // WAV format reference used:
 // http://technology.niagarac.on.ca/courses/ctec1631/WavFileFormat.html
 
+// TODO: Move byte output stuff to its own library
 // Little-endian byte output
 func writeUint32(out io.Writer, val uint32) {
 	out.Write([]byte{
@@ -25,7 +28,7 @@ func writeUint16(out io.Writer, val uint16) {
 		byte((val >> 8) % 0x100)})
 }
 
-func MakeMono8Wav(wave func(float) float, rateHz uint32, durationSec float) []byte {
+func MakeMono8Wav(wave WaveFunc, rateHz uint32, durationSec float) []byte {
 	return MakeMono8WavFrom(MakeSound8Bit(wave, rateHz, durationSec),
 		rateHz)
 }
@@ -71,14 +74,14 @@ func MakeMono8WavFrom(data []byte, rateHz uint32) []byte {
 
 // Convert a wave function that maps time in seconds into an amplitude between
 // 1 and -1 into a sample of the given rate and duration.
-func MakeSound8Bit(wave func(float) float, rateHz uint32, durationSec float) []byte {
+func MakeSound8Bit(wave WaveFunc, rateHz uint32, durationSec float) []byte {
 	buf := new(bytes.Buffer)
 
 	timeStep := 1.0 / float(rateHz);
 	for t := 0.0; t < durationSec; t += timeStep {
 		// FIXME: Compiler error workaround. Remove the int cast when 8g is fixed.
-//		sample := byte((wave(t) + 1.0) * 128.0)
-		sample := byte(int((wave(t) + 1.0) * 128.0))
+//		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
+		sample := byte(int((wave(t) + 1.0) / 2.0 * 255.0))
 		buf.WriteByte(sample)
 	}
 	return buf.Bytes()

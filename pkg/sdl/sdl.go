@@ -9,6 +9,7 @@ import "C"
 import (
 	"fmt"
 	"io"
+	. "hyades/common"
 	"hyades/event"
 	"image"
 	"image/png"
@@ -25,13 +26,31 @@ func Init(width, height int, title string, fullscreen bool) {
 	initAudio()
 }
 
+// 8-bit, 4000 Hz audio
+const audioRate = 4000
+const audioBytesPerSample = 1
+const audioChannels = 2
+
+// Return the preferred sample rate for audio samples.
+func AudioRateHz() uint32 { return audioRate }
+
+// Return the preferred byte count, 1 or 2, of audio samples
+func AudioBytesPerSample() int { return audioBytesPerSample }
+
 func initAudio() {
-	audioRate := C.int(22050)
-	audioFormat := C.Uint16(AUDIO_S16SYS)
-	audioChannels := C.int(2)
+	var audioFormat C.Uint16
+	switch audioBytesPerSample {
+	case 1:
+		audioFormat = C.Uint16(AUDIO_U8)
+	case 2:
+		audioFormat = C.Uint16(AUDIO_U16SYS)
+	default:
+		Die("Bad audioBytesPerSample %v", audioBytesPerSample)
+	}
+
 	audioBuffers := C.int(4096)
 
-	ok := C.Mix_OpenAudio(audioRate, audioFormat, audioChannels, audioBuffers)
+	ok := C.Mix_OpenAudio(C.int(audioRate), audioFormat, C.int(audioChannels), audioBuffers)
 
 	if ok != 0 {
 		panic("Mixer error" + GetError())
