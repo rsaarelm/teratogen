@@ -6,18 +6,18 @@ import (
 	"math"
 )
 
-type freqWaveFunc func(t float, hz float) float
+type freqWaveFunc func(t float64, hz float64) float64
 
 // 1 Hz sine wave
-func Sine(t float, hz float) float {
-	return float(math.Sin(float64(t * hz * 2.0 * math.Pi)))
+func Sine(t float64, hz float64) float64 {
+	return math.Sin(t * hz * 2.0 * math.Pi)
 }
 
 // Make a pulse wave that spends duty = (0..1) in active phase.
-func MakePulse(duty float) freqWaveFunc {
+func MakePulse(duty float64) freqWaveFunc {
 	Assert(duty > 0.0 && duty < 1.0, "Invalid pulse wave duty %v.", duty)
-	return func(t float, hz float) float {
-		t = float(num.Fracf(float64(t * hz)))
+	return func(t float64, hz float64) float64 {
+		t = float64(num.Fracf(float64(t * hz)))
 		if t < duty {
 			return -1.0
 		}
@@ -27,16 +27,16 @@ func MakePulse(duty float) freqWaveFunc {
 
 // Square wave, wave = -1.0 from t 0.0..0.5, wave = 1.0 from t 0.5..1.0, then
 // repeat.
-func Square(t float, hz float) float {
-	t = float(num.Fracf(float64(t * hz)))
+func Square(t float64, hz float64) float64 {
+	t = num.Fracf(t * hz)
 	if t < 0.5 {
 		return -1.0
 	}
 	return 1.0
 }
 
-func Triangle(t float, hz float) float {
-	t = float(num.Fracf(float64(t * hz)))
+func Triangle(t float64, hz float64) float64 {
+	t = num.Fracf(t * hz)
 	if t < 0.5 {
 		return -1.0 + t * 4
 	}
@@ -44,20 +44,20 @@ func Triangle(t float, hz float) float {
 	return 1.0 - (t * 4)
 }
 
-func Sawtooth(t float, hz float) float {
-	t = float(num.Fracf(float64(t * hz)))
+func Sawtooth(t float64, hz float64) float64 {
+	t = num.Fracf(t * hz)
 	return t
 }
 
 // Noise wave is like a square wave with random levels instead of 1.0, -1.0.
 // Change frequency to modify the sound.
-func Noise(t float, hz float) float {
-	return float(num.Noise(int(t * hz * 2.0)))
+func Noise(t float64, hz float64) float64 {
+	return num.Noise(int(t * hz * 2.0))
 }
 
 // Offsets the wave frequency by deltaHz from time t onward
-func Jump(jumpT float, deltaHz float, wave freqWaveFunc) freqWaveFunc {
-	return func(t float, hz float) float {
+func Jump(jumpT float64, deltaHz float64, wave freqWaveFunc) freqWaveFunc {
+	return func(t float64, hz float64) float64 {
 		if t > jumpT { hz += deltaHz }
 		return wave(t, hz)
 	}
@@ -65,31 +65,31 @@ func Jump(jumpT float, deltaHz float, wave freqWaveFunc) freqWaveFunc {
 
 // Slides the frequency by velocity along time. Alters velocity by
 // acceleration by time. Frequency won't go below minHz.
-func Slide(velocity float, acceleration float, minHz float, wave freqWaveFunc) freqWaveFunc {
-	return func(t float, hz float) float {
+func Slide(velocity float64, acceleration float64, minHz float64, wave freqWaveFunc) freqWaveFunc {
+	return func(t float64, hz float64) float64 {
 		hz += t * velocity + 0.5 * t * t * acceleration
 		if hz < minHz { hz = minHz }
 		return wave(t, hz)
 	}
 }
 
-func MakeWave(hz float, fn freqWaveFunc) WaveFunc {
-	return func (t float) float {
+func MakeWave(hz float64, fn freqWaveFunc) WaveFunc {
+	return func (t float64) float64 {
 		return fn(t, hz)
 	}
 }
 
-func AmpFilter(amplitude float, wave WaveFunc) WaveFunc {
-	return func(t float) float {
+func AmpFilter(amplitude float64, wave WaveFunc) WaveFunc {
+	return func(t float64) float64 {
 		return amplitude * wave(t)
 	}
 }
 
 // Attack-decay-sustain-release wave envelope
-func ADSRFilter(attackTime float, decayTime float, sustainLevel float,
-	sustainTime float, releaseTime float, wave WaveFunc) WaveFunc {
-	return func(t float) float {
-		var amp float
+func ADSRFilter(attackTime float64, decayTime float64, sustainLevel float64,
+	sustainTime float64, releaseTime float64, wave WaveFunc) WaveFunc {
+	return func(t float64) float64 {
+		var amp float64
 		t2 := t
 		if attackTime > 0.0 && t2 < attackTime {
 			amp = t2 / attackTime

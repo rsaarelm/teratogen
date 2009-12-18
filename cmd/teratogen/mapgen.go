@@ -259,10 +259,10 @@ const (
 
 // Cave generator by Ray Dillinger, Message-Id: <48d8aa27$0$33580$742ec2ed@news.sonic.net>
 // Adapted from the original C to Golang.
-func MakeCaveMap(width, height int, floorPercent float) (result [][]CaveTile) {
+func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) {
 	const iterationsPerCell = 500
 	const recarveProb = 0.01
-	maxFloorCount := int(floorPercent * float(width*height))
+	maxFloorCount := int(floorPercent * float64(width*height))
 
 	result = make([][]CaveTile, width)
 	for x := 0; x < width; x++ {

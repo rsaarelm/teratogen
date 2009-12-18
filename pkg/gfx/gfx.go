@@ -16,11 +16,11 @@ type DrawImage interface {
 
 // An Image implementation from a function that maps ([0..1), [0..1)) to RGBA.
 type procImage struct {
-	colorF func(x, y float) image.Color
+	colorF func(x, y float64) image.Color
 	width, height int
 }
 
-func ProceduralImage(colorF func(float, float) image.Color, width, height int) image.Image {
+func ProceduralImage(colorF func(float64, float64) image.Color, width, height int) image.Image {
 	Assert(width > 0 && height > 0, "Procedural Image must have nonzero dimensions.")
 	return &procImage{colorF, width, height}
 }
@@ -32,15 +32,15 @@ func (self *procImage) Width() int { return self.width }
 func (self *procImage) Height() int { return self.height }
 
 func (self *procImage) At(x, y int) image.Color {
-	return self.colorF(float(x) / float(self.width - 1), float(y) / float(self.height - 1))
+	return self.colorF(float64(x) / float64(self.width - 1), float64(y) / float64(self.height - 1))
 }
 
 // An image filter that returns the contents of a source image exactly as they are.
-func IdFilter(src image.Image) (result func(float, float) image.Color) {
-	return func(x, y float) image.Color {
+func IdFilter(src image.Image) (result func(float64, float64) image.Color) {
+	return func(x, y float64) image.Color {
 		return src.At(
-			int(num.Round(float64(x) * float64(src.Width() - 1))),
-			int(num.Round(float64(y) * float64(src.Height() - 1))))
+			int(num.Round(x * float64(src.Width() - 1))),
+			int(num.Round(y * float64(src.Height() - 1))))
 	}
 }
 
