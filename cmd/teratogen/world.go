@@ -4,10 +4,10 @@ import (
 	"container/vector"
 	"fmt"
 	"hyades/alg"
-	"hyades/console"
 	"hyades/dbg"
 	"hyades/geom"
 	"hyades/num"
+	"image"
 	"rand"
 )
 
@@ -18,7 +18,7 @@ const numTerrainCells = mapWidth * mapHeight
 
 type Icon struct {
 	IconId	string
-	Color	console.RGB
+	Color	image.Color
 }
 
 const xDrawOffset = 0
@@ -83,11 +83,11 @@ const (
 )
 
 var tileset1 = []Icon{
-TerrainIndeterminate: Icon{"tiles:115", console.RGB{0xff, 0, 0xff}},
-	TerrainWall: Icon{"tiles:32", console.RGB{0x55, 0x55, 0x55}},
-	TerrainFloor: Icon{"tiles:5", console.RGB{0xaa, 0xaa, 0xaa}},
-	TerrainDoor: Icon{"tiles:210", console.RGB{0x00, 0xcc, 0xcc}},
-	TerrainStairDown: Icon{"tiles:8", console.RGB{0xff, 0xff, 0xff}},
+TerrainIndeterminate: Icon{"tiles:115", image.RGBAColor{0xff, 0, 0xff, 0xff}},
+	TerrainWall: Icon{"tiles:32", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
+	TerrainFloor: Icon{"tiles:5", image.RGBAColor{0xaa, 0xaa, 0xaa, 0xff}},
+	TerrainDoor: Icon{"tiles:210", image.RGBAColor{0x00, 0xcc, 0xcc, 0xff}},
+	TerrainStairDown: Icon{"tiles:8", image.RGBAColor{0xff, 0xff, 0xff, 0xff}},
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
@@ -183,7 +183,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("")
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{Icon: Icon{"guys:8", console.RGB{0xdd, 0xff, 0xff}},
+		result = &Creature{Icon: Icon{"guys:8", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
 			guid: guid,
 			Name: "protagonist",
 			pos: geom.Pt2I{-1, -1},
@@ -194,7 +194,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			MeleeSkill: Good,
 		}
 	case EntityZombie:
-		result = &Creature{Icon: Icon{"guys:195", console.RGB{0x80, 0xa0, 0x80}},
+		result = &Creature{Icon: Icon{"guys:195", image.RGBAColor{0x80, 0xa0, 0x80, 0xff}},
 			guid: guid,
 			Name: "zombie",
 			pos: geom.Pt2I{-1, -1},
@@ -204,7 +204,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			MeleeSkill: Fair,
 		}
 	case EntityBigboss:
-		result = &Creature{Icon: Icon{"guys:185", console.RGB{0xa0, 0x00, 0xa0}},
+		result = &Creature{Icon: Icon{"guys:185", image.RGBAColor{0xa0, 0x00, 0xa0, 0xff}},
 			guid: guid,
 			Name: "elder spawn",
 			pos: geom.Pt2I{-1, -1},
@@ -215,7 +215,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Scale: 15,
 		}
 	case EntityMinorHealthGlobe:
-		result = &Item{Icon: Icon{"items:57", console.RGB{0xff, 0x44, 0x44}},
+		result = &Item{Icon: Icon{"items:57", image.RGBAColor{0xff, 0x44, 0x44, 0xff}},
 			guid: guid,
 			Name: "health globe",
 			pos: geom.Pt2I{-1, -1},

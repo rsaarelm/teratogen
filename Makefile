@@ -1,4 +1,4 @@
-LIBS=alg console dbg event fs geom gfx gostak libtcod mem num sdl sfx txt
+LIBS=alg dbg event fs geom gfx gostak mem num sdl sfx txt
 CMDS=teratogen databake sdltest
 
 TARG=teratogen
@@ -49,8 +49,6 @@ nuke: $(SUB_NUKE)
 alg-lib: dbg-lib geom-lib mem-lib
 geom-lib: num-lib
 gfx-lib: dbg-lib num-lib
-console-lib: dbg-lib geom-lib
-libtcod-lib: console-lib dbg-lib
 mem-lib: dbg-lib
 sdl-lib: dbg-lib event-lib
 sfx-lib: dbg-lib num-lib
