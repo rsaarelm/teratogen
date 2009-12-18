@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import os
+import os.path
+import tempfile
+import shutil
+import sys
+from subprocess import *
+
+tmpdir = tempfile.mkdtemp()
+
+err = 0
+
+call("git checkout-index --prefix=%s/ -a" % tmpdir, shell=True)
+
+# Unit test
+test_status = call("make test", shell=True, cwd=tmpdir)
+print "Unit test status: ", test_status
+if test_status: err = test_status
+
+# Gofmt
+for root, dirs, files in os.walk(tmpdir):
+    for gofile in [x for x in files if x.endswith('.go')]:
+        filepath = os.path.join(root, gofile)
+        p1 = Popen(["gofmt", filepath], stdout=PIPE)
+        p2 = Popen(["diff", "-", filepath], stdin=p1.stdout, stdout=open(os.devnull, 'w'))
+        sts = os.waitpid(p2.pid, 0)[1]
+        if sts:
+            print gofile, "needs gofmt."
+            err = 1
+
+shutil.rmtree(tmpdir)
+
+sys.exit(err)
