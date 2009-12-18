@@ -43,3 +43,8 @@ func AssertNotNil(val interface{}, format string, a ...) {
 func AssertNil(val interface{}, format string, a ...) {
 	Assert(val == nil, format, a)
 }
+
+// Make a note of a problem that isn't fatal but is still nice to know.
+func Warn(format string, a ...) {
+	fmt.Println("Warning: "+fmt.Sprintf(format, a))
+}

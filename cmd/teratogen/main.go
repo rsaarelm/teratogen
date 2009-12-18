@@ -1,9 +1,9 @@
 package main
 
 import (
-//	"fmt"
-//	"hyades/fs"
+	"hyades/event"
 	"hyades/num"
+	"hyades/sdl"
 )
 
 var currentLevel int = 1
@@ -31,7 +31,6 @@ func main() {
 	// Game logic
 	go func() {
 		for {
-
 			// Colemak direction pad.
 
 			// Movement is hjklyubn (Colemak equivalent) move, with bn
@@ -42,6 +41,11 @@ func main() {
 			key := GetKey()
 			// When key pressed, clear the message buffer.
 			MarkMsgLinesSeen()
+
+			// Alt-Enter
+			if key.KeySym == event.K_RETURN && key.ModifierFlags & event.MOD_ALT != 0 {
+				sdl.ToggleFullScreen()
+			}
 
 			switch key.Printable {
 			case 'q':

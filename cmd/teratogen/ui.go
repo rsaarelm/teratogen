@@ -30,6 +30,24 @@ var ui *UI
 
 var uiMutex = new(sync.Mutex)
 
+var eventChan = make(chan event.Event, 16)
+
+func PipeEvents() {
+	for {
+		evt := sdl.PollEvent()
+		if evt != nil {
+			roomLeft := eventChan <- evt
+			if !roomLeft {
+				// Drop old events
+				_, _ = <-eventChan
+				break
+			}
+		} else {
+			break
+		}
+	}
+}
+
 func GetUISync()	{ uiMutex.Lock() }
 
 func ReleaseUISync()	{ uiMutex.Unlock() }
@@ -78,7 +96,7 @@ func MarkMsgLinesSeen()	{ ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 func GetKey() (result *event.KeyDown) {
 	ReleaseUISync()
 	for {
-		switch evt := sdl.WaitEvent().(type) {
+		switch evt := (<-eventChan).(type) {
 		case *event.KeyDown:
 			return evt
 		}
@@ -126,6 +144,8 @@ func MainUILoop() {
 			TileW * 41, TileH * 0)
 		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
 			TileW * 41, TileH * 1)
+
+		PipeEvents()
 
 		ReleaseUISync()
 

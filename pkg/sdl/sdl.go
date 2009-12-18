@@ -106,6 +106,15 @@ func Flip() {
 	C.SDL_Flip(C.SDL_GetVideoSurface())
 }
 
+func ToggleFullScreen() {
+	vid := GetVideoSurface()
+	ok := C.SDL_WM_ToggleFullScreen(vid.surf)
+	if ok != 1 {
+		dbg.Warn("Couldn't toggle fullscreen: "+GetError())
+		return
+	}
+}
+
 type Surface struct {
 	surf *C.SDL_Surface
 	// The area of the surface that'll be blitted. Assume entire surface
@@ -117,6 +126,9 @@ func GetVideoSurface() (result *Surface) {
 	// XXX: This is pretty immutable, could be cached?
 	result = new(Surface)
 	result.surf = C.SDL_GetVideoSurface()
+	if result.surf == nil {
+		dbg.Die("Couldn't get video surface. "+GetError())
+	}
 	return
 }
 
@@ -296,37 +308,13 @@ func (self *Surface) mustLock() bool {
 // Events
 //////////////////////////////////////////////////////////////////
 
-// Loops forever waiting for SDL events, converting them to Hyades events and
-// pushing them into the channel. Run as goroutine.
-func EventListener(ch chan<- event.Event) {
+// Returns an event if there's one available, otherwise nil.
+func PollEvent() event.Event {
 	var evt C.SDL_Event
-	for {
-		err := C.SDL_WaitEvent(&evt)
-		if err == 0 {
-			// TODO: Error handling
-			continue
-		}
-		localEvt := mapEvent(&evt)
-		if localEvt != nil {
-			ch <- localEvt
-		}
+	if C.SDL_PollEvent(&evt) != 0 {
+		return mapEvent(&evt)
 	}
-}
-
-func WaitEvent() event.Event {
-	var evt C.SDL_Event
-	for {
-		err := C.SDL_WaitEvent(&evt)
-		if err == 0 {
-			// TODO: Error handling
-			continue
-		}
-		localEvt := mapEvent(&evt)
-		if localEvt != nil {
-			return localEvt
-		}
-	}
-	panic("WaitEvent broke out of loop.")
+	return nil
 }
 
 func KeyRepeatOn() {

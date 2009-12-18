@@ -44,14 +44,16 @@ func main() {
 		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
 		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
 		sdl.Flip()
-		switch evt := sdl.WaitEvent().(type) {
+		switch evt := sdl.PollEvent().(type) {
 		case *event.KeyDown:
 			fmt.Printf("%T: %+v\n", evt, evt)
 			if evt.KeySym == event.K_Q { break Outer }
 		case *event.Quit:
 			break Outer
 		default:
-			fmt.Printf("%T: %+v\n", evt, evt)
+			if evt != nil {
+				fmt.Printf("%T: %+v\n", evt, evt)
+			}
 		}
 	}
 
