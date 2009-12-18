@@ -26,7 +26,7 @@ func TestStringRGB(t *testing.T) {
 }
 
 func makeCol(t *testing.T, desc string, expt [4]byte) {
-	col, err := MakeColor(desc)
+	col, err := ParseColor(desc)
 	if err != nil {
 		t.Errorf("Failed to make color '%s': %s", desc, err.String())
 		return
@@ -48,4 +48,8 @@ func TestMakeColor(t *testing.T) {
 	makeCol(t, "#1234", [4]byte{0x11, 0x22, 0x33, 0x44})
 	makeCol(t, "#010203", [4]byte{0x01, 0x02, 0x03, 0xff})
 	makeCol(t, "#01020304", [4]byte{0x01, 0x02, 0x03, 0x04})
+
+	makeCol(t, "AliceBlue", [4]byte{0xf0, 0xf8, 0xff, 0xff})
+	makeCol(t, "LightSlateGray", [4]byte{0x77, 0x88, 0x99, 0xff})
+	makeCol(t, "YellowGreen", [4]byte{0x9A, 0xcd, 0x32, 0xff})
 }
