@@ -64,10 +64,11 @@ func Jump(jumpT float, deltaHz float, wave freqWaveFunc) freqWaveFunc {
 }
 
 // Slides the frequency by velocity along time. Alters velocity by
-// acceleration by time.
-func Slide(velocity float, acceleration float, wave freqWaveFunc) freqWaveFunc {
+// acceleration by time. Frequency won't go below minHz.
+func Slide(velocity float, acceleration float, minHz float, wave freqWaveFunc) freqWaveFunc {
 	return func(t float, hz float) float {
 		hz += t * velocity + 0.5 * t * t * acceleration
+		if hz < minHz { hz = minHz }
 		return wave(t, hz)
 	}
 }
@@ -81,5 +82,30 @@ func MakeWave(hz float, fn freqWaveFunc) WaveFunc {
 func AmpFilter(amplitude float, wave WaveFunc) WaveFunc {
 	return func(t float) float {
 		return amplitude * wave(t)
+	}
+}
+
+// Attack-decay-sustain-release wave envelope
+func ADSRFilter(attackTime float, decayTime float, sustainLevel float,
+	sustainTime float, releaseTime float, wave WaveFunc) WaveFunc {
+	return func(t float) float {
+		var amp float
+		t2 := t
+		if attackTime > 0.0 && t2 < attackTime {
+			amp = t2 / attackTime
+		} else {
+			t2 -= attackTime
+			if decayTime > 0.0 && t2 < decayTime {
+				amp = 1.0 - t2 / decayTime * (1.0 - sustainLevel)
+			} else {
+				t2 -= decayTime
+				if t2 < sustainTime {
+					amp = sustainLevel
+				} else {
+					t2 -= sustainTime
+					if releaseTime > 0.0 && t2 < releaseTime {
+						amp = sustainLevel - t2 / releaseTime * sustainLevel
+					} else { amp = 0.0 } } } }
+		return amp * wave(t)
 	}
 }
