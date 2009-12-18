@@ -72,9 +72,10 @@ func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
 
 func sfxTest() {
 	wave := sfx.MakeMono8Wav(
-		sfx.AmpFilter(0.4, sfx.MakeWave(1000.0, sfx.Jump(0.2, 400.0, sfx.Square))),
+		sfx.ADSRFilter(0.2, 0.1, 0.8, 0.5, 0.3,
+		sfx.MakeWave(1000.0, sfx.Jump(0.4, 400.0, sfx.Sine))),
 		sdl.AudioRateHz(),
-		0.3)
+		1.0)
 	sfx, err := sdl.LoadWav(wave)
 
 	if err != nil {

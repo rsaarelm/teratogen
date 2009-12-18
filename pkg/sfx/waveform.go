@@ -83,3 +83,27 @@ func AmpFilter(amplitude float, wave WaveFunc) WaveFunc {
 		return amplitude * wave(t)
 	}
 }
+
+// Attack-decay-sustain-release wave envelope
+func ADSRFilter(attackTime float, decayTime float, sustainLevel float,
+	sustainTime float, releaseTime float, wave WaveFunc) WaveFunc {
+	return func(t float) float {
+		var amp float
+		if attackTime > 0.0 && t < attackTime {
+			amp = t / attackTime
+		} else {
+			t -= attackTime
+			if decayTime > 0.0 && t < decayTime {
+				amp = 1.0 - t / decayTime * (1.0 - sustainLevel)
+			} else {
+				t -= decayTime
+				if t < sustainTime {
+					amp = sustainLevel
+				} else {
+					t -= sustainTime
+					if releaseTime > 0.0 && t < releaseTime {
+						amp = sustainLevel - t / releaseTime * sustainLevel
+					} else { amp = 0.0 } } } }
+		return amp * wave(t)
+	}
+}
