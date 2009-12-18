@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-type WaveFunc func(float) float
+type WaveFunc func(t float) float
 
 // WAV format reference used:
 // http://technology.niagarac.on.ca/courses/ctec1631/WavFileFormat.html
