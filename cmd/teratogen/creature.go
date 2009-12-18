@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "hyades/common"
+	"hyades/geom"
 	"hyades/num"
 	"hyades/txt"
 )
@@ -11,7 +11,7 @@ type Creature struct {
 	Icon
 	guid		Guid
 	Name		string
-	pos		Pt2I
+	pos		geom.Pt2I
 	class		EntityClass
 	Strength	int
 	Scale		int
@@ -25,7 +25,7 @@ type Creature struct {
 
 func (self *Creature) IsObstacle() bool	{ return true }
 
-func (self *Creature) GetPos() Pt2I	{ return self.pos }
+func (self *Creature) GetPos() geom.Pt2I	{ return self.pos }
 
 func (self *Creature) GetGuid() Guid	{ return self.guid }
 
@@ -34,9 +34,9 @@ func (self *Creature) GetClass() EntityClass	{ return self.class }
 func (self *Creature) GetName() string	{ return self.Name }
 
 // XXX: Assuming Pt2I to be a value type here.
-func (self *Creature) MoveAbs(pos Pt2I)	{ self.pos = pos }
+func (self *Creature) MoveAbs(pos geom.Pt2I)	{ self.pos = pos }
 
-func (self *Creature) Move(vec Vec2I)	{ self.pos = self.pos.Plus(vec) }
+func (self *Creature) Move(vec geom.Vec2I)	{ self.pos = self.pos.Plus(vec) }
 
 func (self *Creature) MaxWounds() int	{ return num.IntMax(1, (self.Toughness+3)*2+1) }
 
@@ -124,7 +124,7 @@ func (self *Creature) MeleeWoundLevelAgainst(target *Creature, hitDegree int) (w
 	return
 }
 
-func (self *Creature) TryMove(vec Vec2I) (success bool) {
+func (self *Creature) TryMove(vec geom.Vec2I) (success bool) {
 	world := GetWorld()
 
 	if world.IsOpen(self.GetPos().Plus(vec)) {

@@ -1,7 +1,7 @@
 package sfx
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/num"
 	"math"
 )
@@ -15,7 +15,7 @@ func Sine(t float64, hz float64) float64 {
 
 // Make a pulse wave that spends duty = (0..1) in active phase.
 func MakePulse(duty float64) freqWaveFunc {
-	Assert(duty > 0.0 && duty < 1.0, "Invalid pulse wave duty %v.", duty)
+	dbg.Assert(duty > 0.0 && duty < 1.0, "Invalid pulse wave duty %v.", duty)
 	return func(t float64, hz float64) float64 {
 		t = float64(num.Fracf(float64(t * hz)))
 		if t < duty {

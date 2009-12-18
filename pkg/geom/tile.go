@@ -1,7 +1,6 @@
 package geom
 
 import (
-	. "hyades/common"
 	"hyades/num"
 	"log"
 	"math"

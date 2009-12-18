@@ -1,7 +1,7 @@
 package gfx
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"image"
 	"image/png"
 	"hyades/num"
@@ -21,7 +21,7 @@ type procImage struct {
 }
 
 func ProceduralImage(colorF func(float64, float64) image.Color, width, height int) image.Image {
-	Assert(width > 0 && height > 0, "Procedural Image must have nonzero dimensions.")
+	dbg.Assert(width > 0 && height > 0, "Procedural Image must have nonzero dimensions.")
 	return &procImage{colorF, width, height}
 }
 

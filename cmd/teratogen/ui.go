@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-//	. "hyades/common"
 	"hyades/event"
 	"hyades/sdl"
 	"hyades/txt"

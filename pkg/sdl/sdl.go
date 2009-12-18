@@ -9,7 +9,7 @@ import "C"
 import (
 	"fmt"
 	"io"
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/event"
 	"image"
 	"image/png"
@@ -45,7 +45,7 @@ func initAudio() {
 	case 2:
 		audioFormat = C.Uint16(AUDIO_U16SYS)
 	default:
-		Die("Bad audioBytesPerSample %v", audioBytesPerSample)
+		dbg.Die("Bad audioBytesPerSample %v", audioBytesPerSample)
 	}
 
 	audioBuffers := C.int(4096)

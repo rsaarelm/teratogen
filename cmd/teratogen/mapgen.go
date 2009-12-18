@@ -4,7 +4,7 @@ import (
 	"container/vector"
 	"exp/iterable"
 	"hyades/alg"
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/geom"
 	"hyades/num"
 	"math"
@@ -21,9 +21,9 @@ type BspRoom struct {
 
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	result = new(BspRoom)
-	Assert(w > 0 && h > 0, "Making a BspRoom with zero dimension.")
-	result.Pos = Pt2I{x, y}
-	result.Dim = Vec2I{w, h}
+	dbg.Assert(w > 0 && h > 0, "Making a BspRoom with zero dimension.")
+	result.Pos = geom.Pt2I{x, y}
+	result.Dim = geom.Vec2I{w, h}
 	return
 }
 
@@ -31,7 +31,7 @@ func (self *BspRoom) IsLeaf() bool	{ return self.ChildLeft == nil && self.ChildR
 
 func (self *BspRoom) RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
-		if self.Contains(Pt2I{x, y}) {
+		if self.Contains(geom.Pt2I{x, y}) {
 			return self
 		}
 		return nil
@@ -60,14 +60,14 @@ func AddPointToConnectingWall(graph alg.Graph, room1, room2 *BspRoom, x, y int) 
 
 	// Look for duplicates.
 	for pt := range ptVec.Iter() {
-		pt := pt.(Pt2I)
+		pt := pt.(geom.Pt2I)
 		// If one is found, return.
 		if pt.X == x && pt.Y == y {
 			return
 		}
 	}
 	// No duplicates, add the point to vector.
-	ptVec.Push(Pt2I{x, y})
+	ptVec.Push(geom.Pt2I{x, y})
 }
 
 func (self *BspRoom) FindConnectingWalls(graph alg.Graph) {
@@ -101,8 +101,8 @@ func (self *BspRoom) FindConnectingWalls(graph alg.Graph) {
 }
 
 func (self *BspRoom) VerticalSplit(pos int) {
-	Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.")
-	Assert(pos >= minRoomDim && pos < self.Dim.Y-minRoomDim,
+	dbg.Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.")
+	dbg.Assert(pos >= minRoomDim && pos < self.Dim.Y-minRoomDim,
 		"BspRoom split pos too close to wall.")
 	self.ChildLeft = NewBspRoom(
 		self.Pos.X, self.Pos.Y, self.Dim.X, pos)
@@ -112,8 +112,8 @@ func (self *BspRoom) VerticalSplit(pos int) {
 }
 
 func (self *BspRoom) HorizontalSplit(pos int) {
-	Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.")
-	Assert(pos >= minRoomDim && pos < self.Dim.X-minRoomDim,
+	dbg.Assert(self.IsLeaf(), "Splitting a non-leaf BspRoom.")
+	dbg.Assert(pos >= minRoomDim && pos < self.Dim.X-minRoomDim,
 		"BspRoom split pos too close to wall.")
 	self.ChildLeft = NewBspRoom(
 		self.Pos.X, self.Pos.Y, pos, self.Dim.Y)

@@ -1,7 +1,7 @@
 package sdl
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/event"
 	"time"
 )
@@ -29,7 +29,7 @@ func Events() <-chan event.Event { return eventChan }
 // Sets the FPS cap. The WaitFrame function will sleep if it's called faster
 // than the FPS interval.
 func SetMaxFps(fps float64) {
-	Assert(fps > 0, "Bad FPS")
+	dbg.Assert(fps > 0, "Bad FPS")
 	delayNs = int64(1e9 / fps)
 	ticker = time.NewTicker(delayNs)
 }

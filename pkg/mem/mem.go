@@ -1,7 +1,7 @@
 package mem
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"reflect"
 )
 
@@ -109,13 +109,13 @@ func (self *BlankObjectFactory) Register(example interface{}) {
 	val := reflect.Indirect(reflect.NewValue(example))
 	typ := val.Type()
 	name := typ.Name()
-	Assert(name != "", "Unnamed type")
+	dbg.Assert(name != "", "Unnamed type")
 	self.typenames[name] = typ
 }
 
 // Create a blank object of a registered type.
 func (self *BlankObjectFactory) Make(name string) interface{} {
 	typ, ok := self.typenames[name]
-	Assert(ok, "Unknown typename %v", name)
+	dbg.Assert(ok, "Unknown typename %v", name)
 	return reflect.MakeZero(typ).Interface()
 }

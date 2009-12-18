@@ -1,7 +1,7 @@
 package console
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/geom"
 )
 
@@ -16,7 +16,7 @@ type Console struct {
 }
 
 func NewConsole(impl ConsoleBase) (result *Console) {
-	AssertNotNil(impl, "console implementation")
+	dbg.AssertNotNil(impl, "console implementation")
 	result = new(Console)
 	result.impl = impl
 	result.fore = RGB{255, 255, 255}

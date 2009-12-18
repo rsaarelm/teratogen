@@ -1,7 +1,7 @@
 package alg
 
 import (
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/mem"
 )
 
@@ -67,7 +67,7 @@ func (self *SparseMatrixGraph) Neighbors(node interface{}) (nodes []interface{},
 		for nodeAddr, arc := range neighbors {
 			// Cast the stored address back to the pointer.
 			neighborNode, ok := self.nodeLookup.GetObj(nodeAddr)
-			Assert(ok, "Graph node not found in node lookup.")
+			dbg.Assert(ok, "Graph node not found in node lookup.")
 			nodes[i] = neighborNode
 			arcs[i] = arc
 			i++

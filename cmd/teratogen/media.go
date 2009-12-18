@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	. "hyades/common"
+	"hyades/dbg"
 	"hyades/fs"
 	"hyades/gfx"
 	"hyades/sdl"
@@ -26,7 +26,7 @@ func Load(filename string) (data []byte, err os.Error) {
 func initArchive() {
 	cache = make(map[string] interface{})
 	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
-	AssertNil(err, "%v", err)
+	dbg.AssertNil(err, "%v", err)
 	archive = arch
 }
 
@@ -34,9 +34,9 @@ func makeTiles(basename string,
 	filename string,
 	width, height, xoff, yoff, xgap, ygap int) (result []*sdl.Surface) {
 	data, err := Load(filename)
-	AssertNil(err, "%v", err)
+	dbg.AssertNil(err, "%v", err)
 	png, err := png.Decode(bytes.NewBuffer(data))
-	AssertNil(err, "%v", err)
+	dbg.AssertNil(err, "%v", err)
 	sheet := sdl.MakeImageSurface(gfx.DoubleScaleImage(png))
 	result = sheet.MakeTiles(width, height, xoff, yoff, xgap, ygap)
 	for i, x := range result {
