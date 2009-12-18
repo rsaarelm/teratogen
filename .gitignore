@@ -6,5 +6,6 @@ cmd/sdltest/sdltest
 cmd/teratogen/teratogen
 *.cgo?.go
 *.cgo?.?
+*_cgo_*
 _test
 *.out
