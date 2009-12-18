@@ -13,9 +13,9 @@ func RandomFromIterable(iter iterable.Iterable) interface{} {
 	return seq[rand.Intn(len(seq))]
 }
 
-func WithProb(prob float64) bool	{ return rand.Float64() < prob }
+func WithProb(prob float64) bool { return rand.Float64() < prob }
 
-func OneChanceIn(num int) bool	{ return rand.Intn(num) == 0 }
+func OneChanceIn(num int) bool { return rand.Intn(num) == 0 }
 
 // Seed the random number generator from the system clock. Return the
 // generator state so that the same value can be re-used if desired.
@@ -40,4 +40,4 @@ func SaveRngState() (result RandState) {
 	return
 }
 
-func RestoreRngState(state RandState)	{ rand.Seed(int64(state)) }
+func RestoreRngState(state RandState) { rand.Seed(int64(state)) }

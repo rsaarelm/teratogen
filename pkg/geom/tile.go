@@ -146,7 +146,7 @@ func Dir8ToVec(dir int) (result Vec2I) {
 		return Vec2I{-1, -1}
 	}
 	log.Crashf("Invalid dir %v", dir)
-	return;
+	return
 }
 
 func PosAdjacent(p1, p2 Pt2I) bool {

@@ -7,7 +7,9 @@ import (
 )
 
 func StringRGB(col image.Color) string {
-	if col == nil { return "<nil>" }
+	if col == nil {
+		return "<nil>"
+	}
 	r, g, b, _ := col.RGBA()
 	return fmt.Sprintf("#%02x%02x%02x",
 		byte(r>>24),
@@ -16,7 +18,9 @@ func StringRGB(col image.Color) string {
 }
 
 func StringRGBA(col image.Color) string {
-	if col == nil { return "<nil>" }
+	if col == nil {
+		return "<nil>"
+	}
 	r, g, b, a := col.RGBA()
 	return fmt.Sprintf("#%02x%02x%02x%02x",
 		byte(r>>24),

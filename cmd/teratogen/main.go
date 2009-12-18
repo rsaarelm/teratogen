@@ -9,15 +9,15 @@ import (
 var currentLevel int = 1
 
 func main() {
-//	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
-//	if err != nil {
-//		fmt.Printf("Self exe archive error: %v\n", err)
-//	} else {
-//		files, _ := arch.ListFiles()
-//		for _, name := range files {
-//			fmt.Println(name)
-//		}
-//	}
+	//	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
+	//	if err != nil {
+	//		fmt.Printf("Self exe archive error: %v\n", err)
+	//	} else {
+	//		files, _ := arch.ListFiles()
+	//		for _, name := range files {
+	//			fmt.Println(name)
+	//		}
+	//	}
 
 	num.RngSeedFromClock()
 
@@ -43,7 +43,7 @@ func main() {
 			MarkMsgLinesSeen()
 
 			// Alt-Enter
-			if key.KeySym == event.K_RETURN && key.ModifierFlags & event.MOD_ALT != 0 {
+			if key.KeySym == event.K_RETURN && key.ModifierFlags&event.MOD_ALT != 0 {
 				sdl.ToggleFullScreen()
 			}
 

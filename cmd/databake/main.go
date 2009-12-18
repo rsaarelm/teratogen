@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	packageName	= flag.String("package", "",
+	packageName = flag.String("package", "",
 		"package name in generated source; omit package declaration if empty")
-	variableName	= flag.String("variable", "Data",
+	variableName = flag.String("variable", "Data",
 		"data variable name in generated source")
 )
 

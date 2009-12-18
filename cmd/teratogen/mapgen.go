@@ -16,7 +16,7 @@ const minRoomDim = 2
 
 type BspRoom struct {
 	geom.RectI
-	ChildLeft, ChildRight	*BspRoom
+	ChildLeft, ChildRight *BspRoom
 }
 
 func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
@@ -27,7 +27,7 @@ func NewBspRoom(x, y int, w, h int) (result *BspRoom) {
 	return
 }
 
-func (self *BspRoom) IsLeaf() bool	{ return self.ChildLeft == nil && self.ChildRight == nil }
+func (self *BspRoom) IsLeaf() bool { return self.ChildLeft == nil && self.ChildRight == nil }
 
 func (self *BspRoom) RoomAtPoint(x, y int) *BspRoom {
 	if self.IsLeaf() {
@@ -252,7 +252,7 @@ func DoorLocations(wallGraph alg.Graph) (result *vector.Vector) {
 type CaveTile byte
 
 const (
-	CaveUnknown	= iota
+	CaveUnknown = iota
 	CaveFloor
 	CaveWall
 )

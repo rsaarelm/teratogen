@@ -45,6 +45,4 @@ func AssertNil(val interface{}, format string, a ...) {
 }
 
 // Make a note of a problem that isn't fatal but is still nice to know.
-func Warn(format string, a ...) {
-	fmt.Println("Warning: "+fmt.Sprintf(format, a))
-}
+func Warn(format string, a ...) { fmt.Println("Warning: " + fmt.Sprintf(format, a)) }

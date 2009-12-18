@@ -12,7 +12,7 @@ import (
 type CellType byte
 
 const (
-	LiteralNum	= iota
+	LiteralNum = iota
 	LiteralString
 	LiteralBool
 	Word
@@ -20,19 +20,19 @@ const (
 )
 
 type GostakCell struct {
-	typ	CellType
-	data	interface{}
+	typ  CellType
+	data interface{}
 }
 
-func newNumCell(num float64) *GostakCell	{ return &GostakCell{LiteralNum, num} }
+func newNumCell(num float64) *GostakCell { return &GostakCell{LiteralNum, num} }
 
-func newStringCell(str string) *GostakCell	{ return &GostakCell{LiteralString, str} }
+func newStringCell(str string) *GostakCell { return &GostakCell{LiteralString, str} }
 
-func newBoolCell(b bool) *GostakCell	{ return &GostakCell{LiteralBool, b} }
+func newBoolCell(b bool) *GostakCell { return &GostakCell{LiteralBool, b} }
 
 type GostakState struct {
-	dataStack	*vector.Vector
-	words		map[string]interface{}
+	dataStack *vector.Vector
+	words     map[string]interface{}
 }
 
 func NewGostakState() (result *GostakState) {
@@ -46,9 +46,9 @@ func (self *GostakState) Push(val interface{}) {
 	self.dataStack.Push(val)
 }
 
-func (self *GostakState) Pop() interface{}	{ return self.dataStack.Pop() }
+func (self *GostakState) Pop() interface{} { return self.dataStack.Pop() }
 
-func (self *GostakState) Len() int	{ return self.dataStack.Len() }
+func (self *GostakState) Len() int { return self.dataStack.Len() }
 
 func (self *GostakState) At(pos int) interface{} {
 	return self.dataStack.At(self.dataStack.Len() - 1 - pos)

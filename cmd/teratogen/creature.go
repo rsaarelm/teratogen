@@ -9,36 +9,36 @@ import (
 
 type Creature struct {
 	Icon
-	guid		Guid
-	Name		string
-	pos		geom.Pt2I
-	class		EntityClass
-	Strength	int
-	Scale		int
+	guid     Guid
+	Name     string
+	pos      geom.Pt2I
+	class    EntityClass
+	Strength int
+	Scale    int
 	// Added to Scale to determine strength modifier and damage
 	// resistance.
-	Density		int
-	Toughness	int
-	Wounds		int
-	MeleeSkill	int
+	Density    int
+	Toughness  int
+	Wounds     int
+	MeleeSkill int
 }
 
-func (self *Creature) IsObstacle() bool	{ return true }
+func (self *Creature) IsObstacle() bool { return true }
 
-func (self *Creature) GetPos() geom.Pt2I	{ return self.pos }
+func (self *Creature) GetPos() geom.Pt2I { return self.pos }
 
-func (self *Creature) GetGuid() Guid	{ return self.guid }
+func (self *Creature) GetGuid() Guid { return self.guid }
 
-func (self *Creature) GetClass() EntityClass	{ return self.class }
+func (self *Creature) GetClass() EntityClass { return self.class }
 
-func (self *Creature) GetName() string	{ return self.Name }
+func (self *Creature) GetName() string { return self.Name }
 
 // XXX: Assuming Pt2I to be a value type here.
-func (self *Creature) MoveAbs(pos geom.Pt2I)	{ self.pos = pos }
+func (self *Creature) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
-func (self *Creature) Move(vec geom.Vec2I)	{ self.pos = self.pos.Plus(vec) }
+func (self *Creature) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
-func (self *Creature) MaxWounds() int	{ return num.IntMax(1, (self.Toughness+3)*2+1) }
+func (self *Creature) MaxWounds() int { return num.IntMax(1, (self.Toughness+3)*2+1) }
 
 func (self *Creature) WoundDescription() string {
 	maxWounds := self.MaxWounds()
@@ -65,7 +65,7 @@ func (self *Creature) WoundDescription() string {
 	return "mangled"
 }
 
-func (self *Creature) IsKilledByWounds() bool	{ return self.Wounds > self.MaxWounds() }
+func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
 func (self *Creature) MeleeDamageFactor() int {
 	return self.Strength + self.Scale + self.Density

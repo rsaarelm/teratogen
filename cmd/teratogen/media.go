@@ -16,7 +16,7 @@ import (
 
 var archive *fs.Archive
 
-var cache map[string] interface{}
+var cache map[string]interface{}
 
 func Load(filename string) (data []byte, err os.Error) {
 	once.Do(initArchive)
@@ -24,15 +24,13 @@ func Load(filename string) (data []byte, err os.Error) {
 }
 
 func initArchive() {
-	cache = make(map[string] interface{})
+	cache = make(map[string]interface{})
 	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
 	dbg.AssertNil(err, "%v", err)
 	archive = arch
 }
 
-func makeTiles(basename string,
-	filename string,
-	width, height, xoff, yoff, xgap, ygap int) (result []*sdl.Surface) {
+func makeTiles(basename string, filename string, width, height, xoff, yoff, xgap, ygap int) (result []*sdl.Surface) {
 	data, err := Load(filename)
 	dbg.AssertNil(err, "%v", err)
 	png, err := png.Decode(bytes.NewBuffer(data))
@@ -54,6 +52,4 @@ func InitMedia() {
 	makeTiles("items", "media/items_1.png", TileW, TileH, 0, 0, 0, 0)
 }
 
-func Media(name string) interface{} {
-	return cache[name]
-}
+func Media(name string) interface{} { return cache[name] }

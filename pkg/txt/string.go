@@ -21,4 +21,4 @@ func PadString(str string, minLength int) (result string) {
 	return
 }
 
-func Capitalize(str string) (result string)	{ return strings.ToUpper(str[0:1]) + str[1:] }
+func Capitalize(str string) (result string) { return strings.ToUpper(str[0:1]) + str[1:] }

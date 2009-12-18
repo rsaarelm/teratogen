@@ -17,8 +17,8 @@ const mapHeight = 20
 const numTerrainCells = mapWidth * mapHeight
 
 type Icon struct {
-	IconId	string
-	Color	image.Color
+	IconId string
+	Color  image.Color
 }
 
 const xDrawOffset = 0
@@ -30,7 +30,7 @@ const TileH = 16
 var world *World
 
 func (self *Icon) Draw(x, y int) {
-	DrawSprite(self.IconId, TileW * x + xDrawOffset, TileH * y + yDrawOffset)
+	DrawSprite(self.IconId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
 }
 
 
@@ -40,7 +40,7 @@ type TerrainType byte
 const (
 	// Used for terrain generation algorithms, set map to indeterminate
 	// initially.
-	TerrainIndeterminate	= iota
+	TerrainIndeterminate = iota
 	TerrainWall
 	TerrainFloor
 	TerrainDoor
@@ -50,7 +50,7 @@ const (
 type EntityType int
 
 const (
-	EntityUnknown	= iota
+	EntityUnknown = iota
 	EntityPlayer
 	EntityZombie
 	EntityBigboss
@@ -62,10 +62,10 @@ const (
 type EntityClass int
 
 const (
-	EmptyEntityClass	= iota
+	EmptyEntityClass = iota
 
 	// Item classes
-	GlobeEntityClass;	// Globe items are used when stepped on.
+	GlobeEntityClass // Globe items are used when stepped on.
 
 	// Creature classes
 	CreatureEntityClassStartMarker
@@ -77,13 +77,13 @@ const (
 type LosState byte
 
 const (
-	LosUnknown	= iota
+	LosUnknown = iota
 	LosMapped
 	LosSeen
 )
 
 var tileset1 = []Icon{
-TerrainIndeterminate: Icon{"tiles:115", image.RGBAColor{0xff, 0, 0xff, 0xff}},
+	TerrainIndeterminate: Icon{"tiles:115", image.RGBAColor{0xff, 0, 0xff, 0xff}},
 	TerrainWall: Icon{"tiles:32", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
 	TerrainFloor: Icon{"tiles:5", image.RGBAColor{0xaa, 0xaa, 0xaa, 0xff}},
 	TerrainDoor: Icon{"tiles:210", image.RGBAColor{0x00, 0xcc, 0xcc, 0xff}},
@@ -102,7 +102,7 @@ func IsObstacleTerrain(terrain TerrainType) bool {
 // type of terrain.
 type TerrainTile struct {
 	Icon
-	Name	string
+	Name string
 }
 
 
@@ -128,12 +128,12 @@ type Entity interface {
 
 
 type World struct {
-	playerId	Guid
-	entities	map[Guid]Entity
-	terrain		[]TerrainType
-	los		[]LosState
-	guidCounter	uint64
-	currentLevel	int
+	playerId     Guid
+	entities     map[Guid]Entity
+	terrain      []TerrainType
+	los          []LosState
+	guidCounter  uint64
+	currentLevel int
 }
 
 func NewWorld() (result *World) {
@@ -161,7 +161,7 @@ func (self *World) Draw() {
 	self.drawEntities()
 }
 
-func (self *World) GetPlayer() *Creature	{ return self.entities[self.playerId].(*Creature) }
+func (self *World) GetPlayer() *Creature { return self.entities[self.playerId].(*Creature) }
 
 func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 	ent, ok = self.entities[guid]
@@ -269,7 +269,7 @@ func (self *World) InitLevel(depth int) {
 	//	self.SpawnRandomPos(EntityBigboss)
 }
 
-func (self *World) CurrentLevelNum() int	{ return self.currentLevel }
+func (self *World) CurrentLevelNum() int { return self.currentLevel }
 
 func (self *World) initTerrain() {
 	self.terrain = make([]TerrainType, numTerrainCells)

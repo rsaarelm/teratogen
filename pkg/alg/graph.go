@@ -15,8 +15,8 @@ type Graph interface {
 }
 
 type SparseMatrixGraph struct {
-	arcMatrix	map[uintptr](map[uintptr]interface{})
-	nodeLookup	*mem.ObjLookup
+	arcMatrix  map[uintptr](map[uintptr]interface{})
+	nodeLookup *mem.ObjLookup
 }
 
 func NewSparseMatrixGraph() (result *SparseMatrixGraph) {

@@ -6,15 +6,15 @@ import (
 )
 
 // Create an identifier for an object from its memory address.
-func ObjId(obj interface{}) uintptr	{ return reflect.NewValue(obj).(*reflect.PtrValue).Get() }
+func ObjId(obj interface{}) uintptr { return reflect.NewValue(obj).(*reflect.PtrValue).Get() }
 
 
 // An object for keeping track of objects based on their memory addresses.
 // Maintains reference counts of the object (updated by the user), and drops
 // objects from the table when the count goes to 0.
 type ObjLookup struct {
-	lut		map[uintptr]interface{}
-	objCount	map[uintptr]int
+	lut      map[uintptr]interface{}
+	objCount map[uintptr]int
 }
 
 func NewObjLookup() (result *ObjLookup) {
@@ -64,7 +64,7 @@ func (self *ObjLookup) DecrObj(obj interface{}) {
 		} else {
 			self.objCount[id] = count - 1
 		}
-	}	// if object not indexed, do nothing.
+	} // if object not indexed, do nothing.
 }
 
 func (self *ObjLookup) RemoveObj(obj interface{}) {
@@ -73,7 +73,7 @@ func (self *ObjLookup) RemoveObj(obj interface{}) {
 		// Remove the object if found.
 		self.lut[id] = obj, false
 		self.objCount[id] = 0, false
-	}	// if object not indexed, do nothing.
+	} // if object not indexed, do nothing.
 }
 
 func (self *ObjLookup) iterate(c chan<- interface{}) {
@@ -89,7 +89,7 @@ func (self *ObjLookup) Iter() <-chan interface{} {
 	return c
 }
 
-func (self *ObjLookup) Len() int	{ return len(self.lut) }
+func (self *ObjLookup) Len() int { return len(self.lut) }
 
 // A factory object that matches the typenames to the type values of
 // registered object types and is able to manufacture these objects given the

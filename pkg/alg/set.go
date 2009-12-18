@@ -28,7 +28,7 @@ func (self *MapSet) Add(item interface{}) {
 	self.items.IncrObj(item)
 }
 
-func (self *MapSet) Remove(item interface{})	{ self.items.RemoveObj(item) }
+func (self *MapSet) Remove(item interface{}) { self.items.RemoveObj(item) }
 
 func (self *MapSet) Contains(item interface{}) bool {
 	return self.items.ContainsObj(item)
@@ -47,4 +47,4 @@ func (self *MapSet) Iter() <-chan interface{} {
 	return c
 }
 
-func (self *MapSet) Len() int	{ return self.items.Len() }
+func (self *MapSet) Len() int { return self.items.Len() }

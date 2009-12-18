@@ -19,8 +19,10 @@ import (
 
 func Init(width, height int, title string, fullscreen bool) {
 	flags := int64(DOUBLEBUF)
-	if fullscreen { flags |= FULLSCREEN }
-	C.SDL_Init(INIT_VIDEO|INIT_AUDIO)
+	if fullscreen {
+		flags |= FULLSCREEN
+	}
+	C.SDL_Init(INIT_VIDEO | INIT_AUDIO)
 	C.SDL_SetVideoMode(C.int(width), C.int(height), 32, C.Uint32(flags))
 	C.SDL_EnableUNICODE(1)
 	initAudio()
@@ -57,13 +59,11 @@ func initAudio() {
 	}
 }
 
-func exitAudio() {
-	C.Mix_CloseAudio();
-}
+func exitAudio() { C.Mix_CloseAudio() }
 
 func Exit() {
 	exitAudio()
-	C.SDL_Quit();
+	C.SDL_Quit()
 }
 
 type IntRect interface {
@@ -91,26 +91,23 @@ func (self *C.SDL_Rect) String() string {
 
 func convertRect(rec IntRect) *C.SDL_Rect {
 	return &C.SDL_Rect{C.Sint16(rec.X()), C.Sint16(rec.Y()),
-		C.Uint16(rec.Width()), C.Uint16(rec.Height())}
+		C.Uint16(rec.Width()), C.Uint16(rec.Height()),
+	}
 }
 
-func GetError() string {
-	return C.GoString(C.SDL_GetError())
-}
+func GetError() string { return C.GoString(C.SDL_GetError()) }
 
 //////////////////////////////////////////////////////////////////
 // Video
 //////////////////////////////////////////////////////////////////
 
-func Flip() {
-	C.SDL_Flip(C.SDL_GetVideoSurface())
-}
+func Flip() { C.SDL_Flip(C.SDL_GetVideoSurface()) }
 
 func ToggleFullScreen() {
 	vid := GetVideoSurface()
 	ok := C.SDL_WM_ToggleFullScreen(vid.surf)
 	if ok != 1 {
-		dbg.Warn("Couldn't toggle fullscreen: "+GetError())
+		dbg.Warn("Couldn't toggle fullscreen: " + GetError())
 		return
 	}
 }
@@ -127,7 +124,7 @@ func GetVideoSurface() (result *Surface) {
 	result = new(Surface)
 	result.surf = C.SDL_GetVideoSurface()
 	if result.surf == nil {
-		dbg.Die("Couldn't get video surface. "+GetError())
+		dbg.Die("Couldn't get video surface. " + GetError())
 	}
 	return
 }
@@ -186,20 +183,21 @@ func (self *Surface) Set(x, y int, c image.Color) {
 	// should unroll the loop for fixed ops for 1, 2, 3 and 4 bytes per
 	// pixel.
 	for i := 0; i < int(self.surf.format.BytesPerPixel); i++ {
-		self.writePixelData(self.pixelOffset(x, y) + i, byte(color % 0x100))
+		self.writePixelData(self.pixelOffset(x, y)+i, byte(color%0x100))
 		color = color >> 8
 	}
 }
 
 func (self *Surface) FillRect(rec IntRect, c image.Color) {
 	C.SDL_FillRect(self.surf,
-	(*C.SDL_Rect)(unsafe.Pointer(convertRect(rec))),
-	C.Uint32(self.mapRGBA(c))) }
+		(*C.SDL_Rect)(unsafe.Pointer(convertRect(rec))),
+		C.Uint32(self.mapRGBA(c)))
+}
 
 func (self *Surface) mapRGBA(c image.Color) uint32 {
 	r32, g32, b32, a32 := c.RGBA()
 	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
-	r, g, b, a := byte(r32 >> 24), byte(g32 >> 24), byte(b32 >> 24), byte(a32 >> 24)
+	r, g, b, a := byte(r32>>24), byte(g32>>24), byte(b32>>24), byte(a32>>24)
 
 	return uint32(C.SDL_MapRGBA(self.surf.format,
 		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
@@ -259,19 +257,17 @@ func (self *Surface) Convert(other *Surface) {
 	self.surf = newSurface
 }
 
-func (self *Surface) MakeTiles(width, height int,
-	offsetX, offsetY int,
-	gapX, gapY int) (result []*Surface) {
+func (self *Surface) MakeTiles(width, height int, offsetX, offsetY int, gapX, gapY int) (result []*Surface) {
 	numX := (self.Width() - offsetX) / (width + gapX)
 	numY := (self.Height() - offsetY) / (width + gapY)
 
-	result = make([]*Surface, numX * numY)
+	result = make([]*Surface, numX*numY)
 	i := 0
 
 	for y := 0; y < numY; y++ {
 		for x := 0; x < numX; x++ {
-			rect := Rect(int16(offsetX + x * (width + gapX)),
-				int16(offsetY + y * (height + gapY)),
+			rect := Rect(int16(offsetX+x*(width+gapX)),
+				int16(offsetY+y*(height+gapY)),
 				uint16(width), uint16(height))
 			tile := &Surface{self.surf, rect}
 
@@ -293,7 +289,7 @@ func (self *Surface) readPixelData(offset int) uint32 {
 }
 
 func (self *Surface) pixelOffset(x, y int) int {
-	return y * int(self.surf.pitch) + x * int(self.surf.format.BytesPerPixel)
+	return y*int(self.surf.pitch) + x*int(self.surf.format.BytesPerPixel)
 }
 
 func (self *Surface) mustLock() bool {
@@ -301,7 +297,7 @@ func (self *Surface) mustLock() bool {
 	//#define SDL_MUSTLOCK(surface)   \
 	//  (surface->offset ||           \
 	//  ((surface->flags & (SDL_HWSURFACE|SDL_ASYNCBLIT|SDL_RLEACCEL)) != 0))
-	return self.surf.offset != 0 || self.surf.flags & (HWSURFACE|ASYNCBLIT|RLEACCEL) != 0
+	return self.surf.offset != 0 || self.surf.flags&(HWSURFACE|ASYNCBLIT|RLEACCEL) != 0
 }
 
 //////////////////////////////////////////////////////////////////
@@ -317,38 +313,41 @@ func PollEvent() event.Event {
 	return nil
 }
 
-func KeyRepeatOn() {
-	C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL)
-}
+func KeyRepeatOn() { C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL) }
 
-func KeyRepeatOff() {
-	C.SDL_EnableKeyRepeat(0, 0)
-}
+func KeyRepeatOff() { C.SDL_EnableKeyRepeat(0, 0) }
 
 func mapEvent(evt *C.SDL_Event) event.Event {
-	if evt == nil { return nil }
+	if evt == nil {
+		return nil
+	}
 
 	switch eventType(evt) {
 	case KEYDOWN:
 		keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(evt)))
 		return &event.KeyDown{int(keyEvt.keysym.sym),
-			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState())}
+			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState()),
+		}
 	case KEYUP:
 		keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(evt)))
 		return &event.KeyUp{int(keyEvt.keysym.sym),
-			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState())}
+			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState()),
+		}
 	case MOUSEMOTION:
 		motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(evt)))
 		return &event.MouseMove{int(motEvt.x), int(motEvt.y),
-			int(motEvt.xrel), int(motEvt.yrel), uint(motEvt.state), 0}
+			int(motEvt.xrel), int(motEvt.yrel), uint(motEvt.state), 0,
+		}
 	case MOUSEBUTTONDOWN:
 		btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(evt)))
 		return &event.MouseDown{int(btnEvt.x), int(btnEvt.y), 0, 0,
-			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button)}
+			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button),
+		}
 	case MOUSEBUTTONUP:
 		btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(evt)))
 		return &event.MouseUp{int(btnEvt.x), int(btnEvt.y), 0, 0,
-			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button)}
+			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button),
+		}
 	case VIDEORESIZE:
 		resEvt := ((*C.SDL_ResizeEvent)(unsafe.Pointer(evt)))
 		return &event.Resize{int(resEvt.w), int(resEvt.h)}
@@ -389,9 +388,7 @@ func LoadWav(data []byte) (result *Sound, err os.Error) {
 }
 
 // Loops -1 plays forever, loops 0 plays once, loops 1 twice and so on.
-func (self *Sound) Play(loops int) {
-	C.Mix_PlayChannelTimed(-1, self.chunk, C.int(loops), -1)
-}
+func (self *Sound) Play(loops int) { C.Mix_PlayChannelTimed(-1, self.chunk, C.int(loops), -1) }
 
 func (self *Sound) FreeSound() {
 	if self.chunk != nil {

@@ -14,7 +14,7 @@ import (
 type ResolutionLevel int
 
 const (
-	Abysmal	= -4 + iota
+	Abysmal = -4 + iota
 	Terrible
 	Poor
 	Mediocre
@@ -31,7 +31,7 @@ func Log2Modifier(x int) int {
 }
 
 // Smaller things are logarithmically harder to hit.
-func MinToHit(scaleDiff int) int	{ return Poor - Log2Modifier(scaleDiff) }
+func MinToHit(scaleDiff int) int { return Poor - Log2Modifier(scaleDiff) }
 
 func LevelDescription(level int) string {
 	switch {
@@ -192,7 +192,7 @@ func GameOver(reason string) {
 
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
-func IsMobile(entity Entity) bool	{ return entity.GetClass() > CreatureEntityClassStartMarker }
+func IsMobile(entity Entity) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
 
 func PlayerEnterStairs() {
 	world := GetWorld()
@@ -204,4 +204,4 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel()	{ world.InitLevel(world.CurrentLevelNum() + 1) }
+func NextLevel() { world.InitLevel(world.CurrentLevelNum() + 1) }

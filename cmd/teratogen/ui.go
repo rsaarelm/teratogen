@@ -19,11 +19,11 @@ const screenHeight = 480 * 2
 const numFont = 384
 
 type UI struct {
-	msg	*MsgOut
-	running	bool
+	msg     *MsgOut
+	running bool
 
 	// Show message lines beyond this to player.
-	oldestLineSeen	int
+	oldestLineSeen int
 }
 
 var ui *UI
@@ -48,9 +48,9 @@ func PipeEvents() {
 	}
 }
 
-func GetUISync()	{ uiMutex.Lock() }
+func GetUISync() { uiMutex.Lock() }
 
-func ReleaseUISync()	{ uiMutex.Unlock() }
+func ReleaseUISync() { uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
@@ -62,7 +62,7 @@ func newUI() (result *UI) {
 	return
 }
 
-func InitUI()	{ ui = newUI() }
+func InitUI() { ui = newUI() }
 
 func DrawSprite(name string, x, y int) {
 	sprite := Media(name).(*sdl.Surface)
@@ -71,7 +71,9 @@ func DrawSprite(name string, x, y int) {
 
 func DrawChar(char int, x, y int) {
 	// XXX: Ineffctive string composition...
-	if char > numFont { return }
+	if char > numFont {
+		return
+	}
 	Media(fmt.Sprintf("font:%d", char)).(*sdl.Surface).Blit(sdl.GetVideoSurface(), x, y)
 }
 
@@ -83,13 +85,13 @@ func DrawString(txt string, x, y int) {
 	}
 }
 
-func GetMsg() *MsgOut	{ return ui.msg }
+func GetMsg() *MsgOut { return ui.msg }
 
-func Msg(format string, a ...)	{ fmt.Fprintf(ui.msg, format, a) }
+func Msg(format string, a ...) { fmt.Fprintf(ui.msg, format, a) }
 
-func Quit()	{ ui.running = false }
+func Quit() { ui.running = false }
 
-func MarkMsgLinesSeen()	{ ui.oldestLineSeen = ui.msg.NumLines() - 1 }
+func MarkMsgLinesSeen() { ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 
 // Blocking getkey function to be called from within an UI-locking game
 // script. Unlocks the UI while waiting for key.
@@ -138,12 +140,12 @@ func MainUILoop() {
 		world.Draw()
 
 		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			DrawString(GetMsg().GetLine(i), TileW * 0, TileH * (21+(i-ui.oldestLineSeen)))
+			DrawString(GetMsg().GetLine(i), TileW*0, TileH*(21+(i-ui.oldestLineSeen)))
 		}
-		DrawString(fmt.Sprintf("Strength: %v",txt.Capitalize(LevelDescription(world.GetPlayer().Strength))),
-			TileW * 41, TileH * 0)
+		DrawString(fmt.Sprintf("Strength: %v", txt.Capitalize(LevelDescription(world.GetPlayer().Strength))),
+			TileW*41, TileH*0)
 		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
-			TileW * 41, TileH * 1)
+			TileW*41, TileH*1)
 
 		PipeEvents()
 

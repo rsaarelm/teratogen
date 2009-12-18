@@ -38,7 +38,7 @@ func NewTarArchive(tarData []byte) (result *Archive) {
 	return
 }
 
-func (self *Archive)ReadFile(name string) (data []byte, err os.Error) {
+func (self *Archive) ReadFile(name string) (data []byte, err os.Error) {
 	// XXX: Should we use some kind of caching here?
 	tr := tar.NewReader(bytes.NewBuffer(self.tarball))
 	for {
@@ -59,7 +59,7 @@ func (self *Archive)ReadFile(name string) (data []byte, err os.Error) {
 	return
 }
 
-func (self *Archive)ListFiles() (list []string, err os.Error) {
+func (self *Archive) ListFiles() (list []string, err os.Error) {
 	names := new(vector.StringVector)
 	tr := tar.NewReader(bytes.NewBuffer(self.tarball))
 	for {
@@ -104,9 +104,13 @@ func UnpackGz(fileData []byte) (data []byte, err os.Error) {
 
 	for _, n := range sites {
 		inf, e1 := gzip.NewInflater(bytes.NewBuffer(fileData[n:]))
-		if e1 != nil { continue } // It wasn't really gzip data.
+		if e1 != nil {
+			continue
+		} // It wasn't really gzip data.
 		unpacked, e2 := ioutil.ReadAll(inf)
-		if e2 != nil { continue } // Couldn't read it after all.
+		if e2 != nil {
+			continue
+		} // Couldn't read it after all.
 		return unpacked, nil
 	}
 
@@ -115,15 +119,19 @@ func UnpackGz(fileData []byte) (data []byte, err os.Error) {
 }
 
 // Return places where the magic byte sequence appears in data.
-func magicSites(data []byte, magic[]byte) []int {
+func magicSites(data []byte, magic []byte) []int {
 	points := new(vector.IntVector)
 
-        for i := 0; i < len(data) - len(magic); i++ {
+	for i := 0; i < len(data)-len(magic); i++ {
 		found := true
 		for j := 0; j < len(magic); j++ {
-			if data[i + j] != magic[j] { found = false }
+			if data[i+j] != magic[j] {
+				found = false
+			}
 		}
-		if found { points.Push(i) }
+		if found {
+			points.Push(i)
+		}
 	}
 
 	return points.Data()

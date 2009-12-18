@@ -12,8 +12,8 @@ func updateTicker(str string, lineLength int) string {
 }
 
 type MsgOut struct {
-	lines	*vector.StringVector
-	input	chan string
+	lines *vector.StringVector
+	input chan string
 }
 
 func NewMsgOut() (result *MsgOut) {
@@ -24,7 +24,7 @@ func NewMsgOut() (result *MsgOut) {
 	return
 }
 
-func (self *MsgOut) newLine()	{ self.lines.Push("") }
+func (self *MsgOut) newLine() { self.lines.Push("") }
 
 // Can use negative indices to get the last lines.
 func (self *MsgOut) GetLine(idx int) string {
@@ -37,7 +37,7 @@ func (self *MsgOut) GetLine(idx int) string {
 	return self.lines.At(idx)
 }
 
-func (self *MsgOut) NumLines() int	{ return self.lines.Len() }
+func (self *MsgOut) NumLines() int { return self.lines.Len() }
 
 func (self *MsgOut) WriteString(str string) {
 	newLineIdx := strings.Index(str, "\n")

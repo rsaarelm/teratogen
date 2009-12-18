@@ -19,13 +19,15 @@ func writeUint32(out io.Writer, val uint32) {
 		byte(val % 0x100),
 		byte((val >> 8) % 0x100),
 		byte((val >> 16) % 0x100),
-		byte((val >> 24) % 0x100)})
+		byte((val >> 24) % 0x100),
+	})
 }
 
 func writeUint16(out io.Writer, val uint16) {
 	out.Write([]byte{
 		byte(val % 0x100),
-		byte((val >> 8) % 0x100)})
+		byte((val >> 8) % 0x100),
+	})
 }
 
 func MakeMono8Wav(wave WaveFunc, rateHz uint32, durationSec float64) []byte {
@@ -48,8 +50,8 @@ func MakeMono8WavFrom(data []byte, rateHz uint32) []byte {
 	buf.WriteString("RIFF")
 	// Write number of bytes to come. Length of data + headerLen - the 8
 	// bytes already written.
-	writeUint32(buf, uint32(len(data) + extraLength))
-		buf.WriteString("WAVE")
+	writeUint32(buf, uint32(len(data)+extraLength))
+	buf.WriteString("WAVE")
 
 	// FORMAT Chunk
 	buf.WriteString("fmt ")
@@ -77,10 +79,10 @@ func MakeMono8WavFrom(data []byte, rateHz uint32) []byte {
 func MakeSound8Bit(wave WaveFunc, rateHz uint32, durationSec float64) []byte {
 	buf := new(bytes.Buffer)
 
-	timeStep := 1.0 / float64(rateHz);
+	timeStep := 1.0 / float64(rateHz)
 	for t := float64(0.0); t < durationSec; t += timeStep {
 		// FIXME: Compiler error workaround. Remove the int cast when 8g is fixed.
-//		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
+		//		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
 		sample := byte(int((wave(t) + 1.0) / 2.0 * 255.0))
 		buf.WriteByte(sample)
 	}

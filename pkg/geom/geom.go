@@ -5,21 +5,21 @@ import (
 )
 
 type Vec2I struct {
-	X	int
-	Y	int
+	X int
+	Y int
 }
 
 type Pt2I Vec2I
 
-func (lhs Vec2I) Equals(rhs Vec2I) bool	{ return lhs.X == rhs.X && lhs.Y == rhs.Y }
+func (lhs Vec2I) Equals(rhs Vec2I) bool { return lhs.X == rhs.X && lhs.Y == rhs.Y }
 
-func (lhs Pt2I) Equals(rhs Pt2I) bool	{ return lhs.X == rhs.X && lhs.Y == rhs.Y }
+func (lhs Pt2I) Equals(rhs Pt2I) bool { return lhs.X == rhs.X && lhs.Y == rhs.Y }
 
 func (lhs Vec2I) Plus(rhs Vec2I) (result Vec2I) {
 	return Vec2I{lhs.X + rhs.X, lhs.Y + rhs.Y}
 }
 
-func (lhs Pt2I) Plus(rhs Vec2I) (result Pt2I)	{ return Pt2I{lhs.X + rhs.X, lhs.Y + rhs.Y} }
+func (lhs Pt2I) Plus(rhs Vec2I) (result Pt2I) { return Pt2I{lhs.X + rhs.X, lhs.Y + rhs.Y} }
 
 func (lhs Vec2I) Minus(rhs Vec2I) (result Vec2I) {
 	return Vec2I{lhs.X - rhs.X, lhs.Y - rhs.Y}
@@ -49,9 +49,9 @@ func (self *Vec2I) Subtract(rhs Vec2I) {
 	self.Y -= rhs.Y
 }
 
-func (lhs Vec2I) Dot(rhs Vec2I) int	{ return lhs.X*rhs.X + lhs.Y*rhs.Y }
+func (lhs Vec2I) Dot(rhs Vec2I) int { return lhs.X*rhs.X + lhs.Y*rhs.Y }
 
-func (self Vec2I) Abs() float64	{ return math.Sqrt(float64(self.Dot(self))) }
+func (self Vec2I) Abs() float64 { return math.Sqrt(float64(self.Dot(self))) }
 
 // Iterate points where x0 <= x < x0 + width and y0 <= y < y0 + height.
 func PtIter(x0, y0, width, height int) <-chan Pt2I {
@@ -68,8 +68,8 @@ func PtIter(x0, y0, width, height int) <-chan Pt2I {
 }
 
 type RectI struct {
-	Pos	Pt2I
-	Dim	Vec2I
+	Pos Pt2I
+	Dim Vec2I
 }
 
 func (self RectI) Contains(pos Pt2I) bool {
@@ -78,7 +78,7 @@ func (self RectI) Contains(pos Pt2I) bool {
 		pos.Y < self.Pos.Y+self.Dim.Y
 }
 
-func (self RectI) RectArea() int	{ return self.Dim.X * self.Dim.Y }
+func (self RectI) RectArea() int { return self.Dim.X * self.Dim.Y }
 
 func (self RectI) Iter() <-chan Pt2I {
 	return PtIter(self.Pos.X, self.Pos.Y, self.Dim.X, self.Dim.Y)
