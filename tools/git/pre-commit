@@ -13,12 +13,9 @@ err = 0
 
 call("git checkout-index --prefix=%s/ -a" % tmpdir, shell=True)
 
-# Unit test
-test_status = call("make test", shell=True, cwd=tmpdir)
-print "Unit test status: ", test_status
-if test_status: err = test_status
-
-# Gofmt
+need_gofmt = []
+# Gofmt check.
+# Check these before unit testing so that un-gofmt generated files don't get mixed up here
 for root, dirs, files in os.walk(tmpdir):
     for gofile in [x for x in files if x.endswith('.go')]:
         filepath = os.path.join(root, gofile)
@@ -26,8 +23,17 @@ for root, dirs, files in os.walk(tmpdir):
         p2 = Popen(["diff", "-", filepath], stdin=p1.stdout, stdout=open(os.devnull, 'w'))
         sts = os.waitpid(p2.pid, 0)[1]
         if sts:
-            print gofile, "needs gofmt."
+            need_gofmt.append(gofile)
             err = 1
+
+# Unit test
+test_status = call("make test", shell=True, cwd=tmpdir)
+if test_status: err = test_status
+
+# Print these after unit testing so that they don't get lost in the unit test
+# stdout spam.
+for gofile in need_gofmt:
+    print gofile, "needs gofmt."
 
 shutil.rmtree(tmpdir)
 
