@@ -1,33 +1,36 @@
 package mem
 
 import (
+	"hyades/dbg"
 	"io"
 	"math"
-	"os"
 	"strings"
 )
 
 type Serializable interface {
-	Serialize(out io.Writer) os.Error
-	Deserialize(in io.Reader) os.Error
+	Serialize(out io.Writer)
+	Deserialize(in io.Reader)
 }
 
-func WriteInt32(out io.Writer, num int32) os.Error {
+// XXX: The functions don't propagate errors, since that would clutter up the
+// serialization routines too much. Should make a more sophisticated error
+// handling system here, since this stuff deals with data from outside the
+// program and therefore shouldn't use assertions for error handling.
+
+func WriteInt32(out io.Writer, num int32) {
 	buf := make([]byte, 4)
 	for i := 0; i < len(buf); i++ {
 		buf[i] = byte(num % 0x100)
 		num >>= 8
 	}
 	_, err := out.Write(buf)
-	return err
+	dbg.AssertNoError(err)
 }
 
-func ReadInt32(in io.Reader) (result int32, err os.Error) {
+func ReadInt32(in io.Reader) (result int32) {
 	buf := make([]byte, 4)
-	_, err = in.Read(buf)
-	if err != nil {
-		return
-	}
+	_, err := in.Read(buf)
+	dbg.AssertNoError(err)
 	for i := len(buf) - 1; i >= 0; i-- {
 		result <<= 8
 		result += int32(buf[i])
@@ -35,22 +38,20 @@ func ReadInt32(in io.Reader) (result int32, err os.Error) {
 	return
 }
 
-func WriteInt64(out io.Writer, num int64) os.Error {
+func WriteInt64(out io.Writer, num int64) {
 	buf := make([]byte, 8)
 	for i := 0; i < len(buf); i++ {
 		buf[i] = byte(num % 0x100)
 		num >>= 8
 	}
 	_, err := out.Write(buf)
-	return err
+	dbg.AssertNoError(err)
 }
 
-func ReadInt64(in io.Reader) (result int64, err os.Error) {
+func ReadInt64(in io.Reader) (result int64) {
 	buf := make([]byte, 8)
-	_, err = in.Read(buf)
-	if err != nil {
-		return
-	}
+	_, err := in.Read(buf)
+	dbg.AssertNoError(err)
 	for i := len(buf) - 1; i >= 0; i-- {
 		result <<= 8
 		result += int64(buf[i])
@@ -58,38 +59,19 @@ func ReadInt64(in io.Reader) (result int64, err os.Error) {
 	return
 }
 
-func WriteFloat64(out io.Writer, num float64) os.Error {
-	return WriteInt64(out, int64(math.Float64bits(num)))
+func WriteFloat64(out io.Writer, num float64) { WriteInt64(out, int64(math.Float64bits(num))) }
+
+func ReadFloat64(in io.Reader) float64 { return math.Float64frombits(uint64(ReadInt64(in))) }
+
+func WriteString(out io.Writer, str string) {
+	WriteInt32(out, int32(len(str)))
+	_, err := out.Write(strings.Bytes(str))
+	dbg.AssertNoError(err)
 }
 
-func ReadFloat64(in io.Reader) (result float64, err os.Error) {
-	b, err := ReadInt64(in)
-	if err != nil {
-		return
-	}
-	result = math.Float64frombits(uint64(b))
-	return
-}
-
-func WriteString(out io.Writer, str string) (err os.Error) {
-	err = WriteInt32(out, int32(len(str)))
-	if err != nil {
-		return
-	}
-	_, err = out.Write(strings.Bytes(str))
-	return
-}
-
-func ReadString(in io.Reader) (result string, err os.Error) {
-	length, err := ReadInt32(in)
-	if err != nil {
-		return
-	}
-	buf := make([]byte, length)
-	_, err = in.Read(buf)
-	if err != nil {
-		return
-	}
-	result = string(buf)
-	return
+func ReadString(in io.Reader) string {
+	buf := make([]byte, ReadInt32(in))
+	_, err := in.Read(buf)
+	dbg.AssertNoError(err)
+	return string(buf)
 }
