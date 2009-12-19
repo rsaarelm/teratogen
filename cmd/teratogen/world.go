@@ -183,7 +183,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("")
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{Icon: Icon{"guys:8", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
+		result = &Creature{Icon: Icon{"guys:34", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
 			guid: guid,
 			Name: "protagonist",
 			pos: geom.Pt2I{-1, -1},
@@ -266,7 +266,10 @@ func (self *World) InitLevel(depth int) {
 	for i := 0; i < 10; i++ {
 		self.SpawnRandomPos(EntityMinorHealthGlobe)
 	}
-	//	self.SpawnRandomPos(EntityBigboss)
+	if num.OneChanceIn(66) {
+		self.SpawnRandomPos(EntityBigboss)
+		Msg("You suddenly have a very bad feeling.\n")
+	}
 }
 
 func (self *World) CurrentLevelNum() int { return self.currentLevel }

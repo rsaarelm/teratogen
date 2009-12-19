@@ -13,7 +13,8 @@ import (
 const redrawIntervalNs = 30e6
 const capFps = true
 
-const screenWidth = 640 * 2
+// 16:10 aspect ratio
+const screenWidth = 768 * 2
 const screenHeight = 480 * 2
 
 const numFont = 384
