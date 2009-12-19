@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type Serializable interface {
+	Serialize(out io.Writer) os.Error
+	Deserialize(in io.Reader) os.Error
+}
+
 func WriteInt32(out io.Writer, num int32) os.Error {
 	buf := make([]byte, 4)
 	for i := 0; i < len(buf); i++ {
