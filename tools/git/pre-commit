@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 
+"""A Python git pre-commit script for Go programming language projects.
+
+Install the script by putting it in .git/hooks/ directory in your project
+directory. The script file must be called "pre-commit". Make sure the
+executable flag in the script file is set. The script assumes you are building
+your project with make.
+
+The script makes sure that all go source files in the project have valid
+formatting and that the project unit tests pass before allowing the commit to
+proceed. The script checks out the git index of the project into a temporary
+directory. It checks gofmt validity by running gofmt on each *.go file and
+checking that the output is identical to the original file with diff. It runs
+unit tests by doing "make test" at the project root and checking the return
+value. Gofmt check is done before "make test" so that generated .go files
+won't be involved in the format check.
+
+You can bypass the check with the "--no-verify" flag to git commit."""
+
 import os
 import os.path
 import tempfile
@@ -7,34 +25,45 @@ import shutil
 import sys
 from subprocess import *
 
-tmpdir = tempfile.mkdtemp()
+def git_checkout_index(path):
+    call("git checkout-index --prefix=%s/ -a" % path, shell=True)
 
-err = 0
+def file_needs_gofmt(filepath):
+    p1 = Popen(["gofmt", filepath], stdout=PIPE)
+    p2 = Popen(["diff", "-", filepath], stdin=p1.stdout, stdout=open(os.devnull, 'w'))
+    return os.waitpid(p2.pid, 0)[1]
 
-call("git checkout-index --prefix=%s/ -a" % tmpdir, shell=True)
+def files_needing_gofmt(path):
+    need_gofmt = []
+    for root, dirs, files in os.walk(path):
+        for gofile in [x for x in files if x.endswith('.go')]:
+            if file_needs_gofmt(os.path.join(root, gofile)):
+                need_gofmt.append(gofile)
+    return need_gofmt
 
-need_gofmt = []
-# Gofmt check.
-# Check these before unit testing so that un-gofmt generated files don't get mixed up here
-for root, dirs, files in os.walk(tmpdir):
-    for gofile in [x for x in files if x.endswith('.go')]:
-        filepath = os.path.join(root, gofile)
-        p1 = Popen(["gofmt", filepath], stdout=PIPE)
-        p2 = Popen(["diff", "-", filepath], stdin=p1.stdout, stdout=open(os.devnull, 'w'))
-        sts = os.waitpid(p2.pid, 0)[1]
-        if sts:
-            need_gofmt.append(gofile)
-            err = 1
+def unit_test(path):
+    return call("make test", shell=True, cwd=path)
 
-# Unit test
-test_status = call("make test", shell=True, cwd=tmpdir)
-if test_status: err = test_status
+def main():
+    tmpdir = tempfile.mkdtemp()
 
-# Print these after unit testing so that they don't get lost in the unit test
-# stdout spam.
-for gofile in need_gofmt:
-    print gofile, "needs gofmt."
+    git_checkout_index(tmpdir)
 
-shutil.rmtree(tmpdir)
+    # Gofmt check.
+    # Check these before unit testing so that un-gofmt generated files don't get mixed up here
+    need_gofmt = files_needing_gofmt(tmpdir)
 
-sys.exit(err)
+    unit_test_status = unit_test(tmpdir)
+
+    # List files needing gofmt after unit testing so that they don't get lost
+    # in the unit test stdout spam.
+    for gofile in need_gofmt:
+        print gofile, "needs gofmt."
+
+    shutil.rmtree(tmpdir)
+
+    if unit_test_status or len(need_gofmt) > 0:
+        sys.exit(1)
+
+if __name__=='__main__':
+    main()
