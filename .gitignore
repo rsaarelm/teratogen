@@ -9,3 +9,4 @@ cmd/teratogen/teratogen
 *_cgo_*
 _test
 *.out
+Make.deps

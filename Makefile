@@ -1,54 +1,38 @@
-LIBS=alg dbg event fs geom gfx gostak mem num sdl sfx txt
 CMDS=teratogen databake sdltest
 
 TARG=teratogen
 
 SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
-LIBSUFFIX=a
-
-LIB_BUILD:=$(LIBS:%=%-lib)
-CMD_BUILD:=$(CMDS:%=%-cmd)
-CMD_RUN:=$(CMDS:%=%-run)
-SUB_CLEAN:=$(SUB:%=%-clean)
-LIB_TEST:=$(LIBS:%=%-test)
-SUB_NUKE:=$(SUB:%=%-nuke)
-LIB_FILES:=$(LIBS:%=$(GOROOT)/pkg/$(GOOS)_$(GOARCH)/%.$(LIBSUFFIX))
-
 all: $(CMD_BUILD)
 
-$(CMD_BUILD): $(LIB_BUILD)
+run: $(TARG).run
 
-test: $(LIB_TEST)
+build.cmds: $(addsuffix .build, $(CMDS))
+clean.cmds: $(addsuffix .clean, $(CMDS))
 
-# XXX: Hardwired to clean, since library dependencies from cmds don't work
-# right otherwise.
-%-run: clean %-cmd
+build.libs:
+	$(MAKE) -C pkg all
+
+test:
+	$(MAKE) -C pkg test
+
+# XXX: Hardwired to clean the command before build to hack around problems
+# specifying library dependencies to the command.
+%.run: build.libs
+	$(MAKE) -C cmd/$* clean
+	$(MAKE) -C cmd/$* all
 	(cd ./cmd/$*; $*)
 
-%-lib:
-	$(MAKE) -C pkg/$* install
-
-%-cmd:
+%.build: build.libs
 	$(MAKE) -C cmd/$*
 
-%-clean:
-	$(MAKE) -C $* clean
+%.clean:
+	$(MAKE) -C cmd/$* clean
 
-%-test:
-	$(MAKE) -C pkg/$* test
+clean: $(CMD_CLEAN)
+	$(MAKE) -C pkg clean
 
-%-nuke:
-	$(MAKE) -C $* nuke
+nuke:
+	$(MAKE) -C pkg nuke
 
-clean: $(SUB_CLEAN)
-
-nuke: $(SUB_NUKE)
-
-# Library interdependencies
-alg-lib: dbg-lib geom-lib mem-lib
-geom-lib: num-lib
-gfx-lib: dbg-lib num-lib
-mem-lib: dbg-lib
-sdl-lib: dbg-lib event-lib
-sfx-lib: dbg-lib num-lib
