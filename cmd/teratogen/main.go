@@ -2,9 +2,7 @@ package main
 
 import (
 	"hyades/dbg"
-	"hyades/event"
 	"hyades/num"
-	"hyades/sdl"
 	"os"
 )
 
