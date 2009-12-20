@@ -1,4 +1,4 @@
-CMDS=teratogen databake sdltest
+CMDS=databake palsort sdltest teratogen
 
 TARG=teratogen
 
