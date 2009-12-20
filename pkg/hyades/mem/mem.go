@@ -1,6 +1,9 @@
 package mem
 
 import (
+	"bytes"
+	"gob"
+	"os"
 	"reflect"
 )
 
@@ -89,3 +92,11 @@ func (self *ObjLookup) Iter() <-chan interface{} {
 }
 
 func (self *ObjLookup) Len() int { return len(self.lut) }
+
+// Return nil if obj can be serialized with gob, an error describing the
+// problem if it can't.
+func IsGobSerializable(obj interface{}) os.Error {
+	buf := new(bytes.Buffer)
+	enc := gob.NewEncoder(buf)
+	return enc.Encode(obj)
+}

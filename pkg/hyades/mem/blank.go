@@ -32,6 +32,10 @@ func (self *BlankObjectFactory) Register(example interface{}) {
 	typ := reflect.Typeof(example)
 	name := TypeName(example)
 	dbg.Assert(name != "", "Unnamed type")
+	gobErr := IsGobSerializable(example)
+	if gobErr != nil {
+		dbg.Warn("Type %s isn't gob-serializable: %v", name, gobErr)
+	}
 	self.typenames[name] = typ
 }
 
