@@ -4,7 +4,7 @@ TARG=teratogen
 
 SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
-all: $(CMD_BUILD)
+all: build.cmds
 
 run: $(TARG).run
 
@@ -30,9 +30,9 @@ test:
 %.clean:
 	$(MAKE) -C cmd/$* clean
 
-clean: $(CMD_CLEAN)
+clean: clean.cmds
 	$(MAKE) -C pkg clean
 
-nuke:
+nuke: clean.cmds
 	$(MAKE) -C pkg nuke
 
