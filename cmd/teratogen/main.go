@@ -44,11 +44,6 @@ func main() {
 			// When key pressed, clear the message buffer.
 			MarkMsgLinesSeen()
 
-			// Alt-Enter
-			if key.KeySym == event.K_RETURN && key.ModifierFlags&event.MOD_ALT != 0 {
-				sdl.ToggleFullScreen()
-			}
-
 			switch key.Printable {
 			case 'q':
 				Quit()

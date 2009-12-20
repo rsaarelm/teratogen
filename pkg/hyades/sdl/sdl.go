@@ -103,6 +103,7 @@ func GetError() string { return C.GoString(C.SDL_GetError()) }
 
 func Flip() { C.SDL_Flip(C.SDL_GetVideoSurface()) }
 
+// XXX: This randomly crashes or freezes the application on my workstation.
 func ToggleFullScreen() {
 	vid := GetVideoSurface()
 	ok := C.SDL_WM_ToggleFullScreen(vid.surf)
