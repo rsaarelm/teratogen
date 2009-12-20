@@ -1,7 +1,9 @@
 package mem
 
 import (
+	"gob"
 	"hyades/dbg"
+	"io"
 	"reflect"
 )
 
@@ -38,6 +40,30 @@ func (self *BlankObjectFactory) Make(name string) interface{} {
 	typ, ok := self.typenames[name]
 	dbg.Assert(ok, "Unknown typename %v", name)
 	return blankCopyOfType(typ).Interface()
+}
+
+// Save an object's typename and the object itself to outstream. Use gob
+// serialization on the object.
+func (self *BlankObjectFactory) GobSave(out io.Writer, obj interface{}) {
+	name := TypeName(obj)
+	_, ok := self.typenames[name]
+	dbg.Assert(ok, "Trying to save object of unrecognized type %s.", name)
+	WriteString(out, name)
+	enc := gob.NewEncoder(out)
+	err := enc.Encode(obj)
+	dbg.AssertNoError(err)
+}
+
+// Load a gob-serialized object preceded by its typename from the instream.
+// The object's type must be registered in the factory so a blank copy can be
+// made based on the typename.
+func (self *BlankObjectFactory) GobLoad(in io.Reader) interface{} {
+	name := ReadString(in)
+	obj := self.Make(name)
+	dec := gob.NewDecoder(in)
+	err := dec.Decode(obj)
+	dbg.AssertNoError(err)
+	return obj
 }
 
 // Make a null object of the same type as the parameter.
