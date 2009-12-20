@@ -41,29 +41,29 @@ def files_needing_gofmt(path):
                 need_gofmt.append(gofile)
     return need_gofmt
 
-def unit_test(path):
-    return call("make test", shell=True, cwd=path)
+def gofmt_check(path):
+    need_gofmt = files_needing_gofmt(path)
+
+    if need_gofmt:
+        for gofile in need_gofmt:
+            print gofile, "needs gofmt."
+        sys.exit(1)
+
+def unittest_check(path):
+    status = call("make test", shell=True, cwd=path)
+    if status:
+        print "Unit test(s) failed."
+        sys.exit(1)
 
 def main():
     tmpdir = tempfile.mkdtemp()
+    try:
+        git_checkout_index(tmpdir)
 
-    git_checkout_index(tmpdir)
-
-    # Gofmt check.
-    # Check these before unit testing so that un-gofmt generated files don't get mixed up here
-    need_gofmt = files_needing_gofmt(tmpdir)
-
-    unit_test_status = unit_test(tmpdir)
-
-    # List files needing gofmt after unit testing so that they don't get lost
-    # in the unit test stdout spam.
-    for gofile in need_gofmt:
-        print gofile, "needs gofmt."
-
-    shutil.rmtree(tmpdir)
-
-    if unit_test_status or len(need_gofmt) > 0:
-        sys.exit(1)
+        gofmt_check(tmpdir)
+        unittest_check(tmpdir)
+    finally:
+        shutil.rmtree(tmpdir)
 
 if __name__=='__main__':
     main()
