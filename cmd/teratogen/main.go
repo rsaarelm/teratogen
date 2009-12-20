@@ -1,9 +1,11 @@
 package main
 
 import (
+	"hyades/dbg"
 	"hyades/event"
 	"hyades/num"
 	"hyades/sdl"
+	"os"
 )
 
 var currentLevel int = 1
@@ -77,6 +79,23 @@ func main() {
 				world.ClearLosMapped()
 				world.DoLos(world.GetPlayer().GetPos())
 				Msg("You feel like you've forgotten something.\n")
+				// Experimental save/load
+			case 'S':
+				saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
+				dbg.AssertNoError(err)
+				world.Serialize(saveFile)
+				saveFile.Close()
+				Msg("Game saved.\n")
+			case 'L':
+				loadFile, err := os.Open("/tmp/saved.gam", os.O_RDONLY, 0666)
+				if err != nil {
+					Msg("Error loading game: " + err.String())
+					break
+				}
+				world = new(World)
+				SetWorld(world)
+				world.Deserialize(loadFile)
+				Msg("Game loaded.\n")
 			}
 
 			RunAI()

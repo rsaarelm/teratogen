@@ -6,8 +6,10 @@ import (
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
+	"hyades/mem"
 	"hyades/num"
 	"image"
+	"io"
 	"rand"
 )
 
@@ -133,7 +135,7 @@ type World struct {
 	terrain      []TerrainType
 	los          []LosState
 	guidCounter  uint64
-	currentLevel int
+	currentLevel int32
 }
 
 func NewWorld() (result *World) {
@@ -142,7 +144,6 @@ func NewWorld() (result *World) {
 	result.entities = make(map[Guid]Entity)
 	result.initTerrain()
 
-	result.playerId = Guid("player")
 	player := result.Spawn(EntityPlayer)
 	result.playerId = player.GetGuid()
 
@@ -150,6 +151,8 @@ func NewWorld() (result *World) {
 
 	return
 }
+
+func SetWorld(newWorld *World) { world = newWorld }
 
 func GetWorld() *World {
 	dbg.AssertNotNil(world, "World not initialized.")
@@ -170,9 +173,6 @@ func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
 
 func (self *World) DestroyEntity(ent Entity) {
 	if ent == Entity(self.GetPlayer()) {
-		// TODO: End game when player dies.
-		//		Msg("A mysterious anthropic effect prevents your discorporation.\n")
-		//		ent.(*Creature).Wounds = 0
 		GameOver("was wiped out of existence.")
 		return
 	}
@@ -243,7 +243,7 @@ func (self *World) InitLevel(depth int) {
 	// TODO: When we start having inventories, keep the player's items too.
 	player := self.GetPlayer()
 
-	self.currentLevel = 1
+	self.currentLevel = int32(depth)
 
 	self.initTerrain()
 	self.entities = make(map[Guid]Entity)
@@ -272,7 +272,7 @@ func (self *World) InitLevel(depth int) {
 	}
 }
 
-func (self *World) CurrentLevelNum() int { return self.currentLevel }
+func (self *World) CurrentLevelNum() int { return int(self.currentLevel) }
 
 func (self *World) initTerrain() {
 	self.terrain = make([]TerrainType, numTerrainCells)
@@ -521,4 +521,36 @@ func (self *World) getGuid(name string) (result Guid) {
 	result = Guid(fmt.Sprintf("%v#%v", name, self.guidCounter))
 	self.guidCounter++
 	return
+}
+
+func (self *World) Serialize(out io.Writer) {
+	mem.WriteString(out, string(self.playerId))
+	mem.WriteInt64(out, int64(self.guidCounter))
+	mem.WriteInt32(out, self.currentLevel)
+
+	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.terrain[i])) })
+	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.los[i])) })
+	// TODO Entities
+}
+
+func (self *World) Deserialize(in io.Reader) {
+	self.playerId = Guid(mem.ReadString(in))
+	self.guidCounter = uint64(mem.ReadInt64(in))
+	self.currentLevel = mem.ReadInt32(in)
+
+	mem.ReadNTimes(in,
+		func(count int) { self.terrain = make([]TerrainType, count) },
+		func(i int, in io.Reader) { self.terrain[i] = TerrainType(mem.ReadByte(in)) })
+	mem.ReadNTimes(in,
+		func(count int) { self.los = make([]LosState, count) },
+		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
+
+	// TODO: Entities.
+	self.entities = make(map[Guid]Entity)
+
+	// XXX: Hacked player placement so that the entity-less level is at least playable.
+	player := self.Spawn(EntityPlayer)
+	self.playerId = player.GetGuid()
+	player.MoveAbs(self.GetSpawnPos())
+
 }

@@ -17,6 +17,18 @@ type Serializable interface {
 // handling system here, since this stuff deals with data from outside the
 // program and therefore shouldn't use assertions for error handling.
 
+func WriteByte(out io.Writer, b byte) {
+	_, err := out.Write([]byte{b})
+	dbg.AssertNoError(err)
+}
+
+func ReadByte(in io.Reader) byte {
+	var buf = make([]byte, 1)
+	_, err := in.Read(buf)
+	dbg.AssertNoError(err)
+	return buf[0]
+}
+
 func WriteInt32(out io.Writer, num int32) {
 	buf := make([]byte, 4)
 	for i := 0; i < len(buf); i++ {
@@ -74,4 +86,22 @@ func ReadString(in io.Reader) string {
 	_, err := in.Read(buf)
 	dbg.AssertNoError(err)
 	return string(buf)
+}
+
+func WriteNTimes(out io.Writer, count int, write func(int, io.Writer)) {
+	WriteInt32(out, int32(count))
+	for i := 0; i < count; i++ {
+		write(i, out)
+	}
+}
+
+// Read a count of items from instream. First call func init with the number
+// of items, then sequentially call the read function with the current index
+// item count times.
+func ReadNTimes(in io.Reader, init func(int), read func(int, io.Reader)) {
+	count := int(ReadInt32(in))
+	init(count)
+	for i := 0; i < count; i++ {
+		read(i, in)
+	}
 }
