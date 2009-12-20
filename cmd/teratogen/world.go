@@ -20,7 +20,7 @@ const numTerrainCells = mapWidth * mapHeight
 
 type Icon struct {
 	IconId string
-	Color  image.Color
+	Color  image.RGBAColor
 }
 
 const xDrawOffset = 0
@@ -30,6 +30,14 @@ const TileW = 16
 const TileH = 16
 
 var world *World
+
+var blankFactory = mem.NewBlankObjectFactory()
+
+func init() {
+	// Register all polymorphic types for deserialization here.
+	blankFactory.Register(new(Item))
+	blankFactory.Register(new(Creature))
+}
 
 func (self *Icon) Draw(x, y int) {
 	DrawSprite(self.IconId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
@@ -530,7 +538,14 @@ func (self *World) Serialize(out io.Writer) {
 
 	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.terrain[i])) })
 	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.los[i])) })
-	// TODO Entities
+
+	mem.WriteInt32(out, int32(len(self.entities)))
+	for guid, ent := range self.entities {
+		// Write the guid
+		mem.WriteString(out, string(guid))
+		// Then gob-save the entity using the factory.
+		blankFactory.GobSave(out, ent)
+	}
 }
 
 func (self *World) Deserialize(in io.Reader) {
@@ -547,10 +562,9 @@ func (self *World) Deserialize(in io.Reader) {
 
 	// TODO: Entities.
 	self.entities = make(map[Guid]Entity)
-
-	// XXX: Hacked player placement so that the entity-less level is at least playable.
-	player := self.Spawn(EntityPlayer)
-	self.playerId = player.GetGuid()
-	player.MoveAbs(self.GetSpawnPos())
-
+	numEntities := int(mem.ReadInt32(in))
+	for i := 0; i < numEntities; i++ {
+		guid := Guid(mem.ReadString(in))
+		self.entities[guid] = blankFactory.GobLoad(in).(Entity)
+	}
 }
