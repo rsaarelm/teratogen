@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"hyades/event"
+	"exp/draw"
+	"hyades/dbg"
 	"hyades/sdl"
 	"hyades/sfx"
 	"image"
+	"image/png"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -25,63 +28,42 @@ const Elf_png = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x5
 	"\x2e\xa8\xf4\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"
 
 func main() {
-	sdl.Init(640, 480, "Hello SDL", false)
+	context, err := sdl.NewWindow(640, 480, "Hello SDL", false)
+	dbg.AssertNoError(err)
 
-	sprite, err := sdl.MakePngSurface(strings.NewReader(Elf_png))
+	sprite, err := makePngSurface(context, strings.NewReader(Elf_png))
+	dbg.AssertNoError(err)
 
-	if err != nil {
-		panic("Image loading error" + err.String())
-	}
+	sfxTest(context)
 
-	sprite2 := doubleSprite(sprite)
-	sprite.FreeSurface()
-	sprite2.Convert(sdl.GetVideoSurface())
-
-	sfxTest()
-
-Outer: for {
-		sdl.GetVideoSurface().FillRect(sdl.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
-		sprite2.Blit(sdl.GetVideoSurface(), 128, 32)
-		sdl.Flip()
-		switch evt := sdl.PollEvent().(type) {
-		case *event.KeyDown:
-			fmt.Printf("%T: %+v\n", evt, evt)
-			if evt.KeySym == event.K_Q {
-				break Outer
-			}
-		case *event.Quit:
-			break Outer
-		default:
-			if evt != nil {
-				fmt.Printf("%T: %+v\n", evt, evt)
-			}
+	for {
+		context.FillRect(draw.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
+		context.Blit(sprite, 128, 32)
+		context.FlushImage()
+		if _, ok := <-context.QuitChan(); ok {
+			break
 		}
 	}
 
-	sdl.Exit()
+	context.Close()
 }
 
-func doubleSprite(src *sdl.Surface) (dst *sdl.Surface) {
-	dst = sdl.Make32BitSurface(0, src.Width()*2, src.Height()*2)
-	for x := 0; x < dst.Width(); x++ {
-		for y := 0; y < dst.Height(); y++ {
-			dst.Set(x, y, src.At(x/2, y/2))
-		}
-	}
+func makePngSurface(context sdl.Context, in io.Reader) (img image.Image, err os.Error) {
+	img, err = png.Decode(in)
+	dbg.AssertNoError(err)
+
+	img = context.Convert(img)
 	return
 }
 
-func sfxTest() {
+func sfxTest(context sdl.Context) {
 	wave := sfx.MakeMono8Wav(
 		sfx.ADSRFilter(0.2, 0.1, 0.8, 0.5, 0.3,
 			sfx.MakeWave(1000.0, sfx.Jump(0.4, 400.0, sfx.Sine))),
 		sdl.AudioRateHz(),
 		1.0)
-	sfx, err := sdl.LoadWav(wave)
+	sfx, err := context.MakeSound(wave)
+	dbg.AssertNoError(err)
 
-	if err != nil {
-		panic("Wav loading error: " + err.String())
-	}
-
-	sfx.Play(0)
+	sfx.Play()
 }
