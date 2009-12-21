@@ -36,3 +36,5 @@ clean: clean.cmds
 nuke: clean.cmds
 	$(MAKE) -C pkg nuke
 
+deps:
+	$(MAKE) -C pkg deps
