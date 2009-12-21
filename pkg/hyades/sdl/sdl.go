@@ -137,7 +137,6 @@ func (self *context) Convert(img image.Image) image.Image {
 
 func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 	rw := C.SDL_RWFromMem(unsafe.Pointer(&wavData[0]), C.int(len(wavData)))
-	defer C.SDL_FreeRW(rw)
 	chunk := C.Mix_LoadWAV_RW(rw, 1)
 	if chunk == nil {
 		err = os.NewError(GetError())
