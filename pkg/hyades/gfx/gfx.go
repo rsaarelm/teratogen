@@ -45,7 +45,13 @@ func IdFilter(src image.Image) (result func(float64, float64) image.Color) {
 }
 
 func DoubleScaleImage(src image.Image) image.Image {
-	return ProceduralImage(IdFilter(src), src.Width()*2, src.Height()*2)
+	result := DefaultConstructor(src.Width()*2, src.Height()*2)
+	for x := 0; x < result.Width(); x++ {
+		for y := 0; y < result.Height(); y++ {
+			result.Set(x, y, src.At(x/2, y/2))
+		}
+	}
+	return result
 }
 
 type Mask [][]byte

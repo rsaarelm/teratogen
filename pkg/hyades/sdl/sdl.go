@@ -142,8 +142,9 @@ func (self *context) Convert(img image.Image) image.Image {
 		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 	}
 
-	surf := C.SDL_CreateRGBSurface(self.screen.flags, C.int(width), C.int(height),
-		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask, amask)
+	surf := C.SDL_CreateRGBSurface(0, C.int(width), C.int(height),
+		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask,
+		amask)
 
 	draw.Draw(surf, draw.Rect(0, 0, width, height), img, nil, draw.Pt(0, 0))
 	return surf
