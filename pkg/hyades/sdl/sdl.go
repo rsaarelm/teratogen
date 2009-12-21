@@ -12,6 +12,7 @@ import (
 	"hyades/event"
 	"image"
 	"os"
+	"time"
 	"unsafe"
 )
 
@@ -49,6 +50,12 @@ type Context interface {
 
 type context struct {
 	screen *C.SDL_Surface
+	kbd    chan int
+	mouse  chan draw.Mouse
+	resize chan bool
+	quit   chan bool
+
+	active bool
 }
 
 // NewWindow initializes SDL and returns a new SDL context.
@@ -68,7 +75,18 @@ func NewWindow(width, height int, title string, fullscreen bool) (result Context
 	}
 	C.SDL_EnableUNICODE(1)
 	initAudio()
-	result = &context{screen}
+
+	ctx := new(context)
+	result = ctx
+	ctx.screen = screen
+	ctx.kbd = make(chan int, 1)
+	ctx.mouse = make(chan draw.Mouse, 1)
+	ctx.resize = make(chan bool, 1)
+	ctx.quit = make(chan bool, 1)
+	ctx.active = true
+
+	go ctx.eventLoop()
+
 	return
 }
 
@@ -77,29 +95,18 @@ func (self *context) Screen() draw.Image { return self.screen }
 func (self *context) FlushImage() { C.SDL_Flip(self.screen) }
 
 func (self *context) KeyboardChan() <-chan int {
-	// TODO
-	return nil
+	return self.kbd
 }
 
 func (self *context) MouseChan() <-chan draw.Mouse {
-	// TODO
-	return nil
+	return self.mouse
 }
 
-func (self *context) ResizeChan() <-chan bool {
-	// TODO
-	return nil
-}
+func (self *context) ResizeChan() <-chan bool { return self.resize }
 
-func (self *context) QuitChan() <-chan bool {
-	// TODO
-	return nil
-}
+func (self *context) QuitChan() <-chan bool { return self.quit }
 
-func (self *context) Close() {
-	exitAudio()
-	C.SDL_Quit()
-}
+func (self *context) Close() { self.active = false }
 
 func (self *context) Blit(img image.Image, x, y int) {
 	if surface, isSurface := img.(*C.SDL_Surface); isSurface {
@@ -140,6 +147,63 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 	return
 }
 
+func (self *context) eventLoop() {
+	var evt C.SDL_Event
+
+	for self.active {
+		if C.SDL_PollEvent(&evt) != 0 {
+			switch typ := eventType(&evt); typ {
+			case KEYDOWN, KEYUP:
+				keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(&evt)))
+
+				// Truncate unicode printable char to 16 bits,
+				// leave the rest of the bits for special
+				// modifiers.
+				chr := int(keyEvt.keysym.unicode) & 0xffff
+
+				// TODO: Nonprintable special keys: SDL keysym value + bit 17 set.
+
+				// TODO: Ctrl and Alt modifiers in high bits.
+
+				// As per the Context interface, key up is
+				// represented by a negative key value.
+				if typ == KEYUP {
+					chr = -chr
+				}
+
+				// Non-blocking send.
+				_ = self.kbd <- chr
+			case MOUSEMOTION:
+				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
+				// XXX: SDL mouse button state *should* map
+				// directly to draw.Mouse.Buttons. Still a bit
+				// sloppy to just plug it in without a
+				// converter...
+				mouse := draw.Mouse{int(motEvt.state),
+					draw.Pt(int(motEvt.x), int(motEvt.y)),
+					time.Nanoseconds(),
+				}
+				// Non-blocking send
+				_ = self.mouse <- mouse
+			case MOUSEBUTTONDOWN, MOUSEBUTTONUP:
+				btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(&evt)))
+				mouse := draw.Mouse{int(C.SDL_GetMouseState(nil, nil)),
+					draw.Pt(int(btnEvt.x), int(btnEvt.y)),
+					time.Nanoseconds(),
+				}
+				_ = self.mouse <- mouse
+			case VIDEORESIZE:
+				_ = self.resize <- true
+			case QUIT:
+				_ = self.quit <- true
+
+			}
+		}
+	}
+	exitAudio()
+	C.SDL_Quit()
+}
+
 //////////////////////////////////////////////////////////////////
 // Helper functions
 //////////////////////////////////////////////////////////////////
@@ -153,6 +217,15 @@ func convertRect(rect draw.Rectangle) C.SDL_Rect {
 		C.Uint16(rect.Max.X - rect.Min.X),
 		C.Uint16(rect.Max.Y - rect.Min.Y),
 	}
+}
+
+// Due to syntax issues, I can't access a C struct field called "type"
+// directly. This function implements an indirect way.
+func eventType(evt *C.SDL_Event) byte {
+	// XXX: Exploiting the fact that type is always the first field in the
+	// struct. This isn't totally guaranteed, but I think SDL exploits it
+	// too, so they're not that likely to change it.
+	return *((*byte)(unsafe.Pointer(evt)))
 }
 
 //////////////////////////////////////////////////////////////////
@@ -289,14 +362,6 @@ func mapEvent(evt *C.SDL_Event) event.Event {
 	return nil
 }
 
-// Due to syntax issues, I can't access a C struct field called "type"
-// directly. This function implements an indirect way.
-func eventType(evt *C.SDL_Event) byte {
-	// XXX: Exploiting the fact that type is always the first field in the
-	// struct. This isn't totally guaranteed, but I think SDL exploits it
-	// too, so they're not that likely to change it.
-	return *((*byte)(unsafe.Pointer(evt)))
-}
 
 //////////////////////////////////////////////////////////////////
 // Audio
