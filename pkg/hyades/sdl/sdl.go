@@ -135,9 +135,15 @@ func (self *context) FillRect(rect draw.Rectangle, c image.Color) {
 func (self *context) Convert(img image.Image) image.Image {
 	width, height := img.Width(), img.Height()
 
+	var rmask, gmask, bmask, amask C.Uint32
+	if BYTEORDER == BIG_ENDIAN {
+		rmask, gmask, bmask, amask = 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
+	} else {
+		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+	}
+
 	surf := C.SDL_CreateRGBSurface(self.screen.flags, C.int(width), C.int(height),
-		C.int(self.screen.format.BitsPerPixel), self.screen.format.Rmask,
-		self.screen.format.Gmask, self.screen.format.Bmask, self.screen.format.Amask)
+		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask, amask)
 
 	draw.Draw(surf, draw.Rect(0, 0, width, height), img, nil, draw.Pt(0, 0))
 	return surf
