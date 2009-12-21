@@ -2,6 +2,7 @@ package main
 
 import (
 	"exp/draw"
+	"fmt"
 	"hyades/dbg"
 	"hyades/sdl"
 	"hyades/sfx"
@@ -49,6 +50,10 @@ Outer: for {
 				break Outer
 			}
 		}
+		if mouse, ok := <-context.MouseChan(); ok {
+			fmt.Println(mouse)
+		}
+
 	}
 
 	context.Close()

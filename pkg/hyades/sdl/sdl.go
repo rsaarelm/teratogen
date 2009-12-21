@@ -149,6 +149,9 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 func (self *context) eventLoop() {
 	var evt C.SDL_Event
 
+	const wheelUpBit = 1 << 3
+	const wheelDownBit = 1 << 4
+
 	for self.active {
 		if C.SDL_PollEvent(&evt) != 0 {
 			switch typ := eventType(&evt); typ {
@@ -186,7 +189,14 @@ func (self *context) eventLoop() {
 				_ = self.mouse <- mouse
 			case MOUSEBUTTONDOWN, MOUSEBUTTONUP:
 				btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(&evt)))
-				mouse := draw.Mouse{int(C.SDL_GetMouseState(nil, nil)),
+				buttons := int(C.SDL_GetMouseState(nil, nil))
+				if typ == MOUSEBUTTONDOWN && btnEvt.button == BUTTON_WHEELUP {
+					buttons += wheelUpBit
+				}
+				if typ == MOUSEBUTTONDOWN && btnEvt.button == BUTTON_WHEELDOWN {
+					buttons += wheelDownBit
+				}
+				mouse := draw.Mouse{buttons,
 					draw.Pt(int(btnEvt.x), int(btnEvt.y)),
 					time.Nanoseconds(),
 				}
