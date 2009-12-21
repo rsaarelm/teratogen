@@ -4,6 +4,7 @@ import (
 	"exp/draw"
 	"fmt"
 	"hyades/dbg"
+	"hyades/gfx"
 	"hyades/sdl"
 	"hyades/sfx"
 	"image"
@@ -63,7 +64,7 @@ func makePngSurface(context sdl.Context, in io.Reader) (img image.Image, err os.
 	img, err = png.Decode(in)
 	dbg.AssertNoError(err)
 
-	img = context.Convert(img)
+	img = context.Convert(gfx.DoubleScaleImage(img))
 	return
 }
 
