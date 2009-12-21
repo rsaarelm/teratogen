@@ -1,6 +1,7 @@
 package gfx
 
 import (
+	"exp/draw"
 	"hyades/dbg"
 	"image"
 	"image/png"
@@ -9,10 +10,7 @@ import (
 	"strings"
 )
 
-type DrawImage interface {
-	image.Image
-	Set(x, y int, c image.Color)
-}
+type Constructor func(width, height int) draw.Image
 
 // An Image implementation from a function that maps ([0..1), [0..1)) to RGBA.
 type procImage struct {
@@ -58,7 +56,7 @@ func (self Mask) Height() int { return len(self[0]) }
 
 // Convert the pixels beneath mask with return values of filter given the
 // original pixel and the mask value.
-func BlitMask(img DrawImage, mask Mask, filter func(maskVal byte, srcVal image.Color) (dstVal image.Color), ox, oy int) {
+func BlitMask(img draw.Image, mask Mask, filter func(maskVal byte, srcVal image.Color) (dstVal image.Color), ox, oy int) {
 	for x, ex := 0, mask.Width(); x < ex; x++ {
 		for y, ey := 0, mask.Height(); y < ey; y++ {
 			xp, yp := x+ox, y+oy
@@ -79,7 +77,7 @@ func MakeMask(img image.Image, filter func(src image.Color) byte) (mask Mask) {
 	return
 }
 
-func BlitColorMask(img DrawImage, mask Mask, col image.Color, ox, oy int) {
+func BlitColorMask(img draw.Image, mask Mask, col image.Color, ox, oy int) {
 	BlitMask(img,
 		mask,
 		func(maskVal byte, srcVal image.Color) image.Color {
@@ -89,6 +87,25 @@ func BlitColorMask(img DrawImage, mask Mask, col image.Color, ox, oy int) {
 			return srcVal
 		},
 		ox, oy)
+}
+
+func Clip(src image.Image, cons Constructor, rect draw.Rectangle) (result draw.Image) {
+	result = cons(rect.Dx(), rect.Dy())
+	draw.Draw(result, draw.Rect(0, 0, result.Width(), result.Height()), src, nil, rect.Min)
+	return
+}
+
+func MakeTiles(src image.Image, cons Constructor, tileW, tileH int) (result []draw.Image) {
+	cols, rows := src.Width()/tileW, src.Height()/tileH
+	result = make([]draw.Image, cols*rows)
+	i := 0
+	for y := 0; y < rows; y++ {
+		for x := 0; x < cols; x++ {
+			result[i] = Clip(src, cons, draw.Rect(x*tileW, y*tileH, (x+1)*tileW, (y+1)*tileH))
+			i++
+		}
+	}
+	return
 }
 
 const errorImageData = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52" +
