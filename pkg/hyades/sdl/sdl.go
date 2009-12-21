@@ -65,12 +65,12 @@ func NewWindow(width, height int, title string, fullscreen bool) (result Context
 		flags |= FULLSCREEN
 	}
 	if C.SDL_Init(INIT_VIDEO|INIT_AUDIO) == C.int(-1) {
-		err = os.NewError(GetError())
+		err = os.NewError(getError())
 		return
 	}
 	screen := C.SDL_SetVideoMode(C.int(width), C.int(height), bitsPerPixel, C.Uint32(flags))
 	if screen == nil {
-		err = os.NewError(GetError())
+		err = os.NewError(getError())
 		return
 	}
 	C.SDL_EnableUNICODE(1)
@@ -139,7 +139,7 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 	rw := C.SDL_RWFromMem(unsafe.Pointer(&wavData[0]), C.int(len(wavData)))
 	chunk := C.Mix_LoadWAV_RW(rw, 1)
 	if chunk == nil {
-		err = os.NewError(GetError())
+		err = os.NewError(getError())
 		return
 	}
 	result = chunk
@@ -205,7 +205,6 @@ func (self *context) eventLoop() {
 				_ = self.resize <- true
 			case QUIT:
 				_ = self.quit <- true
-
 			}
 		}
 	}
@@ -217,7 +216,7 @@ func (self *context) eventLoop() {
 // Helper functions
 //////////////////////////////////////////////////////////////////
 
-func GetError() string { return C.GoString(C.SDL_GetError()) }
+func getError() string { return C.GoString(C.SDL_GetError()) }
 
 func convertRect(rect draw.Rectangle) C.SDL_Rect {
 	rect = rect.Canon()
@@ -247,7 +246,14 @@ func (self *C.SDL_Surface) FreeSurface() {
 	}
 }
 
+func (self *C.SDL_Surface) contains(x, y int) bool {
+	return x < self.Width() && y < self.Height() && x >= 0 && y >= 0
+}
+
 func (self *C.SDL_Surface) Set(x, y int, c image.Color) {
+	if !self.contains(x, y) {
+		return
+	}
 	color := self.mapRGBA(c)
 
 	// XXX: Calling another method here is pretty slow probably. Also
@@ -285,6 +291,10 @@ func (self *C.SDL_Surface) Width() int { return int(self.w) }
 func (self *C.SDL_Surface) Height() int { return int(self.h) }
 
 func (self *C.SDL_Surface) At(x, y int) image.Color {
+	if !self.contains(x, y) {
+		return image.RGBAColor{0, 0, 0, 0}
+	}
+
 	bitMask := uint32(0xffffffff) >> (32 - self.format.BitsPerPixel)
 	color := self.readPixelData(self.pixelOffset(x, y)) & uint32(bitMask)
 	var r, g, b, a byte
@@ -381,6 +391,9 @@ const audioRate = 4000
 const audioBytesPerSample = 1
 const audioChannels = 2
 
+// XXX: Get rid of public AudioRateHz, AudioBytesPerSample, the outside
+// shouldn't need to care about audio details.
+
 // Return the preferred sample rate for audio samples.
 func AudioRateHz() uint32 { return audioRate }
 
@@ -403,7 +416,7 @@ func initAudio() {
 	ok := C.Mix_OpenAudio(C.int(audioRate), audioFormat, C.int(audioChannels), audioBuffers)
 
 	if ok != 0 {
-		panic("Mixer error" + GetError())
+		panic("Mixer error" + getError())
 	}
 }
 
