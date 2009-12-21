@@ -101,11 +101,16 @@ func MakeTiles(src image.Image, cons Constructor, tileW, tileH int) (result []dr
 	i := 0
 	for y := 0; y < rows; y++ {
 		for x := 0; x < cols; x++ {
-			result[i] = Clip(src, cons, draw.Rect(x*tileW, y*tileH, (x+1)*tileW, (y+1)*tileH))
+			result[i] = Clip(src, cons,
+				draw.Rect(x*tileW, y*tileH, (x+1)*tileW, (y+1)*tileH))
 			i++
 		}
 	}
 	return
+}
+
+func DefaultConstructor(width, height int) draw.Image {
+	return image.NewRGBA(width, height)
 }
 
 const errorImageData = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52" +

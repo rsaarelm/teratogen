@@ -6,7 +6,7 @@ import (
 	"hyades/dbg"
 	"hyades/fs"
 	"hyades/gfx"
-	"hyades/sdl"
+	"image"
 	"image/png"
 	"once"
 	"os"
@@ -30,26 +30,28 @@ func initArchive() {
 	archive = arch
 }
 
-func makeTiles(basename string, filename string, width, height, xoff, yoff, xgap, ygap int) (result []*sdl.Surface) {
+func makeTiles(basename string, filename string, width, height int) (result []image.Image) {
 	data, err := Load(filename)
 	dbg.AssertNil(err, "%v", err)
 	png, err := png.Decode(bytes.NewBuffer(data))
 	dbg.AssertNil(err, "%v", err)
-	sheet := sdl.MakeImageSurface(gfx.DoubleScaleImage(png))
-	result = sheet.MakeTiles(width, height, xoff, yoff, xgap, ygap)
-	for i, x := range result {
+	sheet := gfx.DoubleScaleImage(png)
+	tiles := gfx.MakeTiles(sheet, gfx.DefaultConstructor, width, height)
+	result = make([]image.Image, len(tiles))
+	for i, tile := range tiles {
+		result[i] = ui.context.Convert(tile.(image.Image))
 		id := fmt.Sprintf("%v:%v", basename, i)
-		cache[id] = x
+		cache[id] = result[i]
 	}
 	return
 }
 
 func InitMedia() {
 	once.Do(initArchive)
-	makeTiles("font", "media/font.png", TileW, TileH, 0, 0, 0, 0)
-	makeTiles("guys", "media/chars_1.png", TileW, TileH, 0, 0, 0, 0)
-	makeTiles("tiles", "media/tiles_2.png", TileW, TileH, 0, 0, 0, 0)
-	makeTiles("items", "media/items_1.png", TileW, TileH, 0, 0, 0, 0)
+	makeTiles("font", "media/font.png", TileW, TileH)
+	makeTiles("guys", "media/chars_1.png", TileW, TileH)
+	makeTiles("tiles", "media/tiles_2.png", TileW, TileH)
+	makeTiles("items", "media/items_1.png", TileW, TileH)
 }
 
 func Media(name string) interface{} { return cache[name] }

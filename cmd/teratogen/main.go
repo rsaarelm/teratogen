@@ -42,7 +42,7 @@ func main() {
 			// When key pressed, clear the message buffer.
 			MarkMsgLinesSeen()
 
-			switch key.Printable {
+			switch key {
 			case 'q':
 				Quit()
 			case 'u':

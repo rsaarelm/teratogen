@@ -23,12 +23,6 @@ type Icon struct {
 	Color  image.RGBAColor
 }
 
-const xDrawOffset = 0
-const yDrawOffset = 0
-
-const TileW = 16
-const TileH = 16
-
 var world *World
 
 var blankFactory = mem.NewBlankObjectFactory()

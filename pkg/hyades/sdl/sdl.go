@@ -46,6 +46,14 @@ type Context interface {
 
 	// MakeSound converts wav file data into a SDL sound object.
 	MakeSound(wavData []byte) (result Sound, err os.Error)
+
+	// KeyRepeatOn makes keyboard events repeat when a key is being held
+	// down.
+	KeyRepeatOn()
+
+	// KeyRepeatOff makes a single keypress emit only a single keyboard
+	// event no matter how long the key is held down.
+	KeyRepeatOff()
 }
 
 type context struct {
@@ -145,6 +153,12 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 	result = chunk
 	return
 }
+
+func (self *context) KeyRepeatOn() {
+	C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL)
+}
+
+func (self *context) KeyRepeatOff() { C.SDL_EnableKeyRepeat(0, 0) }
 
 func (self *context) eventLoop() {
 	var evt C.SDL_Event
@@ -335,10 +349,6 @@ func PollEvent() event.Event {
 	}
 	return nil
 }
-
-func KeyRepeatOn() { C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL) }
-
-func KeyRepeatOff() { C.SDL_EnableKeyRepeat(0, 0) }
 
 func mapEvent(evt *C.SDL_Event) event.Event {
 	if evt == nil {

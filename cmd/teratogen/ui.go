@@ -1,8 +1,9 @@
 package main
 
 import (
+	"exp/draw"
 	"fmt"
-	"hyades/event"
+	"hyades/dbg"
 	"hyades/sdl"
 	"hyades/txt"
 	"image"
@@ -19,7 +20,14 @@ const screenHeight = 480 * 2
 
 const numFont = 384
 
+const xDrawOffset = 0
+const yDrawOffset = 0
+
+const TileW = 16
+const TileH = 16
+
 type UI struct {
+	context sdl.Context
 	msg     *MsgOut
 	running bool
 
@@ -31,32 +39,16 @@ var ui *UI
 
 var uiMutex = new(sync.Mutex)
 
-var eventChan = make(chan event.Event, 16)
-
-func PipeEvents() {
-	for {
-		evt := sdl.PollEvent()
-		if evt != nil {
-			roomLeft := eventChan <- evt
-			if !roomLeft {
-				// Drop old events
-				_, _ = <-eventChan
-				break
-			}
-		} else {
-			break
-		}
-	}
-}
-
 func GetUISync() { uiMutex.Lock() }
 
 func ReleaseUISync() { uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	sdl.Init(screenWidth, screenHeight, "Teratogen", false)
-	sdl.KeyRepeatOn()
+	context, err := sdl.NewWindow(screenWidth, screenHeight, "Teratogen", false)
+	dbg.AssertNoError(err)
+	result.context = context
+	context.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true
 
@@ -65,17 +57,14 @@ func newUI() (result *UI) {
 
 func InitUI() { ui = newUI() }
 
-func DrawSprite(name string, x, y int) {
-	sprite := Media(name).(*sdl.Surface)
-	sprite.Blit(sdl.GetVideoSurface(), x, y)
-}
+func DrawSprite(name string, x, y int) { ui.context.Blit(Media(name).(image.Image), x, y) }
 
 func DrawChar(char int, x, y int) {
 	// XXX: Ineffctive string composition...
 	if char > numFont {
 		return
 	}
-	Media(fmt.Sprintf("font:%d", char)).(*sdl.Surface).Blit(sdl.GetVideoSurface(), x, y)
+	DrawSprite(fmt.Sprintf("font:%d", char), x, y)
 }
 
 // TODO: Support color
@@ -96,12 +85,12 @@ func MarkMsgLinesSeen() { ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 
 // Blocking getkey function to be called from within an UI-locking game
 // script. Unlocks the UI while waiting for key.
-func GetKey() (result *event.KeyDown) {
+func GetKey() (result int) {
 	ReleaseUISync()
 	for {
-		switch evt := (<-eventChan).(type) {
-		case *event.KeyDown:
-			return evt
+		result = <-ui.context.KeyboardChan()
+		if result > 0 {
+			break
 		}
 	}
 	GetUISync()
@@ -111,7 +100,7 @@ func GetKey() (result *event.KeyDown) {
 // Print --more-- and wait until the user presses space until proceeding.
 func MsgMore() {
 	Msg("--more--")
-	for GetKey().Printable != ' ' {
+	for GetKey() != ' ' {
 	}
 }
 
@@ -128,8 +117,7 @@ func MainUILoop() {
 			<-updater
 		}
 
-		sdl.GetVideoSurface().FillRect(
-			sdl.Rect(0, 0, screenWidth, screenHeight),
+		ui.context.FillRect(draw.Rect(0, 0, screenWidth, screenHeight),
 			image.RGBAColor{0, 0, 0, 255})
 
 		// Synched block which accesses the game world. Don't run
@@ -148,11 +136,9 @@ func MainUILoop() {
 		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
 			TileW*41, TileH*1)
 
-		PipeEvents()
-
 		ReleaseUISync()
 
-		sdl.Flip()
+		ui.context.FlushImage()
 	}
-	sdl.Exit()
+	ui.context.Close()
 }
