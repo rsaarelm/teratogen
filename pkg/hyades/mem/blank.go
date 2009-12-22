@@ -81,7 +81,7 @@ func blankCopyOfType(typ reflect.Type) reflect.Value {
 		// If the value is a pointer, make a new pointer value that
 		// points to a new empty inner value.
 		result := reflect.MakeZero(ptr).(*reflect.PtrValue)
-		result.PointTo(reflect.MakeZero(ptr.Elem()))
+		result.PointTo(blankCopyOfType(ptr.Elem()))
 		return result
 	} else {
 		// Otherwise just copy the value straight up.
