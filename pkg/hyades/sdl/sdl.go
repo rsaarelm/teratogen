@@ -146,7 +146,9 @@ func (self *context) Convert(img image.Image) image.Image {
 		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask,
 		amask)
 
+	dbg.StartClock("Convert-Draw")
 	draw.Draw(surf, draw.Rect(0, 0, width, height), img, nil, draw.Pt(0, 0))
+	dbg.StopClock("Convert-Draw")
 	return surf
 }
 

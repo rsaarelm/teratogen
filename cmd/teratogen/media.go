@@ -52,6 +52,7 @@ func InitMedia() {
 	makeTiles("guys", "media/chars_1.png", TileW, TileH)
 	makeTiles("tiles", "media/tiles_2.png", TileW, TileH)
 	makeTiles("items", "media/items_1.png", TileW, TileH)
+	dbg.PrintClocks()
 }
 
 func Media(name string) interface{} { return cache[name] }
