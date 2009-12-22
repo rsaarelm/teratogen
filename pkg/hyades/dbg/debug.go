@@ -4,7 +4,60 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 )
+
+type Clock struct {
+	accumulated int64
+	timepoint   int64
+}
+
+func (self *Clock) Start() { self.timepoint = time.Nanoseconds() }
+
+func (self *Clock) Stop() {
+	self.accumulated += time.Nanoseconds() - self.timepoint
+	self.timepoint = 0
+}
+
+func (self *Clock) Running() bool { return self.timepoint != 0 }
+
+func (self *Clock) Nanoseconds() int64 { return self.accumulated }
+
+var clocks map[string]*Clock
+
+func init() { clocks = make(map[string]*Clock) }
+
+func StartClock(name string) {
+	clock, ok := clocks[name]
+	if !ok {
+		clock = new(Clock)
+		clocks[name] = clock
+	}
+	if clock.Running() {
+		Warn("StartClock: Clock '%s' already started.", name)
+	} else {
+		clock.Start()
+	}
+}
+
+func StopClock(name string) {
+	clock, ok := clocks[name]
+	if !ok {
+		Warn("StopClock: Clock %s never started.", name)
+		return
+	}
+	if !clock.Running() {
+		Warn("StopClock: Clock '%s' already stopped.", name)
+	} else {
+		clock.Stop()
+	}
+}
+
+func PrintClocks() {
+	for name, clock := range (clocks) {
+		fmt.Printf("%s: %f\n", name, float64(clock.Nanoseconds())/1e9)
+	}
+}
 
 func PrintBacktrace() {
 	fmt.Print("\nStack trace:\n")
