@@ -81,9 +81,7 @@ func MakeSound8Bit(wave WaveFunc, rateHz uint32, durationSec float64) []byte {
 
 	timeStep := 1.0 / float64(rateHz)
 	for t := float64(0.0); t < durationSec; t += timeStep {
-		// FIXME: Compiler error workaround. Remove the int cast when 8g is fixed.
-		//		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
-		sample := byte(int((wave(t) + 1.0) / 2.0 * 255.0))
+		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
 		buf.WriteByte(sample)
 	}
 	return buf.Bytes()
