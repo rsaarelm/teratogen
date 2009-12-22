@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"exp/draw"
 	"fmt"
 	"hyades/dbg"
 	"hyades/fs"
@@ -17,6 +18,8 @@ import (
 var archive *fs.Archive
 
 var cache map[string]interface{}
+
+var transparentColor = image.RGBAColor{0xff, 0x00, 0xff, 0xff}
 
 func Load(filename string) (data []byte, err os.Error) {
 	once.Do(initArchive)
@@ -40,6 +43,7 @@ func makeTiles(basename string, filename string, width, height int) (result []im
 	result = make([]image.Image, len(tiles))
 	for i, tile := range tiles {
 		result[i] = ui.context.Convert(tile.(image.Image))
+		gfx.FilterTransparent(result[i].(draw.Image), transparentColor)
 		id := fmt.Sprintf("%v:%v", basename, i)
 		cache[id] = result[i]
 	}
@@ -49,7 +53,7 @@ func makeTiles(basename string, filename string, width, height int) (result []im
 func InitMedia() {
 	once.Do(initArchive)
 	makeTiles("font", "media/font.png", TileW, TileH)
-	makeTiles("guys", "media/chars_1.png", TileW, TileH)
+	makeTiles("guys", "media/chars.png", TileW, TileH)
 	makeTiles("tiles", "media/tiles_2.png", TileW, TileH)
 	makeTiles("items", "media/items_1.png", TileW, TileH)
 }

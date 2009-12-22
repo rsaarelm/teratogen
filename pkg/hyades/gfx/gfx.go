@@ -95,6 +95,25 @@ func BlitColorMask(img draw.Image, mask Mask, col image.Color, ox, oy int) {
 		ox, oy)
 }
 
+func FilterImage(img draw.Image, filter func(image.Color) image.Color) {
+	for x := 0; x < img.Width(); x++ {
+		for y := 0; y < img.Height(); y++ {
+			img.Set(x, y, filter(img.At(x, y)))
+		}
+	}
+}
+
+func FilterTransparent(img draw.Image, transparencyColor image.Color) {
+	FilterImage(
+		img,
+		func(c image.Color) image.Color {
+			if ColorsEqual(c, transparencyColor) {
+				return image.RGBAColor{0, 0, 0, 0}
+			}
+			return c
+		})
+}
+
 func Clip(src image.Image, cons Constructor, rect draw.Rectangle) (result draw.Image) {
 	result = cons(rect.Dx(), rect.Dy())
 	draw.Draw(result, draw.Rect(0, 0, result.Width(), result.Height()), src, nil, rect.Min)
@@ -117,6 +136,12 @@ func MakeTiles(src image.Image, cons Constructor, tileW, tileH int) (result []dr
 
 func DefaultConstructor(width, height int) draw.Image {
 	return image.NewRGBA(width, height)
+}
+
+func ColorsEqual(a, b image.Color) bool {
+	r1, g1, b1, a1 := a.RGBA()
+	r2, g2, b2, a2 := b.RGBA()
+	return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
 }
 
 const errorImageData = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52" +
