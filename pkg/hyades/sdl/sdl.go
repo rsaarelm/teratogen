@@ -161,6 +161,8 @@ func MakePngSurface(input io.Reader) (result *Surface, err os.Error) {
 }
 
 func MakeImageSurface(img image.Image) (result *Surface) {
+	dbg.StartClock("MakeImageSurface")
+	defer dbg.StopClock("MakeImageSurface")
 	result = Make32BitSurface(0, img.Width(), img.Height())
 	for x, w := 0, img.Width(); x < w; x++ {
 		for y, h := 0, img.Height(); y < h; y++ {
