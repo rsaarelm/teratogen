@@ -19,7 +19,6 @@ NOTEST=\
 	hyades/event\
 	hyades/fs\
 	hyades/geom\
-	hyades/mem\
 	hyades/num\
 	hyades/sdl\
 	hyades/sfx\
