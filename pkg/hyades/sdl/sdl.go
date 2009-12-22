@@ -277,13 +277,9 @@ func (self *C.SDL_Surface) Set(x, y int, c image.Color) {
 	}
 	color := self.mapRGBA(c)
 
-	// XXX: Calling another method here is pretty slow probably. Also
-	// should unroll the loop for fixed ops for 1, 2, 3 and 4 bytes per
-	// pixel.
-	for i := 0; i < int(self.format.BytesPerPixel); i++ {
-		self.writePixelData(self.pixelOffset(x, y)+i, byte(color%0x100))
-		color = color >> 8
-	}
+	// XXX: Assuming 32-bit surface.
+	pixels := (uintptr)(unsafe.Pointer(self.pixels))
+	*(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(self.pitch)+x<<2))) = color
 }
 
 func (self *C.SDL_Surface) FillRect(rect draw.Rectangle, c image.Color) {
@@ -316,8 +312,10 @@ func (self *C.SDL_Surface) At(x, y int) image.Color {
 		return image.RGBAColor{0, 0, 0, 0}
 	}
 
-	bitMask := uint32(0xffffffff) >> (32 - self.format.BitsPerPixel)
-	color := self.readPixelData(self.pixelOffset(x, y)) & uint32(bitMask)
+	// XXX: Assuming 32-bit surface.
+	pixels := (uintptr)(unsafe.Pointer(self.pixels))
+	color := *(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(self.pitch)+x<<2)))
+
 	var r, g, b, a byte
 	C.SDL_GetRGBA(C.Uint32(color),
 		self.format,
@@ -328,20 +326,6 @@ func (self *C.SDL_Surface) At(x, y int) image.Color {
 // For compliance wth the image.Image interface
 func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
-}
-
-func (self *C.SDL_Surface) writePixelData(offset int, data byte) {
-	pixPtr := (uintptr)(unsafe.Pointer(self.pixels)) + uintptr(offset)
-	*(*byte)(unsafe.Pointer(pixPtr)) = data
-}
-
-func (self *C.SDL_Surface) readPixelData(offset int) uint32 {
-	pixPtr := (uintptr)(unsafe.Pointer(self.pixels)) + uintptr(offset)
-	return *(*uint32)(unsafe.Pointer(pixPtr))
-}
-
-func (self *C.SDL_Surface) pixelOffset(x, y int) int {
-	return y*int(self.pitch) + x*int(self.format.BytesPerPixel)
 }
 
 //////////////////////////////////////////////////////////////////
