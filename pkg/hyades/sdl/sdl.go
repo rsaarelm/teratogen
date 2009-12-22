@@ -176,7 +176,7 @@ func (self *context) eventLoop() {
 	const wheelDownBit = 1 << 4
 
 	for self.active {
-		if C.SDL_PollEvent(&evt) != 0 {
+		if C.SDL_WaitEvent(&evt) != 0 {
 			switch typ := eventType(&evt); typ {
 			case KEYDOWN, KEYUP:
 				keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(&evt)))
