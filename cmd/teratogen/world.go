@@ -188,6 +188,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Name: "protagonist",
 			pos: geom.Pt2I{-1, -1},
 			class: PlayerEntityClass,
+			isObstacle: true,
 		},
 			// XXX: Give player superstrength until we get some weapons in play.
 			Strength: Superb,
@@ -201,6 +202,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Name: "zombie",
 			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
+			isObstacle: true,
 		},
 			Strength: Fair,
 			Toughness: Poor,
@@ -213,6 +215,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Name: "elder spawn",
 			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
+			isObstacle: true,
 		},
 			Strength: Legendary,
 			Toughness: Legendary,
@@ -226,6 +229,7 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 			Name: "health globe",
 			pos: geom.Pt2I{-1, -1},
 			class: GlobeEntityClass,
+			isObstacle: false,
 		}}
 	default:
 		dbg.Die("Unknown entity type %v.", entityType)

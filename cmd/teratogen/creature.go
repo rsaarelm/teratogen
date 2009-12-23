@@ -19,8 +19,6 @@ type Creature struct {
 	MeleeSkill int
 }
 
-func (self *Creature) IsObstacle() bool { return true }
-
 func (self *Creature) MaxWounds() int { return num.IntMax(1, (self.Toughness+3)*2+1) }
 
 func (self *Creature) WoundDescription() string {
