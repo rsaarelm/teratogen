@@ -54,7 +54,7 @@ func InitMedia() {
 	once.Do(initArchive)
 	makeTiles("font", "media/font.png", TileW, TileH)
 	makeTiles("guys", "media/chars.png", TileW, TileH)
-	makeTiles("tiles", "media/tiles_2.png", TileW, TileH)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH)
 	makeTiles("items", "media/items_1.png", TileW, TileH)
 }
 

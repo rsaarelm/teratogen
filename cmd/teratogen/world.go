@@ -45,10 +45,13 @@ const (
 	// Used for terrain generation algorithms, set map to indeterminate
 	// initially.
 	TerrainIndeterminate = iota
+	TerrainWallFront
 	TerrainWall
 	TerrainFloor
 	TerrainDoor
 	TerrainStairDown
+	TerrainDirtFront
+	TerrainDirt
 )
 
 type EntityType int
@@ -87,16 +90,19 @@ const (
 )
 
 var tileset1 = []Icon{
-	TerrainIndeterminate: Icon{"tiles:115", image.RGBAColor{0xff, 0, 0xff, 0xff}},
-	TerrainWall: Icon{"tiles:32", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
-	TerrainFloor: Icon{"tiles:5", image.RGBAColor{0xaa, 0xaa, 0xaa, 0xff}},
-	TerrainDoor: Icon{"tiles:210", image.RGBAColor{0x00, 0xcc, 0xcc, 0xff}},
-	TerrainStairDown: Icon{"tiles:8", image.RGBAColor{0xff, 0xff, 0xff, 0xff}},
+	TerrainIndeterminate: Icon{"tiles:255", image.RGBAColor{0xff, 0, 0xff, 0xff}},
+	TerrainWall: Icon{"tiles:2", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
+	TerrainWallFront: Icon{"tiles:1", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
+	TerrainFloor: Icon{"tiles:0", image.RGBAColor{0xaa, 0xaa, 0xaa, 0xff}},
+	TerrainDoor: Icon{"tiles:3", image.RGBAColor{0x00, 0xcc, 0xcc, 0xff}},
+	TerrainStairDown: Icon{"tiles:4", image.RGBAColor{0xff, 0xff, 0xff, 0xff}},
+	TerrainDirt: Icon{"tiles:6", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
+	TerrainDirtFront: Icon{"tiles:5", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
 	switch terrain {
-	case TerrainWall:
+	case TerrainWall, TerrainDirt:
 		return true
 	}
 	return false
@@ -364,9 +370,9 @@ func (self *World) makeCaveMap() {
 		case CaveFloor:
 			self.SetTerrain(pt, TerrainFloor)
 		case CaveWall:
-			self.SetTerrain(pt, TerrainWall)
+			self.SetTerrain(pt, TerrainDirt)
 		case CaveUnknown:
-			self.SetTerrain(pt, TerrainWall)
+			self.SetTerrain(pt, TerrainDirt)
 		default:
 			dbg.Die("Bad data %v in generated cave map.", area[pt.X][pt.Y])
 		}
@@ -492,7 +498,15 @@ func (self *World) drawTerrain() {
 		if self.GetLos(pt) == LosUnknown {
 			continue
 		}
-		tileset1[self.GetTerrain(pt)].Draw(pt.X, pt.Y)
+		idx := self.GetTerrain(pt)
+		// XXX: Hack to get the front tile visuals
+		if idx == TerrainWall && self.GetTerrain(pt.Plus(geom.Vec2I{0, 1})) != TerrainWall {
+			idx = TerrainWallFront
+		}
+		if idx == TerrainDirt && self.GetTerrain(pt.Plus(geom.Vec2I{0, 1})) != TerrainDirt {
+			idx = TerrainDirtFront
+		}
+		tileset1[idx].Draw(pt.X, pt.Y)
 	}
 }
 
