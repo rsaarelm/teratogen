@@ -123,22 +123,6 @@ type Drawable interface {
 
 type Guid string
 
-// IMPORTANT: With the current savegame implementation, all structs that
-// implement Entity and go into the Entity store in World, MUST be
-// gob-serializable. That means no field values that are interfaces, maps,
-// channels or funcs.
-type Entity interface {
-	Drawable
-	// TODO: Entity-common stuff.
-	IsObstacle() bool
-	GetPos() geom.Pt2I
-	GetGuid() Guid
-	MoveAbs(pos geom.Pt2I)
-	Move(vec geom.Vec2I)
-	GetName() string
-	GetClass() EntityClass
-}
-
 
 type World struct {
 	playerId     Guid
@@ -177,9 +161,13 @@ func (self *World) Draw() {
 
 func (self *World) GetPlayer() *Creature { return self.entities[self.playerId].(*Creature) }
 
-func (self *World) GetEntity(guid Guid) (ent Entity, ok bool) {
-	ent, ok = self.entities[guid]
-	return
+func (self *World) GetEntity(guid Guid) Entity {
+	if guid == *new(Guid) {
+		return nil
+	}
+	ent, ok := self.entities[guid]
+	dbg.Assert(ok, "GetEntity: Entity '%v' not found", guid)
+	return ent
 }
 
 func (self *World) DestroyEntity(ent Entity) {
@@ -194,44 +182,51 @@ func (self *World) Spawn(entityType EntityType) (result Entity) {
 	guid := self.getGuid("")
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{Icon: Icon{"guys:0", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
+		result = &Creature{EntityBase: EntityBase{
+			Icon: Icon{"guys:0", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
 			guid: guid,
 			Name: "protagonist",
 			pos: geom.Pt2I{-1, -1},
 			class: PlayerEntityClass,
+		},
 			// XXX: Give player superstrength until we get some weapons in play.
 			Strength: Superb,
 			Toughness: Good,
 			MeleeSkill: Good,
 		}
 	case EntityZombie:
-		result = &Creature{Icon: Icon{"guys:1", image.RGBAColor{0x80, 0xa0, 0x80, 0xff}},
+		result = &Creature{EntityBase: EntityBase{
+			Icon: Icon{"guys:1", image.RGBAColor{0x80, 0xa0, 0x80, 0xff}},
 			guid: guid,
 			Name: "zombie",
 			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
+		},
 			Strength: Fair,
 			Toughness: Poor,
 			MeleeSkill: Fair,
 		}
 	case EntityBigboss:
-		result = &Creature{Icon: Icon{"guys:5", image.RGBAColor{0xa0, 0x00, 0xa0, 0xff}},
+		result = &Creature{EntityBase: EntityBase{
+			Icon: Icon{"guys:5", image.RGBAColor{0xa0, 0x00, 0xa0, 0xff}},
 			guid: guid,
 			Name: "elder spawn",
 			pos: geom.Pt2I{-1, -1},
 			class: EnemyEntityClass,
+		},
 			Strength: Legendary,
 			Toughness: Legendary,
 			MeleeSkill: Superb,
 			Scale: 15,
 		}
 	case EntityMinorHealthGlobe:
-		result = &Item{Icon: Icon{"items:57", image.RGBAColor{0xff, 0x44, 0x44, 0xff}},
+		result = &Item{EntityBase: EntityBase{
+			Icon: Icon{"items:57", image.RGBAColor{0xff, 0x44, 0x44, 0xff}},
 			guid: guid,
 			Name: "health globe",
 			pos: geom.Pt2I{-1, -1},
 			class: GlobeEntityClass,
-		}
+		}}
 	default:
 		dbg.Die("Unknown entity type %v.", entityType)
 	}

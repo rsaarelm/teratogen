@@ -8,11 +8,7 @@ import (
 )
 
 type Creature struct {
-	Icon
-	guid     Guid
-	Name     string
-	pos      geom.Pt2I
-	class    EntityClass
+	EntityBase
 	Strength int
 	Scale    int
 	// Added to Scale to determine strength modifier and damage
@@ -24,19 +20,6 @@ type Creature struct {
 }
 
 func (self *Creature) IsObstacle() bool { return true }
-
-func (self *Creature) GetPos() geom.Pt2I { return self.pos }
-
-func (self *Creature) GetGuid() Guid { return self.guid }
-
-func (self *Creature) GetClass() EntityClass { return self.class }
-
-func (self *Creature) GetName() string { return self.Name }
-
-// XXX: Assuming Pt2I to be a value type here.
-func (self *Creature) MoveAbs(pos geom.Pt2I) { self.pos = pos }
-
-func (self *Creature) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
 func (self *Creature) MaxWounds() int { return num.IntMax(1, (self.Toughness+3)*2+1) }
 
