@@ -499,11 +499,12 @@ func (self *World) drawTerrain() {
 			continue
 		}
 		idx := self.GetTerrain(pt)
+		front := self.GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
 		// XXX: Hack to get the front tile visuals
-		if idx == TerrainWall && self.GetTerrain(pt.Plus(geom.Vec2I{0, 1})) != TerrainWall {
+		if idx == TerrainWall && front != TerrainWall && front != TerrainDoor {
 			idx = TerrainWallFront
 		}
-		if idx == TerrainDirt && self.GetTerrain(pt.Plus(geom.Vec2I{0, 1})) != TerrainDirt {
+		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
 			idx = TerrainDirtFront
 		}
 		tileset1[idx].Draw(pt.X, pt.Y)
