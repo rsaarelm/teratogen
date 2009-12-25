@@ -543,8 +543,7 @@ func (self *World) Deserialize(in io.Reader) {
 
 	// TODO: Entities.
 	self.entities = make(map[Guid]*Entity)
-	numEntities := int(mem.ReadInt32(in))
-	for i := 0; i < numEntities; i++ {
+	for i, numEntities := 0, int(mem.ReadInt32(in)); i < numEntities; i++ {
 		guid := Guid(mem.ReadString(in))
 
 		ent := new(Entity)

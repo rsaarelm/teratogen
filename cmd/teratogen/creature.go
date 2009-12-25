@@ -7,13 +7,11 @@ import (
 	"hyades/txt"
 )
 
-func (self *Entity) MaxWounds() int {
-	return num.IntMax(1, (self.Get(PropToughness).(int)+3)*2+1)
-}
+func (self *Entity) MaxWounds() int { return num.IntMax(1, (self.GetI(PropToughness)+3)*2+1) }
 
 func (self *Entity) WoundDescription() string {
 	maxWounds := self.MaxWounds()
-	wounds := self.Get(PropWounds).(int)
+	wounds := self.GetI(PropWounds)
 	switch {
 	case maxWounds-wounds < 2:
 		return "near death"
@@ -36,23 +34,21 @@ func (self *Entity) WoundDescription() string {
 	return "mangled"
 }
 
-func (self *Entity) IsKilledByWounds() bool {
-	return self.Get(PropWounds).(int) > self.MaxWounds()
-}
+func (self *Entity) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.MaxWounds() }
 
 func (self *Entity) MeleeDamageFactor() int {
-	return self.Get(PropStrength).(int) + self.Get(PropScale).(int) + self.Get(PropDensity).(int)
+	return self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
 	// TODO: Weapon effect.
 }
 
 func (self *Entity) ArmorFactor() int {
-	return self.Get(PropScale).(int) + self.Get(PropDensity).(int) + self.Get(PropToughness).(int)
+	return self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
 	// TODO: Effects from worn armor.
 }
 
 func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	world := GetWorld()
-	self.Set(PropWounds, self.Get(PropWounds).(int)+(woundLevel+1)/2)
+	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
 	if self.IsKilledByWounds() {
 		if self == world.GetPlayer() {

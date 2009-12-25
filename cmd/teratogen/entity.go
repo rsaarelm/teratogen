@@ -115,7 +115,20 @@ func (self *Entity) RemoveSelf() {
 
 func (self *Entity) Set(name string, value interface{}) *Entity {
 	self.hideProp[name] = false, false
-	// TODO: Check that only valid value types pass.
+	// Normalize
+	switch a := value.(type) {
+	case string:
+	// Ok as it is
+	case float64:
+	// Ok.
+	case int:
+		value = float64(a)
+	case float:
+		value = float64(a)
+		// TODO: Other basic numeric types
+	default:
+		dbg.Die("Unsupported value type %#v", value)
+	}
 	self.prop[name] = value
 	return self
 }
@@ -136,6 +149,24 @@ func (self *Entity) Get(name string) interface{} {
 	return nil
 }
 
+func (self *Entity) GetF(name string) float64 {
+	prop := self.Get(name)
+	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
+	return prop.(float64)
+}
+
+func (self *Entity) GetI(name string) int {
+	prop := self.Get(name)
+	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
+	return int(prop.(float64))
+}
+
+func (self *Entity) GetS(name string) string {
+	prop := self.Get(name)
+	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
+	return prop.(string)
+}
+
 func (self *Entity) Has(name string) bool { return self.Get(name) != nil }
 
 func (self *Entity) Hide(name string) *Entity {
@@ -154,6 +185,37 @@ func (self *Entity) PropParent() *Entity {
 	return nil
 }
 
+const (
+	numProp    byte = 1
+	stringProp byte = 2
+)
+
+func saveProp(out io.Writer, prop interface{}) {
+	switch a := prop.(type) {
+	case float64:
+		mem.WriteByte(out, numProp)
+		mem.WriteFloat64(out, a)
+	case string:
+		mem.WriteByte(out, stringProp)
+		mem.WriteString(out, a)
+	default:
+		dbg.Die("Bad prop type %#v", prop)
+	}
+}
+
+func loadProp(in io.Reader) interface{} {
+	switch typ := mem.ReadByte(in); typ {
+	case numProp:
+		return mem.ReadFloat64(in)
+	case stringProp:
+		return mem.ReadString(in)
+	default:
+		dbg.Die("Bad prop type id %v", typ)
+	}
+	// Shouldn't get here.
+	return nil
+}
+
 func (self *Entity) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
 	mem.WriteString(out, string(self.guid))
@@ -166,7 +228,16 @@ func (self *Entity) Serialize(out io.Writer) {
 	mem.WriteInt32(out, int32(self.class))
 	mem.WriteByte(out, alg.IfElse(self.isObstacle, byte(1), byte(0)).(byte))
 
-	// TODO Serialize prop, hideProp.
+	mem.WriteInt32(out, int32(len(self.prop)))
+	for name, val := range self.prop {
+		mem.WriteString(out, name)
+		saveProp(out, val)
+	}
+
+	mem.WriteInt32(out, int32(len(self.hideProp)))
+	for name, _ := range self.hideProp {
+		mem.WriteString(out, name)
+	}
 }
 
 func (self *Entity) Deserialize(in io.Reader) {
@@ -184,5 +255,11 @@ func (self *Entity) Deserialize(in io.Reader) {
 	self.prop = make(map[string]interface{})
 	self.hideProp = make(map[string]bool)
 
-	// TODO Deserialize prop, hideProp
+	for i, numProps := 0, int(mem.ReadInt32(in)); i < numProps; i++ {
+		name, val := mem.ReadString(in), loadProp(in)
+		self.prop[name] = val
+	}
+	for i, numHide := 0, int(mem.ReadInt32(in)); i < numHide; i++ {
+		self.hideProp[mem.ReadString(in)] = true
+	}
 }

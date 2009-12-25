@@ -98,8 +98,8 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 
 func Attack(attacker *Entity, defender *Entity) {
 	doesHit, hitDegree := IsMeleeHit(
-		attacker.Get(PropMeleeSkill).(int), defender.Get(PropMeleeSkill).(int),
-		defender.Get(PropScale).(int)-attacker.Get(PropScale).(int))
+		attacker.GetI(PropMeleeSkill), defender.GetI(PropMeleeSkill),
+		defender.GetI(PropScale)-attacker.GetI(PropScale))
 
 	if doesHit {
 		Msg("%v hits. ", txt.Capitalize(attacker.GetName()))
@@ -143,9 +143,9 @@ func MovePlayerDir(dir int) {
 		}
 		if e.GetClass() == GlobeEntityClass {
 			// TODO: Different globe effects.
-			if player.Get(PropWounds).(int) > 0 {
+			if player.GetI(PropWounds) > 0 {
 				Msg("The globe bursts. You feel better.\n")
-				player.Set(PropWounds, player.Get(PropWounds).(int)-1)
+				player.Set(PropWounds, player.GetI(PropWounds)-1)
 				// Deferring this until the iteration is over.
 				defer world.DestroyEntity(e)
 			}
