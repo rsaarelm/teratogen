@@ -8,7 +8,6 @@ import (
 	"hyades/geom"
 	"hyades/mem"
 	"hyades/num"
-	"image"
 	"io"
 	"rand"
 )
@@ -18,23 +17,10 @@ const mapHeight = 20
 
 const numTerrainCells = mapWidth * mapHeight
 
-type Icon struct {
-	IconId string
-	Color  image.RGBAColor
-}
-
 var world *World
 
-var blankFactory = mem.NewBlankObjectFactory()
-
-func init() {
-	// Register all polymorphic types for deserialization here.
-	// TODO: Obsolete, remove this.
-	blankFactory.Register(new(Entity))
-}
-
-func (self *Icon) Draw(x, y int) {
-	DrawSprite(self.IconId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
+func Draw(spriteId string, x, y int) {
+	DrawSprite(spriteId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
 }
 
 
@@ -89,15 +75,15 @@ const (
 	LosSeen
 )
 
-var tileset1 = []Icon{
-	TerrainIndeterminate: Icon{"tiles:255", image.RGBAColor{0xff, 0, 0xff, 0xff}},
-	TerrainWall: Icon{"tiles:2", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
-	TerrainWallFront: Icon{"tiles:1", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
-	TerrainFloor: Icon{"tiles:0", image.RGBAColor{0xaa, 0xaa, 0xaa, 0xff}},
-	TerrainDoor: Icon{"tiles:3", image.RGBAColor{0x00, 0xcc, 0xcc, 0xff}},
-	TerrainStairDown: Icon{"tiles:4", image.RGBAColor{0xff, 0xff, 0xff, 0xff}},
-	TerrainDirt: Icon{"tiles:6", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
-	TerrainDirtFront: Icon{"tiles:5", image.RGBAColor{0x55, 0x55, 0x55, 0xff}},
+var tileset1 = []string{
+	TerrainIndeterminate: "tiles:255",
+	TerrainWall: "tiles:2",
+	TerrainWallFront: "tiles:1",
+	TerrainFloor: "tiles:0",
+	TerrainDoor: "tiles:3",
+	TerrainStairDown: "tiles:4",
+	TerrainDirt: "tiles:6",
+	TerrainDirtFront: "tiles:5",
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
@@ -111,13 +97,8 @@ func IsObstacleTerrain(terrain TerrainType) bool {
 // Skinning data for a terrain tile set, describes the outward appearance of a
 // type of terrain.
 type TerrainTile struct {
-	Icon
-	Name string
-}
-
-
-type Drawable interface {
-	Draw(x, y int)
+	IconId string
+	Name   string
 }
 
 
@@ -495,7 +476,7 @@ func (self *World) drawTerrain() {
 		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
 			idx = TerrainDirtFront
 		}
-		tileset1[idx].Draw(pt.X, pt.Y)
+		Draw(tileset1[idx], pt.X, pt.Y)
 	}
 }
 
@@ -515,7 +496,7 @@ func (self *World) drawEntities() {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e) {
-				e.Draw(pos.X, pos.Y)
+				Draw(e.IconId, pos.X, pos.Y)
 			}
 		}
 	}
@@ -544,7 +525,7 @@ func (self *World) Serialize(out io.Writer) {
 		// Write the guid
 		mem.WriteString(out, string(guid))
 		// Then gob-save the entity using the factory.
-		blankFactory.GobSave(out, ent)
+		ent.Serialize(out)
 	}
 }
 
@@ -565,6 +546,9 @@ func (self *World) Deserialize(in io.Reader) {
 	numEntities := int(mem.ReadInt32(in))
 	for i := 0; i < numEntities; i++ {
 		guid := Guid(mem.ReadString(in))
-		self.entities[guid] = blankFactory.GobLoad(in).(*Entity)
+
+		ent := new(Entity)
+		ent.Deserialize(in)
+		self.entities[guid] = ent
 	}
 }

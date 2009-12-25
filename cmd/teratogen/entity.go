@@ -1,12 +1,15 @@
 package main
 
 import (
+	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
+	"hyades/mem"
+	"io"
 )
 
 type Entity struct {
-	Icon
+	IconId     string
 	guid       Guid
 	Name       string
 	pos        geom.Pt2I
@@ -149,4 +152,37 @@ func (self *Entity) Clear(name string) *Entity {
 func (self *Entity) PropParent() *Entity {
 	// TODO
 	return nil
+}
+
+func (self *Entity) Serialize(out io.Writer) {
+	mem.WriteString(out, self.IconId)
+	mem.WriteString(out, string(self.guid))
+	mem.WriteString(out, self.Name)
+	mem.WriteInt32(out, int32(self.pos.X))
+	mem.WriteInt32(out, int32(self.pos.Y))
+	mem.WriteString(out, string(self.parentId))
+	mem.WriteString(out, string(self.siblingId))
+	mem.WriteString(out, string(self.childId))
+	mem.WriteInt32(out, int32(self.class))
+	mem.WriteByte(out, alg.IfElse(self.isObstacle, byte(1), byte(0)).(byte))
+
+	// TODO Serialize prop, hideProp.
+}
+
+func (self *Entity) Deserialize(in io.Reader) {
+	self.IconId = mem.ReadString(in)
+	self.guid = Guid(mem.ReadString(in))
+	self.Name = mem.ReadString(in)
+	self.pos.X = int(mem.ReadInt32(in))
+	self.pos.Y = int(mem.ReadInt32(in))
+	self.parentId = Guid(mem.ReadString(in))
+	self.siblingId = Guid(mem.ReadString(in))
+	self.childId = Guid(mem.ReadString(in))
+	self.class = EntityClass(mem.ReadInt32(in))
+	self.isObstacle = mem.ReadByte(in) != 0
+
+	self.prop = make(map[string]interface{})
+	self.hideProp = make(map[string]bool)
+
+	// TODO Deserialize prop, hideProp
 }

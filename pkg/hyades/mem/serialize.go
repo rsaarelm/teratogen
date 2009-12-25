@@ -77,12 +77,18 @@ func ReadFloat64(in io.Reader) float64 { return math.Float64frombits(uint64(Read
 
 func WriteString(out io.Writer, str string) {
 	WriteInt32(out, int32(len(str)))
+	if len(str) == 0 {
+		return
+	}
 	_, err := out.Write(strings.Bytes(str))
 	dbg.AssertNoError(err)
 }
 
 func ReadString(in io.Reader) string {
 	buf := make([]byte, ReadInt32(in))
+	if len(buf) == 0 {
+		return string(buf)
+	}
 	_, err := in.Read(buf)
 	dbg.AssertNoError(err)
 	return string(buf)
