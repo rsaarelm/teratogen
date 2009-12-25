@@ -29,7 +29,8 @@ var blankFactory = mem.NewBlankObjectFactory()
 
 func init() {
 	// Register all polymorphic types for deserialization here.
-	blankFactory.Register(new(EntityBase))
+	// TODO: Obsolete, remove this.
+	blankFactory.Register(new(Entity))
 }
 
 func (self *Icon) Draw(x, y int) {
@@ -125,7 +126,7 @@ type Guid string
 
 type World struct {
 	playerId     Guid
-	entities     map[Guid]Entity
+	entities     map[Guid]*Entity
 	terrain      []TerrainType
 	los          []LosState
 	guidCounter  uint64
@@ -135,7 +136,7 @@ type World struct {
 func NewWorld() (result *World) {
 	result = new(World)
 	world = result
-	result.entities = make(map[Guid]Entity)
+	result.entities = make(map[Guid]*Entity)
 	result.initTerrain()
 
 	player := result.Spawn(EntityPlayer)
@@ -158,11 +159,9 @@ func (self *World) Draw() {
 	self.drawEntities()
 }
 
-func (self *World) GetPlayer() *EntityBase {
-	return self.entities[self.playerId].(*EntityBase)
-}
+func (self *World) GetPlayer() *Entity { return self.entities[self.playerId] }
 
-func (self *World) GetEntity(guid Guid) Entity {
+func (self *World) GetEntity(guid Guid) *Entity {
 	if guid == *new(Guid) {
 		return nil
 	}
@@ -171,15 +170,15 @@ func (self *World) GetEntity(guid Guid) Entity {
 	return ent
 }
 
-func (self *World) DestroyEntity(ent Entity) {
-	if ent == Entity(self.GetPlayer()) {
+func (self *World) DestroyEntity(ent *Entity) {
+	if ent == self.GetPlayer() {
 		GameOver("was wiped out of existence.")
 		return
 	}
 	self.entities[ent.GetGuid()] = ent, false
 }
 
-func (self *World) Spawn(entityType EntityType) Entity {
+func (self *World) Spawn(entityType EntityType) *Entity {
 	guid := self.getGuid("")
 	ent := NewEntity(guid)
 	switch entityType {
@@ -229,13 +228,13 @@ func (self *World) Spawn(entityType EntityType) Entity {
 	return ent
 }
 
-func (self *World) SpawnAt(entityType EntityType, pos geom.Pt2I) (result Entity) {
+func (self *World) SpawnAt(entityType EntityType, pos geom.Pt2I) (result *Entity) {
 	result = self.Spawn(entityType)
 	result.MoveAbs(pos)
 	return
 }
 
-func (self *World) SpawnRandomPos(entityType EntityType) (result Entity) {
+func (self *World) SpawnRandomPos(entityType EntityType) (result *Entity) {
 	return self.SpawnAt(entityType, self.GetSpawnPos())
 }
 
@@ -247,7 +246,7 @@ func (self *World) InitLevel(depth int) {
 	self.currentLevel = int32(depth)
 
 	self.initTerrain()
-	self.entities = make(map[Guid]Entity)
+	self.entities = make(map[Guid]*Entity)
 	self.entities[self.playerId] = player
 
 	if num.WithProb(0.5) {
@@ -386,8 +385,8 @@ func (self *World) SetTerrain(pos geom.Pt2I, t TerrainType) {
 	}
 }
 
-func (self *World) EntitiesAt(pos geom.Pt2I) <-chan Entity {
-	c := make(chan Entity)
+func (self *World) EntitiesAt(pos geom.Pt2I) <-chan *Entity {
+	c := make(chan *Entity)
 	go func() {
 		for _, ent := range self.entities {
 			if ent.GetPos().Equals(pos) {
@@ -399,8 +398,8 @@ func (self *World) EntitiesAt(pos geom.Pt2I) <-chan Entity {
 	return c
 }
 
-func (self *World) IterEntities() <-chan Entity {
-	c := make(chan Entity)
+func (self *World) IterEntities() <-chan *Entity {
+	c := make(chan *Entity)
 	go func() {
 		for _, ent := range self.entities {
 			c <- ent
@@ -410,8 +409,8 @@ func (self *World) IterEntities() <-chan Entity {
 	return c
 }
 
-func (self *World) IterCreatures() <-chan Entity {
-	c := make(chan Entity)
+func (self *World) IterCreatures() <-chan *Entity {
+	c := make(chan *Entity)
 	go func() {
 		for _, ent := range self.entities {
 			if IsCreature(ent) {
@@ -509,7 +508,7 @@ func (self *World) drawEntities() {
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 
 	for sorted := range seq.Iter() {
-		e := sorted.(Entity)
+		e := sorted.(*Entity)
 		pos := e.GetPos()
 		seen := self.GetLos(pos) == LosSeen
 		mapped := seen || self.GetLos(pos) == LosMapped
@@ -523,7 +522,7 @@ func (self *World) drawEntities() {
 }
 
 func entityEarlierInDrawOrder(i, j interface{}) bool {
-	return i.(Entity).GetClass() < j.(Entity).GetClass()
+	return i.(*Entity).GetClass() < j.(*Entity).GetClass()
 }
 
 func (self *World) getGuid(name string) (result Guid) {
@@ -562,10 +561,10 @@ func (self *World) Deserialize(in io.Reader) {
 		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
 
 	// TODO: Entities.
-	self.entities = make(map[Guid]Entity)
+	self.entities = make(map[Guid]*Entity)
 	numEntities := int(mem.ReadInt32(in))
 	for i := 0; i < numEntities; i++ {
 		guid := Guid(mem.ReadString(in))
-		self.entities[guid] = blankFactory.GobLoad(in).(Entity)
+		self.entities[guid] = blankFactory.GobLoad(in).(*Entity)
 	}
 }

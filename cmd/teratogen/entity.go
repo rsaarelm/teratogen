@@ -5,43 +5,7 @@ import (
 	"hyades/geom"
 )
 
-// IMPORTANT: With the current savegame implementation, all structs that
-// implement Entity and go into the Entity store in World, MUST be
-// gob-serializable. That means no field values that are interfaces, maps,
-// channels or funcs.
-type Entity interface {
-	Drawable
-	// TODO: Entity-common stuff.
-	IsObstacle() bool
-	GetPos() geom.Pt2I
-	GetGuid() Guid
-	MoveAbs(pos geom.Pt2I)
-	Move(vec geom.Vec2I)
-	GetName() string
-	GetClass() EntityClass
-
-	GetParent() Entity
-	SetParent(e Entity)
-	// GetChild return the first child of the entity, or nil if there are none.
-	GetChild() Entity
-	SetChild(e Entity)
-	GetSibling() Entity
-	SetSibling(e Entity)
-	Contents() <-chan Entity
-	InsertSelf(parent Entity)
-	RemoveSelf()
-
-	// Properties
-	Set(name string, value interface{}) (self Entity)
-	Get(name string) interface{}
-	Has(name string) bool
-	Hide(name string) (self Entity)
-	Clear(name string) (self Entity)
-	PropParent() Entity
-}
-
-
-type EntityBase struct {
+type Entity struct {
 	Icon
 	guid       Guid
 	Name       string
@@ -56,17 +20,17 @@ type EntityBase struct {
 	hideProp map[string]bool
 }
 
-func NewEntity(guid Guid) (result *EntityBase) {
-	result = new(EntityBase)
+func NewEntity(guid Guid) (result *Entity) {
+	result = new(Entity)
 	result.prop = make(map[string]interface{})
 	result.hideProp = make(map[string]bool)
 	result.guid = guid
 	return
 }
 
-func (self *EntityBase) IsObstacle() bool { return self.isObstacle }
+func (self *Entity) IsObstacle() bool { return self.isObstacle }
 
-func (self *EntityBase) GetPos() geom.Pt2I {
+func (self *Entity) GetPos() geom.Pt2I {
 	parent := self.GetParent()
 	if parent != nil {
 		return parent.GetPos()
@@ -74,34 +38,30 @@ func (self *EntityBase) GetPos() geom.Pt2I {
 	return self.pos
 }
 
-func (self *EntityBase) GetGuid() Guid { return self.guid }
+func (self *Entity) GetGuid() Guid { return self.guid }
 
-func (self *EntityBase) GetClass() EntityClass {
-	return self.class
-}
+func (self *Entity) GetClass() EntityClass { return self.class }
 
-func (self *EntityBase) GetName() string { return self.Name }
+func (self *Entity) GetName() string { return self.Name }
 
-func (self *EntityBase) MoveAbs(pos geom.Pt2I) {
-	self.pos = pos
-}
+func (self *Entity) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
-func (self *EntityBase) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
+func (self *Entity) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
-func (self *EntityBase) GetParent() Entity { return GetWorld().GetEntity(self.parentId) }
+func (self *Entity) GetParent() *Entity { return GetWorld().GetEntity(self.parentId) }
 
-func (self *EntityBase) SetParent(e Entity) { self.parentId = e.GetGuid() }
+func (self *Entity) SetParent(e *Entity) { self.parentId = e.GetGuid() }
 
-func (self *EntityBase) GetChild() Entity { return GetWorld().GetEntity(self.childId) }
+func (self *Entity) GetChild() *Entity { return GetWorld().GetEntity(self.childId) }
 
-func (self *EntityBase) SetChild(e Entity) { self.childId = e.GetGuid() }
+func (self *Entity) SetChild(e *Entity) { self.childId = e.GetGuid() }
 
 // GetSibling return the next sibling of the entity, or nil if there are none.
-func (self *EntityBase) GetSibling() Entity { return GetWorld().GetEntity(self.siblingId) }
+func (self *Entity) GetSibling() *Entity { return GetWorld().GetEntity(self.siblingId) }
 
-func (self *EntityBase) SetSibling(e Entity) { self.siblingId = e.GetGuid() }
+func (self *Entity) SetSibling(e *Entity) { self.siblingId = e.GetGuid() }
 
-func (self *EntityBase) iterateChildren(c chan<- Entity) {
+func (self *Entity) iterateChildren(c chan<- *Entity) {
 	node := self.GetChild()
 	for node != nil {
 		c <- node
@@ -112,13 +72,13 @@ func (self *EntityBase) iterateChildren(c chan<- Entity) {
 	}
 }
 
-func (self *EntityBase) Contents() <-chan Entity {
-	c := make(chan Entity)
+func (self *Entity) Contents() <-chan *Entity {
+	c := make(chan *Entity)
 	go self.iterateChildren(c)
 	return c
 }
 
-func (self *EntityBase) InsertSelf(parent Entity) {
+func (self *Entity) InsertSelf(parent *Entity) {
 	self.RemoveSelf()
 	if parent.GetChild() != nil {
 		self.siblingId = parent.GetChild().GetGuid()
@@ -126,7 +86,7 @@ func (self *EntityBase) InsertSelf(parent Entity) {
 	parent.SetChild(self)
 }
 
-func (self *EntityBase) RemoveSelf() {
+func (self *Entity) RemoveSelf() {
 	parent := self.GetParent()
 	self.parentId = *new(Guid)
 	if parent != nil {
@@ -150,14 +110,14 @@ func (self *EntityBase) RemoveSelf() {
 	self.siblingId = *new(Guid)
 }
 
-func (self *EntityBase) Set(name string, value interface{}) Entity {
+func (self *Entity) Set(name string, value interface{}) *Entity {
 	self.hideProp[name] = false, false
 	// TODO: Check that only valid value types pass.
 	self.prop[name] = value
 	return self
 }
 
-func (self *EntityBase) Get(name string) interface{} {
+func (self *Entity) Get(name string) interface{} {
 	_, hidden := self.hideProp[name]
 	if hidden {
 		return nil
@@ -173,20 +133,20 @@ func (self *EntityBase) Get(name string) interface{} {
 	return nil
 }
 
-func (self *EntityBase) Has(name string) bool { return self.Get(name) != nil }
+func (self *Entity) Has(name string) bool { return self.Get(name) != nil }
 
-func (self *EntityBase) Hide(name string) Entity {
+func (self *Entity) Hide(name string) *Entity {
 	self.hideProp[name] = true
 	return self
 }
 
-func (self *EntityBase) Clear(name string) Entity {
+func (self *Entity) Clear(name string) *Entity {
 	self.hideProp[name] = false, false
 	self.prop[name] = nil, false
 	return self
 }
 
-func (self *EntityBase) PropParent() Entity {
+func (self *Entity) PropParent() *Entity {
 	// TODO
 	return nil
 }

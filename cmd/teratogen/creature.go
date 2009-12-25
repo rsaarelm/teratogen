@@ -7,11 +7,11 @@ import (
 	"hyades/txt"
 )
 
-func (self *EntityBase) MaxWounds() int {
+func (self *Entity) MaxWounds() int {
 	return num.IntMax(1, (self.Get(PropToughness).(int)+3)*2+1)
 }
 
-func (self *EntityBase) WoundDescription() string {
+func (self *Entity) WoundDescription() string {
 	maxWounds := self.MaxWounds()
 	wounds := self.Get(PropWounds).(int)
 	switch {
@@ -36,21 +36,21 @@ func (self *EntityBase) WoundDescription() string {
 	return "mangled"
 }
 
-func (self *EntityBase) IsKilledByWounds() bool {
+func (self *Entity) IsKilledByWounds() bool {
 	return self.Get(PropWounds).(int) > self.MaxWounds()
 }
 
-func (self *EntityBase) MeleeDamageFactor() int {
+func (self *Entity) MeleeDamageFactor() int {
 	return self.Get(PropStrength).(int) + self.Get(PropScale).(int) + self.Get(PropDensity).(int)
 	// TODO: Weapon effect.
 }
 
-func (self *EntityBase) ArmorFactor() int {
+func (self *Entity) ArmorFactor() int {
 	return self.Get(PropScale).(int) + self.Get(PropDensity).(int) + self.Get(PropToughness).(int)
 	// TODO: Effects from worn armor.
 }
 
-func (self *EntityBase) Damage(woundLevel int, cause Entity) {
+func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	world := GetWorld()
 	self.Set(PropWounds, self.Get(PropWounds).(int)+(woundLevel+1)/2)
 
@@ -74,7 +74,7 @@ func (self *EntityBase) Damage(woundLevel int, cause Entity) {
 	}
 }
 
-func (self *EntityBase) MeleeWoundLevelAgainst(target *EntityBase, hitDegree int) (woundLevel int) {
+func (self *Entity) MeleeWoundLevelAgainst(target *Entity, hitDegree int) (woundLevel int) {
 
 	damageFactor := self.MeleeDamageFactor() + hitDegree
 
@@ -97,7 +97,7 @@ func (self *EntityBase) MeleeWoundLevelAgainst(target *EntityBase, hitDegree int
 	return
 }
 
-func (self *EntityBase) TryMove(vec geom.Vec2I) (success bool) {
+func (self *Entity) TryMove(vec geom.Vec2I) (success bool) {
 	world := GetWorld()
 
 	if world.IsOpen(self.GetPos().Plus(vec)) {

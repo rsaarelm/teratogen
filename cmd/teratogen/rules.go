@@ -71,7 +71,7 @@ func LevelDescription(level int) string {
 }
 
 // Return whether an entity considers another entity an enemy.
-func IsEnemyOf(ent *EntityBase, possibleEnemy *EntityBase) bool {
+func IsEnemyOf(ent *Entity, possibleEnemy *Entity) bool {
 	if ent.GetClass() == PlayerEntityClass &&
 		possibleEnemy.GetClass() == EnemyEntityClass {
 		return true
@@ -96,7 +96,7 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 	return
 }
 
-func Attack(attacker *EntityBase, defender *EntityBase) {
+func Attack(attacker *Entity, defender *Entity) {
 	doesHit, hitDegree := IsMeleeHit(
 		attacker.Get(PropMeleeSkill).(int), defender.Get(PropMeleeSkill).(int),
 		defender.Get(PropScale).(int)-attacker.Get(PropScale).(int))
@@ -138,7 +138,7 @@ func MovePlayerDir(dir int) {
 
 	// See if the player collided with something fun.
 	for e := range world.EntitiesAt(player.GetPos()) {
-		if e == Entity(player) {
+		if e == player {
 			continue
 		}
 		if e.GetClass() == GlobeEntityClass {
@@ -162,8 +162,8 @@ func SmartMovePlayer(dir int) {
 	target := player.GetPos().Plus(vec)
 
 	for ent := range world.EntitiesAt(target) {
-		if IsEnemyOf(player, ent.(*EntityBase)) {
-			Attack(player, ent.(*EntityBase))
+		if IsEnemyOf(player, ent) {
+			Attack(player, ent)
 			return
 		}
 	}
@@ -175,10 +175,10 @@ func RunAI() {
 	world := GetWorld()
 	enemyCount := 0
 	for crit := range world.IterCreatures() {
-		if crit.(*EntityBase) != world.GetPlayer() {
+		if crit != world.GetPlayer() {
 			enemyCount++
 		}
-		DoAI(crit.(*EntityBase))
+		DoAI(crit)
 	}
 }
 
@@ -190,7 +190,9 @@ func GameOver(reason string) {
 
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
-func IsMobile(entity Entity) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
+func IsMobile(entity *Entity) bool {
+	return entity.GetClass() > CreatureEntityClassStartMarker
+}
 
 func PlayerEnterStairs() {
 	world := GetWorld()
@@ -204,7 +206,7 @@ func PlayerEnterStairs() {
 
 func NextLevel() { world.InitLevel(world.CurrentLevelNum() + 1) }
 
-func IsCreature(e Entity) bool {
+func IsCreature(e *Entity) bool {
 	switch e.GetClass() {
 	case PlayerEntityClass, EnemyEntityClass:
 		return true
