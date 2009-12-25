@@ -7,23 +7,13 @@ import (
 	"hyades/txt"
 )
 
-type Creature struct {
-	EntityBase
-	Strength int
-	Scale    int
-	// Added to Scale to determine strength modifier and damage
-	// resistance.
-	Density    int
-	Toughness  int
-	Wounds     int
-	MeleeSkill int
+func (self *EntityBase) MaxWounds() int {
+	return num.IntMax(1, (self.Get(PropToughness).(int)+3)*2+1)
 }
 
-func (self *Creature) MaxWounds() int { return num.IntMax(1, (self.Toughness+3)*2+1) }
-
-func (self *Creature) WoundDescription() string {
+func (self *EntityBase) WoundDescription() string {
 	maxWounds := self.MaxWounds()
-	wounds := self.Wounds
+	wounds := self.Get(PropWounds).(int)
 	switch {
 	case maxWounds-wounds < 2:
 		return "near death"
@@ -46,21 +36,23 @@ func (self *Creature) WoundDescription() string {
 	return "mangled"
 }
 
-func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
+func (self *EntityBase) IsKilledByWounds() bool {
+	return self.Get(PropWounds).(int) > self.MaxWounds()
+}
 
-func (self *Creature) MeleeDamageFactor() int {
-	return self.Strength + self.Scale + self.Density
+func (self *EntityBase) MeleeDamageFactor() int {
+	return self.Get(PropStrength).(int) + self.Get(PropScale).(int) + self.Get(PropDensity).(int)
 	// TODO: Weapon effect.
 }
 
-func (self *Creature) ArmorFactor() int {
-	return self.Scale + self.Density + self.Toughness
+func (self *EntityBase) ArmorFactor() int {
+	return self.Get(PropScale).(int) + self.Get(PropDensity).(int) + self.Get(PropToughness).(int)
 	// TODO: Effects from worn armor.
 }
 
-func (self *Creature) Damage(woundLevel int, cause Entity) {
+func (self *EntityBase) Damage(woundLevel int, cause Entity) {
 	world := GetWorld()
-	self.Wounds += (woundLevel + 1) / 2
+	self.Set(PropWounds, self.Get(PropWounds).(int)+(woundLevel+1)/2)
 
 	if self.IsKilledByWounds() {
 		if self == world.GetPlayer() {
@@ -82,7 +74,7 @@ func (self *Creature) Damage(woundLevel int, cause Entity) {
 	}
 }
 
-func (self *Creature) MeleeWoundLevelAgainst(target *Creature, hitDegree int) (woundLevel int) {
+func (self *EntityBase) MeleeWoundLevelAgainst(target *EntityBase, hitDegree int) (woundLevel int) {
 
 	damageFactor := self.MeleeDamageFactor() + hitDegree
 
@@ -105,7 +97,7 @@ func (self *Creature) MeleeWoundLevelAgainst(target *Creature, hitDegree int) (w
 	return
 }
 
-func (self *Creature) TryMove(vec geom.Vec2I) (success bool) {
+func (self *EntityBase) TryMove(vec geom.Vec2I) (success bool) {
 	world := GetWorld()
 
 	if world.IsOpen(self.GetPos().Plus(vec)) {

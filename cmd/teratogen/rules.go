@@ -25,6 +25,15 @@ const (
 	Legendary
 )
 
+const (
+	PropStrength   = "strength"
+	PropToughness  = "toughness"
+	PropMeleeSkill = "meleeSkill"
+	PropScale      = "scale"
+	PropWounds     = "wounds"
+	PropDensity    = "density"
+)
+
 func Log2Modifier(x int) int {
 	absMod := int(num.Round(num.Log2(math.Fabs(float64(x))+2) - 1))
 	return num.Isignum(x) * absMod
@@ -62,20 +71,14 @@ func LevelDescription(level int) string {
 }
 
 // Return whether an entity considers another entity an enemy.
-func IsEnemyOf(ent Entity, possibleEnemy Entity) bool {
-	switch e1 := ent.(type) {
-	case *Creature:
-		switch e2 := possibleEnemy.(type) {
-		case *Creature:
-			if e1.GetClass() == PlayerEntityClass &&
-				e2.GetClass() == EnemyEntityClass {
-				return true
-			}
-			if e1.GetClass() == EnemyEntityClass &&
-				e2.GetClass() == PlayerEntityClass {
-				return true
-			}
-		}
+func IsEnemyOf(ent *EntityBase, possibleEnemy *EntityBase) bool {
+	if ent.GetClass() == PlayerEntityClass &&
+		possibleEnemy.GetClass() == EnemyEntityClass {
+		return true
+	}
+	if ent.GetClass() == EnemyEntityClass &&
+		possibleEnemy.GetClass() == PlayerEntityClass {
+		return true
 	}
 	return false
 }
@@ -93,28 +96,23 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 	return
 }
 
-func Attack(attacker Entity, defender Entity) {
-	switch e1 := attacker.(type) {
-	case *Creature:
-		switch e2 := defender.(type) {
-		case *Creature:
-			doesHit, hitDegree := IsMeleeHit(
-				e1.MeleeSkill, e2.MeleeSkill, e2.Scale-e1.Scale)
+func Attack(attacker *EntityBase, defender *EntityBase) {
+	doesHit, hitDegree := IsMeleeHit(
+		attacker.Get(PropMeleeSkill).(int), defender.Get(PropMeleeSkill).(int),
+		defender.Get(PropScale).(int)-attacker.Get(PropScale).(int))
 
-			if doesHit {
-				Msg("%v hits. ", txt.Capitalize(attacker.GetName()))
-				// XXX: Assuming melee attack.
-				woundLevel := e1.MeleeWoundLevelAgainst(e2, hitDegree)
+	if doesHit {
+		Msg("%v hits. ", txt.Capitalize(attacker.GetName()))
+		// XXX: Assuming melee attack.
+		woundLevel := attacker.MeleeWoundLevelAgainst(defender, hitDegree)
 
-				if woundLevel > 0 {
-					e2.Damage(woundLevel, e1)
-				} else {
-					Msg("%v undamaged.", txt.Capitalize(defender.GetName()))
-				}
-			} else {
-				Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
-			}
+		if woundLevel > 0 {
+			defender.Damage(woundLevel, attacker)
+		} else {
+			Msg("%v undamaged.", txt.Capitalize(defender.GetName()))
 		}
+	} else {
+		Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
 	}
 }
 
@@ -145,9 +143,9 @@ func MovePlayerDir(dir int) {
 		}
 		if e.GetClass() == GlobeEntityClass {
 			// TODO: Different globe effects.
-			if player.Wounds > 0 {
+			if player.Get(PropWounds).(int) > 0 {
 				Msg("The globe bursts. You feel better.\n")
-				player.Wounds -= 1
+				player.Set(PropWounds, player.Get(PropWounds).(int)-1)
 				// Deferring this until the iteration is over.
 				defer world.DestroyEntity(e)
 			}
@@ -164,8 +162,8 @@ func SmartMovePlayer(dir int) {
 	target := player.GetPos().Plus(vec)
 
 	for ent := range world.EntitiesAt(target) {
-		if IsEnemyOf(player, ent) {
-			Attack(player, ent)
+		if IsEnemyOf(player, ent.(*EntityBase)) {
+			Attack(player, ent.(*EntityBase))
 			return
 		}
 	}
@@ -177,10 +175,10 @@ func RunAI() {
 	world := GetWorld()
 	enemyCount := 0
 	for crit := range world.IterCreatures() {
-		if crit != world.GetPlayer() {
+		if crit.(*EntityBase) != world.GetPlayer() {
 			enemyCount++
 		}
-		DoAI(crit)
+		DoAI(crit.(*EntityBase))
 	}
 }
 
@@ -205,3 +203,11 @@ func PlayerEnterStairs() {
 }
 
 func NextLevel() { world.InitLevel(world.CurrentLevelNum() + 1) }
+
+func IsCreature(e Entity) bool {
+	switch e.GetClass() {
+	case PlayerEntityClass, EnemyEntityClass:
+		return true
+	}
+	return false
+}

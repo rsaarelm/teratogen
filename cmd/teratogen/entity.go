@@ -28,9 +28,16 @@ type Entity interface {
 	GetSibling() Entity
 	SetSibling(e Entity)
 	Contents() <-chan Entity
-	// Insert inserts the entity as the nth child of entity parent.
-	Insert(parent Entity, nth int)
-	Remove()
+	InsertSelf(parent Entity)
+	RemoveSelf()
+
+	// Properties
+	Set(name string, value interface{}) (self Entity)
+	Get(name string) interface{}
+	Has(name string) bool
+	Hide(name string) (self Entity)
+	Clear(name string) (self Entity)
+	PropParent() Entity
 }
 
 
@@ -44,6 +51,17 @@ type EntityBase struct {
 	childId    Guid
 	class      EntityClass
 	isObstacle bool
+
+	prop     map[string]interface{}
+	hideProp map[string]bool
+}
+
+func NewEntity(guid Guid) (result *EntityBase) {
+	result = new(EntityBase)
+	result.prop = make(map[string]interface{})
+	result.hideProp = make(map[string]bool)
+	result.guid = guid
+	return
 }
 
 func (self *EntityBase) IsObstacle() bool { return self.isObstacle }
@@ -100,30 +118,15 @@ func (self *EntityBase) Contents() <-chan Entity {
 	return c
 }
 
-func (self *EntityBase) Insert(parent Entity, nth int) {
-	dbg.Assert(nth >= 0, "Insert: Negative index")
-	self.Remove()
-	if nth == 0 || parent.GetChild() == nil {
-		// Insert as the first child, modify parent's childId directly.
+func (self *EntityBase) InsertSelf(parent Entity) {
+	self.RemoveSelf()
+	if parent.GetChild() != nil {
 		self.siblingId = parent.GetChild().GetGuid()
-		parent.SetChild(self)
-	} else {
-		// Insert as an inner child, only modify sibling ids.
-		node := parent.GetChild()
-		for i := 1; i < nth; i++ {
-			next := node.GetSibling()
-			if next != nil {
-				node = next
-			} else {
-				break
-			}
-			self.siblingId = node.GetSibling().GetGuid()
-			node.SetSibling(self)
-		}
 	}
+	parent.SetChild(self)
 }
 
-func (self *EntityBase) Remove() {
+func (self *EntityBase) RemoveSelf() {
 	parent := self.GetParent()
 	self.parentId = *new(Guid)
 	if parent != nil {
@@ -133,7 +136,7 @@ func (self *EntityBase) Remove() {
 			node := parent.GetChild()
 			for {
 				if node.GetSibling() == nil {
-					dbg.Die("Remove: Entity not found among its siblings.")
+					dbg.Die("RemoveSelf: Entity not found among its siblings.")
 
 				}
 				if node.GetSibling().GetGuid() == self.GetGuid() {
@@ -145,4 +148,45 @@ func (self *EntityBase) Remove() {
 		}
 	}
 	self.siblingId = *new(Guid)
+}
+
+func (self *EntityBase) Set(name string, value interface{}) Entity {
+	self.hideProp[name] = false, false
+	// TODO: Check that only valid value types pass.
+	self.prop[name] = value
+	return self
+}
+
+func (self *EntityBase) Get(name string) interface{} {
+	_, hidden := self.hideProp[name]
+	if hidden {
+		return nil
+	}
+	ret, ok := self.prop[name]
+	if ok {
+		return ret
+	}
+	parent := self.PropParent()
+	if parent != nil {
+		return parent.Get(name)
+	}
+	return nil
+}
+
+func (self *EntityBase) Has(name string) bool { return self.Get(name) != nil }
+
+func (self *EntityBase) Hide(name string) Entity {
+	self.hideProp[name] = true
+	return self
+}
+
+func (self *EntityBase) Clear(name string) Entity {
+	self.hideProp[name] = false, false
+	self.prop[name] = nil, false
+	return self
+}
+
+func (self *EntityBase) PropParent() Entity {
+	// TODO
+	return nil
 }

@@ -29,8 +29,7 @@ var blankFactory = mem.NewBlankObjectFactory()
 
 func init() {
 	// Register all polymorphic types for deserialization here.
-	blankFactory.Register(new(Item))
-	blankFactory.Register(new(Creature))
+	blankFactory.Register(new(EntityBase))
 }
 
 func (self *Icon) Draw(x, y int) {
@@ -159,7 +158,9 @@ func (self *World) Draw() {
 	self.drawEntities()
 }
 
-func (self *World) GetPlayer() *Creature { return self.entities[self.playerId].(*Creature) }
+func (self *World) GetPlayer() *EntityBase {
+	return self.entities[self.playerId].(*EntityBase)
+}
 
 func (self *World) GetEntity(guid Guid) Entity {
 	if guid == *new(Guid) {
@@ -178,64 +179,54 @@ func (self *World) DestroyEntity(ent Entity) {
 	self.entities[ent.GetGuid()] = ent, false
 }
 
-func (self *World) Spawn(entityType EntityType) (result Entity) {
+func (self *World) Spawn(entityType EntityType) Entity {
 	guid := self.getGuid("")
+	ent := NewEntity(guid)
 	switch entityType {
 	case EntityPlayer:
-		result = &Creature{EntityBase: EntityBase{
-			Icon: Icon{"guys:0", image.RGBAColor{0xdd, 0xff, 0xff, 0xff}},
-			guid: guid,
-			Name: "protagonist",
-			pos: geom.Pt2I{-1, -1},
-			class: PlayerEntityClass,
-			isObstacle: true,
-		},
-			// XXX: Give player superstrength until we get some weapons in play.
-			Strength: Superb,
-			Toughness: Good,
-			MeleeSkill: Good,
-		}
+		ent.IconId = "guys:0"
+		ent.Name = "protagonist"
+		ent.class = PlayerEntityClass
+		ent.isObstacle = true
+		// XXX: Give player superstrength until we get some weapons in pl
+		ent.Set(PropStrength, Superb)
+		ent.Set(PropToughness, Good)
+		ent.Set(PropMeleeSkill, Good)
+		ent.Set(PropScale, 0)
+		ent.Set(PropWounds, 0)
+		ent.Set(PropDensity, 0)
 	case EntityZombie:
-		result = &Creature{EntityBase: EntityBase{
-			Icon: Icon{"guys:1", image.RGBAColor{0x80, 0xa0, 0x80, 0xff}},
-			guid: guid,
-			Name: "zombie",
-			pos: geom.Pt2I{-1, -1},
-			class: EnemyEntityClass,
-			isObstacle: true,
-		},
-			Strength: Fair,
-			Toughness: Poor,
-			MeleeSkill: Fair,
-		}
+		ent.IconId = "guys:1"
+		ent.Name = "zombie"
+		ent.class = EnemyEntityClass
+		ent.isObstacle = true
+		ent.Set(PropStrength, Fair)
+		ent.Set(PropToughness, Poor)
+		ent.Set(PropMeleeSkill, Fair)
+		ent.Set(PropScale, 0)
+		ent.Set(PropWounds, 0)
+		ent.Set(PropDensity, 0)
 	case EntityBigboss:
-		result = &Creature{EntityBase: EntityBase{
-			Icon: Icon{"guys:5", image.RGBAColor{0xa0, 0x00, 0xa0, 0xff}},
-			guid: guid,
-			Name: "elder spawn",
-			pos: geom.Pt2I{-1, -1},
-			class: EnemyEntityClass,
-			isObstacle: true,
-		},
-			Strength: Legendary,
-			Toughness: Legendary,
-			MeleeSkill: Superb,
-			Scale: 15,
-		}
+		ent.IconId = "guys:5"
+		ent.Name = "elder spawn"
+		ent.class = EnemyEntityClass
+		ent.isObstacle = true
+		ent.Set(PropStrength, Legendary)
+		ent.Set(PropToughness, Legendary)
+		ent.Set(PropMeleeSkill, Superb)
+		ent.Set(PropScale, 5)
+		ent.Set(PropWounds, 0)
+		ent.Set(PropDensity, 0)
 	case EntityMinorHealthGlobe:
-		result = &Item{EntityBase: EntityBase{
-			Icon: Icon{"items:57", image.RGBAColor{0xff, 0x44, 0x44, 0xff}},
-			guid: guid,
-			Name: "health globe",
-			pos: geom.Pt2I{-1, -1},
-			class: GlobeEntityClass,
-			isObstacle: false,
-		}}
+		ent.IconId = "items:57"
+		ent.Name = "health globe"
+		ent.class = GlobeEntityClass
+		ent.isObstacle = false
 	default:
 		dbg.Die("Unknown entity type %v.", entityType)
 	}
-	self.entities[guid] = result
-	return
+	self.entities[guid] = ent
+	return ent
 }
 
 func (self *World) SpawnAt(entityType EntityType, pos geom.Pt2I) (result Entity) {
@@ -419,13 +410,12 @@ func (self *World) IterEntities() <-chan Entity {
 	return c
 }
 
-func (self *World) IterCreatures() <-chan *Creature {
-	c := make(chan *Creature)
+func (self *World) IterCreatures() <-chan Entity {
+	c := make(chan Entity)
 	go func() {
 		for _, ent := range self.entities {
-			switch crit := ent.(type) {
-			case *Creature:
-				c <- crit
+			if IsCreature(ent) {
+				c <- ent
 			}
 		}
 		close(c)

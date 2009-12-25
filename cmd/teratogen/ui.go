@@ -131,7 +131,7 @@ func MainUILoop() {
 		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
 			DrawString(GetMsg().GetLine(i), TileW*0, TileH*(21+(i-ui.oldestLineSeen)))
 		}
-		DrawString(fmt.Sprintf("Strength: %v", txt.Capitalize(LevelDescription(world.GetPlayer().Strength))),
+		DrawString(fmt.Sprintf("Strength: %v", txt.Capitalize(LevelDescription(world.GetPlayer().Get(PropStrength).(int)))),
 			TileW*41, TileH*0)
 		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
 			TileW*41, TileH*1)

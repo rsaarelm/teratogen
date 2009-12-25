@@ -5,7 +5,6 @@ GOFILES=\
 	ai.go\
 	creature.go\
 	entity.go\
-	item.go\
 	mapgen.go\
 	main.go\
 	media.go\
