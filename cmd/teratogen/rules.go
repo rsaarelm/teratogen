@@ -32,6 +32,7 @@ const (
 	PropScale      = "scale"
 	PropWounds     = "wounds"
 	PropDensity    = "density"
+	FlagObstacle   = "isObstacle"
 )
 
 func Log2Modifier(x int) int {

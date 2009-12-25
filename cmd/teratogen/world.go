@@ -167,7 +167,7 @@ func (self *World) Spawn(entityType EntityType) *Entity {
 		ent.IconId = "guys:0"
 		ent.Name = "protagonist"
 		ent.class = PlayerEntityClass
-		ent.isObstacle = true
+		ent.SetFlag(FlagObstacle)
 		// XXX: Give player superstrength until we get some weapons in pl
 		ent.Set(PropStrength, Superb)
 		ent.Set(PropToughness, Good)
@@ -179,7 +179,7 @@ func (self *World) Spawn(entityType EntityType) *Entity {
 		ent.IconId = "guys:1"
 		ent.Name = "zombie"
 		ent.class = EnemyEntityClass
-		ent.isObstacle = true
+		ent.SetFlag(FlagObstacle)
 		ent.Set(PropStrength, Fair)
 		ent.Set(PropToughness, Poor)
 		ent.Set(PropMeleeSkill, Fair)
@@ -190,7 +190,7 @@ func (self *World) Spawn(entityType EntityType) *Entity {
 		ent.IconId = "guys:5"
 		ent.Name = "elder spawn"
 		ent.class = EnemyEntityClass
-		ent.isObstacle = true
+		ent.SetFlag(FlagObstacle)
 		ent.Set(PropStrength, Legendary)
 		ent.Set(PropToughness, Legendary)
 		ent.Set(PropMeleeSkill, Superb)
@@ -201,7 +201,6 @@ func (self *World) Spawn(entityType EntityType) *Entity {
 		ent.IconId = "items:57"
 		ent.Name = "health globe"
 		ent.class = GlobeEntityClass
-		ent.isObstacle = false
 	default:
 		dbg.Die("Unknown entity type %v.", entityType)
 	}
@@ -409,7 +408,7 @@ func (self *World) IsOpen(pos geom.Pt2I) bool {
 		return false
 	}
 	for e := range self.EntitiesAt(pos) {
-		if e.IsObstacle() {
+		if e.Has(FlagObstacle) {
 			return false
 		}
 	}
