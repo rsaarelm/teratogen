@@ -10,6 +10,7 @@ import (
 	"hyades/num"
 	"io"
 	"rand"
+	"reflect"
 )
 
 const mapWidth = 40
@@ -30,7 +31,7 @@ type TerrainType byte
 const (
 	// Used for terrain generation algorithms, set map to indeterminate
 	// initially.
-	TerrainIndeterminate = iota
+	TerrainIndeterminate TerrainType = iota
 	TerrainWallFront
 	TerrainWall
 	TerrainFloor
@@ -43,9 +44,10 @@ const (
 type EntityType int
 
 const (
-	EntityUnknown = iota
+	EntityUnknown EntityType = iota
 	EntityPlayer
 	EntityZombie
+	EntityOgre
 	EntityBigboss
 	EntityMinorHealthGlobe
 )
@@ -55,7 +57,7 @@ const (
 type EntityClass int
 
 const (
-	EmptyEntityClass = iota
+	EmptyEntityClass EntityClass = iota
 
 	// Item classes
 	GlobeEntityClass // Globe items are used when stepped on.
@@ -70,7 +72,7 @@ const (
 type LosState byte
 
 const (
-	LosUnknown = iota
+	LosUnknown LosState = iota
 	LosMapped
 	LosSeen
 )
@@ -159,44 +161,56 @@ func (self *World) DestroyEntity(ent *Entity) {
 	self.entities[ent.GetGuid()] = ent, false
 }
 
+func makeCreature(ent *Entity, icon string, name string, class EntityClass, props ...) {
+	// Default settings.
+	ent.IconId = icon
+	ent.Name = name
+	ent.class = class
+	ent.SetFlag(FlagObstacle)
+	ent.Set(PropStrength, Superb)
+	ent.Set(PropToughness, Good)
+	ent.Set(PropMeleeSkill, Good)
+	ent.Set(PropScale, 0)
+	ent.Set(PropWounds, 0)
+	ent.Set(PropDensity, 0)
+
+	// Custom settings from varargs.
+	v := reflect.NewValue(props).(*reflect.StructValue)
+	dbg.Assert(v.NumField()%2 == 0, "makeCreature: Proplist length is odd.")
+	for i := 0; i < v.NumField(); i += 2 {
+		ent.Set(
+			v.Field(i).Interface().(string),
+			v.Field(i+1).Interface())
+	}
+}
+
 func (self *World) Spawn(entityType EntityType) *Entity {
 	guid := self.getGuid("")
 	ent := NewEntity(guid)
 	switch entityType {
 	case EntityPlayer:
-		ent.IconId = "guys:0"
-		ent.Name = "protagonist"
-		ent.class = PlayerEntityClass
-		ent.SetFlag(FlagObstacle)
-		// XXX: Give player superstrength until we get some weapons in pl
-		ent.Set(PropStrength, Superb)
-		ent.Set(PropToughness, Good)
-		ent.Set(PropMeleeSkill, Good)
-		ent.Set(PropScale, 0)
-		ent.Set(PropWounds, 0)
-		ent.Set(PropDensity, 0)
+		makeCreature(ent, "chars:0", "protagonist", PlayerEntityClass,
+			PropStrength, Superb,
+			PropToughness, Good,
+			PropMeleeSkill, Good)
+
 	case EntityZombie:
-		ent.IconId = "guys:1"
-		ent.Name = "zombie"
-		ent.class = EnemyEntityClass
-		ent.SetFlag(FlagObstacle)
-		ent.Set(PropStrength, Fair)
-		ent.Set(PropToughness, Poor)
-		ent.Set(PropMeleeSkill, Fair)
-		ent.Set(PropScale, 0)
-		ent.Set(PropWounds, 0)
-		ent.Set(PropDensity, 0)
+		makeCreature(ent, "chars:1", "zombie", EnemyEntityClass,
+			PropStrength, Fair,
+			PropToughness, Poor,
+			PropMeleeSkill, Fair)
+	case EntityOgre:
+		makeCreature(ent, "chars:15", "ogre", EnemyEntityClass,
+			PropStrength, Great,
+			PropToughness, Great,
+			PropMeleeSkill, Fair,
+			PropScale, 3)
 	case EntityBigboss:
-		ent.IconId = "guys:5"
-		ent.Name = "elder spawn"
-		ent.class = EnemyEntityClass
-		ent.SetFlag(FlagObstacle)
-		ent.Set(PropStrength, Legendary)
-		ent.Set(PropToughness, Legendary)
-		ent.Set(PropMeleeSkill, Superb)
-		ent.Set(PropScale, 5)
-		ent.Set(PropWounds, 0)
-		ent.Set(PropDensity, 0)
+		makeCreature(ent, "chars:5", "elder spawn", EnemyEntityClass,
+			PropStrength, Legendary,
+			PropToughness, Legendary,
+			PropMeleeSkill, Superb,
+			PropScale, 5)
 	case EntityMinorHealthGlobe:
 		ent.IconId = "items:1"
 		ent.Name = "health globe"
@@ -241,6 +255,12 @@ func (self *World) InitLevel(depth int) {
 	self.DoLos(player.GetPos())
 	for i := 0; i < 10+depth*4; i++ {
 		self.SpawnRandomPos(EntityZombie)
+	}
+
+	for i := 0; i < 3; i++ {
+		if num.OneChanceIn(30 - depth) {
+			self.SpawnRandomPos(EntityOgre)
+		}
 	}
 
 	for i := 0; i < 10; i++ {

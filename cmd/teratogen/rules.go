@@ -110,7 +110,7 @@ func Attack(attacker *Entity, defender *Entity) {
 		if woundLevel > 0 {
 			defender.Damage(woundLevel, attacker)
 		} else {
-			Msg("%v undamaged.", txt.Capitalize(defender.GetName()))
+			Msg("%v undamaged.\n", txt.Capitalize(defender.GetName()))
 		}
 	} else {
 		Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
