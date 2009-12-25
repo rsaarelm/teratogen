@@ -198,7 +198,7 @@ func (self *World) Spawn(entityType EntityType) *Entity {
 		ent.Set(PropWounds, 0)
 		ent.Set(PropDensity, 0)
 	case EntityMinorHealthGlobe:
-		ent.IconId = "items:57"
+		ent.IconId = "items:1"
 		ent.Name = "health globe"
 		ent.class = GlobeEntityClass
 	default:

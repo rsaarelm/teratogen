@@ -18,7 +18,7 @@ const capFps = true
 const screenWidth = 768 * 2
 const screenHeight = 480 * 2
 
-const numFont = 384
+const numFont = 256
 
 const xDrawOffset = 0
 const yDrawOffset = 0
