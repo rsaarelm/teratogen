@@ -3,7 +3,6 @@ all: deps install
 DIRS=\
 	hyades/alg\
 	hyades/dbg\
-	hyades/event\
 	hyades/fs\
 	hyades/geom\
 	hyades/gfx\
