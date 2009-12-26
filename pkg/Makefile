@@ -15,7 +15,6 @@ DIRS=\
 
 NOTEST=\
 	hyades/dbg\
-	hyades/event\
 	hyades/fs\
 	hyades/geom\
 	hyades/num\

@@ -9,7 +9,6 @@ import "C"
 import (
 	"exp/draw"
 	"hyades/dbg"
-	"hyades/event"
 	"image"
 	"os"
 	"time"
@@ -327,61 +326,6 @@ func (self *C.SDL_Surface) At(x, y int) image.Color {
 func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
 }
-
-//////////////////////////////////////////////////////////////////
-// Events
-//////////////////////////////////////////////////////////////////
-
-// Returns an event if there's one available, otherwise nil.
-func PollEvent() event.Event {
-	var evt C.SDL_Event
-	if C.SDL_PollEvent(&evt) != 0 {
-		return mapEvent(&evt)
-	}
-	return nil
-}
-
-func mapEvent(evt *C.SDL_Event) event.Event {
-	if evt == nil {
-		return nil
-	}
-
-	switch eventType(evt) {
-	case KEYDOWN:
-		keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(evt)))
-		return &event.KeyDown{int(keyEvt.keysym.sym),
-			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState()),
-		}
-	case KEYUP:
-		keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(evt)))
-		return &event.KeyUp{int(keyEvt.keysym.sym),
-			int(keyEvt.keysym.unicode), uint(C.SDL_GetModState()),
-		}
-	case MOUSEMOTION:
-		motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(evt)))
-		return &event.MouseMove{int(motEvt.x), int(motEvt.y),
-			int(motEvt.xrel), int(motEvt.yrel), uint(motEvt.state), 0,
-		}
-	case MOUSEBUTTONDOWN:
-		btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(evt)))
-		return &event.MouseDown{int(btnEvt.x), int(btnEvt.y), 0, 0,
-			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button),
-		}
-	case MOUSEBUTTONUP:
-		btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(evt)))
-		return &event.MouseUp{int(btnEvt.x), int(btnEvt.y), 0, 0,
-			uint(C.SDL_GetMouseState(nil, nil)), int(btnEvt.button),
-		}
-	case VIDEORESIZE:
-		resEvt := ((*C.SDL_ResizeEvent)(unsafe.Pointer(evt)))
-		return &event.Resize{int(resEvt.w), int(resEvt.h)}
-	case QUIT:
-		result := new(event.Quit)
-		return result
-	}
-	return nil
-}
-
 
 //////////////////////////////////////////////////////////////////
 // Audio
