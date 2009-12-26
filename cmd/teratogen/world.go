@@ -69,6 +69,82 @@ const (
 	EnemyEntityClass
 )
 
+type entityPrototype struct {
+	Name     string
+	Parent   string
+	IconId   string
+	Class    EntityClass
+	Scarcity int
+	MinDepth int
+	Props    map[string]interface{}
+}
+
+func NewPrototype(name, parent, iconId string, class EntityClass, scarcity, minDepth int, props ...) (result *entityPrototype) {
+	result = new(entityPrototype)
+	result.Name = name
+	result.Parent = parent
+	result.IconId = iconId
+	result.Class = class
+	result.Scarcity = scarcity
+	result.MinDepth = minDepth
+
+	// Custom settings from varargs.
+	v := reflect.NewValue(props).(*reflect.StructValue)
+	dbg.Assert(v.NumField()%2 == 0, "NewPrototype: Proplist length is odd.")
+	result.Props = make(map[string]interface{})
+	for i := 0; i < v.NumField(); i += 2 {
+		result.Props[v.Field(i).Interface().(string)] = v.Field(i + 1).Interface()
+	}
+	return
+}
+
+func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, target *Entity) {
+	if parent, ok := prototypes[self.Parent]; ok {
+		parent.applyProps(prototypes, target)
+	}
+	for key, val := range self.Props {
+		target.Set(key, val)
+	}
+}
+
+func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, target *Entity) {
+	target.IconId = self.IconId
+	target.Name = self.Name
+	target.class = self.Class
+	self.applyProps(prototypes, target)
+}
+
+var prototypes = map[string]*entityPrototype{
+	// Base prototype for creatures.
+	"creature": NewPrototype("creature", "", "", EnemyEntityClass, -1, 0,
+		FlagObstacle, 1,
+		PropStrength, Fair,
+		PropToughness, Fair,
+		PropMeleeSkill, Fair,
+		PropScale, 0,
+		PropWounds, 0,
+		PropDensity, 0),
+	"protagonist": NewPrototype("protagonist", "creature", "chars:0", PlayerEntityClass, -1, 0,
+		PropStrength, Superb,
+		PropToughness, Good,
+		PropMeleeSkill, Good),
+	"zombie": NewPrototype("zombie", "creature", "chars:1", EnemyEntityClass, 100, 0,
+		PropStrength, Fair,
+		PropToughness, Poor,
+		PropMeleeSkill, Fair),
+	"ogre": NewPrototype("ogre", "creature", "chars:15", EnemyEntityClass, 600, 5,
+		PropStrength, Great,
+		PropToughness, Great,
+		PropMeleeSkill, Fair,
+		PropScale, 3),
+	"boss1": NewPrototype("elder spawn", "creature", "chars:5", EnemyEntityClass, 3000, 10,
+		PropStrength, Legendary,
+		PropToughness, Legendary,
+		PropMeleeSkill, Superb,
+		PropScale, 5),
+	"globe": NewPrototype("health globe", "", "items:1", GlobeEntityClass, 30, 0),
+}
+
 type LosState byte
 
 const (
@@ -161,60 +237,20 @@ func (self *World) DestroyEntity(ent *Entity) {
 	self.entities[ent.GetGuid()] = ent, false
 }
 
-func makeCreature(ent *Entity, icon string, name string, class EntityClass, props ...) {
-	// Default settings.
-	ent.IconId = icon
-	ent.Name = name
-	ent.class = class
-	ent.SetFlag(FlagObstacle)
-	ent.Set(PropStrength, Superb)
-	ent.Set(PropToughness, Good)
-	ent.Set(PropMeleeSkill, Good)
-	ent.Set(PropScale, 0)
-	ent.Set(PropWounds, 0)
-	ent.Set(PropDensity, 0)
-
-	// Custom settings from varargs.
-	v := reflect.NewValue(props).(*reflect.StructValue)
-	dbg.Assert(v.NumField()%2 == 0, "makeCreature: Proplist length is odd.")
-	for i := 0; i < v.NumField(); i += 2 {
-		ent.Set(
-			v.Field(i).Interface().(string),
-			v.Field(i+1).Interface())
-	}
-}
-
 func (self *World) Spawn(entityType EntityType) *Entity {
 	guid := self.getGuid("")
 	ent := NewEntity(guid)
 	switch entityType {
 	case EntityPlayer:
-		makeCreature(ent, "chars:0", "protagonist", PlayerEntityClass,
-			PropStrength, Superb,
-			PropToughness, Good,
-			PropMeleeSkill, Good)
-
+		prototypes["protagonist"].MakeEntity(prototypes, ent)
 	case EntityZombie:
-		makeCreature(ent, "chars:1", "zombie", EnemyEntityClass,
-			PropStrength, Fair,
-			PropToughness, Poor,
-			PropMeleeSkill, Fair)
+		prototypes["zombie"].MakeEntity(prototypes, ent)
 	case EntityOgre:
-		makeCreature(ent, "chars:15", "ogre", EnemyEntityClass,
-			PropStrength, Great,
-			PropToughness, Great,
-			PropMeleeSkill, Fair,
-			PropScale, 3)
+		prototypes["ogre"].MakeEntity(prototypes, ent)
 	case EntityBigboss:
-		makeCreature(ent, "chars:5", "elder spawn", EnemyEntityClass,
-			PropStrength, Legendary,
-			PropToughness, Legendary,
-			PropMeleeSkill, Superb,
-			PropScale, 5)
+		prototypes["boss1"].MakeEntity(prototypes, ent)
 	case EntityMinorHealthGlobe:
-		ent.IconId = "items:1"
-		ent.Name = "health globe"
-		ent.class = GlobeEntityClass
+		prototypes["globe"].MakeEntity(prototypes, ent)
 	default:
 		dbg.Die("Unknown entity type %v.", entityType)
 	}
