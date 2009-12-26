@@ -79,4 +79,10 @@ func sfxTest(context sdl.Context) {
 	dbg.AssertNoError(err)
 
 	sfx.Play()
+
+	if music, err := context.LoadMusic("music.ogg"); err == nil {
+		music.Play()
+	} else {
+		fmt.Println("Couldn't load 'music.ogg': ", err)
+	}
 }

@@ -3,6 +3,9 @@ package sdl
 /*
 #include <SDL.h>
 #include <SDL_mixer.h>
+
+// A struct to help cgo get a handle on the opaque Mix_Music type.
+typedef struct music { Mix_Music *music; } music;
 */
 import "C"
 
@@ -45,6 +48,12 @@ type Context interface {
 
 	// MakeSound converts wav file data into a SDL sound object.
 	MakeSound(wavData []byte) (result Sound, err os.Error)
+
+	// LoadMusic loads a piece of music from a file in the file system.
+	// Due to limitations in SDL_Mixer, loading music from a byte buffer
+	// isn't currently supported. Also, this seems to silenty fail with
+	// MP3 files. OGG works. Music loops forever when played.
+	LoadMusic(filename string) (result Sound, err os.Error)
 
 	// KeyRepeatOn makes keyboard events repeat when a key is being held
 	// down.
@@ -157,6 +166,18 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 		return
 	}
 	result = chunk
+	return
+}
+
+func (self *context) LoadMusic(filename string) (result Sound, err os.Error) {
+	cs := C.CString(filename)
+	music := &C.music{C.Mix_LoadMUS(cs)}
+	C.free(unsafe.Pointer(cs))
+
+	if music.music == nil {
+		err = os.NewError(C.GoString(C.Mix_GetError()))
+	}
+	result = music
 	return
 }
 
@@ -367,10 +388,12 @@ func initAudio() {
 
 func exitAudio() { C.Mix_CloseAudio() }
 
-func (self *C.Mix_Chunk) Play() { C.Mix_PlayChannelTimed(-1, self, C.int(0), -1) }
+func (self *C.Mix_Chunk) Play() { C.Mix_PlayChannelTimed(-1, self, 0, -1) }
 
 func (self *C.Mix_Chunk) Free() {
 	if self != nil {
 		C.Mix_FreeChunk(self)
 	}
 }
+
+func (self *C.music) Play() { C.Mix_PlayMusic(self.music, -1) }
