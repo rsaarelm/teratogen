@@ -4,7 +4,9 @@ package sfx
 
 import (
 	"bytes"
+	"hyades/dbg"
 	"io"
+	"unsafe"
 )
 
 type WaveFunc func(t float64) float64
@@ -30,10 +32,11 @@ func writeUint16(out io.Writer, val uint16) {
 	})
 }
 
-func MakeMono8Wav(wave WaveFunc, rateHz uint32, durationSec float64) []byte {
-	return MakeMono8WavFrom(MakeSound8Bit(wave, rateHz, durationSec),
-		rateHz)
+func writeInt16(out io.Writer, val int16) {
+	writeUint16(out, *(*uint16)(unsafe.Pointer(&val)))
 }
+
+func writeInt8(out io.Writer, val int8) { out.Write([]byte{*(*byte)(unsafe.Pointer(&val))}) }
 
 type NumChannels uint16
 
@@ -63,6 +66,36 @@ const (
 	Rate192k SampleRate = 192000
 )
 
+func sampleMonoSound(out io.Writer, wave WaveFunc, durationSec float64, rate SampleRate, sampleBytes SampleBytes) {
+	timeStep := 1.0 / float64(rate)
+	for t := float64(0.0); t < durationSec; t += timeStep {
+		switch sampleBytes {
+		case Bit8:
+			writeInt8(out, int8(wave(t)*0x7f))
+		case Bit16:
+			writeInt16(out, int16(wave(t)*0x7fff))
+		default:
+			dbg.Die("Bad sample bytes %v", sampleBytes)
+		}
+	}
+}
+
+func sampleStereoSound(out io.Writer, wave1, wave2 WaveFunc, durationSec float64, rate SampleRate, sampleBytes SampleBytes) {
+	timeStep := 1.0 / float64(rate)
+	for t := float64(0.0); t < durationSec; t += timeStep {
+		switch sampleBytes {
+		case Bit8:
+			writeInt8(out, int8(wave1(t)*0x7f))
+			writeInt8(out, int8(wave2(t)*0x7f))
+		case Bit16:
+			writeInt16(out, int16(wave1(t)*0x7fff))
+			writeInt16(out, int16(wave2(t)*0x7fff))
+		default:
+			dbg.Die("Bad sample bytes %v", sampleBytes)
+		}
+	}
+}
+
 func writeWavRiff(out io.Writer, dataLen int) {
 	const headerLen = 44
 	const extraLength = headerLen - 8
@@ -74,7 +107,7 @@ func writeWavRiff(out io.Writer, dataLen int) {
 	io.WriteString(out, "WAVE")
 }
 
-func writeWavFormat(out io.Writer, channels NumChannels, rate SampleRate, bytes SampleBytes) {
+func writeWavFormat(out io.Writer, channels NumChannels, rate SampleRate, sampleBytes SampleBytes) {
 	io.WriteString(out, "fmt ")
 	// FORMAT chunk length
 	writeUint32(out, 16)
@@ -82,9 +115,9 @@ func writeWavFormat(out io.Writer, channels NumChannels, rate SampleRate, bytes 
 	writeUint16(out, 1)
 	writeUint16(out, uint16(channels))
 	writeUint32(out, uint32(rate))
-	writeUint32(out, uint32(rate)*uint32(channels)*uint32(bytes))
-	writeUint16(out, uint16(bytes))
-	writeUint16(out, 8*uint16(bytes))
+	writeUint32(out, uint32(rate)*uint32(channels)*uint32(sampleBytes))
+	writeUint16(out, uint16(sampleBytes))
+	writeUint16(out, 8*uint16(sampleBytes))
 }
 
 func writeWavData(out io.Writer, dataLen int) {
@@ -92,9 +125,9 @@ func writeWavData(out io.Writer, dataLen int) {
 	writeUint32(out, uint32(dataLen))
 }
 
-func WriteWav8(out io.Writer, channels NumChannels, rate SampleRate, data []byte) {
+func WriteWav(out io.Writer, channels NumChannels, rate SampleRate, sampleBytes SampleBytes, data []byte) {
 	writeWavRiff(out, len(data))
-	writeWavFormat(out, channels, rate, Bit8)
+	writeWavFormat(out, channels, rate, sampleBytes)
 	writeWavData(out, len(data))
 	out.Write(data)
 }
@@ -108,31 +141,14 @@ func WriteWav16(out io.Writer, channels NumChannels, rate SampleRate, data []uin
 	}
 }
 
-func MakeMono8WavFrom(data []byte, rateHz uint32) []byte {
+func SampleMonoWav(out io.Writer, wave WaveFunc, durationSec float64, rate SampleRate, sampleBytes SampleBytes) {
 	buf := new(bytes.Buffer)
-
-	writeWavRiff(buf, len(data))
-
-	writeWavFormat(buf, Mono, SampleRate(rateHz), Bit8)
-
-	// DATA Chunk
-	buf.WriteString("data")
-	writeUint32(buf, uint32(len(data)))
-
-	buf.Write(data)
-
-	return buf.Bytes()
+	sampleMonoSound(buf, wave, durationSec, rate, sampleBytes)
+	WriteWav(out, Mono, rate, sampleBytes, buf.Bytes())
 }
 
-// Convert a wave function that maps time in seconds into an amplitude between
-// 1 and -1 into a sample of the given rate and duration.
-func MakeSound8Bit(wave WaveFunc, rateHz uint32, durationSec float64) []byte {
+func SampleStereoWav(out io.Writer, wave1, wave2 WaveFunc, durationSec float64, rate SampleRate, sampleBytes SampleBytes) {
 	buf := new(bytes.Buffer)
-
-	timeStep := 1.0 / float64(rateHz)
-	for t := float64(0.0); t < durationSec; t += timeStep {
-		sample := byte((wave(t) + 1.0) / 2.0 * 255.0)
-		buf.WriteByte(sample)
-	}
-	return buf.Bytes()
+	sampleStereoSound(buf, wave1, wave2, durationSec, rate, sampleBytes)
+	WriteWav(out, Stereo, rate, sampleBytes, buf.Bytes())
 }
