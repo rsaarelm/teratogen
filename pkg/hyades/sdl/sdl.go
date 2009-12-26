@@ -331,9 +331,9 @@ func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 // Audio
 //////////////////////////////////////////////////////////////////
 
-// 8-bit, 4000 Hz audio
-const audioRate = 4000
-const audioBytesPerSample = 1
+// 16-bit, 44100 Hz stereo audio
+const audioRate = 44100
+const audioBytesPerSample = 2
 const audioChannels = 2
 
 // XXX: Get rid of public AudioRateHz, AudioBytesPerSample, the outside
@@ -349,9 +349,9 @@ func initAudio() {
 	var audioFormat C.Uint16
 	switch audioBytesPerSample {
 	case 1:
-		audioFormat = C.Uint16(AUDIO_U8)
+		audioFormat = C.Uint16(AUDIO_S8)
 	case 2:
-		audioFormat = C.Uint16(AUDIO_U16SYS)
+		audioFormat = C.Uint16(AUDIO_S16)
 	default:
 		dbg.Die("Bad audioBytesPerSample %v", audioBytesPerSample)
 	}
@@ -361,7 +361,7 @@ func initAudio() {
 	ok := C.Mix_OpenAudio(C.int(audioRate), audioFormat, C.int(audioChannels), audioBuffers)
 
 	if ok != 0 {
-		panic("Mixer error" + getError())
+		panic("Mixer error: " + getError())
 	}
 }
 
