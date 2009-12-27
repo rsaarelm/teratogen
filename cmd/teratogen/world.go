@@ -9,12 +9,15 @@ import (
 	"hyades/mem"
 	"hyades/num"
 	"io"
+	"math"
 	"rand"
 	"reflect"
 )
 
 const mapWidth = 40
 const mapHeight = 20
+
+const spawnsPerLevel = 32
 
 const numTerrainCells = mapWidth * mapHeight
 
@@ -23,7 +26,6 @@ var world *World
 func Draw(spriteId string, x, y int) {
 	DrawSprite(spriteId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
 }
-
 
 // Behavioral terrain types.
 type TerrainType byte
@@ -39,17 +41,6 @@ const (
 	TerrainStairDown
 	TerrainDirtFront
 	TerrainDirt
-)
-
-type EntityType int
-
-const (
-	EntityUnknown EntityType = iota
-	EntityPlayer
-	EntityZombie
-	EntityOgre
-	EntityBigboss
-	EntityMinorHealthGlobe
 )
 
 // Put item classes before creature classes, so we can use this to control
@@ -114,6 +105,25 @@ func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, 
 	self.applyProps(prototypes, target)
 }
 
+func (self *entityPrototype) SpawnWeight(depth int) (result float64) {
+	const epsilon = 1e-7
+	const outOfDepthFactor = 2.0
+	scarcity := float64(self.Scarcity)
+
+	if depth < self.MinDepth {
+		// Exponentially increase the scarcity for each level out of depth
+		outOfDepth := self.MinDepth - depth
+		scarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
+	}
+
+	result = 1.0 / scarcity
+	// Make too scarse weights just plain zero.
+	if result < epsilon {
+		result = 0.0
+	}
+	return
+}
+
 var prototypes = map[string]*entityPrototype{
 	// Base prototype for creatures.
 	"creature": NewPrototype("creature", "", "", EnemyEntityClass, -1, 0,
@@ -132,6 +142,11 @@ var prototypes = map[string]*entityPrototype{
 		PropStrength, Fair,
 		PropToughness, Poor,
 		PropMeleeSkill, Fair),
+	"dogthing": NewPrototype("dog-thing", "creature", "chars:2", EnemyEntityClass, 150, 0,
+		PropStrength, Fair,
+		PropToughness, Fair,
+		PropMeleeSkill, Good,
+		PropScale, -1),
 	"ogre": NewPrototype("ogre", "creature", "chars:15", EnemyEntityClass, 600, 5,
 		PropStrength, Great,
 		PropToughness, Great,
@@ -198,7 +213,7 @@ func NewWorld() (result *World) {
 	result.entities = make(map[Guid]*Entity)
 	result.initTerrain()
 
-	player := result.Spawn(EntityPlayer)
+	player := result.Spawn(prototypes["protagonist"])
 	result.playerId = player.GetGuid()
 
 	result.InitLevel(1)
@@ -237,35 +252,22 @@ func (self *World) DestroyEntity(ent *Entity) {
 	self.entities[ent.GetGuid()] = ent, false
 }
 
-func (self *World) Spawn(entityType EntityType) *Entity {
+func (self *World) Spawn(prototype *entityPrototype) *Entity {
 	guid := self.getGuid("")
 	ent := NewEntity(guid)
-	switch entityType {
-	case EntityPlayer:
-		prototypes["protagonist"].MakeEntity(prototypes, ent)
-	case EntityZombie:
-		prototypes["zombie"].MakeEntity(prototypes, ent)
-	case EntityOgre:
-		prototypes["ogre"].MakeEntity(prototypes, ent)
-	case EntityBigboss:
-		prototypes["boss1"].MakeEntity(prototypes, ent)
-	case EntityMinorHealthGlobe:
-		prototypes["globe"].MakeEntity(prototypes, ent)
-	default:
-		dbg.Die("Unknown entity type %v.", entityType)
-	}
+	prototype.MakeEntity(prototypes, ent)
 	self.entities[guid] = ent
 	return ent
 }
 
-func (self *World) SpawnAt(entityType EntityType, pos geom.Pt2I) (result *Entity) {
-	result = self.Spawn(entityType)
+func (self *World) SpawnAt(prototype *entityPrototype, pos geom.Pt2I) (result *Entity) {
+	result = self.Spawn(prototype)
 	result.MoveAbs(pos)
 	return
 }
 
-func (self *World) SpawnRandomPos(entityType EntityType) (result *Entity) {
-	return self.SpawnAt(entityType, self.GetSpawnPos())
+func (self *World) SpawnRandomPos(prototype *entityPrototype) (result *Entity) {
+	return self.SpawnAt(prototype, self.GetSpawnPos())
 }
 
 func (self *World) InitLevel(depth int) {
@@ -289,23 +291,29 @@ func (self *World) InitLevel(depth int) {
 
 	player.MoveAbs(self.GetSpawnPos())
 	self.DoLos(player.GetPos())
-	for i := 0; i < 10+depth*4; i++ {
-		self.SpawnRandomPos(EntityZombie)
-	}
 
-	for i := 0; i < 3; i++ {
-		if num.OneChanceIn(30 - depth) {
-			self.SpawnRandomPos(EntityOgre)
-		}
-	}
+	spawns := makeSpawnDistribution(depth)
+	for i := 0; i < spawnsPerLevel; i++ {
+		proto := spawns.Sample(rand.Float64()).(*entityPrototype)
+		// XXX: Get this wrapped in a func.
+		guid := self.getGuid("")
+		ent := NewEntity(guid)
+		self.entities[guid] = ent
 
-	for i := 0; i < 10; i++ {
-		self.SpawnRandomPos(EntityMinorHealthGlobe)
+		proto.MakeEntity(prototypes, ent)
+		ent.MoveAbs(self.GetSpawnPos())
 	}
-	if num.OneChanceIn(66) {
-		self.SpawnRandomPos(EntityBigboss)
-		Msg("You suddenly have a very bad feeling.\n")
+}
+
+func makeSpawnDistribution(depth int) num.WeightedDist {
+	weightFn := func(item interface{}) float64 { return item.(*entityPrototype).SpawnWeight(depth) }
+	values := make([]interface{}, len(prototypes))
+	i := 0
+	for _, val := range prototypes {
+		values[i] = val
+		i++
 	}
+	return num.MakeWeightedDist(weightFn, values)
 }
 
 func (self *World) CurrentLevelNum() int { return int(self.currentLevel) }

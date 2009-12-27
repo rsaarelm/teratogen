@@ -1,3 +1,6 @@
+// The num package provides mathematical, numerical and random number
+// generation utilities.
+
 package num
 
 import (
