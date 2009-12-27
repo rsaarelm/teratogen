@@ -12,6 +12,7 @@ import "C"
 import (
 	"exp/draw"
 	"hyades/dbg"
+	"hyades/sfx"
 	"image"
 	"os"
 	"time"
@@ -23,10 +24,6 @@ const bitsPerPixel = 32
 //////////////////////////////////////////////////////////////////
 // SDL Context object
 //////////////////////////////////////////////////////////////////
-
-type Sound interface {
-	Play()
-}
 
 type Context interface {
 	draw.Context
@@ -47,13 +44,13 @@ type Context interface {
 	// TODO: API for freeing surfaces created by Convert. This should be done by a GC finalizer.
 
 	// MakeSound converts wav file data into a SDL sound object.
-	MakeSound(wavData []byte) (result Sound, err os.Error)
+	MakeSound(wavData []byte) (result sfx.Sound, err os.Error)
 
 	// LoadMusic loads a piece of music from a file in the file system.
 	// Due to limitations in SDL_Mixer, loading music from a byte buffer
 	// isn't currently supported. Also, this seems to silenty fail with
 	// MP3 files. OGG works. Music loops forever when played.
-	LoadMusic(filename string) (result Sound, err os.Error)
+	LoadMusic(filename string) (result sfx.Sound, err os.Error)
 
 	// KeyRepeatOn makes keyboard events repeat when a key is being held
 	// down.
@@ -158,7 +155,7 @@ func (self *context) Convert(img image.Image) image.Image {
 	return surf
 }
 
-func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
+func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) {
 	rw := C.SDL_RWFromMem(unsafe.Pointer(&wavData[0]), C.int(len(wavData)))
 	chunk := C.Mix_LoadWAV_RW(rw, 1)
 	if chunk == nil {
@@ -169,7 +166,7 @@ func (self *context) MakeSound(wavData []byte) (result Sound, err os.Error) {
 	return
 }
 
-func (self *context) LoadMusic(filename string) (result Sound, err os.Error) {
+func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error) {
 	cs := C.CString(filename)
 	music := &C.music{C.Mix_LoadMUS(cs)}
 	C.free(unsafe.Pointer(cs))
@@ -352,34 +349,20 @@ func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 // Audio
 //////////////////////////////////////////////////////////////////
 
-// 16-bit, 44100 Hz stereo audio
-const audioRate = 44100
-const audioBytesPerSample = 2
-const audioChannels = 2
-
-// XXX: Get rid of public AudioRateHz, AudioBytesPerSample, the outside
-// shouldn't need to care about audio details.
-
-// Return the preferred sample rate for audio samples.
-func AudioRateHz() uint32 { return audioRate }
-
-// Return the preferred byte count, 1 or 2, of audio samples
-func AudioBytesPerSample() int { return audioBytesPerSample }
-
 func initAudio() {
 	var audioFormat C.Uint16
-	switch audioBytesPerSample {
-	case 1:
+	switch sfx.DefaultSampleBytes {
+	case sfx.Bit8:
 		audioFormat = C.Uint16(AUDIO_S8)
-	case 2:
+	case sfx.Bit16:
 		audioFormat = C.Uint16(AUDIO_S16)
 	default:
-		dbg.Die("Bad audioBytesPerSample %v", audioBytesPerSample)
+		dbg.Die("Bad audioBytesPerSample %v", sfx.DefaultSampleBytes)
 	}
 
 	audioBuffers := C.int(4096)
 
-	ok := C.Mix_OpenAudio(C.int(audioRate), audioFormat, C.int(audioChannels), audioBuffers)
+	ok := C.Mix_OpenAudio(C.int(sfx.DefaultSampleRate), audioFormat, C.int(sfx.DefaultNumChannels), audioBuffers)
 
 	if ok != 0 {
 		panic("Mixer error: " + getError())

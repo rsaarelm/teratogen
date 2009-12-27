@@ -6,8 +6,17 @@ import (
 	"bytes"
 	"hyades/dbg"
 	"io"
+	"os"
 	"unsafe"
 )
+
+type Sound interface {
+	Play()
+}
+
+type AudioContext interface {
+	MakeSound(wavData []byte) (result Sound, err os.Error)
+}
 
 type WaveFunc func(t float64) float64
 
@@ -64,6 +73,12 @@ const (
 	Rate48k  SampleRate = 48000
 	Rate96k  SampleRate = 96000
 	Rate192k SampleRate = 192000
+)
+
+const (
+	DefaultSampleRate  = Rate44k
+	DefaultSampleBytes = Bit16
+	DefaultNumChannels = Stereo
 )
 
 func sampleMonoSound(out io.Writer, wave WaveFunc, durationSec float64, rate SampleRate, sampleBytes SampleBytes) {
@@ -151,4 +166,16 @@ func SampleStereoWav(out io.Writer, wave1, wave2 WaveFunc, durationSec float64, 
 	buf := new(bytes.Buffer)
 	sampleStereoSound(buf, wave1, wave2, durationSec, rate, sampleBytes)
 	WriteWav(out, Stereo, rate, sampleBytes, buf.Bytes())
+}
+
+func MonoWaveToSound(context AudioContext, wave WaveFunc, durationSec float64) (result Sound, err os.Error) {
+	buf := new(bytes.Buffer)
+	SampleMonoWav(buf, wave, durationSec, DefaultSampleRate, DefaultSampleBytes)
+	return context.MakeSound(buf.Bytes())
+}
+
+func StereoWaveToSound(context AudioContext, wave1, wave2 WaveFunc, durationSec float64) (result Sound, err os.Error) {
+	buf := new(bytes.Buffer)
+	SampleStereoWav(buf, wave1, wave2, durationSec, DefaultSampleRate, DefaultSampleBytes)
+	return context.MakeSound(buf.Bytes())
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"exp/draw"
 	"fmt"
 	"hyades/dbg"
@@ -72,10 +71,7 @@ func makePngSurface(context sdl.Context, in io.Reader) (img image.Image, err os.
 func sfxTest(context sdl.Context) {
 	wave := sfx.ADSRFilter(0.2, 0.1, 0.8, 0.5, 0.3,
 		sfx.MakeWave(1000.0, sfx.Jump(0.4, 400.0, sfx.Sine)))
-	buf := new(bytes.Buffer)
-	sfx.SampleMonoWav(buf, wave,
-		1.0, sfx.Rate44k, sfx.Bit16)
-	sfx, err := context.MakeSound(buf.Bytes())
+	sfx, err := sfx.MonoWaveToSound(context, wave, 1.0)
 	dbg.AssertNoError(err)
 
 	sfx.Play()
