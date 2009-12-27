@@ -284,8 +284,21 @@ func (self *World) InitLevel(depth int) {
 	self.currentLevel = int32(depth)
 
 	self.initTerrain()
-	self.entities = make(map[Guid]*Entity)
+
+	// Bring over player object and player's inventory.
+	keep := new(vector.Vector)
+	keep.Push(player)
 	self.entities[self.playerId] = player
+	for ent := range player.Contents() {
+		keep.Push(ent)
+	}
+
+	self.entities = make(map[Guid]*Entity)
+
+	for i := range keep.Iter() {
+		ent := i.(*Entity)
+		self.entities[ent.GetGuid()] = ent
+	}
 
 	if num.WithProb(0.5) {
 		self.makeCaveMap()
@@ -579,8 +592,12 @@ func entityEarlierInDrawOrder(i, j interface{}) bool {
 }
 
 func (self *World) getGuid(name string) (result Guid) {
-	result = Guid(fmt.Sprintf("%v#%v", name, self.guidCounter))
-	self.guidCounter++
+	// If the guid's already in use, keep incrementing the counter until we get a fresh one.
+	for ok := true; ok; _, ok = self.entities[result] {
+		result = Guid(fmt.Sprintf("%v#%v", name, self.guidCounter))
+		self.guidCounter++
+	}
+
 	return
 }
 
