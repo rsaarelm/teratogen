@@ -45,22 +45,43 @@ func main() {
 			switch key {
 			case 'q':
 				Quit()
-			case 'u':
+			case 'e':
 				SmartMovePlayer(0)
-			case 'y':
+			case 'l':
 				SmartMovePlayer(1)
 			case 'i':
 				SmartMovePlayer(2)
-			case '.':
+			case 'k':
 				SmartMovePlayer(3)
-			case ',':
-				SmartMovePlayer(4)
-			case 'm':
-				SmartMovePlayer(5)
 			case 'n':
+				SmartMovePlayer(4)
+			case 'b':
+				SmartMovePlayer(5)
+			case 'h':
 				SmartMovePlayer(6)
-			case 'l':
+			case 'j':
 				SmartMovePlayer(7)
+			case ',':
+				SmartPlayerPickup()
+			case 'u':
+				// Show inventory.
+				Msg("Carried:")
+				first := true
+				item := world.GetPlayer().GetChild()
+				for item != nil {
+					if first {
+						first = false
+						Msg(" %v", item.Name)
+					} else {
+						Msg(", %v", item.Name)
+					}
+					item = item.GetSibling()
+				}
+				if first {
+					Msg(" nothing.\n")
+				} else {
+					Msg(".\n")
+				}
 			case 'p':
 				Msg("Some text for the buffer...\n")
 			case 'd':

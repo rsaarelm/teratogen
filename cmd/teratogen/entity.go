@@ -15,7 +15,7 @@ type Entity struct {
 	parentId  Guid
 	siblingId Guid
 	childId   Guid
-	class     EntityClass
+	Class     EntityClass
 
 	prop     map[string]interface{}
 	hideProp map[string]bool
@@ -39,7 +39,7 @@ func (self *Entity) GetPos() geom.Pt2I {
 
 func (self *Entity) GetGuid() Guid { return self.guid }
 
-func (self *Entity) GetClass() EntityClass { return self.class }
+func (self *Entity) GetClass() EntityClass { return self.Class }
 
 func (self *Entity) GetName() string { return self.Name }
 
@@ -83,6 +83,7 @@ func (self *Entity) InsertSelf(parent *Entity) {
 		self.siblingId = parent.GetChild().GetGuid()
 	}
 	parent.SetChild(self)
+	self.parentId = parent.GetGuid()
 }
 
 func (self *Entity) RemoveSelf() {
@@ -226,7 +227,7 @@ func (self *Entity) Serialize(out io.Writer) {
 	mem.WriteString(out, string(self.parentId))
 	mem.WriteString(out, string(self.siblingId))
 	mem.WriteString(out, string(self.childId))
-	mem.WriteInt32(out, int32(self.class))
+	mem.WriteInt32(out, int32(self.Class))
 
 	mem.WriteInt32(out, int32(len(self.prop)))
 	for name, val := range self.prop {
@@ -249,7 +250,7 @@ func (self *Entity) Deserialize(in io.Reader) {
 	self.parentId = Guid(mem.ReadString(in))
 	self.siblingId = Guid(mem.ReadString(in))
 	self.childId = Guid(mem.ReadString(in))
-	self.class = EntityClass(mem.ReadInt32(in))
+	self.Class = EntityClass(mem.ReadInt32(in))
 
 	self.prop = make(map[string]interface{})
 	self.hideProp = make(map[string]bool)

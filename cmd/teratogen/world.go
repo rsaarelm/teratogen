@@ -47,11 +47,15 @@ const (
 // draw order as well.
 type EntityClass int
 
+// XXX: Save compatibility is easily broken with this as adding things in the
+// categories displaces the values further up.
+
 const (
 	EmptyEntityClass EntityClass = iota
 
 	// Item classes
 	GlobeEntityClass // Globe items are used when stepped on.
+	ItemEntityClass  // Items can be picked up and dropped.
 
 	// Creature classes
 	CreatureEntityClassStartMarker
@@ -101,7 +105,7 @@ func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, 
 func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, target *Entity) {
 	target.IconId = self.IconId
 	target.Name = self.Name
-	target.class = self.Class
+	target.Class = self.Class
 	self.applyProps(prototypes, target)
 }
 
@@ -158,6 +162,8 @@ var prototypes = map[string]*entityPrototype{
 		PropMeleeSkill, Superb,
 		PropScale, 5),
 	"globe": NewPrototype("health globe", "", "items:1", GlobeEntityClass, 30, 0),
+	"plantpot": NewPrototype("plant pot", "", "items:3", ItemEntityClass, 200, 0),
+	"pistol": NewPrototype("pistol", "", "items:4", ItemEntityClass, 200, 0),
 }
 
 type LosState byte
@@ -547,6 +553,9 @@ func (self *World) drawEntities() {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
 	for e := range self.IterEntities() {
+		if e.GetParent() != nil {
+			continue
+		}
 		seq.Push(e)
 	}
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)

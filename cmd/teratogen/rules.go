@@ -214,3 +214,33 @@ func IsCreature(e *Entity) bool {
 	}
 	return false
 }
+
+func IsTakeableItem(e *Entity) bool { return e.Class == ItemEntityClass }
+
+func TakeItem(subject *Entity, item *Entity) {
+	item.InsertSelf(subject)
+	Msg("%v takes %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
+}
+
+func DropItem(subject *Entity, item *Entity) {
+	// TODO: Check if the subject is holding the item.
+	item.RemoveSelf()
+	item.MoveAbs(subject.GetPos())
+	Msg("%v drops %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
+}
+
+func SmartPlayerPickup() {
+	world := GetWorld()
+	player := world.GetPlayer()
+	for ent := range world.EntitiesAt(player.GetPos()) {
+		if ent == player {
+			continue
+		}
+		if IsTakeableItem(ent) {
+			Msg("Picked up %v.\n", ent.Name)
+			TakeItem(player, ent)
+			return
+		}
+	}
+	Msg("Nothing to take here.\n")
+}
