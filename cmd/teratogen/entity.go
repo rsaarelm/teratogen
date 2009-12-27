@@ -49,16 +49,34 @@ func (self *Entity) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
 func (self *Entity) GetParent() *Entity { return GetWorld().GetEntity(self.parentId) }
 
-func (self *Entity) SetParent(e *Entity) { self.parentId = e.GetGuid() }
+func (self *Entity) SetParent(e *Entity) {
+	if e != nil {
+		self.parentId = e.GetGuid()
+	} else {
+		self.parentId = *new(Guid)
+	}
+}
 
 func (self *Entity) GetChild() *Entity { return GetWorld().GetEntity(self.childId) }
 
-func (self *Entity) SetChild(e *Entity) { self.childId = e.GetGuid() }
+func (self *Entity) SetChild(e *Entity) {
+	if e != nil {
+		self.childId = e.GetGuid()
+	} else {
+		self.childId = *new(Guid)
+	}
+}
 
 // GetSibling return the next sibling of the entity, or nil if there are none.
 func (self *Entity) GetSibling() *Entity { return GetWorld().GetEntity(self.siblingId) }
 
-func (self *Entity) SetSibling(e *Entity) { self.siblingId = e.GetGuid() }
+func (self *Entity) SetSibling(e *Entity) {
+	if e != nil {
+		self.siblingId = e.GetGuid()
+	} else {
+		self.siblingId = *new(Guid)
+	}
+}
 
 func (self *Entity) iterateChildren(c chan<- *Entity) {
 	node := self.GetChild()
@@ -69,6 +87,8 @@ func (self *Entity) iterateChildren(c chan<- *Entity) {
 		}
 		node = node.GetSibling()
 	}
+
+	close(c)
 }
 
 func (self *Entity) Contents() <-chan *Entity {
