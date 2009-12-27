@@ -111,8 +111,12 @@ func (self *Entity) RemoveSelf() {
 	self.parentId = *new(Guid)
 	if parent != nil {
 		if parent.GetChild().GetGuid() == self.GetGuid() {
+			// First child of parent, modify parent's child
+			// reference.
 			parent.SetChild(self.GetSibling())
 		} else {
+			// Part of a sibling list, modify elder siblings
+			// sibling reference.
 			node := parent.GetChild()
 			for {
 				if node.GetSibling() == nil {
@@ -126,6 +130,8 @@ func (self *Entity) RemoveSelf() {
 				node = node.GetSibling()
 			}
 		}
+		// Move to where the parent is in the world.
+		self.MoveAbs(parent.GetPos())
 	}
 	self.siblingId = *new(Guid)
 }

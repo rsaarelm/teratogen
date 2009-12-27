@@ -82,6 +82,16 @@ func main() {
 				} else {
 					Msg(".\n")
 				}
+			case 's':
+				// Drop item.
+				// XXX: No selection UI yet, just drop the first one in inventory.
+				item := world.GetPlayer().GetChild()
+				if item != nil {
+					item.RemoveSelf()
+					Msg("Dropped %v.\n", item.GetName())
+				} else {
+					Msg("Nothing to drop.\n")
+				}
 			case 'p':
 				Msg("Some text for the buffer...\n")
 			case 'd':
