@@ -236,8 +236,12 @@ func SmartPlayerPickup() {
 		if ent == player {
 			continue
 		}
+		// It's inside something instead of on the floor. Probably
+		// already carried by the player.
+		if ent.GetParent() != nil {
+			continue
+		}
 		if IsTakeableItem(ent) {
-			Msg("Picked up %v.\n", ent.Name)
 			TakeItem(player, ent)
 			return
 		}
