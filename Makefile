@@ -14,7 +14,7 @@ clean.cmds: $(addsuffix .clean, $(CMDS))
 build.libs:
 	$(MAKE) -C pkg all
 
-test:
+test: deps build.libs
 	$(MAKE) -C pkg test
 
 # XXX: Hardwired to clean the command before build to hack around problems
