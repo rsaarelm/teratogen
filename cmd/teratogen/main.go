@@ -3,6 +3,7 @@ package main
 import (
 	"hyades/dbg"
 	"hyades/num"
+	"hyades/txt"
 	"os"
 )
 
@@ -28,6 +29,8 @@ func main() {
 
 	world.InitLevel(currentLevel)
 
+	keymap := txt.KeyMap(txt.ColemakMap)
+
 	// Game logic
 	go func() {
 		for {
@@ -38,32 +41,32 @@ func main() {
 			// ergonomic split keyboard.
 
 			GetUISync()
-			key := GetKey()
+			key := keymap.Map(GetKey())
 			// When key pressed, clear the message buffer.
 			MarkMsgLinesSeen()
 
 			switch key {
 			case 'q':
 				Quit()
-			case 'e':
-				SmartMovePlayer(0)
-			case 'l':
-				SmartMovePlayer(1)
-			case 'i':
-				SmartMovePlayer(2)
 			case 'k':
-				SmartMovePlayer(3)
+				SmartMovePlayer(0)
+			case 'u':
+				SmartMovePlayer(1)
+			case 'l':
+				SmartMovePlayer(2)
 			case 'n':
+				SmartMovePlayer(3)
+			case 'j':
 				SmartMovePlayer(4)
 			case 'b':
 				SmartMovePlayer(5)
 			case 'h':
 				SmartMovePlayer(6)
-			case 'j':
+			case 'y':
 				SmartMovePlayer(7)
 			case ',':
 				SmartPlayerPickup()
-			case 'u':
+			case 'i':
 				// Show inventory.
 				Msg("Carried:")
 				first := true
@@ -82,7 +85,7 @@ func main() {
 				} else {
 					Msg(".\n")
 				}
-			case 's':
+			case 'd':
 				// Drop item.
 				// XXX: No selection UI yet, just drop the first one in inventory.
 				item := world.GetPlayer().GetChild()
@@ -92,11 +95,6 @@ func main() {
 				} else {
 					Msg("Nothing to drop.\n")
 				}
-			case 'p':
-				Msg("Some text for the buffer...\n")
-			case 'd':
-				Msg("You decide to blow up a bit.\n")
-				GameOver("died of exploding head syndrome.")
 			case '>':
 				PlayerEnterStairs()
 			case 'c':
