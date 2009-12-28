@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"hyades/geom"
+	"hyades/gfx"
 	"hyades/num"
 	"hyades/txt"
+	"math"
 )
 
 func (self *Entity) MaxWounds() int { return num.IntMax(1, (self.GetI(PropToughness)+3)*2+1) }
@@ -49,6 +51,10 @@ func (self *Entity) ArmorFactor() int {
 func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	world := GetWorld()
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
+
+	sx, sy := CenterDrawPos(self.GetPos())
+	col, _ := gfx.ParseColor("#800")
+	go ParticleAnim(ui.context, ui.AddAnim(NewAnim(0.0)), sx, sy, 2e8, 30.0, col, int(math.Pow(1.5, float64(woundLevel+3))))
 
 	if self.IsKilledByWounds() {
 		if self == world.GetPlayer() {

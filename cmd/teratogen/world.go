@@ -23,8 +23,17 @@ const numTerrainCells = mapWidth * mapHeight
 
 var world *World
 
+func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
+	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
+}
+
+func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
+	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
+}
+
 func Draw(spriteId string, x, y int) {
-	DrawSprite(spriteId, TileW*x+xDrawOffset, TileH*y+yDrawOffset)
+	sx, sy := DrawPos(geom.Pt2I{x, y})
+	DrawSprite(spriteId, sx, sy)
 }
 
 // Behavioral terrain types.

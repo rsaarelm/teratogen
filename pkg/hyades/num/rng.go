@@ -2,6 +2,7 @@ package num
 
 import (
 	"exp/iterable"
+	"math"
 	"rand"
 	"time"
 )
@@ -17,18 +18,19 @@ func WithProb(prob float64) bool { return rand.Float64() < prob }
 
 func OneChanceIn(num int) bool { return rand.Intn(num) == 0 }
 
-// Seed the random number generator from the system clock. Return the
-// generator state so that the same value can be re-used if desired.
+// RngSeedFromClock seeds the random number generator from the system clock.
+// Return the generator state so that the same value can be re-used if
+// desired.
 func RngSeedFromClock() (result RandState) {
 	result = RandState(time.Nanoseconds())
 	RestoreRngState(result)
 	return
 }
 
-// Generate a new random number generator state, allow returning the generator
-// to this state. As currently implemented, this operation will change the
-// state of the random number generator. It may also reduce entropy of the
-// generator if used frequently.
+// SaveRntState generates a new random number generator state, which can be
+// used to return the generator to this state. As currently implemented, this
+// operation changes the state of the random number generator. It may also
+// reduce entropy of the generator if used frequently.
 func SaveRngState() (result RandState) {
 	// Since we can't get at the actual rng state, use a trick instead.
 	// Use the rng to generate a new seed value, and both seed the
@@ -40,4 +42,9 @@ func SaveRngState() (result RandState) {
 	return
 }
 
+// RestoreRngState restores the state of the random number generator from the
+// value stored by SaveRngState.
 func RestoreRngState(state RandState) { rand.Seed(int64(state)) }
+
+// RandomAngle returns a random angle in radians.
+func RandomAngle() (radian float64) { return rand.Float64() * 2.0 * math.Pi }

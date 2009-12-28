@@ -70,3 +70,12 @@ func Fracf(f float64) (frac float64) {
 
 // Linear interpolation between a and b using x = [0, 1].
 func Lerp(a, b float64, x float64) float64 { return a + (b-a)*x }
+
+func Clamp(min, max, x float64) float64 {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
+}
