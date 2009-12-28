@@ -1,8 +1,10 @@
 package main
 
 import (
+	"container/vector"
 	"exp/draw"
 	"fmt"
+	"hyades/alg"
 	"hyades/dbg"
 	"hyades/sdl"
 	"hyades/txt"
@@ -33,6 +35,8 @@ type UI struct {
 
 	// Show message lines beyond this to player.
 	oldestLineSeen int
+
+	anims *vector.Vector
 }
 
 var ui *UI
@@ -51,8 +55,34 @@ func newUI() (result *UI) {
 	context.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true
+	result.anims = new(vector.Vector)
 
 	return
+}
+
+func animSort(i, j interface{}) bool { return i.(*Anim).Z < j.(*Anim).Z }
+
+func AnimTest() { go TestAnim(ui.context, ui.AddAnim(NewAnim(0.0))) }
+
+func (self *UI) AddAnim(anim *Anim) *Anim {
+	self.anims.Push(anim)
+	return anim
+}
+
+func (self *UI) DrawAnims(timeElapsedNs int64) {
+	alg.PredicateSort(animSort, self.anims)
+	for i := 0; i < self.anims.Len(); i++ {
+		anim := self.anims.At(i).(*Anim)
+		if anim.Closed() {
+			self.anims.Delete(i)
+			i--
+			continue
+		}
+		// Tell the anim it can draw itself.
+		anim.UpdateChan <- timeElapsedNs
+		// Wait for the anim to call back that it's completed drawing itself.
+		<-anim.UpdateChan
+	}
 }
 
 func InitUI() { ui = newUI() }
@@ -106,16 +136,16 @@ func MsgMore() {
 
 func MainUILoop() {
 	updater := time.Tick(redrawIntervalNs)
+	lastTime := time.Nanoseconds()
+	timeElapsed := int64(0)
 
 	for ui.running {
-		// XXX: Can't put grabbing and releasing sync next to each
-		// other, to the very beginning and end of the loop, or the
-		// script side will never get sync.
-
 		if capFps {
 			// Wait for the next tick before repainting.
 			<-updater
 		}
+		timeElapsed = time.Nanoseconds() - lastTime
+		lastTime += timeElapsed
 
 		ui.context.FillRect(draw.Rect(0, 0, screenWidth, screenHeight),
 			image.RGBAColor{0, 0, 0, 255})
@@ -135,6 +165,8 @@ func MainUILoop() {
 			TileW*41, TileH*0)
 		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
 			TileW*41, TileH*1)
+
+		ui.DrawAnims(timeElapsed)
 
 		ReleaseUISync()
 

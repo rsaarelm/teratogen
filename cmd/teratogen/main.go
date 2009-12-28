@@ -48,6 +48,8 @@ func main() {
 			switch key {
 			case 'q':
 				Quit()
+			case 'a':
+				AnimTest()
 			case 'k':
 				SmartMovePlayer(0)
 			case 'u':
