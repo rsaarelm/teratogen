@@ -18,6 +18,9 @@ loop: for {
 		// When key pressed, clear the message buffer.
 
 		switch key {
+		case '.':
+			// Idle.
+			break loop
 		case 'q':
 			Quit()
 		case 'a':
@@ -52,7 +55,7 @@ loop: for {
 			for i, a := range words {
 				cvt[i] = a
 			}
-			x, ok := MultiChoiceDialogV("Select word.", cvt)
+			x, ok := MultiChoiceDialogA("Select word.", cvt)
 			if ok {
 				Msg("%d: %v\n", x, cvt[x])
 			} else {
@@ -81,6 +84,8 @@ loop: for {
 			} else {
 				Msg(".\n")
 			}
+		case 'e':
+			EquipMenu()
 		case 'd':
 			// Drop item.
 			player := world.GetPlayer()

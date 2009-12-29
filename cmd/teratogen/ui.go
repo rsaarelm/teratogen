@@ -181,10 +181,10 @@ func MainUILoop() {
 }
 
 func MultiChoiceDialog(prompt string, options ...) (choice int, ok bool) {
-	return MultiChoiceDialogV(prompt, alg.UnpackEllipsis(options))
+	return MultiChoiceDialogA(prompt, alg.UnpackEllipsis(options))
 }
 
-func MultiChoiceDialogV(prompt string, options []interface{}) (choice int, ok bool) {
+func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bool) {
 	// TODO: More structured positioning.
 	numVisible := 10
 	xOff := 0
@@ -269,9 +269,37 @@ func ObjectChoiceDialog(prompt string, objs []interface{}) (result interface{}, 
 			names[i] = fmt.Sprint(obj)
 		}
 	}
-	idx, ok := MultiChoiceDialogV(prompt, names)
+	idx, ok := MultiChoiceDialogA(prompt, names)
 	if ok {
 		result = objs[idx]
 	}
 	return
+}
+
+func EquipMenu() {
+	player := GetWorld().GetPlayer()
+	slots := [...]string{PropBodyArmorGuid, PropMeleeWeaponGuid, PropGunWeaponGuid}
+	names := [...]string{"body armor", "melee weapon", "gun"}
+	options := make([]interface{}, len(slots))
+	items := make([]interface{}, len(slots))
+	for i, prop := range slots {
+
+		if ent, ok := player.GetGuidOpt(prop); ok {
+			items[i] = ent
+			options[i] = fmt.Sprintf("%s: %v", names[i], ent)
+		} else {
+			options[i] = fmt.Sprintf("%s: <nothing>", names[i])
+		}
+	}
+
+	choice, ok := MultiChoiceDialogA("Equip/unequip item", options)
+	if !ok {
+		Msg("Okay, then.\n")
+		return
+	}
+	if items[choice] != nil {
+		Msg("unequip TODO\n")
+	} else {
+		Msg("equip TODO\n")
+	}
 }

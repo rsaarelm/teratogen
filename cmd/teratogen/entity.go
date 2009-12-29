@@ -211,6 +211,19 @@ func (self *Entity) GetS(name string) string {
 	return prop.(string)
 }
 
+// GetGuidOpt returns the entity for the guid in the properties if the
+// property is present. If the property isn't a guid or if the guid's object
+// can't be retrieved, runtime error.
+func (self *Entity) GetGuidOpt(name string) (obj *Entity, ok bool) {
+	prop := self.Get(name)
+	if prop == nil {
+		ok = false
+		return
+	}
+	obj = GetWorld().GetEntity(prop.(Guid))
+	return
+}
+
 func (self *Entity) Has(name string) bool { return self.Get(name) != nil }
 
 func (self *Entity) Hide(name string) *Entity {

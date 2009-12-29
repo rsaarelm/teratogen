@@ -9,9 +9,7 @@ import (
 	"hyades/mem"
 	"hyades/num"
 	"io"
-	"math"
 	"rand"
-	"reflect"
 )
 
 const mapWidth = 40
@@ -51,129 +49,6 @@ const (
 	TerrainDirtFront
 	TerrainDirt
 )
-
-// Put item classes before creature classes, so we can use this to control
-// draw order as well.
-type EntityClass int
-
-// XXX: Save compatibility is easily broken with this as adding things in the
-// categories displaces the values further up.
-
-const (
-	EmptyEntityClass EntityClass = iota
-
-	// Item classes
-	GlobeEntityClass // Globe items are used when stepped on.
-	ItemEntityClass  // Items can be picked up and dropped.
-
-	// Creature classes
-	CreatureEntityClassStartMarker
-
-	PlayerEntityClass
-	EnemyEntityClass
-)
-
-type entityPrototype struct {
-	Name     string
-	Parent   string
-	IconId   string
-	Class    EntityClass
-	Scarcity int
-	MinDepth int
-	Props    map[string]interface{}
-}
-
-func NewPrototype(name, parent, iconId string, class EntityClass, scarcity, minDepth int, props ...) (result *entityPrototype) {
-	result = new(entityPrototype)
-	result.Name = name
-	result.Parent = parent
-	result.IconId = iconId
-	result.Class = class
-	result.Scarcity = scarcity
-	result.MinDepth = minDepth
-
-	// Custom settings from varargs.
-	v := reflect.NewValue(props).(*reflect.StructValue)
-	dbg.Assert(v.NumField()%2 == 0, "NewPrototype: Proplist length is odd.")
-	result.Props = make(map[string]interface{})
-	for i := 0; i < v.NumField(); i += 2 {
-		result.Props[v.Field(i).Interface().(string)] = v.Field(i + 1).Interface()
-	}
-	return
-}
-
-func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, target *Entity) {
-	if parent, ok := prototypes[self.Parent]; ok {
-		parent.applyProps(prototypes, target)
-	}
-	for key, val := range self.Props {
-		target.Set(key, val)
-	}
-}
-
-func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, target *Entity) {
-	target.IconId = self.IconId
-	target.Name = self.Name
-	target.Class = self.Class
-	self.applyProps(prototypes, target)
-}
-
-func (self *entityPrototype) SpawnWeight(depth int) (result float64) {
-	const epsilon = 1e-7
-	const outOfDepthFactor = 2.0
-	scarcity := float64(self.Scarcity)
-
-	if depth < self.MinDepth {
-		// Exponentially increase the scarcity for each level out of depth
-		outOfDepth := self.MinDepth - depth
-		scarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
-	}
-
-	result = 1.0 / scarcity
-	// Make too scarse weights just plain zero.
-	if result < epsilon {
-		result = 0.0
-	}
-	return
-}
-
-var prototypes = map[string]*entityPrototype{
-	// Base prototype for creatures.
-	"creature": NewPrototype("creature", "", "", EnemyEntityClass, -1, 0,
-		FlagObstacle, 1,
-		PropStrength, Fair,
-		PropToughness, Fair,
-		PropMeleeSkill, Fair,
-		PropScale, 0,
-		PropWounds, 0,
-		PropDensity, 0),
-	"protagonist": NewPrototype("protagonist", "creature", "chars:0", PlayerEntityClass, -1, 0,
-		PropStrength, Superb,
-		PropToughness, Good,
-		PropMeleeSkill, Good),
-	"zombie": NewPrototype("zombie", "creature", "chars:1", EnemyEntityClass, 100, 0,
-		PropStrength, Fair,
-		PropToughness, Poor,
-		PropMeleeSkill, Fair),
-	"dogthing": NewPrototype("dog-thing", "creature", "chars:2", EnemyEntityClass, 150, 0,
-		PropStrength, Fair,
-		PropToughness, Fair,
-		PropMeleeSkill, Good,
-		PropScale, -1),
-	"ogre": NewPrototype("ogre", "creature", "chars:15", EnemyEntityClass, 600, 5,
-		PropStrength, Great,
-		PropToughness, Great,
-		PropMeleeSkill, Fair,
-		PropScale, 3),
-	"boss1": NewPrototype("elder spawn", "creature", "chars:5", EnemyEntityClass, 3000, 10,
-		PropStrength, Legendary,
-		PropToughness, Legendary,
-		PropMeleeSkill, Superb,
-		PropScale, 5),
-	"globe": NewPrototype("health globe", "", "items:1", GlobeEntityClass, 30, 0),
-	"plantpot": NewPrototype("plant pot", "", "items:3", ItemEntityClass, 200, 0),
-	"pistol": NewPrototype("pistol", "", "items:4", ItemEntityClass, 200, 0),
-}
 
 type LosState byte
 
