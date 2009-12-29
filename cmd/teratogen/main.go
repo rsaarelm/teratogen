@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hyades/alg"
+	"exp/iterable"
 	"hyades/dbg"
 	"hyades/keyboard"
 	"hyades/num"
@@ -90,7 +90,8 @@ loop: for {
 			// Drop item.
 			player := world.GetPlayer()
 			if player.HasContents() {
-				item, ok := ObjectChoiceDialog("Drop which item?", alg.ChanData(player.Contents()))
+				item, ok := ObjectChoiceDialog(
+					"Drop which item?", iterable.Data(player.Contents()))
 				if ok {
 					item := item.(*Entity)
 					item.RemoveSelf()

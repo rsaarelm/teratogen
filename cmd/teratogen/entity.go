@@ -1,6 +1,7 @@
 package main
 
 import (
+	"exp/iterable"
 	"hyades/dbg"
 	"hyades/geom"
 	"hyades/mem"
@@ -85,7 +86,7 @@ func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
 	for node != nil {
 		c <- node
 		if recurse {
-			for i := range node.RecursiveContents() {
+			for i := range node.RecursiveContents().Iter() {
 				c <- i
 			}
 		}
@@ -95,20 +96,27 @@ func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
 	close(c)
 }
 
+type entityContentIterable struct {
+	e         *Entity
+	recursive bool
+}
+
+func (self *entityContentIterable) Iter() <-chan interface{} {
+	c := make(chan interface{})
+	self.e.iterateChildren(c, self.recursive)
+	return c
+}
+
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
-func (self *Entity) RecursiveContents() <-chan interface{} {
-	c := make(chan interface{})
-	go self.iterateChildren(c, true)
-	return c
+func (self *Entity) RecursiveContents() iterable.Iterable {
+	return &entityContentIterable{self, true}
 }
 
 // Contents iterates through the children but not the grandchildren of the
 // entity.
-func (self *Entity) Contents() <-chan interface{} {
-	c := make(chan interface{})
-	go self.iterateChildren(c, false)
-	return c
+func (self *Entity) Contents() iterable.Iterable {
+	return &entityContentIterable{self, false}
 }
 
 func (self *Entity) HasContents() bool { return self.GetChild() != nil }
