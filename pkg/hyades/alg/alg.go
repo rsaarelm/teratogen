@@ -44,3 +44,16 @@ func UnpackEllipsis(a ...) (result []interface{}) {
 	}
 	return
 }
+
+// ChanData reads the output from a channel into an array.
+func ChanData(in <-chan interface{}) (result []interface{}) {
+	vec := new(vector.Vector)
+	for x := range in {
+		vec.Push(x)
+	}
+	result = make([]interface{}, vec.Len())
+	for i, _ := range result {
+		result[i] = vec.At(i)
+	}
+	return
+}

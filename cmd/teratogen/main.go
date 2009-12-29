@@ -1,6 +1,7 @@
 package main
 
 import (
+	"hyades/alg"
 	"hyades/dbg"
 	"hyades/keyboard"
 	"hyades/num"
@@ -82,12 +83,17 @@ loop: for {
 			}
 		case 'd':
 			// Drop item.
-			// XXX: No selection UI yet, just drop the first one in inventory.
-			item := world.GetPlayer().GetChild()
-			if item != nil {
-				item.RemoveSelf()
-				Msg("Dropped %v.\n", item.GetName())
-				break loop
+			player := world.GetPlayer()
+			if player.HasContents() {
+				item, ok := ObjectChoiceDialog("Drop which item?", alg.ChanData(player.Contents()))
+				if ok {
+					item := item.(*Entity)
+					item.RemoveSelf()
+					Msg("Dropped %v.\n", item.GetName())
+					break loop
+				} else {
+					Msg("Okay, then.\n")
+				}
 			} else {
 				Msg("Nothing to drop.\n")
 			}

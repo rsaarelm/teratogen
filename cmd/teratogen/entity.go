@@ -43,6 +43,8 @@ func (self *Entity) GetClass() EntityClass { return self.Class }
 
 func (self *Entity) GetName() string { return self.Name }
 
+func (self *Entity) String() string { return self.Name }
+
 func (self *Entity) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
 func (self *Entity) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
@@ -78,12 +80,14 @@ func (self *Entity) SetSibling(e *Entity) {
 	}
 }
 
-func (self *Entity) iterateChildren(c chan<- *Entity) {
+func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
 	node := self.GetChild()
 	for node != nil {
 		c <- node
-		for i := range node.Contents() {
-			c <- i
+		if recurse {
+			for i := range node.RecursiveContents() {
+				c <- i
+			}
 		}
 		node = node.GetSibling()
 	}
@@ -91,11 +95,23 @@ func (self *Entity) iterateChildren(c chan<- *Entity) {
 	close(c)
 }
 
-func (self *Entity) Contents() <-chan *Entity {
-	c := make(chan *Entity)
-	go self.iterateChildren(c)
+// RecursiveContents iterates through all children and grandchildren of the
+// entity.
+func (self *Entity) RecursiveContents() <-chan interface{} {
+	c := make(chan interface{})
+	go self.iterateChildren(c, true)
 	return c
 }
+
+// Contents iterates through the children but not the grandchildren of the
+// entity.
+func (self *Entity) Contents() <-chan interface{} {
+	c := make(chan interface{})
+	go self.iterateChildren(c, false)
+	return c
+}
+
+func (self *Entity) HasContents() bool { return self.GetChild() != nil }
 
 func (self *Entity) InsertSelf(parent *Entity) {
 	self.RemoveSelf()

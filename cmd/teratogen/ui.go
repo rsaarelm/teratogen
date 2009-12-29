@@ -214,7 +214,7 @@ func MultiChoiceDialogV(prompt string, options []interface{}) (choice int, ok bo
 				if key == 10 {
 					key = 0
 				}
-				DrawString(xOff, yOff+(2+i-pos)*lineH, "%d) %s", key, options[i])
+				DrawString(xOff, yOff+(2+i-pos)*lineH, "%d) %v", key, options[i])
 			}
 			if moreBelow {
 				DrawString(xOff, yOff+(numVisible+2)*lineH, "--more--")
@@ -258,4 +258,20 @@ func MultiChoiceDialogV(prompt string, options []interface{}) (choice int, ok bo
 		}
 	}
 	panic("MultiChoiceDialog exited unexpectedly")
+}
+
+func ObjectChoiceDialog(prompt string, objs []interface{}) (result interface{}, ok bool) {
+	names := make([]interface{}, len(objs))
+	for i, obj := range objs {
+		if stringer, ok := obj.(fmt.Stringer); ok {
+			names[i] = stringer.String()
+		} else {
+			names[i] = fmt.Sprint(obj)
+		}
+	}
+	idx, ok := MultiChoiceDialogV(prompt, names)
+	if ok {
+		result = objs[idx]
+	}
+	return
 }

@@ -298,7 +298,7 @@ func (self *World) InitLevel(depth int) {
 	keep := new(vector.Vector)
 	keep.Push(player)
 	self.entities[self.playerId] = player
-	for ent := range player.Contents() {
+	for ent := range player.RecursiveContents() {
 		keep.Push(ent)
 	}
 
