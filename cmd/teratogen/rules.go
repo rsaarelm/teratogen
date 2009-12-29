@@ -298,17 +298,18 @@ func MovePlayerDir(dir int) {
 	// too.
 
 	// See if the player collided with something fun.
-	for e := range world.EntitiesAt(player.GetPos()) {
-		if e == player {
+	for o := range world.EntitiesAt(player.GetPos()).Iter() {
+		ent := o.(*Entity)
+		if ent == player {
 			continue
 		}
-		if e.GetClass() == GlobeEntityClass {
+		if ent.GetClass() == GlobeEntityClass {
 			// TODO: Different globe effects.
 			if player.GetI(PropWounds) > 0 {
 				Msg("The globe bursts. You feel better.\n")
 				player.Set(PropWounds, player.GetI(PropWounds)-1)
 				// Deferring this until the iteration is over.
-				defer world.DestroyEntity(e)
+				defer world.DestroyEntity(ent)
 			}
 		}
 	}
@@ -322,7 +323,8 @@ func SmartMovePlayer(dir int) {
 	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
-	for ent := range world.EntitiesAt(target) {
+	for o := range world.EntitiesAt(target).Iter() {
+		ent := o.(*Entity)
 		if IsEnemyOf(player, ent) {
 			Attack(player, ent)
 			return
@@ -335,7 +337,8 @@ func SmartMovePlayer(dir int) {
 func RunAI() {
 	world := GetWorld()
 	enemyCount := 0
-	for crit := range world.IterCreatures() {
+	for o := range world.Creatures().Iter() {
+		crit := o.(*Entity)
 		if crit != world.GetPlayer() {
 			enemyCount++
 		}
@@ -392,7 +395,8 @@ func DropItem(subject *Entity, item *Entity) {
 func SmartPlayerPickup() *Entity {
 	world := GetWorld()
 	player := world.GetPlayer()
-	for ent := range world.EntitiesAt(player.GetPos()) {
+	for o := range world.EntitiesAt(player.GetPos()).Iter() {
+		ent := o.(*Entity)
 		if ent == player {
 			continue
 		}

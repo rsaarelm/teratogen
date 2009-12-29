@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/vector"
+	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
@@ -332,23 +333,14 @@ func (self *World) SetTerrain(pos geom.Pt2I, t TerrainType) {
 	}
 }
 
-func (self *World) EntitiesAt(pos geom.Pt2I) <-chan *Entity {
-	c := make(chan *Entity)
-	go func() {
-		for _, ent := range self.entities {
-			if ent.GetPos().Equals(pos) {
-				c <- ent
-			}
-		}
-		close(c)
-	}()
-	return c
+type worldEntityIterable struct {
+	w *World
 }
 
-func (self *World) IterEntities() <-chan *Entity {
-	c := make(chan *Entity)
+func (self *worldEntityIterable) Iter() <-chan interface{} {
+	c := make(chan interface{})
 	go func() {
-		for _, ent := range self.entities {
+		for _, ent := range self.w.entities {
 			c <- ent
 		}
 		close(c)
@@ -356,17 +348,18 @@ func (self *World) IterEntities() <-chan *Entity {
 	return c
 }
 
-func (self *World) IterCreatures() <-chan *Entity {
-	c := make(chan *Entity)
-	go func() {
-		for _, ent := range self.entities {
-			if IsCreature(ent) {
-				c <- ent
-			}
-		}
-		close(c)
-	}()
-	return c
+func (self *World) Entities() iterable.Iterable {
+	return &worldEntityIterable{self}
+}
+
+func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
+	posPred := func(obj interface{}) bool { return obj.(*Entity).GetPos().Equals(pos) }
+	return iterable.Filter(self.Entities(), posPred)
+}
+
+func (self *World) Creatures() iterable.Iterable {
+	pred := func(obj interface{}) bool { return IsCreature(obj.(*Entity)) }
+	return iterable.Filter(self.Entities(), pred)
 }
 
 
@@ -374,8 +367,9 @@ func (self *World) IsOpen(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return false
 	}
-	for e := range self.EntitiesAt(pos) {
-		if e.Has(FlagObstacle) {
+	for o := range self.EntitiesAt(pos).Iter() {
+		ent := o.(*Entity)
+		if ent.Has(FlagObstacle) {
 			return false
 		}
 	}
@@ -449,11 +443,13 @@ func (self *World) drawTerrain() {
 func (self *World) drawEntities() {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
-	for e := range self.IterEntities() {
-		if e.GetParent() != nil {
+	for o := range self.Entities().Iter() {
+		ent := o.(*Entity)
+		if ent.GetParent() != nil {
+			// Skip entities inside something.
 			continue
 		}
-		seq.Push(e)
+		seq.Push(ent)
 	}
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 

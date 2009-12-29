@@ -81,18 +81,20 @@ func (self *Entity) SetSibling(e *Entity) {
 	}
 }
 
-func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
+func (self *Entity) iterateChildrenWalk(c chan<- interface{}, recurse bool) {
 	node := self.GetChild()
 	for node != nil {
 		c <- node
 		if recurse {
-			for i := range node.RecursiveContents().Iter() {
-				c <- i
-			}
+
+			node.iterateChildrenWalk(c, recurse)
 		}
 		node = node.GetSibling()
 	}
+}
 
+func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
+	self.iterateChildrenWalk(c, recurse)
 	close(c)
 }
 
@@ -103,7 +105,7 @@ type entityContentIterable struct {
 
 func (self *entityContentIterable) Iter() <-chan interface{} {
 	c := make(chan interface{})
-	self.e.iterateChildren(c, self.recursive)
+	go self.e.iterateChildren(c, self.recursive)
 	return c
 }
 
