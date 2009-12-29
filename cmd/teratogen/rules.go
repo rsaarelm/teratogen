@@ -229,7 +229,7 @@ func DropItem(subject *Entity, item *Entity) {
 	Msg("%v drops %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
 }
 
-func SmartPlayerPickup() {
+func SmartPlayerPickup() *Entity {
 	world := GetWorld()
 	player := world.GetPlayer()
 	for ent := range world.EntitiesAt(player.GetPos()) {
@@ -243,8 +243,9 @@ func SmartPlayerPickup() {
 		}
 		if IsTakeableItem(ent) {
 			TakeItem(player, ent)
-			return
+			return ent
 		}
 	}
 	Msg("Nothing to take here.\n")
+	return nil
 }

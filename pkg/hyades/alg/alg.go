@@ -1,7 +1,10 @@
+// Miscellaneous low-level program logic utilities.
+
 package alg
 
 import (
 	"container/vector"
+	"reflect"
 	"sort"
 )
 
@@ -29,4 +32,15 @@ func (self *sortVec) Swap(i, j int) { self.data.Swap(i, j) }
 func PredicateSort(isLess func(i, j interface{}) bool, items *vector.Vector) {
 	sortable := &sortVec{items, isLess}
 	sort.Sort(sortable)
+}
+
+// UnpackEllipsis converts a ... parameter into an array of interface{}
+// values, each being one parameter in the ... list.
+func UnpackEllipsis(a ...) (result []interface{}) {
+	v := reflect.NewValue(a).(*reflect.StructValue)
+	result = make([]interface{}, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		result[i] = v.Field(i).Interface()
+	}
+	return
 }

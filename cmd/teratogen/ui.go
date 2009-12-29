@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/num"
 	"hyades/sdl"
 	"hyades/txt"
 	"image"
@@ -42,6 +43,9 @@ type UI struct {
 var ui *UI
 
 var uiMutex = new(sync.Mutex)
+
+// TODO: Configure externally.
+var keymap = txt.KeyMap(txt.ColemakMap)
 
 func GetUISync() { uiMutex.Lock() }
 
@@ -98,8 +102,8 @@ func DrawChar(char int, x, y int) {
 }
 
 // TODO: Support color
-func DrawString(txt string, x, y int) {
-	for _, char := range txt {
+func DrawString(x, y int, format string, a ...) {
+	for _, char := range fmt.Sprintf(format, a) {
 		DrawChar(char, x, y)
 		x += TileW
 	}
@@ -159,12 +163,12 @@ func MainUILoop() {
 		world.Draw()
 
 		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			DrawString(GetMsg().GetLine(i), TileW*0, TileH*(21+(i-ui.oldestLineSeen)))
+			DrawString(TileW*0, TileH*(21+(i-ui.oldestLineSeen)), GetMsg().GetLine(i))
 		}
-		DrawString(fmt.Sprintf("Strength: %v", txt.Capitalize(LevelDescription(world.GetPlayer().GetI(PropStrength)))),
-			TileW*41, TileH*0)
-		DrawString(fmt.Sprintf("%v", txt.Capitalize(world.GetPlayer().WoundDescription())),
-			TileW*41, TileH*1)
+		DrawString(TileW*41, TileH*0,
+			"Strength: %v", txt.Capitalize(LevelDescription(world.GetPlayer().GetI(PropStrength))))
+		DrawString(TileW*41, TileH*1,
+			"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
 
 		ui.DrawAnims(timeElapsed)
 
@@ -173,4 +177,77 @@ func MainUILoop() {
 		ui.context.FlushImage()
 	}
 	ui.context.Close()
+}
+
+func MultiChoiceDialog(options ...) int {
+	return MultiChoiceDialogV(alg.UnpackEllipsis(options))
+}
+
+func MultiChoiceDialogV(options []interface{}) int {
+	// TODO: More structured positioning.
+	numVisible := 10
+	xOff := 0
+	yOff := TileH * 21
+	lineH := TileH
+	MarkMsgLinesSeen()
+	pos := 0
+
+	// Set running to false to shut off the animation for the dialog.
+	running := true
+	defer func() { running = false }()
+
+	// Display function.
+	go func(anim *Anim) {
+		defer anim.Close()
+		for running {
+			<-anim.UpdateChan
+			moreAbove := pos > 0
+			moreBelow := len(options)-pos > numVisible
+
+			if moreAbove {
+				DrawString(xOff, yOff, "...more...")
+			}
+			for i := pos; i < num.IntMin(pos+numVisible, len(options)); i++ {
+				key := i - pos + 1
+				if key == 10 {
+					key = 0
+				}
+				DrawString(xOff, yOff+(1+i-pos)*lineH, "%d) %s", key, options[i])
+			}
+			if moreBelow {
+				DrawString(xOff, yOff+(numVisible+1)*lineH, "...more...")
+			}
+
+			anim.UpdateChan <- 0
+		}
+	}(ui.AddAnim(NewAnim(0.0)))
+
+	for {
+		moreAbove := pos > 0
+		moreBelow := len(options)-pos > numVisible
+		maxOpt := len(options) - pos
+
+		key := keymap.Map(GetKey())
+		switch {
+		case key == 'k' || key == sdl.K_UP || key == sdl.K_KP8:
+			if moreAbove {
+				pos--
+			}
+		case key == 'j' || key == sdl.K_DOWN || key == sdl.K_KP2:
+			if moreBelow {
+				pos++
+			}
+		// TODO: PgUp, PgDown
+		case key >= '0' && key <= '9':
+			choice := key - '1'
+			if choice == -1 {
+				// Correct for the position of ASCII '0'
+				choice += 10
+			}
+			if choice <= maxOpt {
+				return choice + pos
+			}
+		}
+	}
+	panic("MultiChoiceDialog exited unexpectedly")
 }
