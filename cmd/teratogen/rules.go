@@ -190,6 +190,7 @@ var prototypes = map[string]*entityPrototype{
 		PropWoundBonus, 1,
 		PropDurability, 100),
 	"kevlar": NewPrototype("kevlar armor", "", "items:6", ItemEntityClass, 200, 0,
+		PropEquipmentSlot, SlotBodyArmor,
 		PropToughness, Good,
 		PropDefenseBonus, 1,
 		PropDurability, 50),
@@ -412,4 +413,22 @@ func SmartPlayerPickup() *Entity {
 	}
 	Msg("Nothing to take here.\n")
 	return nil
+}
+
+func CanEquipIn(slotId string, e *Entity) bool {
+	slot := 0
+	switch slotId {
+	case PropBodyArmorGuid:
+		slot = SlotBodyArmor
+	case PropMeleeWeaponGuid:
+		slot = SlotMeleeWeapon
+	case PropGunWeaponGuid:
+		slot = SlotGunWeapon
+	default:
+		dbg.Die("Unknown equipment slot: %s", slotId)
+	}
+	if eSlot, ok := e.GetIOpt(PropEquipmentSlot); ok {
+		return eSlot == slot
+	}
+	return false
 }

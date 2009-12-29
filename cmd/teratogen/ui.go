@@ -3,6 +3,7 @@ package main
 import (
 	"container/vector"
 	"exp/draw"
+	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
@@ -185,6 +186,11 @@ func MultiChoiceDialog(prompt string, options ...) (choice int, ok bool) {
 }
 
 func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bool) {
+	if len(options) == 0 {
+		// Automatic abort on empty list.
+		return -1, false
+	}
+
 	// TODO: More structured positioning.
 	numVisible := 10
 	xOff := 0
@@ -283,7 +289,6 @@ func EquipMenu() {
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
 	for i, prop := range slots {
-
 		if ent, ok := player.GetGuidOpt(prop); ok {
 			items[i] = ent
 			options[i] = fmt.Sprintf("%s: %v", names[i], ent)
@@ -298,8 +303,14 @@ func EquipMenu() {
 		return
 	}
 	if items[choice] != nil {
-		Msg("unequip TODO\n")
+		player.Clear(slots[choice])
+		Msg("Unequipped %v.\n", items[choice])
 	} else {
-		Msg("equip TODO\n")
+		equippables := iterable.Data(iterable.Filter(player.Contents(),
+			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Entity)) }))
+		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
+			player.Set(slots[choice], item.(*Entity).GetGuid())
+			Msg("Equipped %v.\n", item)
+		}
 	}
 }

@@ -166,6 +166,7 @@ func (self *Entity) Set(name string, value interface{}) *Entity {
 	self.hideProp[name] = false, false
 	// Normalize
 	switch a := value.(type) {
+	case Guid:
 	case string:
 	// Ok as it is
 	case float64:
@@ -215,10 +216,27 @@ func (self *Entity) GetI(name string) int {
 	return int(prop.(float64))
 }
 
+func (self *Entity) GetIOpt(name string) (val int, ok bool) {
+	prop := self.Get(name)
+	if prop == nil {
+		return
+	}
+	return int(prop.(float64)), true
+}
+
 func (self *Entity) GetS(name string) string {
 	prop := self.Get(name)
 	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
 	return prop.(string)
+}
+
+
+func (self *Entity) GetSOpt(name string) (val string, ok bool) {
+	prop := self.Get(name)
+	if prop == nil {
+		return
+	}
+	return prop.(string), true
 }
 
 // GetGuidOpt returns the entity for the guid in the properties if the
@@ -227,11 +245,9 @@ func (self *Entity) GetS(name string) string {
 func (self *Entity) GetGuidOpt(name string) (obj *Entity, ok bool) {
 	prop := self.Get(name)
 	if prop == nil {
-		ok = false
 		return
 	}
-	obj = GetWorld().GetEntity(prop.(Guid))
-	return
+	return GetWorld().GetEntity(prop.(Guid)), true
 }
 
 func (self *Entity) Has(name string) bool { return self.Get(name) != nil }
