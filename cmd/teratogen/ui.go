@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/keyboard"
 	"hyades/num"
 	"hyades/sdl"
 	"hyades/txt"
@@ -45,7 +46,7 @@ var ui *UI
 var uiMutex = new(sync.Mutex)
 
 // TODO: Configure externally.
-var keymap = txt.KeyMap(txt.ColemakMap)
+var keymap = keyboard.KeyMap(keyboard.ColemakMap)
 
 func GetUISync() { uiMutex.Lock() }
 
@@ -229,11 +230,11 @@ func MultiChoiceDialogV(options []interface{}) int {
 
 		key := keymap.Map(GetKey())
 		switch {
-		case key == 'k' || key == sdl.K_UP || key == sdl.K_KP8:
+		case key == 'k' || key == keyboard.K_UP || key == keyboard.K_KP8:
 			if moreAbove {
 				pos--
 			}
-		case key == 'j' || key == sdl.K_DOWN || key == sdl.K_KP2:
+		case key == 'j' || key == keyboard.K_DOWN || key == keyboard.K_KP2:
 			if moreBelow {
 				pos++
 			}

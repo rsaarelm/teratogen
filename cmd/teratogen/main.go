@@ -2,6 +2,7 @@ package main
 
 import (
 	"hyades/dbg"
+	"hyades/keyboard"
 	"hyades/num"
 	"os"
 	"strings"
@@ -20,14 +21,29 @@ loop: for {
 			Quit()
 		case 'a':
 			AnimTest()
-		case 'k':
+		case 'k', keyboard.K_UP, keyboard.K_KP8:
 			SmartMovePlayer(0)
 			break loop
-		case 'u':
+		case 'u', keyboard.K_PAGEUP, keyboard.K_KP9:
 			SmartMovePlayer(1)
 			break loop
-		case 'l':
+		case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
 			SmartMovePlayer(2)
+			break loop
+		case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
+			SmartMovePlayer(3)
+			break loop
+		case 'j', keyboard.K_DOWN, keyboard.K_KP2:
+			SmartMovePlayer(4)
+			break loop
+		case 'b', keyboard.K_END, keyboard.K_KP1:
+			SmartMovePlayer(5)
+			break loop
+		case 'h', keyboard.K_LEFT, keyboard.K_KP4:
+			SmartMovePlayer(6)
+			break loop
+		case 'y', keyboard.K_HOME, keyboard.K_KP7:
+			SmartMovePlayer(7)
 			break loop
 		case 'z':
 			words := strings.Split("If the egg's shell does not break, the chick will die without being born. We are the chick; the egg is the world. If the world's shell does not break, we will die without being born. Break the world's shell! For the sake of revolutionizing the world!", " ", 0)
@@ -38,21 +54,6 @@ loop: for {
 			//			x := MultiChoiceDialog("foo", "bar", "baz")
 			x := MultiChoiceDialogV(cvt)
 			Msg("%d: %v\n", x, cvt[x])
-		case 'n':
-			SmartMovePlayer(3)
-			break loop
-		case 'j':
-			SmartMovePlayer(4)
-			break loop
-		case 'b':
-			SmartMovePlayer(5)
-			break loop
-		case 'h':
-			SmartMovePlayer(6)
-			break loop
-		case 'y':
-			SmartMovePlayer(7)
-			break loop
 		case ',':
 			if SmartPlayerPickup() != nil {
 				break loop

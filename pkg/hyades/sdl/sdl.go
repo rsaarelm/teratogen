@@ -12,6 +12,7 @@ import "C"
 import (
 	"exp/draw"
 	"hyades/dbg"
+	"hyades/keyboard"
 	"hyades/sfx"
 	"image"
 	"os"
@@ -201,9 +202,39 @@ func (self *context) eventLoop() {
 				// modifiers.
 				chr := int(keyEvt.keysym.unicode) & 0xffff
 
-				// TODO: Nonprintable special keys: SDL keysym value + bit 17 set.
+				sym := int(keyEvt.keysym.sym)
+				isAscii := sym >= 32 && sym < 256
 
-				// TODO: Ctrl and Alt modifiers in high bits.
+				if !isAscii {
+					// Nonprintable key.
+					chr = keyboard.Nonprintable | sym
+				}
+
+				// Key modifiers.
+				mod := int(keyEvt.keysym.mod)
+
+				// XXX: Shift flag is *not* set for printable
+				// keys, to maintain the convention that
+				// printable keys must provide printable char
+				// values.
+				if !isAscii && mod&KMOD_LSHIFT != 0 {
+					chr |= keyboard.LShift
+				}
+				if !isAscii && mod&KMOD_RSHIFT != 0 {
+					chr |= keyboard.RShift
+				}
+				if mod&KMOD_LCTRL != 0 {
+					chr |= keyboard.LCtrl
+				}
+				if mod&KMOD_RCTRL != 0 {
+					chr |= keyboard.RCtrl
+				}
+				if mod&KMOD_LALT != 0 {
+					chr |= keyboard.LAlt
+				}
+				if mod&KMOD_RALT != 0 {
+					chr |= keyboard.RAlt
+				}
 
 				// As per the Context interface, key up is
 				// represented by a negative key value.

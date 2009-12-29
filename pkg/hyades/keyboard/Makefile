@@ -1,7 +1,7 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=hyades/txt
+TARG=hyades/keyboard
 GOFILES=\
-	string.go\
+	keyboard.go\
 
 include $(GOROOT)/src/Make.pkg
