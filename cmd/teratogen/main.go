@@ -51,9 +51,12 @@ loop: for {
 			for i, a := range words {
 				cvt[i] = a
 			}
-			//			x := MultiChoiceDialog("foo", "bar", "baz")
-			x := MultiChoiceDialogV(cvt)
-			Msg("%d: %v\n", x, cvt[x])
+			x, ok := MultiChoiceDialogV("Select word.", cvt)
+			if ok {
+				Msg("%d: %v\n", x, cvt[x])
+			} else {
+				Msg("Okay then.\n")
+			}
 		case ',':
 			if SmartPlayerPickup() != nil {
 				break loop

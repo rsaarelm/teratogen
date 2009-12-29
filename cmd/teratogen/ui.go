@@ -180,11 +180,11 @@ func MainUILoop() {
 	ui.context.Close()
 }
 
-func MultiChoiceDialog(options ...) int {
-	return MultiChoiceDialogV(alg.UnpackEllipsis(options))
+func MultiChoiceDialog(prompt string, options ...) (choice int, ok bool) {
+	return MultiChoiceDialogV(prompt, alg.UnpackEllipsis(options))
 }
 
-func MultiChoiceDialogV(options []interface{}) int {
+func MultiChoiceDialogV(prompt string, options []interface{}) (choice int, ok bool) {
 	// TODO: More structured positioning.
 	numVisible := 10
 	xOff := 0
@@ -205,18 +205,19 @@ func MultiChoiceDialogV(options []interface{}) int {
 			moreAbove := pos > 0
 			moreBelow := len(options)-pos > numVisible
 
+			DrawString(xOff, yOff, prompt)
 			if moreAbove {
-				DrawString(xOff, yOff, "...more...")
+				DrawString(xOff, yOff+lineH, "--more--")
 			}
 			for i := pos; i < num.IntMin(pos+numVisible, len(options)); i++ {
 				key := i - pos + 1
 				if key == 10 {
 					key = 0
 				}
-				DrawString(xOff, yOff+(1+i-pos)*lineH, "%d) %s", key, options[i])
+				DrawString(xOff, yOff+(2+i-pos)*lineH, "%d) %s", key, options[i])
 			}
 			if moreBelow {
-				DrawString(xOff, yOff+(numVisible+1)*lineH, "...more...")
+				DrawString(xOff, yOff+(numVisible+2)*lineH, "--more--")
 			}
 
 			anim.UpdateChan <- 0
@@ -230,13 +231,13 @@ func MultiChoiceDialogV(options []interface{}) int {
 
 		key := keymap.Map(GetKey())
 		switch {
-		case key == 'k' || key == keyboard.K_UP || key == keyboard.K_KP8:
+		case key == 'k' || key == keyboard.K_UP || key == keyboard.K_KP8 || key == keyboard.K_PAGEUP:
 			if moreAbove {
-				pos--
+				pos -= numVisible
 			}
-		case key == 'j' || key == keyboard.K_DOWN || key == keyboard.K_KP2:
+		case key == 'j' || key == keyboard.K_DOWN || key == keyboard.K_KP2 || key == keyboard.K_PAGEDOWN:
 			if moreBelow {
-				pos++
+				pos += numVisible
 			}
 		// TODO: PgUp, PgDown
 		case key >= '0' && key <= '9':
@@ -246,8 +247,14 @@ func MultiChoiceDialogV(options []interface{}) int {
 				choice += 10
 			}
 			if choice <= maxOpt {
-				return choice + pos
+				return choice + pos, true
 			}
+		case key == keyboard.K_ESCAPE:
+			// Return index -1 along with not-ok if the user
+			// aborts, so that buggy calling code that tries to
+			// use the return value despite getting not-ok will
+			// fail faster.
+			return -1, false
 		}
 	}
 	panic("MultiChoiceDialog exited unexpectedly")
