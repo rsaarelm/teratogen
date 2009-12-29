@@ -1,6 +1,7 @@
 package main
 
 import (
+	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
@@ -393,26 +394,31 @@ func DropItem(subject *Entity, item *Entity) {
 	Msg("%v drops %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
 }
 
+func TakeableItems(pos geom.Pt2I) iterable.Iterable {
+	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Entity)) })
+}
+
 func SmartPlayerPickup() *Entity {
 	world := GetWorld()
 	player := world.GetPlayer()
-	for o := range world.EntitiesAt(player.GetPos()).Iter() {
-		ent := o.(*Entity)
-		if ent == player {
-			continue
-		}
-		// It's inside something instead of on the floor. Probably
-		// already carried by the player.
-		if ent.GetParent() != nil {
-			continue
-		}
-		if IsTakeableItem(ent) {
-			TakeItem(player, ent)
-			return ent
+	items := iterable.Data(TakeableItems(player.GetPos()))
+
+	if len(items) == 0 {
+		Msg("Nothing to take here.\n")
+		return nil
+	}
+
+	choice := items[0]
+	if len(items) > 1 {
+		var ok bool
+		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
+		if !ok {
+			Msg("Okay, then.\n")
+			return nil
 		}
 	}
-	Msg("Nothing to take here.\n")
-	return nil
+	TakeItem(player, choice.(*Entity))
+	return choice.(*Entity)
 }
 
 func CanEquipIn(slotId string, e *Entity) bool {

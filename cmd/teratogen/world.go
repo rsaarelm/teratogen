@@ -353,7 +353,10 @@ func (self *World) Entities() iterable.Iterable {
 }
 
 func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
-	posPred := func(obj interface{}) bool { return obj.(*Entity).GetPos().Equals(pos) }
+	posPred := func(obj interface{}) bool {
+		e := obj.(*Entity)
+		return e.GetParent() == nil && e.GetPos().Equals(pos)
+	}
 	return iterable.Filter(self.Entities(), posPred)
 }
 
