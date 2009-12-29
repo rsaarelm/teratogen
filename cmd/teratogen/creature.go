@@ -38,14 +38,22 @@ func (self *Entity) WoundDescription() string {
 
 func (self *Entity) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.MaxWounds() }
 
-func (self *Entity) MeleeDamageFactor() int {
-	return self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
-	// TODO: Weapon effect.
+func (self *Entity) MeleeDamageFactor() (result int) {
+	result = self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
+	if o, ok := self.GetGuidOpt(PropMeleeWeaponGuid); ok {
+		// Melee weapon bonus
+		result += o.GetI(PropWoundBonus)
+	}
+	return
 }
 
-func (self *Entity) ArmorFactor() int {
-	return self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
-	// TODO: Effects from worn armor.
+func (self *Entity) ArmorFactor() (result int) {
+	result = self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
+	if o, ok := self.GetGuidOpt(PropBodyArmorGuid); ok {
+		// Body armor bonus.
+		result += o.GetI(PropDefenseBonus)
+	}
+	return
 }
 
 func (self *Entity) Damage(woundLevel int, cause *Entity) {

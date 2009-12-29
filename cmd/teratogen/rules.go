@@ -187,7 +187,7 @@ var prototypes = map[string]*entityPrototype{
 		PropDurability, 22),
 	"machete": NewPrototype("machete", "", "items:5", ItemEntityClass, 200, 0,
 		PropEquipmentSlot, SlotMeleeWeapon,
-		PropWoundBonus, 1,
+		PropWoundBonus, 2,
 		PropDurability, 100),
 	"kevlar": NewPrototype("kevlar armor", "", "items:6", ItemEntityClass, 200, 0,
 		PropEquipmentSlot, SlotBodyArmor,
