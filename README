@@ -4,6 +4,7 @@ Environt variables needed:
 
 GOROOT: The base dir of the Go language install
 GOARCH: The target architecture for Go language
-LIBTCOD: Directory containing the libtcod include directory
 
-You need to have libtcod.so in a path where a linker will find it.
+You need to have a Go language source tree at $GOROOT and be able to write to
+it. The game libraries currently install to the $GOROOT tree. This may change
+in the future.
