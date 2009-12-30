@@ -158,7 +158,7 @@ var prototypes = map[string]*entityPrototype{
 		PropWounds, 0,
 		PropDensity, 0),
 	"protagonist": NewPrototype("protagonist", "creature", "chars:0", PlayerEntityClass, -1, 0,
-		PropStrength, Superb,
+		PropStrength, Great,
 		PropToughness, Good,
 		PropMeleeSkill, Good),
 	"zombie": NewPrototype("zombie", "creature", "chars:1", EnemyEntityClass, 100, 0,
