@@ -52,6 +52,8 @@ const (
 	// How resistant is gear to breaking.
 	PropDurability = "durability"
 
+	PropItemUse = "itemUse"
+
 	FlagObstacle = "isObstacle"
 )
 
@@ -60,6 +62,12 @@ const (
 	SlotBodyArmor = iota
 	SlotMeleeWeapon
 	SlotGunWeapon
+)
+
+// Item use type
+const (
+	NoUse = iota
+	MedkitUse
 )
 
 // Put item classes before creature classes, so we can use this to control
@@ -195,6 +203,8 @@ var prototypes = map[string]*entityPrototype{
 		PropToughness, Good,
 		PropDefenseBonus, 1,
 		PropDurability, 50),
+	"medkit": NewPrototype("medkit", "", "items:7", ItemEntityClass, 200, 0,
+		PropItemUse, MedkitUse),
 }
 
 func Log2Modifier(x int) int {
@@ -419,6 +429,32 @@ func IsCarryingGearFor(o interface{}, slot int) bool {
 }
 
 func HasContents(o interface{}) bool { return o.(*Entity).GetChild() != nil }
+
+func IsUsable(o interface{}) bool { return o.(*Entity).Has(PropItemUse) }
+
+func HasUsableItems(o interface{}) bool {
+	return iterable.Any(o.(*Entity).Contents(), IsUsable)
+}
+
+func UseItem(user *Entity, item *Entity) {
+	if use, ok := item.GetIOpt(PropItemUse); ok {
+		switch use {
+		case NoUse:
+			Msg("Nothing happens.\n")
+		case MedkitUse:
+			if user.GetI(PropWounds) > 0 {
+				Msg("You feel much better.\n")
+				PlaySound("heal")
+				user.Set(PropWounds, 0)
+				GetWorld().DestroyEntity(item)
+			} else {
+				Msg("You feel fine already.\n")
+			}
+		default:
+			dbg.Die("Unknown use %v.", use)
+		}
+	}
+}
 
 func SmartPlayerPickup() *Entity {
 	world := GetWorld()

@@ -333,6 +333,10 @@ func UiHelpLines() iterable.Iterable {
 		vec.Push("d: drop item")
 	}
 
+	if HasUsableItems(player) {
+		vec.Push("a: use item")
+	}
+
 	if IsCarryingGear(player) {
 		vec.Push("e: equip/remove gear")
 	}
@@ -360,4 +364,21 @@ func StuffOnGroundMsg() {
 	if stairs {
 		Msg("There are stairs down here.\n")
 	}
+}
+
+func ApplyItemMenu() (actionMade bool) {
+	player := GetWorld().GetPlayer()
+
+	items := iterable.Data(iterable.Filter(player.Contents(), IsUsable))
+	if len(items) == 0 {
+		Msg("You have no usable items.\n")
+		return false
+	}
+	if item, ok := ObjectChoiceDialog("Use which item?", items); ok {
+		UseItem(player, item.(*Entity))
+		return true
+	} else {
+		Msg("Okay, then.\n")
+	}
+	return false
 }

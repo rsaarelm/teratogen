@@ -46,6 +46,10 @@ loop: for {
 		case 'y', keyboard.K_HOME, keyboard.K_KP7:
 			SmartMovePlayer(7)
 			break loop
+		case 'a':
+			if ApplyItemMenu() {
+				break loop
+			}
 		case ',':
 			if SmartPlayerPickup() != nil {
 				break loop
