@@ -334,6 +334,7 @@ func SmartMovePlayer(dir int) {
 	}
 	// No attack, move normally.
 	MovePlayerDir(dir)
+	StuffOnGroundMsg()
 }
 
 func RunAI() {
@@ -397,6 +398,26 @@ func DropItem(subject *Entity, item *Entity) {
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
 	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Entity)) })
 }
+
+// TODO: Change other functions to use interface{} instead of *Entity to make
+// it easier to use them with iterable functions.
+
+func IsEquippableItem(o interface{}) bool { return o.(*Entity).Has(PropEquipmentSlot) }
+
+func IsCarryingGear(o interface{}) bool {
+	return iterable.Any(o.(*Entity).Contents(), IsEquippableItem)
+}
+
+func IsCarryingGearFor(o interface{}, slot int) bool {
+	return iterable.Any(o.(*Entity).Contents(), func(o interface{}) bool {
+		if itemSlot, ok := o.(*Entity).GetIOpt(PropEquipmentSlot); ok && itemSlot == slot {
+			return true
+		}
+		return false
+	})
+}
+
+func HasContents(o interface{}) bool { return o.(*Entity).GetChild() != nil }
 
 func SmartPlayerPickup() *Entity {
 	world := GetWorld()

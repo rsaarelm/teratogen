@@ -172,6 +172,12 @@ func MainUILoop() {
 		DrawString(TileW*41, TileH*1,
 			"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
 
+		helpLineY := TileH * 3
+		for o := range UiHelpLines().Iter() {
+			DrawString(TileW*41, helpLineY, o.(string))
+			helpLineY += TileH
+		}
+
 		ui.DrawAnims(timeElapsed)
 
 		ReleaseUISync()
@@ -312,5 +318,48 @@ func EquipMenu() {
 			player.Set(slots[choice], item.(*Entity).GetGuid())
 			Msg("Equipped %v.\n", item)
 		}
+	}
+}
+
+func UiHelpLines() iterable.Iterable {
+	vec := new(vector.Vector)
+	vec.Push("esc: exit menu")
+	vec.Push("arrow keys: move, attack adjacent")
+	vec.Push("q: quit")
+
+	world := GetWorld()
+	player := world.GetPlayer()
+
+	if HasContents(player) {
+		vec.Push("i: inventory")
+		vec.Push("d: drop item")
+	}
+
+	if IsCarryingGear(player) {
+		vec.Push("e: equip/remove gear")
+	}
+
+	if len(iterable.Data(TakeableItems(player.GetPos()))) > 0 {
+		vec.Push(",: pick up item")
+	}
+	if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+		vec.Push(">: go down the stairs")
+	}
+	return vec
+}
+
+// Write a message about interesting stuff on the ground.
+func StuffOnGroundMsg() {
+	world := GetWorld()
+	player := world.GetPlayer()
+	items := iterable.Data(TakeableItems(player.GetPos()))
+	stairs := world.GetTerrain(player.GetPos()) == TerrainStairDown
+	if len(items) > 1 {
+		Msg("There are several items here.\n")
+	} else if len(items) == 1 {
+		Msg("There is %v here.\n", items[0])
+	}
+	if stairs {
+		Msg("There are stairs down here.\n")
 	}
 }
