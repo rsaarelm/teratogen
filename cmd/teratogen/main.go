@@ -6,7 +6,6 @@ import (
 	"hyades/keyboard"
 	"hyades/num"
 	"os"
-	"strings"
 )
 
 var currentLevel int = 1
@@ -23,8 +22,6 @@ loop: for {
 			break loop
 		case 'q':
 			Quit()
-		case 'a':
-			AnimTest()
 		case 'k', keyboard.K_UP, keyboard.K_KP8:
 			SmartMovePlayer(0)
 			break loop
@@ -49,18 +46,6 @@ loop: for {
 		case 'y', keyboard.K_HOME, keyboard.K_KP7:
 			SmartMovePlayer(7)
 			break loop
-		case 'z':
-			words := strings.Split("If the egg's shell does not break, the chick will die without being born. We are the chick; the egg is the world. If the world's shell does not break, we will die without being born. Break the world's shell! For the sake of revolutionizing the world!", " ", 0)
-			cvt := make([]interface{}, len(words))
-			for i, a := range words {
-				cvt[i] = a
-			}
-			x, ok := MultiChoiceDialogA("Select word.", cvt)
-			if ok {
-				Msg("%d: %v\n", x, cvt[x])
-			} else {
-				Msg("Okay then.\n")
-			}
 		case ',':
 			if SmartPlayerPickup() != nil {
 				break loop
@@ -106,11 +91,6 @@ loop: for {
 		case '>':
 			PlayerEnterStairs()
 			break loop
-		case 'c':
-			world.ClearLosMapped()
-			world.DoLos(world.GetPlayer().GetPos())
-			Msg("You feel like you've forgotten something.\n")
-			// Experimental save/load
 		case 'S':
 			saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 			dbg.AssertNoError(err)
@@ -132,16 +112,6 @@ loop: for {
 }
 
 func main() {
-	//	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
-	//	if err != nil {
-	//		fmt.Printf("Self exe archive error: %v\n", err)
-	//	} else {
-	//		files, _ := arch.ListFiles()
-	//		for _, name := range files {
-	//			fmt.Println(name)
-	//		}
-	//	}
-
 	num.RngSeedFromClock()
 
 	InitUI()
