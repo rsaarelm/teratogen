@@ -261,7 +261,9 @@ const (
 // Adapted from the original C to Golang.
 func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) {
 	const iterationsPerCell = 500
-	const recarveProb = 0.01
+	// const recarveProb = 0.01
+	// May cause unconnected caves if nonzero.
+	const recarveProb = 0.0
 	maxFloorCount := int(floorPercent * float64(width*height))
 
 	result = make([][]CaveTile, width)

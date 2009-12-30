@@ -236,6 +236,14 @@ func (self *World) ClearLosSight() {
 	}
 }
 
+// Debug command that makes the entire map visible.
+func (self *World) WizardEye() {
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		idx := pt.X + mapWidth*pt.Y
+		self.los[idx] = LosSeen
+	}
+}
+
 func (self *World) ClearLosMapped() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
