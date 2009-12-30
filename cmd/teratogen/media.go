@@ -7,6 +7,7 @@ import (
 	"hyades/dbg"
 	"hyades/fs"
 	"hyades/gfx"
+	"hyades/sfx"
 	"image"
 	"image/png"
 	"once"
@@ -50,12 +51,37 @@ func makeTiles(basename string, filename string, width, height int) (result []im
 	return
 }
 
+func makeSounds() {
+	healWave := sfx.AmpFilter(0.3, sfx.ADSRFilter(0.0, 0.0, 0.9, 0.2, 0.1,
+		sfx.MakeWave(1500.0, sfx.Jump(0.1, 50, sfx.Sawtooth))))
+
+	snd, err := sfx.MonoWaveToSound(ui.context, healWave, 1.0)
+	dbg.AssertNoError(err)
+	cache["heal"] = snd
+
+	hitWave := sfx.AmpFilter(0.3, sfx.ADSRFilter(0.0, 0.0, 0.9, 0.0, 0.2,
+		sfx.MakeWave(300.0, sfx.Noise)))
+	snd, err = sfx.MonoWaveToSound(ui.context, hitWave, 1.0)
+	dbg.AssertNoError(err)
+	cache["hit"] = snd
+
+	deathWave := sfx.AmpFilter(0.4, sfx.ADSRFilter(0.0, 0.0, 0.9, 0.0, 0.8,
+		sfx.MakeWave(250.0, sfx.Slide(-200.0, 0.0, 50.0, sfx.Noise))))
+	snd, err = sfx.MonoWaveToSound(ui.context, deathWave, 1.0)
+	dbg.AssertNoError(err)
+	cache["death"] = snd
+
+}
+
+func PlaySound(name string) { cache[name].(sfx.Sound).Play() }
+
 func InitMedia() {
 	once.Do(initArchive)
 	makeTiles("font", "media/font.png", TileW, TileH)
 	makeTiles("chars", "media/chars.png", TileW, TileH)
 	makeTiles("tiles", "media/tiles.png", TileW, TileH)
 	makeTiles("items", "media/items.png", TileW, TileH)
+	makeSounds()
 }
 
 func Media(name string) interface{} { return cache[name] }

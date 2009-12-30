@@ -65,6 +65,7 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	go ParticleAnim(ui.context, ui.AddAnim(NewAnim(0.0)), sx, sy, 2e8, 30.0, col, int(math.Pow(1.5, float64(woundLevel+3))))
 
 	if self.IsKilledByWounds() {
+		PlaySound("death")
 		if self == world.GetPlayer() {
 			Msg("You die.\n")
 			var msg string
@@ -79,6 +80,8 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 		}
 		world.DestroyEntity(self)
 	} else {
+		PlaySound("hit")
+
 		Msg("%v %v.\n",
 			txt.Capitalize(self.Name), self.WoundDescription())
 	}

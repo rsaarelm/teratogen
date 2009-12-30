@@ -309,6 +309,7 @@ func MovePlayerDir(dir int) {
 			// TODO: Different globe effects.
 			if player.GetI(PropWounds) > 0 {
 				Msg("The globe bursts. You feel better.\n")
+				PlaySound("heal")
 				player.Set(PropWounds, player.GetI(PropWounds)-1)
 				// Deferring this until the iteration is over.
 				defer world.DestroyEntity(ent)
