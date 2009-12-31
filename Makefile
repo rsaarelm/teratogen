@@ -1,5 +1,7 @@
 CMDS=databake palsort sdltest teratogen
 
+GOMAKE=$(GOBIN)/gomake
+
 TARG=teratogen
 
 SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
@@ -12,29 +14,29 @@ build.cmds: $(addsuffix .build, $(CMDS))
 clean.cmds: $(addsuffix .clean, $(CMDS))
 
 build.libs:
-	$(MAKE) -C pkg all
+	$(GOMAKE) -C pkg all
 
 test: deps build.libs
-	$(MAKE) -C pkg test
+	$(GOMAKE) -C pkg test
 
 # XXX: Hardwired to clean the command before build to hack around problems
 # specifying library dependencies to the command.
 %.run: build.libs
-	$(MAKE) -C cmd/$* clean
-	$(MAKE) -C cmd/$* all
+	$(GOMAKE) -C cmd/$* clean
+	$(GOMAKE) -C cmd/$* all
 	(cd ./cmd/$*; $*)
 
 %.build: build.libs
-	$(MAKE) -C cmd/$*
+	$(GOMAKE) -C cmd/$*
 
 %.clean:
-	$(MAKE) -C cmd/$* clean
+	$(GOMAKE) -C cmd/$* clean
 
 clean: clean.cmds
-	$(MAKE) -C pkg clean
+	$(GOMAKE) -C pkg clean
 
 nuke: clean.cmds
-	$(MAKE) -C pkg nuke
+	$(GOMAKE) -C pkg nuke
 
 deps:
-	$(MAKE) -C pkg deps
+	$(GOMAKE) -C pkg deps

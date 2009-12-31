@@ -25,22 +25,24 @@ NOTEST=\
 
 TEST=$(filter-out $(NOTEST),$(DIRS))
 
+GOMAKE=$(GOBIN)/gomake
+
 clean.dirs: $(addsuffix .clean, $(DIRS))
 install.dirs: $(addsuffix .install, $(DIRS))
 nuke.dirs: $(addsuffix .nuke, $(DIRS))
 test.dirs: $(addsuffix .test, $(TEST))
 
 %.clean:
-	$(MAKE) -C $* clean
+	$(GOMAKE) -C $* clean
 
 %.install:
-	$(MAKE) -C $* install
+	$(GOMAKE) -C $* install
 
 %.nuke:
-	$(MAKE) -C $* nuke
+	$(GOMAKE) -C $* nuke
 
 %.test:
-	$(MAKE) -C $* test
+	$(GOMAKE) -C $* test
 
 clean: clean.dirs
 
