@@ -57,3 +57,11 @@ func ChanData(in <-chan interface{}) (result []interface{}) {
 	}
 	return
 }
+
+type IterFunc func(c chan<- interface{})
+
+func (self IterFunc) Iter() <-chan interface{} {
+	c := make(chan interface{})
+	go self(c)
+	return c
+}
