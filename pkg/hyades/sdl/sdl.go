@@ -32,9 +32,9 @@ type Context interface {
 	// Close Closes the SDL window and uninitializes SDL.
 	Close()
 
-	// Blit draws an image on the window. It is much more efficient if the
-	// image is implemented by a SDL surface.
-	Blit(img image.Image, x, y int)
+	// Blit draws an image on a draw-surface. It is much more efficient if
+	// both the image and the draw surface are SDL surfaces.
+	Blit(img image.Image, surf draw.Image, x, y int)
 
 	// Efficintly fills a rectangle on the screen with uniform color.
 	FillRect(rect draw.Rectangle, col image.Color)
@@ -122,15 +122,17 @@ func (self *context) QuitChan() <-chan bool { return self.quit }
 
 func (self *context) Close() { self.active = false }
 
-func (self *context) Blit(img image.Image, x, y int) {
-	if surface, isSurface := img.(*C.SDL_Surface); isSurface {
+func (self *context) Blit(img image.Image, surf draw.Image, x, y int) {
+	imgSurface, imgIsSurface := img.(*C.SDL_Surface)
+	targetSurface, targetIsSurface := surf.(*C.SDL_Surface)
+	if imgIsSurface && targetIsSurface {
 		// It's a SDL surface, do a fast SDL blit.
 		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-		C.SDL_BlitSurface(surface, nil, self.screen, &rect)
+		C.SDL_BlitSurface(imgSurface, nil, targetSurface, &rect)
 	} else {
 		// It's something else, naively draw the individual pixels.
-		draw.Draw(self.Screen(),
-			draw.Rect(x, y, x+img.Width(), y+img.Height()), img, nil, draw.Pt(0, 0))
+		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
+			img, nil, draw.Pt(0, 0))
 	}
 }
 

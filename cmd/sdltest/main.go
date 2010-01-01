@@ -40,7 +40,7 @@ func main() {
 
 Outer: for {
 		context.FillRect(draw.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
-		context.Blit(sprite, 128, 32)
+		context.Blit(sprite, context.Screen(), 128, 32)
 		context.FlushImage()
 		if _, ok := <-context.QuitChan(); ok {
 			break

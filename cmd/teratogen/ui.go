@@ -93,7 +93,9 @@ func (self *UI) DrawAnims(timeElapsedNs int64) {
 
 func InitUI() { ui = newUI() }
 
-func DrawSprite(name string, x, y int) { ui.context.Blit(Media(name).(image.Image), x, y) }
+func DrawSprite(name string, x, y int) {
+	ui.context.Blit(Media(name).(image.Image), ui.context.Screen(), x, y)
+}
 
 func DrawChar(char int, x, y int) {
 	// XXX: Ineffctive string composition...
