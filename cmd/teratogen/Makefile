@@ -8,6 +8,7 @@ GOFILES=\
 	entity.go\
 	mapgen.go\
 	main.go\
+	mapview.go\
 	media.go\
 	msg.go\
 	rules.go\

@@ -6,7 +6,6 @@ import (
 	"exp/draw"
 	"exp/iterable"
 	"hyades/alg"
-	//	"hyades/sdl"
 	"image"
 )
 
@@ -31,10 +30,6 @@ type Widget interface {
 	// []interface{} {area draw.Rectangle, child Widget}. The areas of
 	// children are assumed to be contained in the area of the parent.
 	Children(area draw.Rectangle) iterable.Iterable
-
-	// If the widget responds to mouse events, return its mouse listener
-	// interface. Otherwise return nil.
-	GetMouseListener() MouseListener
 }
 
 // A drawing function that can serve as a simple leaf widget.
@@ -48,18 +43,13 @@ func (self DrawFunc) Children(area draw.Rectangle) iterable.Iterable {
 	return alg.EmptyIter()
 }
 
-func (self DrawFunc) GetMouseListener() MouseListener {
-	return nil
-}
-
+// MouseListener is an interface widgets can implement to receive mouse
+// events.
 type MouseListener interface {
-	MouseEvent(area draw.Rectangle, event draw.Mouse)
-}
-
-type FuncMouseListener func(area draw.Rectangle, event draw.Mouse)
-
-func (self FuncMouseListener) MouseEvent(area draw.Rectangle, event draw.Mouse) {
-	self(area, event)
+	// MouseEvent takes a mouse state and may respond somehow. Returns
+	// whether the event was consumed or if it should be passed on to the
+	// next widget.
+	HandleMouseEvent(area draw.Rectangle, event draw.Mouse) (consumed bool)
 }
 
 // DrawChildren is a helper function to iterate and draw the immediate
@@ -91,7 +81,6 @@ func iterInPoint(pos draw.Point, area draw.Rectangle, node Widget, c chan<- inte
 			iterInPoint(pos, childArea, childNode, c)
 		}
 	}
-
 }
 
 // WidgetsContaining returns widgets whose areas contain pos ordered from the
@@ -101,4 +90,20 @@ func WidgetsContaining(pos draw.Point, area draw.Rectangle, root Widget) iterabl
 		iterInPoint(pos, area, root, c)
 		close(c)
 	}))
+}
+
+// DispactchMouseEvent looks for widgets at where the mouse cursor is and that
+// can receive mouse events. Sends the mouse event to one, if found. Returns
+// whether a suitable widget was found.
+func DispatchMouseEvent(area draw.Rectangle, root Widget, event draw.Mouse) bool {
+	pos := draw.Pt(event.X, event.Y)
+	for pair := range WidgetsContaining(pos, area, root).Iter() {
+		area, widget := UnpackWidgetIteration(pair)
+		if mouseReceiver, ok := widget.(MouseListener); ok {
+			if mouseReceiver.HandleMouseEvent(area, event) {
+				return true
+			}
+		}
+	}
+	return false
 }

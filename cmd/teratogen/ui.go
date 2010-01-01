@@ -29,9 +29,6 @@ const numFont = 256
 const xDrawOffset = 0
 const yDrawOffset = 0
 
-const TileW = 16
-const TileH = 16
-
 const FontH = 16
 const FontW = 16
 
@@ -43,7 +40,7 @@ type UI struct {
 	// Show message lines beyond this to player.
 	oldestLineSeen int
 
-	anims *vector.Vector
+	mapView *MapView
 }
 
 var ui *UI
@@ -65,42 +62,15 @@ func newUI() (result *UI) {
 	context.KeyRepeatOn()
 	result.msg = NewMsgOut()
 	result.running = true
-	result.anims = new(vector.Vector)
+	result.mapView = NewMapView()
 
 	return
 }
 
-func animSort(i, j interface{}) bool { return i.(*Anim).Z < j.(*Anim).Z }
-
-func AnimTest() { go TestAnim(ui.context, ui.AddAnim(NewAnim(0.0))) }
-
-func (self *UI) AddAnim(anim *Anim) *Anim {
-	self.anims.Push(anim)
-	return anim
-}
-
-func (self *UI) DrawAnims(timeElapsedNs int64) {
-	alg.PredicateSort(animSort, self.anims)
-	for i := 0; i < self.anims.Len(); i++ {
-		anim := self.anims.At(i).(*Anim)
-		if anim.Closed() {
-			self.anims.Delete(i)
-			i--
-			continue
-		}
-		// Tell the anim it can draw itself.
-		anim.UpdateChan <- timeElapsedNs
-		// Wait for the anim to call back that it's completed drawing itself.
-		<-anim.UpdateChan
-	}
-}
+func (self *UI) AddAnim(anim *Anim) *Anim { return self.mapView.AddAnim(anim) }
 
 func (self *UI) Draw(g gui.Graphics, area draw.Rectangle) {
 	g.FillRect(area, image.RGBAColor{0, 0, 0, 255})
-
-	world := GetWorld()
-
-	world.Draw()
 
 	gui.DrawChildren(g, area, self)
 }
@@ -109,6 +79,8 @@ func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
 	// TODO: Widgetify main world view.
 	return alg.IterFunc(func(c chan<- interface{}) {
+		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*40, TileH*20),
+			self.mapView)
 		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*21, screenWidth, screenHeight),
 			gui.DrawFunc(drawMsgLines))
 		c <- gui.PackWidgetIteration(draw.Rect(TileW*41, 0, screenWidth, FontH*20),
@@ -117,11 +89,7 @@ func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	})
 }
 
-func (self *UI) GetMouseListener() gui.MouseListener {
-	return self
-}
-
-func (self *UI) MouseEvent(area draw.Rectangle, event draw.Mouse) {
+func (self *UI) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) {
 	// TODO: Mouse response.
 }
 
@@ -220,9 +188,6 @@ func MainUILoop() {
 
 		g := ui.context.SdlScreen()
 		ui.Draw(g, draw.Rect(0, 0, g.Width(), g.Height()))
-
-		// TODO: Widgetify anims.
-		ui.DrawAnims(timeElapsed)
 
 		ReleaseUISync()
 
