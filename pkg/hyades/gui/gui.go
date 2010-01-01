@@ -11,13 +11,9 @@ import (
 )
 
 type Graphics interface {
+	draw.Image
 	Blit(img image.Image, x, y int)
-	DrawString(font Font, x, y int, color image.Color, format string, a ...)
-	DefaultFont() Font
-	Clear(color image.Color)
-	DrawRect(rect draw.Rectangle, color image.Color)
 	FillRect(rect draw.Rectangle, color image.Color)
-	DrawLine(p1, p2 draw.Point, color image.Color)
 	SetClipRect(clipRect draw.Rectangle)
 	ClearClipRect()
 }

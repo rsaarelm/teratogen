@@ -94,7 +94,7 @@ func (self *UI) DrawAnims(timeElapsedNs int64) {
 func InitUI() { ui = newUI() }
 
 func DrawSprite(name string, x, y int) {
-	ui.context.Blit(Media(name).(image.Image), ui.context.Screen(), x, y)
+	ui.context.SdlScreen().Blit(Media(name).(image.Image), x, y)
 }
 
 func DrawChar(char int, x, y int) {
@@ -155,7 +155,7 @@ func MainUILoop() {
 		timeElapsed = time.Nanoseconds() - lastTime
 		lastTime += timeElapsed
 
-		ui.context.FillRect(draw.Rect(0, 0, screenWidth, screenHeight),
+		ui.context.SdlScreen().FillRect(draw.Rect(0, 0, screenWidth, screenHeight),
 			image.RGBAColor{0, 0, 0, 255})
 
 		// Synched block which accesses the game world. Don't run

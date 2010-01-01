@@ -29,33 +29,17 @@ const bitsPerPixel = 32
 type Context interface {
 	draw.Context
 
+	// SdlScreen is the same as Screen, but it return the screen cast into a
+	// sdl.Surface instead of draw.Image.
+	SdlScreen() Surface
+
 	// Close Closes the SDL window and uninitializes SDL.
 	Close()
 
-	// Blit draws an image on a draw-surface. It is much more efficient if
-	// both the image and the draw surface are SDL surfaces.
-	Blit(img image.Image, surf draw.Image, x, y int)
-
-	// Efficintly fills a rectangle on the screen with uniform color.
-	FillRect(rect draw.Rectangle, col image.Color)
-
 	// Convert converts an image into a SDL surface
-	Convert(img image.Image) image.Image
+	Convert(img image.Image) Surface
 
 	// TODO: API for freeing surfaces created by Convert. This should be done by a GC finalizer.
-
-	// Returns whether the image object is a SDL surface.
-	IsNativeSurface(img image.Image) bool
-
-	// Sets a clipping rectangle on a native surface. It's not possible to
-	// draw outside the rectangle. Returns whether the set was successful.
-	SetClipRect(img image.Image, clipRect draw.Rectangle) (ok bool)
-
-	// Clears a clipping rectangle on a native surface, if set.
-	ClearClipRect(img image.Image)
-
-	// Returns the clip rectangle of a native surface, if one has been set.
-	GetClipRect(img image.Image) (clipRect draw.Rectangle, ok bool)
 
 	// MakeSound converts wav file data into a SDL sound object.
 	MakeSound(wavData []byte) (result sfx.Sound, err os.Error)
@@ -73,6 +57,27 @@ type Context interface {
 	// KeyRepeatOff makes a single keypress emit only a single keyboard
 	// event no matter how long the key is held down.
 	KeyRepeatOff()
+}
+
+type Surface interface {
+	draw.Image
+
+	// Sets a clipping rectangle on a SDL surface. It's not possible to
+	// draw outside the rectangle.
+	SetClipRect(clipRect draw.Rectangle)
+
+	// Clears a clipping rectangle on a SDL surface, if set.
+	ClearClipRect()
+
+	// Returns the clip rectangle of a SDL surface, if one has been set.
+	GetClipRect() draw.Rectangle
+
+	// Efficintly fills a rectangle on the screen with uniform color.
+	FillRect(rect draw.Rectangle, c image.Color)
+
+	// Blit draws an image on the surface. It is much more efficient if
+	// the image is a SDL surface.
+	Blit(img image.Image, x, y int)
 }
 
 type context struct {
@@ -119,6 +124,8 @@ func NewWindow(width, height int, title string, fullscreen bool) (result Context
 
 func (self *context) Screen() draw.Image { return self.screen }
 
+func (self *context) SdlScreen() Surface { return self.screen }
+
 func (self *context) FlushImage() { C.SDL_Flip(self.screen) }
 
 func (self *context) KeyboardChan() <-chan int {
@@ -135,25 +142,7 @@ func (self *context) QuitChan() <-chan bool { return self.quit }
 
 func (self *context) Close() { self.active = false }
 
-func (self *context) Blit(img image.Image, surf draw.Image, x, y int) {
-	imgSurface, imgIsSurface := img.(*C.SDL_Surface)
-	targetSurface, targetIsSurface := surf.(*C.SDL_Surface)
-	if imgIsSurface && targetIsSurface {
-		// It's a SDL surface, do a fast SDL blit.
-		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-		C.SDL_BlitSurface(imgSurface, nil, targetSurface, &rect)
-	} else {
-		// It's something else, naively draw the individual pixels.
-		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
-			img, nil, draw.Pt(0, 0))
-	}
-}
-
-func (self *context) FillRect(rect draw.Rectangle, c image.Color) {
-	self.screen.FillRect(rect, c)
-}
-
-func (self *context) Convert(img image.Image) image.Image {
+func (self *context) Convert(img image.Image) Surface {
 	width, height := img.Width(), img.Height()
 
 	var rmask, gmask, bmask, amask C.Uint32
@@ -174,32 +163,6 @@ func (self *context) Convert(img image.Image) image.Image {
 func (self *context) IsNativeSurface(img image.Image) bool {
 	_, ok := img.(*C.SDL_Surface)
 	return ok
-}
-
-func (self *context) SetClipRect(img image.Image, clipRect draw.Rectangle) (ok bool) {
-	surf, ok := img.(*C.SDL_Surface)
-	if !ok {
-		return false
-	}
-	sdlClipRect := convertRect(clipRect)
-	C.SDL_SetClipRect(surf, &sdlClipRect)
-	return true
-}
-
-func (self *context) ClearClipRect(img image.Image) {
-	if surf, ok := img.(*C.SDL_Surface); ok {
-		C.SDL_SetClipRect(surf, nil)
-	}
-}
-
-func (self *context) GetClipRect(img image.Image) (clipRect draw.Rectangle, ok bool) {
-	if surf, ok := img.(*C.SDL_Surface); ok {
-		var sdlRect C.SDL_Rect
-		C.SDL_GetClipRect(surf, &sdlRect)
-		clipRect = draw.Rect(int(sdlRect.x), int(sdlRect.y),
-			int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
-	}
-	return
 }
 
 func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) {
@@ -392,9 +355,17 @@ func (self *C.SDL_Surface) mapRGBA(c image.Color) uint32 {
 		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
 }
 
-func (self *C.SDL_Surface) Blit(target *C.SDL_Surface, x, y int) {
-	rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-	C.SDL_BlitSurface(self, nil, target, &rect)
+func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
+	if surf, ok := img.(*C.SDL_Surface); ok {
+		// It's a SDL surface, do a fast SDL blit.
+		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
+		C.SDL_BlitSurface(surf, nil, self, &rect)
+	} else {
+		// It's something else, naively draw the individual pixels.
+		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
+			self, nil, draw.Pt(0, 0))
+
+	}
 }
 
 func (self *C.SDL_Surface) Width() int { return int(self.w) }
@@ -420,6 +391,20 @@ func (self *C.SDL_Surface) At(x, y int) image.Color {
 // For compliance wth the image.Image interface
 func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
+}
+
+func (self *C.SDL_Surface) SetClipRect(clipRect draw.Rectangle) {
+	sdlClipRect := convertRect(clipRect)
+	C.SDL_SetClipRect(self, &sdlClipRect)
+}
+
+func (self *C.SDL_Surface) ClearClipRect() { C.SDL_SetClipRect(self, nil) }
+
+func (self *C.SDL_Surface) GetClipRect() draw.Rectangle {
+	var sdlRect C.SDL_Rect
+	C.SDL_GetClipRect(self, &sdlRect)
+	return draw.Rect(int(sdlRect.x), int(sdlRect.y),
+		int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
 }
 
 //////////////////////////////////////////////////////////////////

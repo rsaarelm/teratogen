@@ -88,7 +88,7 @@ func ParticleAnim(context sdl.Context, anim *Anim, x, y int, lifetime int64, spe
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				context.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+2, int(p.y)+2), p.color)
+				context.SdlScreen().FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+2, int(p.y)+2), p.color)
 			}
 		}
 		anim.UpdateChan <- 0
