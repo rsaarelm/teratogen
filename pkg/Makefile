@@ -7,6 +7,7 @@ DIRS=\
 	hyades/geom\
 	hyades/gfx\
 	hyades/gostak\
+	hyades/gui\
 	hyades/keyboard\
 	hyades/mem\
 	hyades/num\
@@ -18,6 +19,7 @@ NOTEST=\
 	hyades/dbg\
 	hyades/fs\
 	hyades/geom\
+	hyades/gui\
 	hyades/keyboard\
 	hyades/num\
 	hyades/sdl\
