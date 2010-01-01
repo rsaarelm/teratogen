@@ -258,7 +258,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 				// Correct for the position of ASCII '0'
 				choice += 10
 			}
-			if choice <= maxOpt {
+			if choice < maxOpt {
 				return choice + pos, true
 			}
 		case key == keyboard.K_ESCAPE:
