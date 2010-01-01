@@ -78,3 +78,9 @@ func ReverseIter(iter iterable.Iterable) iterable.Iterable {
 		close(c)
 	})
 }
+
+func emptyIteration(c chan<- interface{}) { close(c) }
+
+// EmptyIter returns an Iterable that yields nothing. Useful in situations
+// where an interface requires that an Iterable is presented.
+func EmptyIter() iterable.Iterable { return IterFunc(emptyIteration) }

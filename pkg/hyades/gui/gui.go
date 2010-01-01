@@ -28,9 +28,8 @@ type Widget interface {
 	Draw(g Graphics, area draw.Rectangle)
 
 	// Gets an iteration of the node's immediate and their areas, as
-	// []interface{} {area draw.Rectangle, child Widget}. May return nil
-	// if the widget has no children. The areas of children are assumed to
-	// be contained in the area of the parent.
+	// []interface{} {area draw.Rectangle, child Widget}. The areas of
+	// children are assumed to be contained in the area of the parent.
 	Children(area draw.Rectangle) iterable.Iterable
 
 	// If the widget responds to mouse events, return its mouse listener
@@ -38,7 +37,40 @@ type Widget interface {
 	GetMouseListener() MouseListener
 }
 
-type MouseListener func(area draw.Rectangle, event draw.Mouse)
+// A drawing function that can serve as a simple leaf widget.
+type DrawFunc func(g Graphics, area draw.Rectangle)
+
+func (self DrawFunc) Draw(g Graphics, area draw.Rectangle) {
+	self(g, area)
+}
+
+func (self DrawFunc) Children(area draw.Rectangle) iterable.Iterable {
+	return alg.EmptyIter()
+}
+
+func (self DrawFunc) GetMouseListener() MouseListener {
+	return nil
+}
+
+type MouseListener interface {
+	MouseEvent(area draw.Rectangle, event draw.Mouse)
+}
+
+type FuncMouseListener func(area draw.Rectangle, event draw.Mouse)
+
+func (self FuncMouseListener) MouseEvent(area draw.Rectangle, event draw.Mouse) {
+	self(area, event)
+}
+
+// DrawChildren is a helper function to iterate and draw the immediate
+// children of a widget. It is inteded to be called from the Draw code of the
+// parent widget.
+func DrawChildren(g Graphics, area draw.Rectangle, widget Widget) {
+	for pair := range widget.Children(area).Iter() {
+		childArea, child := UnpackWidgetIteration(pair)
+		child.Draw(g, childArea)
+	}
+}
 
 func UnpackWidgetIteration(pair interface{}) (area draw.Rectangle, widget Widget) {
 	array := pair.([]interface{})
@@ -54,12 +86,9 @@ func iterInPoint(pos draw.Point, area draw.Rectangle, node Widget, c chan<- inte
 	// XXX: Stupid temporary rect to check if pos is in area.
 	if draw.Rpt(pos, pos).In(area) {
 		c <- PackWidgetIteration(area, node)
-		children := node.Children(area)
-		if children != nil {
-			for pair := range children.Iter() {
-				childArea, childNode := UnpackWidgetIteration(pair)
-				iterInPoint(pos, childArea, childNode, c)
-			}
+		for pair := range node.Children(area).Iter() {
+			childArea, childNode := UnpackWidgetIteration(pair)
+			iterInPoint(pos, childArea, childNode, c)
 		}
 	}
 

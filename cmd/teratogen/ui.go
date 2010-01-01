@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/gui"
 	"hyades/keyboard"
 	"hyades/num"
 	"hyades/sdl"
@@ -30,6 +31,9 @@ const yDrawOffset = 0
 
 const TileW = 16
 const TileH = 16
+
+const FontH = 16
+const FontW = 16
 
 type UI struct {
 	context sdl.Context
@@ -91,6 +95,36 @@ func (self *UI) DrawAnims(timeElapsedNs int64) {
 	}
 }
 
+func (self *UI) Draw(g gui.Graphics, area draw.Rectangle) {
+	g.FillRect(area, image.RGBAColor{0, 0, 0, 255})
+
+	world := GetWorld()
+
+	world.Draw()
+
+	gui.DrawChildren(g, area, self)
+}
+
+func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
+	// TODO: Adapt to area.
+	// TODO: Widgetify main world view.
+	return alg.IterFunc(func(c chan<- interface{}) {
+		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*21, screenWidth, screenHeight),
+			gui.DrawFunc(drawMsgLines))
+		c <- gui.PackWidgetIteration(draw.Rect(TileW*41, 0, screenWidth, FontH*20),
+			gui.DrawFunc(drawStatus))
+		close(c)
+	})
+}
+
+func (self *UI) GetMouseListener() gui.MouseListener {
+	return self
+}
+
+func (self *UI) MouseEvent(area draw.Rectangle, event draw.Mouse) {
+	// TODO: Mouse response.
+}
+
 func InitUI() { ui = newUI() }
 
 func DrawSprite(name string, x, y int) {
@@ -142,6 +176,31 @@ func MsgMore() {
 	}
 }
 
+func drawMsgLines(g gui.Graphics, area draw.Rectangle) {
+	g.SetClipRect(area)
+	defer g.ClearClipRect()
+
+	for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
+		DrawString(area.Min.X, area.Min.Y+(FontH*(i-ui.oldestLineSeen)),
+			GetMsg().GetLine(i))
+	}
+}
+
+func drawStatus(g gui.Graphics, area draw.Rectangle) {
+	g.SetClipRect(area)
+	defer g.ClearClipRect()
+
+	DrawString(area.Min.X, area.Min.Y,
+		"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
+
+	helpLineY := FontH * 3
+	for o := range UiHelpLines().Iter() {
+		DrawString(area.Min.X, area.Min.Y+helpLineY, o.(string))
+		helpLineY += FontH
+	}
+
+}
+
 func MainUILoop() {
 	updater := time.Tick(redrawIntervalNs)
 	lastTime := time.Nanoseconds()
@@ -155,29 +214,14 @@ func MainUILoop() {
 		timeElapsed = time.Nanoseconds() - lastTime
 		lastTime += timeElapsed
 
-		ui.context.SdlScreen().FillRect(draw.Rect(0, 0, screenWidth, screenHeight),
-			image.RGBAColor{0, 0, 0, 255})
-
 		// Synched block which accesses the game world. Don't run
 		// scripts during this.
 		GetUISync()
 
-		world := GetWorld()
+		g := ui.context.SdlScreen()
+		ui.Draw(g, draw.Rect(0, 0, g.Width(), g.Height()))
 
-		world.Draw()
-
-		for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-			DrawString(TileW*0, TileH*(21+(i-ui.oldestLineSeen)), GetMsg().GetLine(i))
-		}
-		DrawString(TileW*41, TileH*1,
-			"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
-
-		helpLineY := TileH * 3
-		for o := range UiHelpLines().Iter() {
-			DrawString(TileW*41, helpLineY, o.(string))
-			helpLineY += TileH
-		}
-
+		// TODO: Widgetify anims.
 		ui.DrawAnims(timeElapsed)
 
 		ReleaseUISync()
