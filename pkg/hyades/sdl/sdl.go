@@ -44,6 +44,19 @@ type Context interface {
 
 	// TODO: API for freeing surfaces created by Convert. This should be done by a GC finalizer.
 
+	// Returns whether the image object is a SDL surface.
+	IsNativeSurface(img image.Image) bool
+
+	// Sets a clipping rectangle on a native surface. It's not possible to
+	// draw outside the rectangle. Returns whether the set was successful.
+	SetClipRect(img image.Image, clipRect draw.Rectangle) (ok bool)
+
+	// Clears a clipping rectangle on a native surface, if set.
+	ClearClipRect(img image.Image)
+
+	// Returns the clip rectangle of a native surface, if one has been set.
+	GetClipRect(img image.Image) (clipRect draw.Rectangle, ok bool)
+
 	// MakeSound converts wav file data into a SDL sound object.
 	MakeSound(wavData []byte) (result sfx.Sound, err os.Error)
 
@@ -156,6 +169,37 @@ func (self *context) Convert(img image.Image) image.Image {
 
 	draw.Draw(surf, draw.Rect(0, 0, width, height), img, nil, draw.Pt(0, 0))
 	return surf
+}
+
+func (self *context) IsNativeSurface(img image.Image) bool {
+	_, ok := img.(*C.SDL_Surface)
+	return ok
+}
+
+func (self *context) SetClipRect(img image.Image, clipRect draw.Rectangle) (ok bool) {
+	surf, ok := img.(*C.SDL_Surface)
+	if !ok {
+		return false
+	}
+	sdlClipRect := convertRect(clipRect)
+	C.SDL_SetClipRect(surf, &sdlClipRect)
+	return true
+}
+
+func (self *context) ClearClipRect(img image.Image) {
+	if surf, ok := img.(*C.SDL_Surface); ok {
+		C.SDL_SetClipRect(surf, nil)
+	}
+}
+
+func (self *context) GetClipRect(img image.Image) (clipRect draw.Rectangle, ok bool) {
+	if surf, ok := img.(*C.SDL_Surface); ok {
+		var sdlRect C.SDL_Rect
+		C.SDL_GetClipRect(surf, &sdlRect)
+		clipRect = draw.Rect(int(sdlRect.x), int(sdlRect.y),
+			int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
+	}
+	return
 }
 
 func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) {
