@@ -4,6 +4,7 @@ package alg
 
 import (
 	"container/vector"
+	"exp/iterable"
 	"reflect"
 	"sort"
 )
@@ -64,4 +65,16 @@ func (self IterFunc) Iter() <-chan interface{} {
 	c := make(chan interface{})
 	go self(c)
 	return c
+}
+
+// ReverseIter returns an Iterable that returns the elements if iter in
+// reverse order.
+func ReverseIter(iter iterable.Iterable) iterable.Iterable {
+	data := iterable.Data(iter)
+	return IterFunc(func(c chan<- interface{}) {
+		for i := len(data) - 1; i >= 0; i-- {
+			c <- data[i]
+		}
+		close(c)
+	})
 }
