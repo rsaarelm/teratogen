@@ -105,3 +105,36 @@ func DispatchMouseEvent(area draw.Rectangle, root Widget, event draw.Mouse) bool
 	}
 	return false
 }
+
+type TranslateGraphics struct {
+	Vec   draw.Point
+	Inner Graphics
+}
+
+func (self *TranslateGraphics) Width() int { return self.Inner.Width() }
+
+func (self *TranslateGraphics) Height() int { return self.Inner.Height() }
+
+func (self *TranslateGraphics) At(x, y int) image.Color {
+	return self.Inner.At(x-self.Vec.X, y-self.Vec.Y)
+}
+
+func (self *TranslateGraphics) ColorModel() image.ColorModel {
+	return self.Inner.ColorModel()
+}
+
+func (self *TranslateGraphics) Set(x, y int, c image.Color) {
+	self.Inner.Set(x-self.Vec.X, y-self.Vec.Y, c)
+}
+
+func (self *TranslateGraphics) Blit(img image.Image, x, y int) {
+	self.Inner.Blit(img, x-self.Vec.X, y-self.Vec.Y)
+}
+
+func (self *TranslateGraphics) FillRect(rect draw.Rectangle, color image.Color) {
+	self.Inner.FillRect(rect.Sub(self.Vec), color)
+}
+
+func (self *TranslateGraphics) Center(x, y int) {
+	self.Vec = draw.Pt(x-self.Width()/2, y-self.Height()/2)
+}
