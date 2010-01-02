@@ -13,8 +13,6 @@ type Graphics interface {
 	draw.Image
 	Blit(img image.Image, x, y int)
 	FillRect(rect draw.Rectangle, color image.Color)
-	SetClipRect(clipRect draw.Rectangle)
-	ClearClipRect()
 }
 
 type Font interface {
