@@ -49,14 +49,16 @@ func (self *MapView) DrawAnims(g gfx.Graphics, timeElapsedNs int64) {
 }
 
 func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
+	g.SetClip(area)
+	defer g.ClearClip()
+
 	elapsed := time.Nanoseconds() - self.timePoint
 	self.timePoint += elapsed
 
-	// TODO: Local, custom world draw.
-	// TODO: Adapt world draw to area.
 	world := GetWorld()
-	world.Draw()
-	self.DrawAnims(g, elapsed)
+	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
+	world.Draw(g2)
+	self.DrawAnims(g2, elapsed)
 }
 
 func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {

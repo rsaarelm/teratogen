@@ -31,9 +31,9 @@ func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
 	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
 }
 
-func Draw(spriteId string, x, y int) {
+func Draw(g gfx.Graphics, spriteId string, x, y int) {
 	sx, sy := DrawPos(geom.Pt2I{x, y})
-	DrawSprite(ui.context.Screen().(gfx.Graphics), spriteId, sx, sy)
+	DrawSprite(g, spriteId, sx, sy)
 }
 
 // Behavioral terrain types.
@@ -120,9 +120,9 @@ func GetWorld() *World {
 	return world
 }
 
-func (self *World) Draw() {
-	self.drawTerrain()
-	self.drawEntities()
+func (self *World) Draw(g gfx.Graphics) {
+	self.drawTerrain(g)
+	self.drawEntities(g)
 }
 
 func (self *World) GetPlayer() *Entity { return self.entities[self.playerId] }
@@ -435,7 +435,7 @@ func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found 
 }
 
 
-func (self *World) drawTerrain() {
+func (self *World) drawTerrain(g gfx.Graphics) {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if self.GetLos(pt) == LosUnknown {
 			continue
@@ -449,11 +449,11 @@ func (self *World) drawTerrain() {
 		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
 			idx = TerrainDirtFront
 		}
-		Draw(tileset1[idx], pt.X, pt.Y)
+		Draw(g, tileset1[idx], pt.X, pt.Y)
 	}
 }
 
-func (self *World) drawEntities() {
+func (self *World) drawEntities(g gfx.Graphics) {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
 	for o := range self.Entities().Iter() {
@@ -474,7 +474,7 @@ func (self *World) drawEntities() {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e) {
-				Draw(e.IconId, pos.X, pos.Y)
+				Draw(g, e.IconId, pos.X, pos.Y)
 			}
 		}
 	}

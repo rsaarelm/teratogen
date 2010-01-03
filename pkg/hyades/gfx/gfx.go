@@ -187,3 +187,43 @@ func ErrorImage() image.Image {
 	once.Do(loadError)
 	return errorImage
 }
+
+type TranslateGraphics struct {
+	Vec   draw.Point
+	Inner Graphics
+}
+
+func (self *TranslateGraphics) Width() int { return self.Inner.Width() }
+
+func (self *TranslateGraphics) Height() int { return self.Inner.Height() }
+
+func (self *TranslateGraphics) At(x, y int) image.Color {
+	return self.Inner.At(x-self.Vec.X, y-self.Vec.Y)
+}
+
+func (self *TranslateGraphics) ColorModel() image.ColorModel {
+	return self.Inner.ColorModel()
+}
+
+func (self *TranslateGraphics) Set(x, y int, c image.Color) {
+	self.Inner.Set(x-self.Vec.X, y-self.Vec.Y, c)
+}
+
+func (self *TranslateGraphics) Blit(img image.Image, x, y int) {
+	self.Inner.Blit(img, x-self.Vec.X, y-self.Vec.Y)
+}
+
+func (self *TranslateGraphics) FillRect(rect draw.Rectangle, color image.Color) {
+	self.Inner.FillRect(rect.Sub(self.Vec), color)
+}
+
+func (self *TranslateGraphics) SetClip(clipRect draw.Rectangle) {
+	self.Inner.SetClip(clipRect)
+}
+
+func (self *TranslateGraphics) ClearClip() { self.Inner.ClearClip() }
+
+// Center sets the translation so that the given rectangle will be centered on the given point.
+func (self *TranslateGraphics) Center(area draw.Rectangle, x, y int) {
+	self.Vec = draw.Pt(area.Min.X+x-area.Dx()/2, area.Min.Y+y-area.Dy()/2)
+}

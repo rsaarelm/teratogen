@@ -148,8 +148,8 @@ func MsgMore() {
 }
 
 func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
-	//	g.SetClipRect(area)
-	//	defer g.ClearClipRect()
+	g.SetClip(area)
+	defer g.ClearClip()
 
 	for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
 		DrawString(g, area.Min.X, area.Min.Y+(FontH*(i-ui.oldestLineSeen)),
@@ -158,8 +158,8 @@ func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
 }
 
 func drawStatus(g gfx.Graphics, area draw.Rectangle) {
-	//	g.SetClipRect(area)
-	//	defer g.ClearClipRect()
+	g.SetClip(area)
+	defer g.ClearClip()
 
 	DrawString(g, area.Min.X, area.Min.Y,
 		"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
