@@ -2,6 +2,7 @@ all: deps install
 
 DIRS=\
 	hyades/alg\
+	hyades/babble\
 	hyades/dbg\
 	hyades/fs\
 	hyades/geom\
