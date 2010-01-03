@@ -30,8 +30,14 @@ const numFont = 256
 const xDrawOffset = 0
 const yDrawOffset = 0
 
-const FontH = 16
 const FontW = 16
+const FontH = 16
+const FontScale = FontW / 8
+
+const TileW = 16
+const TileH = 16
+const TileScale = TileW / 8
+
 
 type UI struct {
 	context sdl.Context
@@ -80,13 +86,13 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
-	// TODO: Widgetify main world view.
+	cols, rows := 640/TileW-1, 320/TileH-1
 	return alg.IterFunc(func(c chan<- interface{}) {
-		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*39, TileH*19),
+		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*cols, TileH*rows),
 			self.mapView)
-		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*21, screenWidth, screenHeight),
+		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*(rows+1), screenWidth, screenHeight),
 			gui.DrawFunc(drawMsgLines))
-		c <- gui.PackWidgetIteration(draw.Rect(TileW*41, 0, screenWidth, FontH*20),
+		c <- gui.PackWidgetIteration(draw.Rect(TileW*(cols+1), 0, screenWidth, FontH*20),
 			gui.DrawFunc(drawStatus))
 		close(c)
 	})
@@ -114,7 +120,7 @@ func DrawChar(g gfx.Graphics, char int, x, y int) {
 func DrawString(g gfx.Graphics, x, y int, format string, a ...) {
 	for _, char := range fmt.Sprintf(format, a) {
 		DrawChar(g, char, x, y)
-		x += TileW
+		x += FontW
 	}
 }
 
@@ -213,7 +219,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	numVisible := 10
 	xOff := 0
 	yOff := TileH * 21
-	lineH := TileH
+	lineH := FontH
 	MarkMsgLinesSeen()
 	pos := 0
 

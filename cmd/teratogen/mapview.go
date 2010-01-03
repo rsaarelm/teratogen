@@ -9,9 +9,6 @@ import (
 	"time"
 )
 
-const TileW = 16
-const TileH = 16
-
 type MapView struct {
 	timePoint int64
 	anims     *vector.Vector

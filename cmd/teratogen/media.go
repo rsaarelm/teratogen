@@ -77,10 +77,10 @@ func PlaySound(name string) { cache[name].(sfx.Sound).Play() }
 
 func InitMedia() {
 	once.Do(initArchive)
-	makeTiles("font", "media/font.png", TileW, TileH, 2)
-	makeTiles("chars", "media/chars.png", TileW, TileH, 2)
-	makeTiles("tiles", "media/tiles.png", TileW, TileH, 2)
-	makeTiles("items", "media/items.png", TileW, TileH, 2)
+	makeTiles("font", "media/font.png", FontW, FontH, FontScale)
+	makeTiles("chars", "media/chars.png", TileW, TileH, TileScale)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH, TileScale)
+	makeTiles("items", "media/items.png", TileW, TileH, TileScale)
 	makeSounds()
 }
 
