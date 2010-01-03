@@ -2,6 +2,7 @@ package main
 
 import (
 	"exp/iterable"
+	"fmt"
 	"hyades/dbg"
 	"hyades/keyboard"
 	"hyades/num"
@@ -116,7 +117,15 @@ loop: for {
 }
 
 func main() {
-	num.RngSeedFromClock()
+	ParseConfig()
+
+	var seed num.RandState
+	if config.RngSeed >= 0 {
+		seed = num.NewRandState(config.RngSeed)
+	} else {
+		seed = num.RandStateFromClock()
+	}
+	fmt.Println("Rng seed: ", seed)
 
 	InitUI()
 	InitMedia()

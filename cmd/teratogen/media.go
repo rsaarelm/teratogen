@@ -73,14 +73,20 @@ func makeSounds() {
 
 }
 
-func PlaySound(name string) { cache[name].(sfx.Sound).Play() }
+func PlaySound(name string) {
+	if config.Sound {
+		cache[name].(sfx.Sound).Play()
+	}
+}
 
 func InitMedia() {
+	fmt.Printf("Initializing media... ")
+	defer fmt.Printf("Done.\n")
 	once.Do(initArchive)
 	makeTiles("font", "media/font.png", FontW, FontH, FontScale)
-	makeTiles("chars", "media/chars.png", TileW, TileH, TileScale)
-	makeTiles("tiles", "media/tiles.png", TileW, TileH, TileScale)
-	makeTiles("items", "media/items.png", TileW, TileH, TileScale)
+	makeTiles("chars", "media/chars.png", TileW, TileH, config.TileScale)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.TileScale)
+	makeTiles("items", "media/items.png", TileW, TileH, config.TileScale)
 	makeSounds()
 }
 

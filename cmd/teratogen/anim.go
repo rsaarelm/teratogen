@@ -49,7 +49,7 @@ func newParticle(x, y int, lifetime int64, speed float64, color image.Color) (re
 }
 
 // Blasts particles in all directions from origin.
-func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, lifetime int64, speed float64, color image.Color, particleCount int) {
+func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, color image.Color, particleCount int) {
 	defer anim.Close()
 	particles := make([]*particle, particleCount)
 
@@ -69,7 +69,7 @@ func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, lifetime int64,
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+2, int(p.y)+2), p.color)
+				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.color)
 			}
 		}
 		anim.StopDraw()

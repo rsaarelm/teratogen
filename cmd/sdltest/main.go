@@ -64,7 +64,7 @@ func makePngSurface(context sdl.Context, in io.Reader) (img image.Image, err os.
 	img, err = png.Decode(in)
 	dbg.AssertNoError(err)
 
-	img = context.Convert(gfx.DoubleScaleImage(img))
+	img = context.Convert(gfx.IntScaleImage(img, 2, 2))
 	return
 }
 

@@ -18,14 +18,19 @@ func WithProb(prob float64) bool { return rand.Float64() < prob }
 
 func OneChanceIn(num int) bool { return rand.Intn(num) == 0 }
 
-// RngSeedFromClock seeds the random number generator from the system clock.
-// Return the generator state so that the same value can be re-used if
-// desired.
-func RngSeedFromClock() (result RandState) {
-	result = RandState(time.Nanoseconds())
+// MakeRandState initializes the random number generator using the given value
+// and returns the RandState value which can be used to return the generator
+// to the same state.
+func NewRandState(state int64) (result RandState) {
+	result = RandState(state)
 	RestoreRngState(result)
 	return
 }
+
+// RngSeedFromClock seeds the random number generator from the system clock.
+// Return the generator state so that the same value can be re-used if
+// desired.
+func RandStateFromClock() RandState { return NewRandState(time.Nanoseconds()) }
 
 // SaveRntState generates a new random number generator state, which can be
 // used to return the generator to this state. As currently implemented, this

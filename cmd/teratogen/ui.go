@@ -34,10 +34,8 @@ const FontW = 16
 const FontH = 16
 const FontScale = FontW / 8
 
-const TileW = 16
-const TileH = 16
-const TileScale = TileW / 8
-
+var TileW = 16
+var TileH = 16
 
 type UI struct {
 	context sdl.Context
@@ -54,8 +52,7 @@ var ui *UI
 
 var uiMutex = new(sync.Mutex)
 
-// TODO: Configure externally.
-var keymap = keyboard.KeyMap(keyboard.ColemakMap)
+var keymap = keyboard.KeyMap(keyboard.QwertyMap)
 
 func GetUISync() { uiMutex.Lock() }
 
@@ -63,7 +60,7 @@ func ReleaseUISync() { uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
-	context, err := sdl.NewWindow(screenWidth, screenHeight, "Teratogen", false)
+	context, err := sdl.NewWindow(screenWidth, screenHeight, "Teratogen", config.Fullscreen)
 	dbg.AssertNoError(err)
 	result.context = context
 	context.KeyRepeatOn()
