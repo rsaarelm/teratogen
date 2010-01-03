@@ -1,5 +1,10 @@
 package gfx
 
+import (
+	"container/vector"
+	"hyades/alg"
+)
+
 // State wrapper structure for animation objects. Animations are not a proper
 // part of the game world, they don't go into savegames, but they can be used
 // to illustrate events in the world. Animations are run in separate
@@ -51,3 +56,30 @@ func (self *Anim) StartDraw() (g Graphics, elapsedNs int64) {
 // StopDraw is called in from the animation goroutine when the animation has
 // finished drawing its current state after calling StartDraw.
 func (self *Anim) StopDraw() { self.updateChan <- 0 }
+
+// Embeddable struct which contains and draws anims.
+type Anims struct {
+	anims *vector.Vector
+}
+
+func (self *Anims) InitAnims() { self.anims = new(vector.Vector) }
+
+func animSort(i, j interface{}) bool { return i.(*Anim).Z < j.(*Anim).Z }
+
+func (self *Anims) AddAnim(anim *Anim) *Anim {
+	self.anims.Push(anim)
+	return anim
+}
+
+func (self *Anims) DrawAnims(g Graphics, timeElapsedNs int64) {
+	alg.PredicateSort(animSort, self.anims)
+	for i := 0; i < self.anims.Len(); i++ {
+		anim := self.anims.At(i).(*Anim)
+		if anim.Closed() {
+			self.anims.Delete(i)
+			i--
+			continue
+		}
+		anim.Update(g, timeElapsedNs)
+	}
+}
