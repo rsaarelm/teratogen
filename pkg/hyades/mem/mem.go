@@ -1,3 +1,5 @@
+// Data storage, data format and memory operations.
+
 package mem
 
 import (
