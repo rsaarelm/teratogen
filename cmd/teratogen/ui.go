@@ -222,7 +222,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	go func(anim *Anim) {
 		defer anim.Close()
 		for running {
-			<-anim.UpdateChan
+			_, _ = anim.StartDraw()
 			moreAbove := pos > 0
 			moreBelow := len(options)-pos > numVisible
 
@@ -241,7 +241,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 				DrawString(xOff, yOff+(numVisible+2)*lineH, "--more--")
 			}
 
-			anim.UpdateChan <- 0
+			anim.StopDraw()
 		}
 	}(ui.AddAnim(NewAnim(0.0)))
 

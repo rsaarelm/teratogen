@@ -3,6 +3,7 @@ package main
 import (
 	"exp/draw"
 	"hyades/gfx"
+	"hyades/gui"
 	"hyades/num"
 	"hyades/sdl"
 	"image"
@@ -10,38 +11,71 @@ import (
 	"rand"
 )
 
+// State wrapper structure for animation objects. Animations are not a proper
+// part of the game world, they don't go into savegames, but they can be used
+// to illustrate events in the world. Animations are run in separate
+// goroutines, which communicate with the main game via the Anim object API.
 type Anim struct {
 	// Channel that receives an interval in nanoseconds since the last
 	// update, causes the anim to draw itself.
-	UpdateChan chan int64
+	updateChan chan int64
+
+	// The current graphics context, passed using the Update function.
+	g gui.Graphics
+
 	// The position of the animation in the draw queue. Low z values are
 	// drawn first.
 	Z float64
 }
 
-func NewAnim(z float64) *Anim { return &Anim{make(chan int64), z} }
+func NewAnim(z float64) *Anim { return &Anim{make(chan int64), nil, z} }
 
-func (self *Anim) Close() {
-	close(self.UpdateChan)
-	<-self.UpdateChan
+// Update causes the anim to draw itself in the graphics context and advance
+// it's state by elapsedNs. Calling with 0 elapsedNs will just make the anim
+// redraw itself.
+func (self *Anim) Update(g gui.Graphics, elapsedNs int64) {
+	self.g = g
+	self.updateChan <- elapsedNs
+	// Wait for the draw to finish
+	<-self.updateChan
+	// Just to make sure it isn't used inappropriately.
+	self.g = nil
 }
 
-func (self *Anim) Closed() bool { return closed(self.UpdateChan) }
+func (self *Anim) Close() {
+	close(self.updateChan)
+	<-self.updateChan
+}
+
+func (self *Anim) Closed() bool { return closed(self.updateChan) }
+
+// StartDraw is called from the animation goroutine. It waits until the main
+// engine wants the animation to draw itself. It returns the graphics context
+// to draw into and the number of nanoseconds that the animation state should
+// advance. Do not call this outside the animation goroutine.
+func (self *Anim) StartDraw() (g gui.Graphics, elapsedNs int64) {
+	elapsedNs = <-self.updateChan
+	g = self.g
+	return
+}
+
+// StopDraw is called in from the animation goroutine when the animation has
+// finished drawing its current state after calling StartDraw.
+func (self *Anim) StopDraw() { self.updateChan <- 0 }
 
 func TestAnim(context sdl.Context, anim *Anim) {
 	defer anim.Close()
 	t := int64(0)
 	for t < 2e9 {
-		t += <-anim.UpdateChan
-		scr := context.Screen()
+		g, t := anim.StartDraw()
 		col, _ := gfx.ParseColor("AliceBlue")
-		for x := 0; x < scr.Width(); x++ {
-			h := float64(scr.Height())
-			w := float64(scr.Width())
+		for x := 0; x < g.Width(); x++ {
+			h := float64(g.Height())
+			w := float64(g.Width())
 			y := int(h/2 + h/4*math.Sin(float64(t)/1e8+float64(x)/w*16))
-			scr.Set(x, y, col)
+			g.Set(x, y, col)
 		}
-		anim.UpdateChan <- 0
+		anim.StopDraw()
 	}
 }
 
@@ -78,7 +112,7 @@ func ParticleAnim(context sdl.Context, anim *Anim, x, y int, lifetime int64, spe
 
 	liveOnes := len(particles)
 	for liveOnes > 0 {
-		t := <-anim.UpdateChan
+		g, t := anim.StartDraw()
 
 		liveOnes = 0
 		for _, p := range particles {
@@ -88,9 +122,9 @@ func ParticleAnim(context sdl.Context, anim *Anim, x, y int, lifetime int64, spe
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				context.SdlScreen().FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+2, int(p.y)+2), p.color)
+				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+2, int(p.y)+2), p.color)
 			}
 		}
-		anim.UpdateChan <- 0
+		anim.StopDraw()
 	}
 }

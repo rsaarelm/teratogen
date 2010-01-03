@@ -35,7 +35,7 @@ func (self *MapView) AddAnim(anim *Anim) *Anim {
 
 // TODO: Pass draw offset to anims.
 
-func (self *MapView) DrawAnims(timeElapsedNs int64) {
+func (self *MapView) DrawAnims(g gui.Graphics, timeElapsedNs int64) {
 	alg.PredicateSort(animSort, self.anims)
 	for i := 0; i < self.anims.Len(); i++ {
 		anim := self.anims.At(i).(*Anim)
@@ -44,10 +44,7 @@ func (self *MapView) DrawAnims(timeElapsedNs int64) {
 			i--
 			continue
 		}
-		// Tell the anim it can draw itself.
-		anim.UpdateChan <- timeElapsedNs
-		// Wait for the anim to call back that it's completed drawing itself.
-		<-anim.UpdateChan
+		anim.Update(g, timeElapsedNs)
 	}
 }
 
@@ -59,7 +56,7 @@ func (self *MapView) Draw(g gui.Graphics, area draw.Rectangle) {
 	// TODO: Adapt world draw to area.
 	world := GetWorld()
 	world.Draw()
-	self.DrawAnims(elapsed)
+	self.DrawAnims(g, elapsed)
 }
 
 func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
