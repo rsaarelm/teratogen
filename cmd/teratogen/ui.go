@@ -38,6 +38,7 @@ var TileW = 16
 var TileH = 16
 
 type UI struct {
+	gfx.Anims
 	context sdl.Context
 	msg     *MsgOut
 	running bool
@@ -45,7 +46,8 @@ type UI struct {
 	// Show message lines beyond this to player.
 	oldestLineSeen int
 
-	mapView *MapView
+	mapView   *MapView
+	timePoint int64
 }
 
 var ui *UI
@@ -60,6 +62,7 @@ func ReleaseUISync() { uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
+	result.InitAnims()
 	context, err := sdl.NewWindow(screenWidth, screenHeight, "Teratogen", config.Fullscreen)
 	dbg.AssertNoError(err)
 	result.context = context
@@ -67,18 +70,28 @@ func newUI() (result *UI) {
 	result.msg = NewMsgOut()
 	result.running = true
 	result.mapView = NewMapView()
+	result.timePoint = time.Nanoseconds()
 
 	return
 }
 
-func (self *UI) AddAnim(anim *gfx.Anim) *gfx.Anim {
+func (self *UI) AddMapAnim(anim *gfx.Anim) *gfx.Anim {
 	return self.mapView.AddAnim(anim)
+}
+
+func (self *UI) AddScreenAnim(anim *gfx.Anim) *gfx.Anim {
+	return self.AddAnim(anim)
 }
 
 func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 	g.FillRect(area, image.RGBAColor{0, 0, 0, 255})
 
 	gui.DrawChildren(g, area, self)
+
+	elapsed := time.Nanoseconds() - self.timePoint
+	self.timePoint += elapsed
+
+	self.DrawAnims(g, elapsed)
 }
 
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
@@ -249,7 +262,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 
 			anim.StopDraw()
 		}
-	}(ui.AddAnim(gfx.NewAnim(0.0)))
+	}(ui.AddScreenAnim(gfx.NewAnim(0.0)))
 
 	for {
 		moreAbove := pos > 0
