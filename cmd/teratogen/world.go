@@ -7,6 +7,7 @@ import (
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
+	"hyades/gfx"
 	"hyades/mem"
 	"hyades/num"
 	"io"
@@ -32,7 +33,7 @@ func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
 
 func Draw(spriteId string, x, y int) {
 	sx, sy := DrawPos(geom.Pt2I{x, y})
-	DrawSprite(spriteId, sx, sy)
+	DrawSprite(ui.context.Screen().(gfx.Graphics), spriteId, sx, sy)
 }
 
 // Behavioral terrain types.

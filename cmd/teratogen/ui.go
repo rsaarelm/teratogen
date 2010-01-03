@@ -98,22 +98,22 @@ func (self *UI) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) {
 
 func InitUI() { ui = newUI() }
 
-func DrawSprite(name string, x, y int) {
-	ui.context.SdlScreen().Blit(Media(name).(image.Image), x, y)
+func DrawSprite(g gfx.Graphics, name string, x, y int) {
+	g.Blit(Media(name).(image.Image), x, y)
 }
 
-func DrawChar(char int, x, y int) {
+func DrawChar(g gfx.Graphics, char int, x, y int) {
 	// XXX: Ineffctive string composition...
 	if char > numFont {
 		return
 	}
-	DrawSprite(fmt.Sprintf("font:%d", char), x, y)
+	DrawSprite(g, fmt.Sprintf("font:%d", char), x, y)
 }
 
 // TODO: Support color
-func DrawString(x, y int, format string, a ...) {
+func DrawString(g gfx.Graphics, x, y int, format string, a ...) {
 	for _, char := range fmt.Sprintf(format, a) {
-		DrawChar(char, x, y)
+		DrawChar(g, char, x, y)
 		x += TileW
 	}
 }
@@ -152,7 +152,7 @@ func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
 	//	defer g.ClearClipRect()
 
 	for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-		DrawString(area.Min.X, area.Min.Y+(FontH*(i-ui.oldestLineSeen)),
+		DrawString(g, area.Min.X, area.Min.Y+(FontH*(i-ui.oldestLineSeen)),
 			GetMsg().GetLine(i))
 	}
 }
@@ -161,12 +161,12 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	//	g.SetClipRect(area)
 	//	defer g.ClearClipRect()
 
-	DrawString(area.Min.X, area.Min.Y,
+	DrawString(g, area.Min.X, area.Min.Y,
 		"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
-		DrawString(area.Min.X, area.Min.Y+helpLineY, o.(string))
+		DrawString(g, area.Min.X, area.Min.Y+helpLineY, o.(string))
 		helpLineY += FontH
 	}
 
@@ -225,23 +225,23 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	go func(anim *gfx.Anim) {
 		defer anim.Close()
 		for running {
-			_, _ = anim.StartDraw()
+			g, _ := anim.StartDraw()
 			moreAbove := pos > 0
 			moreBelow := len(options)-pos > numVisible
 
-			DrawString(xOff, yOff, prompt)
+			DrawString(g, xOff, yOff, prompt)
 			if moreAbove {
-				DrawString(xOff, yOff+lineH, "--more--")
+				DrawString(g, xOff, yOff+lineH, "--more--")
 			}
 			for i := pos; i < num.IntMin(pos+numVisible, len(options)); i++ {
 				key := i - pos + 1
 				if key == 10 {
 					key = 0
 				}
-				DrawString(xOff, yOff+(2+i-pos)*lineH, "%d) %v", key, options[i])
+				DrawString(g, xOff, yOff+(2+i-pos)*lineH, "%d) %v", key, options[i])
 			}
 			if moreBelow {
-				DrawString(xOff, yOff+(numVisible+2)*lineH, "--more--")
+				DrawString(g, xOff, yOff+(numVisible+2)*lineH, "--more--")
 			}
 
 			anim.StopDraw()
