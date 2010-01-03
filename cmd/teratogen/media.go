@@ -34,12 +34,12 @@ func initArchive() {
 	archive = arch
 }
 
-func makeTiles(basename string, filename string, width, height int) (result []image.Image) {
+func makeTiles(basename string, filename string, width, height int, scale int) (result []image.Image) {
 	data, err := Load(filename)
 	dbg.AssertNil(err, "%v", err)
 	png, err := png.Decode(bytes.NewBuffer(data))
 	dbg.AssertNil(err, "%v", err)
-	sheet := gfx.DoubleScaleImage(png)
+	sheet := gfx.IntScaleImage(png, scale, scale)
 	tiles := gfx.MakeTiles(sheet, gfx.DefaultConstructor, width, height)
 	result = make([]image.Image, len(tiles))
 	for i, tile := range tiles {
@@ -77,10 +77,10 @@ func PlaySound(name string) { cache[name].(sfx.Sound).Play() }
 
 func InitMedia() {
 	once.Do(initArchive)
-	makeTiles("font", "media/font.png", TileW, TileH)
-	makeTiles("chars", "media/chars.png", TileW, TileH)
-	makeTiles("tiles", "media/tiles.png", TileW, TileH)
-	makeTiles("items", "media/items.png", TileW, TileH)
+	makeTiles("font", "media/font.png", TileW, TileH, 2)
+	makeTiles("chars", "media/chars.png", TileW, TileH, 2)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH, 2)
+	makeTiles("items", "media/items.png", TileW, TileH, 2)
 	makeSounds()
 }
 

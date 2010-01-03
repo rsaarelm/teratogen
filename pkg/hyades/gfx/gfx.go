@@ -1,3 +1,5 @@
+// Rendering platform agnostic graphics operations
+
 package gfx
 
 import (
@@ -58,11 +60,14 @@ func IdFilter(src image.Image) (result func(float64, float64) image.Color) {
 	}
 }
 
-func DoubleScaleImage(src image.Image) image.Image {
-	result := DefaultConstructor(src.Width()*2, src.Height()*2)
+// IntScaleImage creates a copy of an image that has been scaled using
+// nearest-neighbor with an integer multiplication factor. Useful for making
+// graphics with large uniform pixels.
+func IntScaleImage(src image.Image, xScale, yScale int) image.Image {
+	result := DefaultConstructor(src.Width()*xScale, src.Height()*yScale)
 	for x := 0; x < result.Width(); x++ {
 		for y := 0; y < result.Height(); y++ {
-			result.Set(x, y, src.At(x/2, y/2))
+			result.Set(x, y, src.At(x/xScale, y/yScale))
 		}
 	}
 	return result
