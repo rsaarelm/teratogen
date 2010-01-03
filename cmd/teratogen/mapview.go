@@ -57,6 +57,8 @@ func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 
 	world := GetWorld()
 	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
+	g2.Center(area, world.GetPlayer().GetPos().X*TileW+TileW/2,
+		world.GetPlayer().GetPos().Y*TileH+TileH/2)
 	world.Draw(g2)
 	self.DrawAnims(g2, elapsed)
 }

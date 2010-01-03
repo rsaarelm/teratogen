@@ -82,7 +82,7 @@ func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
 	// TODO: Widgetify main world view.
 	return alg.IterFunc(func(c chan<- interface{}) {
-		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*40, TileH*20),
+		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*39, TileH*19),
 			self.mapView)
 		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*21, screenWidth, screenHeight),
 			gui.DrawFunc(drawMsgLines))
