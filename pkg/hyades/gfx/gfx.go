@@ -10,6 +10,13 @@ import (
 	"strings"
 )
 
+// Graphics context interface, for drawing into things.
+type Graphics interface {
+	draw.Image
+	Blit(img image.Image, x, y int)
+	FillRect(rect draw.Rectangle, color image.Color)
+}
+
 type Constructor func(width, height int) draw.Image
 
 // An Image implementation from a function that maps ([0..1), [0..1)) to RGBA.

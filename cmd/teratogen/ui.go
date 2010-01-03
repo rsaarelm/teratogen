@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/gfx"
 	"hyades/gui"
 	"hyades/keyboard"
 	"hyades/num"
@@ -67,9 +68,11 @@ func newUI() (result *UI) {
 	return
 }
 
-func (self *UI) AddAnim(anim *Anim) *Anim { return self.mapView.AddAnim(anim) }
+func (self *UI) AddAnim(anim *gfx.Anim) *gfx.Anim {
+	return self.mapView.AddAnim(anim)
+}
 
-func (self *UI) Draw(g gui.Graphics, area draw.Rectangle) {
+func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 	g.FillRect(area, image.RGBAColor{0, 0, 0, 255})
 
 	gui.DrawChildren(g, area, self)
@@ -144,7 +147,7 @@ func MsgMore() {
 	}
 }
 
-func drawMsgLines(g gui.Graphics, area draw.Rectangle) {
+func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
 	//	g.SetClipRect(area)
 	//	defer g.ClearClipRect()
 
@@ -154,7 +157,7 @@ func drawMsgLines(g gui.Graphics, area draw.Rectangle) {
 	}
 }
 
-func drawStatus(g gui.Graphics, area draw.Rectangle) {
+func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	//	g.SetClipRect(area)
 	//	defer g.ClearClipRect()
 
@@ -219,7 +222,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	defer func() { running = false }()
 
 	// Display function.
-	go func(anim *Anim) {
+	go func(anim *gfx.Anim) {
 		defer anim.Close()
 		for running {
 			_, _ = anim.StartDraw()
@@ -243,7 +246,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 
 			anim.StopDraw()
 		}
-	}(ui.AddAnim(NewAnim(0.0)))
+	}(ui.AddAnim(gfx.NewAnim(0.0)))
 
 	for {
 		moreAbove := pos > 0

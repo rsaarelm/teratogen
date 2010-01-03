@@ -6,14 +6,9 @@ import (
 	"exp/draw"
 	"exp/iterable"
 	"hyades/alg"
+	"hyades/gfx"
 	"image"
 )
-
-type Graphics interface {
-	draw.Image
-	Blit(img image.Image, x, y int)
-	FillRect(rect draw.Rectangle, color image.Color)
-}
 
 type Font interface {
 	Height() int
@@ -22,7 +17,7 @@ type Font interface {
 
 type Widget interface {
 	// Draw the widget using the assigned graphics context.
-	Draw(g Graphics, area draw.Rectangle)
+	Draw(g gfx.Graphics, area draw.Rectangle)
 
 	// Gets an iteration of the node's immediate and their areas, as
 	// []interface{} {area draw.Rectangle, child Widget}. The areas of
@@ -31,9 +26,9 @@ type Widget interface {
 }
 
 // A drawing function that can serve as a simple leaf widget.
-type DrawFunc func(g Graphics, area draw.Rectangle)
+type DrawFunc func(g gfx.Graphics, area draw.Rectangle)
 
-func (self DrawFunc) Draw(g Graphics, area draw.Rectangle) {
+func (self DrawFunc) Draw(g gfx.Graphics, area draw.Rectangle) {
 	self(g, area)
 }
 
@@ -53,7 +48,7 @@ type MouseListener interface {
 // DrawChildren is a helper function to iterate and draw the immediate
 // children of a widget. It is inteded to be called from the Draw code of the
 // parent widget.
-func DrawChildren(g Graphics, area draw.Rectangle, widget Widget) {
+func DrawChildren(g gfx.Graphics, area draw.Rectangle, widget Widget) {
 	for pair := range widget.Children(area).Iter() {
 		childArea, child := UnpackWidgetIteration(pair)
 		child.Draw(g, childArea)
@@ -108,7 +103,7 @@ func DispatchMouseEvent(area draw.Rectangle, root Widget, event draw.Mouse) bool
 
 type TranslateGraphics struct {
 	Vec   draw.Point
-	Inner Graphics
+	Inner gfx.Graphics
 }
 
 func (self *TranslateGraphics) Width() int { return self.Inner.Width() }

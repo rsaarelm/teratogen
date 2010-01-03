@@ -5,7 +5,7 @@ import (
 	"exp/draw"
 	"exp/iterable"
 	"hyades/alg"
-	"hyades/gui"
+	"hyades/gfx"
 	"time"
 )
 
@@ -24,21 +24,21 @@ func NewMapView() (result *MapView) {
 	return
 }
 
-func animSort(i, j interface{}) bool { return i.(*Anim).Z < j.(*Anim).Z }
+func animSort(i, j interface{}) bool { return i.(*gfx.Anim).Z < j.(*gfx.Anim).Z }
 
-func AnimTest() { go TestAnim(ui.context, ui.AddAnim(NewAnim(0.0))) }
+func AnimTest() { go TestAnim(ui.context, ui.AddAnim(gfx.NewAnim(0.0))) }
 
-func (self *MapView) AddAnim(anim *Anim) *Anim {
+func (self *MapView) AddAnim(anim *gfx.Anim) *gfx.Anim {
 	self.anims.Push(anim)
 	return anim
 }
 
 // TODO: Pass draw offset to anims.
 
-func (self *MapView) DrawAnims(g gui.Graphics, timeElapsedNs int64) {
+func (self *MapView) DrawAnims(g gfx.Graphics, timeElapsedNs int64) {
 	alg.PredicateSort(animSort, self.anims)
 	for i := 0; i < self.anims.Len(); i++ {
-		anim := self.anims.At(i).(*Anim)
+		anim := self.anims.At(i).(*gfx.Anim)
 		if anim.Closed() {
 			self.anims.Delete(i)
 			i--
@@ -48,7 +48,7 @@ func (self *MapView) DrawAnims(g gui.Graphics, timeElapsedNs int64) {
 	}
 }
 
-func (self *MapView) Draw(g gui.Graphics, area draw.Rectangle) {
+func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	elapsed := time.Nanoseconds() - self.timePoint
 	self.timePoint += elapsed
 
