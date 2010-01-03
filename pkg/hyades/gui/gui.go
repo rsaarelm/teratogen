@@ -130,6 +130,12 @@ func (self *TranslateGraphics) FillRect(rect draw.Rectangle, color image.Color) 
 	self.Inner.FillRect(rect.Sub(self.Vec), color)
 }
 
+func (self *TranslateGraphics) SetClip(clipRect draw.Rectangle) {
+	self.Inner.SetClip(clipRect)
+}
+
+func (self *TranslateGraphics) ClearClip() { self.Inner.ClearClip() }
+
 func (self *TranslateGraphics) Center(x, y int) {
 	self.Vec = draw.Pt(x-self.Width()/2, y-self.Height()/2)
 }

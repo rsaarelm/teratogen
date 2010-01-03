@@ -64,13 +64,13 @@ type Surface interface {
 
 	// Sets a clipping rectangle on a SDL surface. It's not possible to
 	// draw outside the rectangle.
-	SetClipRect(clipRect draw.Rectangle)
+	SetClip(clipRect draw.Rectangle)
 
 	// Clears a clipping rectangle on a SDL surface, if set.
-	ClearClipRect()
+	ClearClip()
 
 	// Returns the clip rectangle of a SDL surface, if one has been set.
-	GetClipRect() draw.Rectangle
+	GetClip() draw.Rectangle
 
 	// Efficintly fills a rectangle on the screen with uniform color.
 	FillRect(rect draw.Rectangle, c image.Color)
@@ -393,14 +393,14 @@ func (self *C.SDL_Surface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
 }
 
-func (self *C.SDL_Surface) SetClipRect(clipRect draw.Rectangle) {
+func (self *C.SDL_Surface) SetClip(clipRect draw.Rectangle) {
 	sdlClipRect := convertRect(clipRect)
 	C.SDL_SetClipRect(self, &sdlClipRect)
 }
 
-func (self *C.SDL_Surface) ClearClipRect() { C.SDL_SetClipRect(self, nil) }
+func (self *C.SDL_Surface) ClearClip() { C.SDL_SetClipRect(self, nil) }
 
-func (self *C.SDL_Surface) GetClipRect() draw.Rectangle {
+func (self *C.SDL_Surface) GetClip() draw.Rectangle {
 	var sdlRect C.SDL_Rect
 	C.SDL_GetClipRect(self, &sdlRect)
 	return draw.Rect(int(sdlRect.x), int(sdlRect.y),

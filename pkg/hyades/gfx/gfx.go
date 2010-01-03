@@ -15,6 +15,13 @@ type Graphics interface {
 	draw.Image
 	Blit(img image.Image, x, y int)
 	FillRect(rect draw.Rectangle, color image.Color)
+
+	// Set a clipping rectangle on the context. Nothing will be drawn outside
+	// the clipping rectangle.
+	SetClip(clipRect draw.Rectangle)
+
+	// Clear the clipping rectangle.
+	ClearClip()
 }
 
 type Constructor func(width, height int) draw.Image
