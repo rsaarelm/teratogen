@@ -14,6 +14,7 @@ var pairs = []testpair{
 	testpair{strings.Bytes(""), strings.Bytes("xexax")},
 	testpair{strings.Bytes("1234567890"), strings.Bytes("xesef-disof-gytuf-katof-movif-baxux")},
 	testpair{strings.Bytes("Pineapple"), strings.Bytes("xigak-nyryk-humil-bosek-sonax")},
+	testpair{strings.Bytes("asdf"), strings.Bytes("ximel-finek-koxex")},
 }
 
 func TestEncode(t *testing.T) {
@@ -31,13 +32,11 @@ func TestEncode(t *testing.T) {
 
 func TestDecode(t *testing.T) {
 	for i, p := range pairs {
-		dst := make([]byte, DecodedLen(len(p.encoded)))
+		dst := make([]byte, MaxDecodedLen(len(p.encoded)))
 		n, err := Decode(dst, p.encoded)
+		dst = dst[0:n]
 		if err != nil {
 			t.Errorf("#%d: Decoding %#v caused error %#v", p.encoded, err)
-		}
-		if n != len(dst) {
-			t.Errorf("#%d: Decode returned %d, expected %d", i, n, len(dst))
 		}
 		if bytes.Compare(dst, p.decoded) != 0 {
 			t.Errorf("#%d: Decode decoded %#v, expected %#v", i, string(dst), string(p.decoded))
@@ -54,7 +53,7 @@ func TestDecodeCorrupt(t *testing.T) {
 		strings.Bytes("nyryk-humil-bosek-sonax"),
 	}
 	for _, corrupt := range corrupts {
-		dst := make([]byte, DecodedLen(len(corrupt)))
+		dst := make([]byte, MaxDecodedLen(len(corrupt)))
 		_, err := Decode(dst, corrupt)
 		if err == nil {
 			t.Errorf("Decoder failed to detect corruption in %#v", string(corrupt))
