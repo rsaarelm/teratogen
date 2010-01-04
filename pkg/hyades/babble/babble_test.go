@@ -2,6 +2,7 @@ package babble
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 )
@@ -10,11 +11,15 @@ type testpair struct {
 	decoded, encoded []byte
 }
 
+func makePair(dec, enc string) testpair {
+	return testpair{strings.Bytes(dec), strings.Bytes(enc)}
+}
+
 var pairs = []testpair{
-	testpair{strings.Bytes(""), strings.Bytes("xexax")},
-	testpair{strings.Bytes("1234567890"), strings.Bytes("xesef-disof-gytuf-katof-movif-baxux")},
-	testpair{strings.Bytes("Pineapple"), strings.Bytes("xigak-nyryk-humil-bosek-sonax")},
-	testpair{strings.Bytes("asdf"), strings.Bytes("ximel-finek-koxex")},
+	makePair("", "xexax"),
+	makePair("1234567890", "xesef-disof-gytuf-katof-movif-baxux"),
+	makePair("Pineapple", "xigak-nyryk-humil-bosek-sonax"),
+	makePair("asdf", "ximel-finek-koxex"),
 }
 
 func TestEncode(t *testing.T) {
@@ -44,20 +49,33 @@ func TestDecode(t *testing.T) {
 	}
 }
 
+type corruptPair struct {
+	encoded []byte
+	err     os.Error
+}
+
+func makeCorrupt(enc string, err os.Error) corruptPair {
+	return corruptPair{strings.Bytes(enc), err}
+}
+
+var corrupts = []corruptPair{
+	makeCorrupt("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", CorruptInputError(0)),
+	makeCorrupt("", CorruptInputError(0)),
+	makeCorrupt("xexux", CorruptInputError(3)),
+	makeCorrupt("nyryk-humil-bosek", CorruptInputError(0)),
+	makeCorrupt("xigak-nyryk-humil-bosek", CorruptInputError(22)),
+	makeCorrupt("nyryk-humil-bosek-sonax", CorruptInputError(0)),
+}
+
 func TestDecodeCorrupt(t *testing.T) {
-	corrupts := [][]byte{
-		strings.Bytes("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn"),
-		strings.Bytes(""),
-		strings.Bytes("xexux"),
-		strings.Bytes("nyryk-humil-bosek"),
-		strings.Bytes("xigak-nyryk-humil-bosek"),
-		strings.Bytes("nyryk-humil-bosek-sonax"),
-	}
-	for _, corrupt := range corrupts {
-		dst := make([]byte, MaxDecodedLen(len(corrupt)))
-		_, err := Decode(dst, corrupt)
+	for i, corrupt := range corrupts {
+		dst := make([]byte, MaxDecodedLen(len(corrupt.encoded)))
+		_, err := Decode(dst, corrupt.encoded)
 		if err == nil {
-			t.Errorf("Decoder failed to detect corruption in %#v", string(corrupt))
+			t.Errorf("#%d: Decoder failed to detect corruption in %#v", i, string(corrupt.encoded))
+		}
+		if err != corrupt.err {
+			t.Errorf("#%d: Expected err %#v, got %#v", i, corrupt.err, err)
 		}
 	}
 }
