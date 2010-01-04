@@ -87,7 +87,7 @@ type context struct {
 	resize chan bool
 	quit   chan bool
 
-	active bool
+	exitChan chan bool
 }
 
 // NewWindow initializes SDL and returns a new SDL context.
@@ -115,7 +115,7 @@ func NewWindow(width, height int, title string, fullscreen bool) (result Context
 	ctx.mouse = make(chan draw.Mouse, 1)
 	ctx.resize = make(chan bool, 1)
 	ctx.quit = make(chan bool, 1)
-	ctx.active = true
+	ctx.exitChan = make(chan bool)
 
 	go ctx.eventLoop()
 
@@ -140,7 +140,12 @@ func (self *context) ResizeChan() <-chan bool { return self.resize }
 
 func (self *context) QuitChan() <-chan bool { return self.quit }
 
-func (self *context) Close() { self.active = false }
+func (self *context) Close() {
+	self.exitChan <- true
+	// Wait for the event loop to finish and close SDL. The program may exit
+	// without calling SDL_Quit if this isn't done.
+	_ = <-self.exitChan
+}
 
 func (self *context) Convert(img image.Image) Surface {
 	width, height := img.Width(), img.Height()
@@ -200,7 +205,10 @@ func (self *context) eventLoop() {
 	const wheelUpBit = 1 << 3
 	const wheelDownBit = 1 << 4
 
-	for self.active {
+	for {
+		if _, exit := <-self.exitChan; exit {
+			break
+		}
 		if C.SDL_WaitEvent(&evt) != 0 {
 			switch typ := eventType(&evt); typ {
 			case KEYDOWN, KEYUP:
@@ -288,6 +296,7 @@ func (self *context) eventLoop() {
 	}
 	exitAudio()
 	C.SDL_Quit()
+	self.exitChan <- true
 }
 
 //////////////////////////////////////////////////////////////////
