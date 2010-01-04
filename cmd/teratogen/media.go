@@ -83,10 +83,10 @@ func InitMedia() {
 	fmt.Printf("Initializing media... ")
 	defer fmt.Printf("Done.\n")
 	once.Do(initArchive)
-	makeTiles("font", "media/font.png", FontW, FontH, FontScale)
-	makeTiles("chars", "media/chars.png", TileW, TileH, config.TileScale)
-	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.TileScale)
-	makeTiles("items", "media/items.png", TileW, TileH, config.TileScale)
+	makeTiles("font", "media/font.png", FontW, FontH, config.Scale)
+	makeTiles("chars", "media/chars.png", TileW, TileH, config.Scale*config.TileScale)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.Scale*config.TileScale)
+	makeTiles("items", "media/items.png", TileW, TileH, config.Scale*config.TileScale)
 	makeSounds()
 }
 

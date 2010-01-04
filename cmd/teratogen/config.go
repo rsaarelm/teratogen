@@ -17,10 +17,11 @@ type Config struct {
 	Fullscreen bool
 	KeyLayout  string
 	RngSeed    string
+	Scale      int
 	TileScale  int
 }
 
-func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 2} }
+func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 2, 1} }
 
 var config *Config
 
@@ -37,7 +38,8 @@ func ParseConfig() {
 	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode.")
 	flag.StringVar(&config.KeyLayout, "layout", config.KeyLayout, "Keyboard layout: qwerty|dvorak|colemak.")
 	flag.StringVar(&config.RngSeed, "seed", config.RngSeed, "Random number generator seed.")
-	flag.IntVar(&config.TileScale, "scale", config.TileScale, "Tile scaling factor, 1|2|3|4")
+	flag.IntVar(&config.Scale, "scale", config.Scale, "Window scaling factor, 1|2")
+	flag.IntVar(&config.TileScale, "tilescale", config.TileScale, "Tile scaling factor, 1|2")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -52,11 +54,22 @@ func ParseConfig() {
 		usage()
 	}
 
-	if config.TileScale < 1 || config.TileScale > 4 {
+	if config.Scale < 1 || config.Scale > 2 {
 		usage()
 	}
-	TileW = 8 * config.TileScale
-	TileH = 8 * config.TileScale
+
+	if config.TileScale < 1 || config.TileScale > 2 {
+		usage()
+	}
+
+	screenWidth = config.Scale * baseScreenWidth
+	screenHeight = config.Scale * baseScreenHeight
+
+	FontW = config.Scale * baseFontW
+	FontH = config.Scale * baseFontH
+
+	TileW = baseTileW * config.Scale * config.TileScale
+	TileH = baseTileH * config.Scale * config.TileScale
 }
 
 func RandStateToBabble(state num.RandState) string {

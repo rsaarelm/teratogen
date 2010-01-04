@@ -22,20 +22,28 @@ const redrawIntervalNs = 30e6
 const capFps = true
 
 // 16:10 aspect ratio
-const screenWidth = 768 * 2
-const screenHeight = 480 * 2
+const baseScreenWidth = 768
+const baseScreenHeight = 480
+
+var screenWidth = baseScreenWidth * 2
+var screenHeight = baseScreenHeight * 2
 
 const numFont = 256
 
 const xDrawOffset = 0
 const yDrawOffset = 0
 
-const FontW = 16
-const FontH = 16
-const FontScale = FontW / 8
+const baseFontW = 8
+const baseFontH = 8
 
-var TileW = 16
-var TileH = 16
+const baseTileW = 8
+const baseTileH = 8
+
+var FontW = baseFontW * 2
+var FontH = baseFontH * 2
+
+var TileW = baseTileW * 2
+var TileH = baseTileH * 2
 
 type UI struct {
 	gfx.Anims
@@ -96,7 +104,7 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
-	cols, rows := 640/TileW-1, 320/TileH-1
+	cols, rows := 480/TileW-1, 320/TileH-1
 	return alg.IterFunc(func(c chan<- interface{}) {
 		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*cols, TileH*rows),
 			self.mapView)
