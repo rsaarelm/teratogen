@@ -193,16 +193,16 @@ var prototypes = map[string]*entityPrototype{
 	"pistol": NewPrototype("pistol", "", "items:4", ItemEntityClass, 200, 0,
 		PropEquipmentSlot, SlotGunWeapon,
 		PropWoundBonus, 1,
-		PropDurability, 22),
+		PropDurability, 12),
 	"machete": NewPrototype("machete", "", "items:5", ItemEntityClass, 200, 0,
 		PropEquipmentSlot, SlotMeleeWeapon,
 		PropWoundBonus, 2,
-		PropDurability, 100),
+		PropDurability, 20),
 	"kevlar": NewPrototype("kevlar armor", "", "items:6", ItemEntityClass, 200, 0,
 		PropEquipmentSlot, SlotBodyArmor,
 		PropToughness, Good,
 		PropDefenseBonus, 1,
-		PropDurability, 50),
+		PropDurability, 20),
 	"medkit": NewPrototype("medkit", "", "items:7", ItemEntityClass, 200, 0,
 		PropItemUse, MedkitUse),
 }
@@ -284,8 +284,23 @@ func Attack(attacker *Entity, defender *Entity) {
 		} else {
 			Msg("%v undamaged.\n", txt.Capitalize(defender.GetName()))
 		}
+		DamageEquipment(attacker, PropMeleeWeaponGuid)
+		DamageEquipment(defender, PropBodyArmorGuid)
 	} else {
 		Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
+	}
+}
+
+func DamageEquipment(ent *Entity, slot string) {
+	if o, ok := ent.GetGuidOpt(slot); ok {
+		if num.OneChanceIn(o.GetI(PropDurability)) {
+			Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
+			GetWorld().DestroyEntity(o)
+			// XXX: Hackhackhach, need a robust system for knowing when an
+			// equipped item is destroyed and removing the slot reference. Having
+			// to do it manually will end up in trouble at some point.
+			ent.Clear(slot)
+		}
 	}
 }
 
