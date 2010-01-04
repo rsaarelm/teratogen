@@ -24,7 +24,7 @@ test: deps build.libs
 %.run: build.libs
 	$(GOMAKE) -C cmd/$* clean
 	$(GOMAKE) -C cmd/$* all
-	(cd ./cmd/$*; $*)
+	(cd ./cmd/$*; $* ${ARGS})
 
 %.build: build.libs
 	$(GOMAKE) -C cmd/$*
