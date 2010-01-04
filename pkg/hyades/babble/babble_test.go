@@ -36,7 +36,7 @@ func TestDecode(t *testing.T) {
 		n, err := Decode(dst, p.encoded)
 		dst = dst[0:n]
 		if err != nil {
-			t.Errorf("#%d: Decoding %#v caused error %#v", p.encoded, err)
+			t.Errorf("#%d: Decoding %#v caused error %#v", i, string(p.encoded), err)
 		}
 		if bytes.Compare(dst, p.decoded) != 0 {
 			t.Errorf("#%d: Decode decoded %#v, expected %#v", i, string(dst), string(p.decoded))
@@ -48,6 +48,7 @@ func TestDecodeCorrupt(t *testing.T) {
 	corrupts := [][]byte{
 		strings.Bytes("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn"),
 		strings.Bytes(""),
+		strings.Bytes("xexux"),
 		strings.Bytes("nyryk-humil-bosek"),
 		strings.Bytes("xigak-nyryk-humil-bosek"),
 		strings.Bytes("nyryk-humil-bosek-sonax"),
