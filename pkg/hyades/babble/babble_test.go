@@ -35,6 +35,21 @@ func TestEncode(t *testing.T) {
 	}
 }
 
+func TestDecodeWithTrailingJunk(t *testing.T) {
+	for i, p := range pairs {
+		src := strings.Bytes(string(p.encoded) + "-trail-ingju-nkx")
+		dst := make([]byte, MaxDecodedLen(len(src)))
+		n, err := Decode(dst, src)
+		dst = dst[0:n]
+		if err != nil {
+			t.Errorf("#%d: Decoding %#v caused error %#v", i, string(src), err)
+		}
+		if bytes.Compare(dst, p.decoded) != 0 {
+			t.Errorf("#%d: Decode decoded %#v, expected %#v", i, string(dst), string(src))
+		}
+	}
+}
+
 func TestDecode(t *testing.T) {
 	for i, p := range pairs {
 		dst := make([]byte, MaxDecodedLen(len(p.encoded)))
@@ -60,10 +75,24 @@ func makeCorrupt(enc string, err os.Error) corruptPair {
 
 var corrupts = []corruptPair{
 	makeCorrupt("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", CorruptInputError(0)),
-	makeCorrupt("", CorruptInputError(0)),
+	makeCorrupt("xyxax", CorruptInputError(1)),
 	makeCorrupt("xexux", CorruptInputError(3)),
+	makeCorrupt("xexak", CorruptInputError(4)),
 	makeCorrupt("nyryk-humil-bosek", CorruptInputError(0)),
-	makeCorrupt("xigak-nyryk-humil-bosek", CorruptInputError(22)),
+	makeCorrupt("", CorruptInputError(0)),
+	makeCorrupt("x", CorruptInputError(1)),
+	makeCorrupt("xi", CorruptInputError(2)),
+	makeCorrupt("xig", CorruptInputError(3)),
+	makeCorrupt("xiga", CorruptInputError(4)),
+	makeCorrupt("xigak", CorruptInputError(5)),
+	makeCorrupt("xigak-", CorruptInputError(6)),
+	makeCorrupt("xigak-n", CorruptInputError(7)),
+	makeCorrupt("xigak-ny", CorruptInputError(8)),
+	makeCorrupt("xigak-nyr", CorruptInputError(9)),
+	makeCorrupt("xigak-nyry", CorruptInputError(10)),
+	makeCorrupt("xigak-nyryk", CorruptInputError(11)),
+	makeCorrupt("xigak-nyryk-", CorruptInputError(12)),
+	makeCorrupt("xigak-nyryk-humil-bosek", CorruptInputError(23)),
 	makeCorrupt("nyryk-humil-bosek-sonax", CorruptInputError(0)),
 }
 
@@ -75,7 +104,7 @@ func TestDecodeCorrupt(t *testing.T) {
 			t.Errorf("#%d: Decoder failed to detect corruption in %#v", i, string(corrupt.encoded))
 		}
 		if err != corrupt.err {
-			t.Errorf("#%d: Expected err %#v, got %#v", i, corrupt.err, err)
+			t.Errorf("#%d (%s): Expected err %#v, got %#v", i, string(corrupt.encoded), corrupt.err, err)
 		}
 	}
 }

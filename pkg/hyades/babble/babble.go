@@ -113,22 +113,17 @@ func deconsonant(char byte) (idx byte, ok bool) {
 // can be used in the same type context as theirs.
 func hyphen(char byte) (dummy byte, ok bool) { return 0, char == '-' }
 
-// decodeTuple converts a full Bubble Babble string tuple or a data-carrying
-// partial tuple into the corresponding byte tuple.
-func decodeTuple(offset int64, src []byte, decodeFullTuple bool) (result [5]byte, err os.Error) {
-	lut := [](func(byte) (byte, bool)){devowel, deconsonant, devowel, deconsonant, hyphen, deconsonant}
-	idx := []int{0, 1, 2, 3, -1, 4}
-	for i := 0; i < 6; i++ {
+// getTuple3 converts a sequence of vowel, consonant, vowel into three numeric
+// values.
+func getTuple3(offset int, src []byte) (result [3]byte, err os.Error) {
+	lut := [](func(byte) (byte, bool)){devowel, deconsonant, devowel}
+	for i := 0; i < 3; i++ {
 		val, ok := lut[i](src[i])
 		if !ok {
-			err = CorruptInputError(offset + int64(i))
-		}
-		if idx[i] >= 0 {
-			result[idx[i]] = val
-		}
-		if i == 2 && !decodeFullTuple {
+			err = CorruptInputError(offset + i)
 			return
 		}
+		result[i] = val
 	}
 	return
 }
@@ -136,18 +131,18 @@ func decodeTuple(offset int64, src []byte, decodeFullTuple bool) (result [5]byte
 // decode3WayByte decodes a byte that has been encoded into three Babble
 // characters. Returns an error if the data is invalid or if it fails a
 // checksum check.
-func decode3WayByte(offset int64, a1, a2, a3 byte, c byte) (result byte, err os.Error) {
-	high2 := (int(a1) - int(c%6) + 6) % 6
+func decode3WayByte(offset int, t [3]byte, c byte) (result byte, err os.Error) {
+	high2 := (int(t[0]) - int(c%6) + 6) % 6
 	if high2 >= 4 {
 		err = CorruptInputError(offset)
 		return
 	}
-	if a2 > 16 {
+	if t[1] > 16 {
 		err = CorruptInputError(offset + 1)
 		return
 	}
-	mid4 := int(a2)
-	low2 := (int(a3) - int(c/6%6) + 6) % 6
+	mid4 := int(t[1])
+	low2 := (int(t[2]) - int(c/6%6) + 6) % 6
 	if low2 >= 4 {
 		err = CorruptInputError(offset + 2)
 		return
@@ -156,103 +151,167 @@ func decode3WayByte(offset int64, a1, a2, a3 byte, c byte) (result byte, err os.
 	return
 }
 
-// decode2WayByte decodes a byte that has been encoded into two Babble
-// characters. This type of encoding uses all the available bits to represent
-// data, so a checksum value is not used.
-func decode2WayByte(offset int64, a1, a2 byte) (result byte, err os.Error) {
-	if a1 > 16 {
-		err = CorruptInputError(offset)
-		return
+// verifyChecksumTuple checks that the checksum values are correct for a
+// non-data-carrying terminating Babble tuple.
+func verifyChecksumTuple(offset int, c byte, t [3]byte) os.Error {
+	switch {
+	case t[0] != c%6:
+		return CorruptInputError(offset)
+	case t[2] != c/6:
+		return CorruptInputError(offset + 2)
 	}
-	if a2 > 16 {
-		err = CorruptInputError(offset + 1)
-		return
-	}
-
-	result = (a1 << 4) | a2
-	return
+	return nil
 }
 
-// Decode decodes a Babble string into the corresponding byte array. Returns
-// the number of bytes decoded, and an error if the string isn't a Babble string.
-func Decode(dst, src []byte) (n int, err os.Error) {
-	nTuples := len(src) / 6
-	c := byte(1)
-
-	// Babble strings must be made of one or more hyphen-separated groups of five characters.
-	switch {
-	case len(src) == 5:
-		// One group, ok
-	case len(src) > 5 && len(src)%6 == 5:
-		// More than one groups, ok.
-	default:
-		// Bad string length
-		err = CorruptInputError(0)
+// getByte3 decodes the part of the Babble string where three letters make up
+// a byte and which can also terminate the Babble string, in which case isLast
+// will be true. If the part is a terminating one, it might not carry byte
+// data, in which case hasByte will be false.
+func getByte3(offset int, src []byte, c byte) (result byte, isLast, hasByte bool, err os.Error) {
+	// Must have at least one character beyond the three that are looked at
+	// next. Either the start of the next tuple or the terminating 'x'.
+	if len(src) < 4 {
+		err = CorruptInputError(offset + len(src))
 		return
 	}
 
-	// Babble strings must start and end with 'x'.
-	if src[0] != 'x' {
-		err = CorruptInputError(0)
-		return
-	}
-	if src[len(src)-1] != 'x' {
-		err = CorruptInputError(len(src) - 1)
-		return
-	}
+	// If the middle character is 'x', the last triple holds no byte payload,
+	// and it's just checksum data instead.
+	hasByte = src[1] != 'x'
 
-	src = src[1:len(src)]
-	offset := int64(1)
+	// A final 'x' terminates the data.
+	isLast = src[3] == 'x'
 
-	// Decode the full tuples.
-	for i := 0; i < nTuples; i++ {
-		t, err := decodeTuple(offset, src, true)
-		if err != nil {
-			return
-		}
-
-		d1, err := decode3WayByte(offset, t[0], t[1], t[2], c)
-		if err != nil {
-			return
-		}
-
-		d2, err := decode2WayByte(offset+int64(4), t[3], t[4])
-		if err != nil {
-			return
-		}
-		c = updateChecksum(c, d1, d2)
-		dst[i*2] = d1
-		dst[i*2+1] = d2
-
-		src = src[6:len(src)]
-		offset += 6
-	}
-
-	// Decode the final partial tuple.
-	t, err := decodeTuple(offset, src, false)
+	t, err := getTuple3(offset, src)
 	if err != nil {
 		return
 	}
 
-	if t[1] == 16 {
-		// No last byte, final tuple is just checksum data.
-		n = nTuples * 2
-		if t[0] != c%6 {
-			err = CorruptInputError(offset)
+	if !hasByte {
+		if !isLast {
+			// Byteless checksum tuple not at the end of the data is an error.
+			err = CorruptInputError(offset + 3)
 			return
 		}
-		if t[2] != c/6 {
-			err = CorruptInputError(offset + 2)
+		// Verify that the checksum is ok for byteless tuples.
+		err = verifyChecksumTuple(offset, c, t)
+		return
+	}
+
+	result, err = decode3WayByte(offset, t, c)
+	return
+}
+
+// getTuple2 converts two consonants separated by a hyphen into two numerical
+// values.
+func getTuple2(offset int, src []byte) (result [2]byte, err os.Error) {
+	lut := [](func(byte) (byte, bool)){deconsonant, hyphen, deconsonant}
+	for i := 0; i < 3; i++ {
+		val, ok := lut[i](src[i])
+		if !ok {
+			err = CorruptInputError(offset + i)
 			return
 		}
-	} else {
-		// Partial tuple contains one last byte of data, decode it.
-		n = nTuples*2 + 1
-		d, err := decode3WayByte(offset, t[0], t[1], t[2], c)
+		switch i {
+		case 0:
+			result[0] = val
+		case 2:
+			result[1] = val
+		}
+	}
+	return
+}
+
+// decode2WayByte decodes a byte that has been encoded into two Babble
+// characters. This type of encoding uses all the available bits to represent
+// data, so a checksum value is not used.
+func decode2WayByte(offset int, t [2]byte) (result byte, err os.Error) {
+	if t[0] > 16 {
+		err = CorruptInputError(offset)
+		return
+	}
+	if t[1] > 16 {
+		err = CorruptInputError(offset + 1)
+		return
+	}
+
+	result = (t[0] << 4) | t[1]
+	return
+}
+
+// getByte2 decodes the part of the Babble string where two letters separated
+// by a hyphen make up a byte. Doesn't use a checksum, since all letter bytes
+// are taken up by the byte payload.
+func getByte2(offset int, src []byte) (result byte, err os.Error) {
+	// The second part, two-letter tuple with a hyphen in the middle.
+	if len(src) < 3 {
+		err = CorruptInputError(offset + len(src))
+		return
+	}
+
+	t, err := getTuple2(offset, src)
+	if err != nil {
+		return
+	}
+
+	result, err = decode2WayByte(offset, t)
+
+	return
+}
+
+// Decode decodes a Babble string into the corresponding byte array. Returns
+// the number of bytes decoded, and an error if the string isn't a Babble
+// string. Once Decode encounters a Babble data terminator in the src data, it
+// stops decoding and returns the number of bytes read, regardless of whether
+// there is more data remaining.
+func Decode(dst, src []byte) (n int, err os.Error) {
+	c := byte(1)
+
+	if len(src) == 0 {
+		err = CorruptInputError(0)
+		return
+	}
+
+	// Babble strings must start with 'x'.
+	if src[0] != 'x' {
+		err = CorruptInputError(0)
+		return
+	}
+
+	src = src[1:len(src)]
+
+	offset := 1
+
+	// Decode the full tuples.
+	for {
+		b1, wasLast, hadLastByte, err := getByte3(offset, src, c)
 		if err != nil {
+			return n, err
+		}
+		if wasLast {
+			if hadLastByte {
+				dst[n] = b1
+				n++
+			}
 			return
 		}
-		dst[nTuples*2] = d
+
+		dst[n] = b1
+		n++
+		src = src[3:len(src)]
+		offset += 3
+
+		b2, err := getByte2(offset, src)
+		if err != nil {
+			return n, err
+		}
+
+		dst[n] = b2
+		n++
+		src = src[3:len(src)]
+		offset += 3
+
+		c = updateChecksum(c, b1, b2)
 	}
 
 	return
