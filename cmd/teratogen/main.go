@@ -120,12 +120,17 @@ func main() {
 	ParseConfig()
 
 	var seed num.RandState
-	if config.RngSeed >= 0 {
-		seed = num.NewRandState(config.RngSeed)
-	} else {
-		seed = num.RandStateFromClock()
+	var err os.Error
+	if config.RngSeed != "" {
+		seed, err = BabbleToRandState(config.RngSeed)
+		if err != nil {
+			fmt.Printf("Invalid world seed: %s.\n", config.RngSeed)
+			seed = num.RandStateFromClock()
+		}
 	}
-	fmt.Println("Rng seed: ", seed)
+
+	num.RestoreRngState(seed)
+	fmt.Println("Rng seed:", RandStateToBabble(seed))
 
 	InitUI()
 	InitMedia()
@@ -133,7 +138,6 @@ func main() {
 	world := NewWorld()
 
 	world.InitLevel(currentLevel)
-
 
 	// Game logic
 	go func() {
