@@ -119,7 +119,7 @@ loop: for {
 func main() {
 	ParseConfig()
 
-	var seed num.RandState
+	seed := num.RandStateFromClock()
 	var err os.Error
 	if config.RngSeed != "" {
 		seed, err = BabbleToRandState(config.RngSeed)

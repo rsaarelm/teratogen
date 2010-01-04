@@ -108,8 +108,6 @@ func NewWorld() (result *World) {
 	player := result.Spawn(prototypes["protagonist"])
 	result.playerId = player.GetGuid()
 
-	result.InitLevel(1)
-
 	return
 }
 
