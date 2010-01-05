@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hyades/dbg"
+	"hyades/num"
 	"image"
 	"os"
 	"regexp"
@@ -30,6 +31,24 @@ func StringRGBA(col image.Color) string {
 		byte(g>>24),
 		byte(b>>24),
 		byte(a>>24))
+}
+
+func ColorArray(c image.Color) (result [4]uint32) {
+	result[0], result[1], result[2], result[3] = c.RGBA()
+	return
+}
+
+func ArrayColor(a [4]uint32) image.Color {
+	return image.RGBAColor{uint8(a[0] >> 24), uint8(a[1] >> 24), uint8(a[2] >> 24), uint8(a[3] >> 24)}
+}
+
+func LerpColor(c1, c2 image.Color, x float64) image.Color {
+	a1, a2 := ColorArray(c1), ColorArray(c2)
+	var a3 [4]uint32
+	for i, _ := range a3 {
+		a3[i] = uint32(num.Lerp(float64(a1[i]), float64(a2[i]), x))
+	}
+	return ArrayColor(a3)
 }
 
 func ParseColor(desc string) (col image.Color, err os.Error) {
