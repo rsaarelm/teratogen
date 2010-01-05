@@ -37,7 +37,7 @@ func ParseConfig() {
 	flag.BoolVar(&config.Sound, "sound", config.Sound, "Play sounds.")
 	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode.")
 	flag.StringVar(&config.KeyLayout, "layout", config.KeyLayout, "Keyboard layout: qwerty|dvorak|colemak.")
-	flag.StringVar(&config.RngSeed, "seed", config.RngSeed, "Random number generator seed.")
+	flag.StringVar(&config.RngSeed, "logos", config.RngSeed, "Genesis seed.")
 	flag.IntVar(&config.Scale, "scale", config.Scale, "Window scaling factor, 1|2")
 	flag.IntVar(&config.TileScale, "tilescale", config.TileScale, "Tile scaling factor, 1|2")
 	flag.Usage = usage

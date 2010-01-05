@@ -130,7 +130,7 @@ func main() {
 	}
 
 	num.RestoreRngState(seed)
-	fmt.Println("Rng seed:", RandStateToBabble(seed))
+	fmt.Println("Logos:", RandStateToBabble(seed))
 
 	InitUI()
 	InitMedia()
