@@ -98,13 +98,17 @@ func DispatchMouseEvent(area draw.Rectangle, root Widget, event draw.Mouse, prev
 	for pair := range WidgetsContaining(pos, area, root).Iter() {
 		area, widget := UnpackWidgetIteration(pair)
 		if mouseReceiver, ok := widget.(MouseListener); ok {
-			if previousReceiver != nil && mouseReceiver != previousReceiver {
-				previousReceiver.MouseExited(event)
-			}
 			if mouseReceiver.HandleMouseEvent(area, event) {
+				if previousReceiver != nil && mouseReceiver != previousReceiver {
+					previousReceiver.MouseExited(event)
+				}
+
 				return mouseReceiver
 			}
 		}
+	}
+	if previousReceiver != nil {
+		previousReceiver.MouseExited(event)
 	}
 	return nil
 }

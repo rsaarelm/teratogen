@@ -116,10 +116,6 @@ func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	})
 }
 
-func (self *UI) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) {
-	// TODO: Mouse response.
-}
-
 func InitUI() { ui = newUI() }
 
 func DrawSprite(g gfx.Graphics, name string, x, y int) {
@@ -201,6 +197,8 @@ func MainUILoop() {
 	lastTime := time.Nanoseconds()
 	timeElapsed := int64(0)
 
+	var prevMouseReceiver gui.MouseListener = nil
+
 	for ui.running {
 		if capFps {
 			// Wait for the next tick before repainting.
@@ -214,7 +212,12 @@ func MainUILoop() {
 		GetUISync()
 
 		g := ui.context.SdlScreen()
-		ui.Draw(g, draw.Rect(0, 0, g.Width(), g.Height()))
+		area := draw.Rect(0, 0, g.Width(), g.Height())
+		ui.Draw(g, area)
+
+		if mouseEvt, ok := <-ui.context.MouseChan(); ok {
+			prevMouseReceiver = gui.DispatchMouseEvent(area, ui, mouseEvt, prevMouseReceiver)
+		}
 
 		ReleaseUISync()
 
