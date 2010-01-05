@@ -19,6 +19,8 @@ func (lhs Vec2I) Plus(rhs Vec2I) (result Vec2I) {
 	return Vec2I{lhs.X + rhs.X, lhs.Y + rhs.Y}
 }
 
+func (self Vec2I) Neg() Vec2I { return Vec2I{-self.X, -self.Y} }
+
 func (lhs Pt2I) Plus(rhs Vec2I) (result Pt2I) { return Pt2I{lhs.X + rhs.X, lhs.Y + rhs.Y} }
 
 func (lhs Vec2I) Minus(rhs Vec2I) (result Vec2I) {
@@ -27,6 +29,14 @@ func (lhs Vec2I) Minus(rhs Vec2I) (result Vec2I) {
 
 func (lhs Pt2I) Minus(rhs Pt2I) (result Vec2I) {
 	return Vec2I{lhs.X - rhs.X, lhs.Y - rhs.Y}
+}
+
+func (lhs Vec2I) ElemMult(rhs Vec2I) (result Vec2I) {
+	return Vec2I{lhs.X * rhs.X, lhs.Y * rhs.Y}
+}
+
+func (lhs Pt2I) ElemMult(rhs Vec2I) (result Pt2I) {
+	return Pt2I{lhs.X * rhs.X, lhs.Y * rhs.Y}
 }
 
 func (self *Pt2I) Add(rhs Vec2I) {
