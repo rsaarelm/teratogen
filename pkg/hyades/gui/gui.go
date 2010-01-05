@@ -69,7 +69,7 @@ func PackWidgetIteration(area draw.Rectangle, widget Widget) interface{} {
 
 func iterInPoint(pos draw.Point, area draw.Rectangle, node Widget, c chan<- interface{}) {
 	// XXX: Stupid temporary rect to check if pos is in area.
-	if draw.Rpt(pos, pos).In(area) {
+	if draw.Rect(pos.X, pos.Y, pos.X+1, pos.Y+1).In(area) {
 		c <- PackWidgetIteration(area, node)
 		for pair := range node.Children(area).Iter() {
 			childArea, childNode := UnpackWidgetIteration(pair)
