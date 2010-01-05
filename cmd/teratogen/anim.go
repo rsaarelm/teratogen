@@ -28,19 +28,22 @@ func TestAnim(context sdl.Context, anim *gfx.Anim) {
 
 type particle struct {
 	x, y, dx, dy float64
-	color        image.Color
+	startColor   image.Color
+	endColor     image.Color
 	life         int64
+	lifetime     int64
 }
 
-func newParticle(x, y int, lifetime int64, speed float64, color image.Color) (result *particle) {
+func newParticle(x, y int, lifetime int64, speed float64, startColor, endColor image.Color) (result *particle) {
 	result = new(particle)
 
 	result.x, result.y = float64(x), float64(y)
 
 	// Perturb speed and lifetime using normal distribution.
 	speed = num.Clamp(speed/4.0, speed*2.0, rand.NormFloat64()*math.Fabs(speed)/4.0+speed)
-	result.life = int64(rand.NormFloat64()*float64(lifetime/4) + float64(lifetime))
-	result.color = color
+	result.lifetime = int64(rand.NormFloat64()*float64(lifetime/4) + float64(lifetime))
+	result.life = result.lifetime
+	result.startColor, result.endColor = startColor, endColor
 	angle := num.RandomAngle()
 	result.dx = speed * math.Cos(angle)
 	result.dy = speed * math.Sin(angle)
@@ -48,13 +51,18 @@ func newParticle(x, y int, lifetime int64, speed float64, color image.Color) (re
 	return
 }
 
+func (self *particle) Color() image.Color {
+	relativeLife := float64(self.life) / float64(self.lifetime)
+	return gfx.LerpColor(self.endColor, self.startColor, relativeLife)
+}
+
 // Blasts particles in all directions from origin.
-func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, color image.Color, particleCount int) {
+func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, startColor, endColor image.Color, particleCount int) {
 	defer anim.Close()
 	particles := make([]*particle, particleCount)
 
 	for i := 0; i < len(particles); i++ {
-		particles[i] = newParticle(x, y, lifetime, speed, color)
+		particles[i] = newParticle(x, y, lifetime, speed, startColor, endColor)
 	}
 
 	liveOnes := len(particles)
@@ -63,13 +71,13 @@ func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, size int, lifet
 
 		liveOnes = 0
 		for _, p := range particles {
+			p.life = p.life - t
 			if p.life > 0 {
-				p.life = p.life - t
 				liveOnes++
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.color)
+				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.Color())
 			}
 		}
 		anim.StopDraw()
