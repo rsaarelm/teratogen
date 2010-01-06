@@ -1,11 +1,13 @@
 package main
 
 import (
+	"exp/draw"
 	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
+	"hyades/gfx"
 	"hyades/num"
 	"hyades/txt"
 	"math"
@@ -510,4 +512,63 @@ func CanEquipIn(slotId string, e *Entity) bool {
 		return eSlot == slot
 	}
 	return false
+}
+
+func EntityDist(o1, o2 interface{}) float64 {
+	e1, ok1 := o1.(interface {
+		GetPos() geom.Pt2I
+	})
+	e2, ok2 := o2.(interface {
+		GetPos() geom.Pt2I
+	})
+	if !ok1 || !ok2 {
+		return math.MaxFloat64
+	}
+	return e1.GetPos().Minus(e2.GetPos()).Abs()
+}
+
+func ClosestEnemy() *Entity {
+	world := GetWorld()
+	player := world.GetPlayer()
+	notPlayer := func(i interface{}) bool { return i.(*Entity) != player }
+	distFromPlayer := func(o1 interface{}) float64 { return EntityDist(o1, player) }
+	ret, ok := alg.IterMin(iterable.Filter(world.Creatures(), notPlayer),
+		distFromPlayer)
+	if !ok {
+		return nil
+	}
+	return ret.(*Entity)
+}
+
+// ShootAtClosest is a XXX debug function that picks the closest enemy to
+// player and fires a shot at that enemy from player.
+func ShootAtClosest() {
+	targ := ClosestEnemy()
+	if targ == nil {
+		Msg("Nothing to attack!\n")
+		return
+	}
+	world := GetWorld()
+	player := world.GetPlayer()
+
+	var hitPos geom.Pt2I
+	for o := range iterable.Drop(geom.Line(world.GetPlayer().GetPos(), targ.GetPos()), 1).Iter() {
+		hitPos = o.(geom.Pt2I)
+		if !world.IsOpen(hitPos) {
+			break
+		}
+	}
+
+	p1, p2 := draw.Pt(Tile2WorldPos(world.GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+
+	for o := range world.EntitiesAt(hitPos).Iter() {
+		ent := o.(*Entity)
+		if ent.GetClass() == EnemyEntityClass {
+			const OVER_NINE_THOUSAND = 9001
+			ent.Damage(OVER_NINE_THOUSAND, player)
+			return
+		}
+	}
+	Msg("Missed.\n")
 }

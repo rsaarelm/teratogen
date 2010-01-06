@@ -76,6 +76,8 @@ loop: for {
 			}
 		case 'e':
 			EquipMenu()
+		case 'f':
+			ShootAtClosest()
 		case 'd':
 			// Drop item.
 			player := world.GetPlayer()

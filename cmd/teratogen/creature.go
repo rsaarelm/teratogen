@@ -63,7 +63,7 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	sx, sy := CenterDrawPos(self.GetPos())
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
-		gfx.Red, gfx.Red, int(math.Pow(1.5, float64(woundLevel+3))))
+		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 
 	if self.IsKilledByWounds() {
 		PlaySound("death")
