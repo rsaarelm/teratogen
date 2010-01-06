@@ -59,13 +59,6 @@ const (
 	FlagObstacle = "isObstacle"
 )
 
-// Slot type
-const (
-	SlotBodyArmor = iota
-	SlotMeleeWeapon
-	SlotGunWeapon
-)
-
 // Item use type
 const (
 	NoUse = iota
@@ -193,15 +186,15 @@ var prototypes = map[string]*entityPrototype{
 	"globe": NewPrototype("health globe", "", "items:1", GlobeEntityClass, 30, 0),
 	"plantpot": NewPrototype("plant pot", "", "items:3", ItemEntityClass, 200, 0),
 	"pistol": NewPrototype("pistol", "", "items:4", ItemEntityClass, 200, 0,
-		PropEquipmentSlot, SlotGunWeapon,
+		PropEquipmentSlot, PropGunWeaponGuid,
 		PropWoundBonus, 1,
 		PropDurability, 12),
 	"machete": NewPrototype("machete", "", "items:5", ItemEntityClass, 200, 0,
-		PropEquipmentSlot, SlotMeleeWeapon,
+		PropEquipmentSlot, PropMeleeWeaponGuid,
 		PropWoundBonus, 2,
 		PropDurability, 20),
 	"kevlar": NewPrototype("kevlar armor", "", "items:6", ItemEntityClass, 200, 0,
-		PropEquipmentSlot, SlotBodyArmor,
+		PropEquipmentSlot, PropBodyArmorGuid,
 		PropToughness, Good,
 		PropDefenseBonus, 1,
 		PropDurability, 20),
@@ -471,9 +464,9 @@ func IsCarryingGear(o interface{}) bool {
 	return iterable.Any(o.(*Entity).Contents(), IsEquippableItem)
 }
 
-func IsCarryingGearFor(o interface{}, slot int) bool {
+func IsCarryingGearFor(o interface{}, slot string) bool {
 	return iterable.Any(o.(*Entity).Contents(), func(o interface{}) bool {
-		if itemSlot, ok := o.(*Entity).GetIOpt(PropEquipmentSlot); ok && itemSlot == slot {
+		if itemSlot, ok := o.(*Entity).GetSOpt(PropEquipmentSlot); ok && itemSlot == slot {
 			return true
 		}
 		return false
@@ -527,24 +520,30 @@ func SmartPlayerPickup() *Entity {
 			return nil
 		}
 	}
-	TakeItem(player, choice.(*Entity))
-	return choice.(*Entity)
+	ent := choice.(*Entity)
+	TakeItem(player, ent)
+	AutoEquip(player, ent)
+	return ent
+}
+
+// Autoequip equips item on owner if it can be equpped in a slot that
+// currently has nothing.
+func AutoEquip(owner *Entity, item *Entity) {
+	slot, ok := item.GetSOpt(PropEquipmentSlot)
+	if !ok {
+		return
+	}
+	if _, ok := owner.GetGuidOpt(slot); ok {
+		// Already got something equipped.
+		return
+	}
+	owner.Set(slot, item.GetGuid())
+	Msg("Equipped %v.\n", item)
 }
 
 func CanEquipIn(slotId string, e *Entity) bool {
-	slot := 0
-	switch slotId {
-	case PropBodyArmorGuid:
-		slot = SlotBodyArmor
-	case PropMeleeWeaponGuid:
-		slot = SlotMeleeWeapon
-	case PropGunWeaponGuid:
-		slot = SlotGunWeapon
-	default:
-		dbg.Die("Unknown equipment slot: %s", slotId)
-	}
-	if eSlot, ok := e.GetIOpt(PropEquipmentSlot); ok {
-		return eSlot == slot
+	if eSlot, ok := e.GetSOpt(PropEquipmentSlot); ok {
+		return eSlot == slotId
 	}
 	return false
 }
