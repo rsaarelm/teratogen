@@ -21,7 +21,7 @@ func NewMapView() (result *MapView) {
 	return
 }
 
-func AnimTest() { go TestAnim(ui.context, ui.AddScreenAnim(gfx.NewAnim(0.0))) }
+func AnimTest() { go TestAnim2(ui.context, ui.AddScreenAnim(gfx.NewAnim(0.0))) }
 
 func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	g.SetClip(area)

@@ -5,6 +5,7 @@ package gfx
 import (
 	"exp/draw"
 	"hyades/dbg"
+	"hyades/geom"
 	"image"
 	"image/png"
 	"hyades/num"
@@ -231,4 +232,23 @@ func (self *TranslateGraphics) ClearClip() { self.Inner.ClearClip() }
 // Center sets the translation so that the given rectangle will be centered on the given point.
 func (self *TranslateGraphics) Center(area draw.Rectangle, x, y int) {
 	self.Vec = draw.Pt(area.Min.X+x-area.Dx()/2, area.Min.Y+y-area.Dy()/2)
+}
+
+// Line draws a line on the given draw.Image.
+func Line(dst draw.Image, p1, p2 draw.Point, col image.Color) {
+	for o := range geom.Line(geom.Pt2I{p1.X, p1.Y}, geom.Pt2I{p2.X, p2.Y}).Iter() {
+		pt := o.(geom.Pt2I)
+		dst.Set(pt.X, pt.Y, col)
+	}
+}
+
+// Line draws a thick line on the given graphics context. Implementation is
+// naive and slow.
+func ThickLine(dst Graphics, p1, p2 draw.Point, col image.Color, thickness int) {
+	offset := thickness / 2
+	for o := range geom.Line(geom.Pt2I{p1.X, p1.Y}, geom.Pt2I{p2.X, p2.Y}).Iter() {
+		pt := o.(geom.Pt2I)
+		rect := draw.Rect(pt.X-offset, pt.Y-offset, pt.X+offset+1, pt.Y+offset+1)
+		dst.FillRect(rect, col)
+	}
 }

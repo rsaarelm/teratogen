@@ -10,18 +10,29 @@ import (
 	"rand"
 )
 
-func TestAnim(context sdl.Context, anim *gfx.Anim) {
+func TestAnim1(context sdl.Context, anim *gfx.Anim) {
 	defer anim.Close()
 	t := int64(0)
 	for t < 2e9 {
-		g, t := anim.StartDraw()
-		col, _ := gfx.ParseColor("AliceBlue")
+		g, dt := anim.StartDraw()
+		t += dt
 		for x := 0; x < g.Width(); x++ {
 			h := float64(g.Height())
 			w := float64(g.Width())
 			y := int(h/2 + h/4*math.Sin(float64(t)/1e8+float64(x)/w*16))
-			g.Set(x, y, col)
+			g.Set(x, y, gfx.AliceBlue)
 		}
+		anim.StopDraw()
+	}
+}
+
+func TestAnim2(context sdl.Context, anim *gfx.Anim) {
+	defer anim.Close()
+	t := int64(0)
+	for t < 2e9 {
+		g, dt := anim.StartDraw()
+		t += dt
+		gfx.ThickLine(g, draw.Pt(0, 0), draw.Pt(1000, 1000), gfx.Teal, config.Scale*2)
 		anim.StopDraw()
 	}
 }
