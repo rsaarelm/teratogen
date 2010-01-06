@@ -19,7 +19,6 @@ DIRS=\
 NOTEST=\
 	hyades/dbg\
 	hyades/fs\
-	hyades/geom\
 	hyades/gui\
 	hyades/keyboard\
 	hyades/num\
