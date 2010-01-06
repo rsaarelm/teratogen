@@ -293,16 +293,51 @@ func Attack(attacker *Entity, defender *Entity) {
 	}
 }
 
+func Shoot(attacker *Entity, target geom.Pt2I) {
+	// TODO: Aiming precision etc.
+	origin := attacker.GetPos()
+	var hitPos geom.Pt2I
+	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
+		hitPos = o.(geom.Pt2I)
+		if !world.IsOpen(hitPos) {
+			break
+		}
+	}
+
+	damageFactor := 0
+	if gun, ok := attacker.GetGuidOpt(PropGunWeaponGuid); ok {
+		damageFactor += gun.GetI(PropWoundBonus)
+	}
+
+	p1, p2 := draw.Pt(Tile2WorldPos(world.GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+
+	// TODO: Sparks when hitting walls.
+	DamagePos(hitPos, damageFactor, attacker)
+
+	DamageEquipment(attacker, PropGunWeaponGuid)
+}
+
 func DamageEquipment(ent *Entity, slot string) {
 	if o, ok := ent.GetGuidOpt(slot); ok {
 		if num.OneChanceIn(o.GetI(PropDurability)) {
-			Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
+			if slot == PropGunWeaponGuid {
+				Msg("The %s's %s is out of ammo.\n", ent.GetName(), o.GetName())
+			} else {
+				Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
+			}
 			GetWorld().DestroyEntity(o)
 			// XXX: Hackhackhach, need a robust system for knowing when an
 			// equipped item is destroyed and removing the slot reference. Having
 			// to do it manually will end up in trouble at some point.
 			ent.Clear(slot)
 		}
+	}
+}
+
+func DamagePos(pos geom.Pt2I, woundLevel int, cause *Entity) {
+	for o := range iterable.Filter(GetWorld().EntitiesAt(pos), IsCreature).Iter() {
+		o.(*Entity).Damage(woundLevel, cause)
 	}
 }
 
@@ -401,8 +436,8 @@ func PlayerEnterStairs() {
 
 func NextLevel() { world.InitLevel(world.CurrentLevelNum() + 1) }
 
-func IsCreature(e *Entity) bool {
-	switch e.GetClass() {
+func IsCreature(o interface{}) bool {
+	switch o.(*Entity).GetClass() {
 	case PlayerEntityClass, EnemyEntityClass:
 		return true
 	}
@@ -527,48 +562,22 @@ func EntityDist(o1, o2 interface{}) float64 {
 	return e1.GetPos().Minus(e2.GetPos()).Abs()
 }
 
-func ClosestEnemy() *Entity {
-	world := GetWorld()
-	player := world.GetPlayer()
-	notPlayer := func(i interface{}) bool { return i.(*Entity) != player }
-	distFromPlayer := func(o1 interface{}) float64 { return EntityDist(o1, player) }
-	ret, ok := alg.IterMin(iterable.Filter(world.Creatures(), notPlayer),
-		distFromPlayer)
+func CreaturesSeenBy(o interface{}) iterable.Iterable {
+	ent := o.(*Entity)
+	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Entity).GetPos()) }
+	return iterable.Filter(GetWorld().OtherCreatures(o), pred)
+}
+
+func ClosestCreatureSeenBy(o interface{}) *Entity {
+	distFromSelf := func(o1 interface{}) float64 { return EntityDist(o1, o) }
+	ret, ok := alg.IterMin(CreaturesSeenBy(o), distFromSelf)
 	if !ok {
 		return nil
 	}
 	return ret.(*Entity)
 }
 
-// ShootAtClosest is a XXX debug function that picks the closest enemy to
-// player and fires a shot at that enemy from player.
-func ShootAtClosest() {
-	targ := ClosestEnemy()
-	if targ == nil {
-		Msg("Nothing to attack!\n")
-		return
-	}
-	world := GetWorld()
-	player := world.GetPlayer()
-
-	var hitPos geom.Pt2I
-	for o := range iterable.Drop(geom.Line(world.GetPlayer().GetPos(), targ.GetPos()), 1).Iter() {
-		hitPos = o.(geom.Pt2I)
-		if !world.IsOpen(hitPos) {
-			break
-		}
-	}
-
-	p1, p2 := draw.Pt(Tile2WorldPos(world.GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
-	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
-
-	for o := range world.EntitiesAt(hitPos).Iter() {
-		ent := o.(*Entity)
-		if ent.GetClass() == EnemyEntityClass {
-			const OVER_NINE_THOUSAND = 9001
-			ent.Damage(OVER_NINE_THOUSAND, player)
-			return
-		}
-	}
-	Msg("Missed.\n")
+func GunEquipped(o interface{}) bool {
+	_, ok := o.(*Entity).GetGuidOpt(PropGunWeaponGuid)
+	return ok
 }

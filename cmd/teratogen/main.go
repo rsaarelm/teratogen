@@ -77,7 +77,18 @@ loop: for {
 		case 'e':
 			EquipMenu()
 		case 'f':
-			ShootAtClosest()
+			player := world.GetPlayer()
+			if GunEquipped(player) {
+				target := ClosestCreatureSeenBy(player)
+				if target != nil {
+					Shoot(player, target.GetPos())
+					break loop
+				} else {
+					Msg("You see nothing to shoot.\n")
+				}
+			} else {
+				Msg("You don't have a gun to fire.\n")
+			}
 		case 'd':
 			// Drop item.
 			player := world.GetPlayer()

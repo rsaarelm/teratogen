@@ -374,7 +374,11 @@ func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 }
 
 func (self *World) Creatures() iterable.Iterable {
-	pred := func(obj interface{}) bool { return IsCreature(obj.(*Entity)) }
+	return iterable.Filter(self.Entities(), IsCreature)
+}
+
+func (self *World) OtherCreatures(excluded interface{}) iterable.Iterable {
+	pred := func(o interface{}) bool { return o != excluded && IsCreature(o) }
 	return iterable.Filter(self.Entities(), pred)
 }
 

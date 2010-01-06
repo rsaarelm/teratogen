@@ -1,6 +1,7 @@
 package main
 
 import (
+	"exp/iterable"
 	"fmt"
 	"hyades/geom"
 	"hyades/gfx"
@@ -89,7 +90,6 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 }
 
 func (self *Entity) MeleeWoundLevelAgainst(target *Entity, hitDegree int) (woundLevel int) {
-
 	damageFactor := self.MeleeDamageFactor() + hitDegree
 
 	armorFactor := target.ArmorFactor()
@@ -119,4 +119,26 @@ func (self *Entity) TryMove(vec geom.Vec2I) (success bool) {
 		return true
 	}
 	return false
+}
+
+func (self *Entity) CanSeeTo(pos geom.Pt2I) bool {
+	world := GetWorld()
+	dist := 0
+	// TODO Customizable max sight range
+	sightRange := 18
+	for o := range iterable.Drop(geom.Line(self.GetPos(), pos), 1).Iter() {
+		if dist > sightRange {
+			return false
+		}
+		dist++
+		pt := o.(geom.Pt2I)
+		// Can see to the final cell even if that cell does block further sight.
+		if pt.Equals(pos) {
+			break
+		}
+		if world.BlocksSight(pt) {
+			return false
+		}
+	}
+	return true
 }

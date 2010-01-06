@@ -8,6 +8,10 @@ import (
 	"io"
 )
 
+type Positioned interface {
+	GetPos() geom.Pt2I
+}
+
 type Entity struct {
 	IconId    string
 	guid      Guid

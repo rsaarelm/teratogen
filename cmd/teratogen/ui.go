@@ -384,6 +384,10 @@ func UiHelpLines() iterable.Iterable {
 		vec.Push("e: equip/remove gear")
 	}
 
+	if GunEquipped(player) {
+		vec.Push("f: fire gun")
+	}
+
 	if len(iterable.Data(TakeableItems(player.GetPos()))) > 0 {
 		vec.Push(",: pick up item")
 	}
