@@ -2,6 +2,7 @@ package alg
 
 import (
 	"exp/iterable"
+	"math"
 )
 
 type IterFunc func(c chan<- interface{})
@@ -32,12 +33,15 @@ func EmptyIter() iterable.Iterable { return IterFunc(emptyIteration) }
 
 // IterMin returns the value from the iteration that is smallest according to
 // the isLess function.
-func IterMin(iter iterable.Iterable, isLess func(e1, e2 interface{}) bool) (result interface{}, ok bool) {
+func IterMin(iter iterable.Iterable, measure func(e1 interface{}) float64) (result interface{}, ok bool) {
 	ok = false
+	minVal := float64(math.MaxFloat64)
 	for e := range iter.Iter() {
-		if !ok || isLess(e, result) {
+		m := measure(e)
+		if !ok || m < minVal {
 			ok = true
 			result = e
+			minVal = m
 		}
 	}
 	return
