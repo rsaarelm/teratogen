@@ -84,3 +84,15 @@ func emptyIteration(c chan<- interface{}) { close(c) }
 // EmptyIter returns an Iterable that yields nothing. Useful in situations
 // where an interface requires that an Iterable is presented.
 func EmptyIter() iterable.Iterable { return IterFunc(emptyIteration) }
+
+func ArraysEqual(eqPred func(e1, e2 interface{}) bool, a1, a2 []interface{}) bool {
+	if len(a1) != len(a2) {
+		return false
+	}
+	for i, _ := range a1 {
+		if !eqPred(a1[i], a2[i]) {
+			return false
+		}
+	}
+	return true
+}
