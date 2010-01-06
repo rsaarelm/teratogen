@@ -61,7 +61,7 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
 	sx, sy := CenterDrawPos(self.GetPos())
-	go ParticleAnim(ui.context, ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(math.Pow(1.5, float64(woundLevel+3))))
 

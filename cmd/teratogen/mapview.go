@@ -21,7 +21,7 @@ func NewMapView() (result *MapView) {
 	return
 }
 
-func AnimTest() { go TestAnim2(ui.context, ui.AddScreenAnim(gfx.NewAnim(0.0))) }
+func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }
 
 func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	g.SetClip(area)
@@ -54,7 +54,7 @@ func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (wo
 
 func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) bool {
 	wx, wy := self.InvTransform(area, event.X, event.Y)
-	go ParticleAnim(ui.context, ui.AddMapAnim(gfx.NewAnim(0.0)), wx, wy,
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), wx, wy,
 		config.Scale, 1e8, float64(config.Scale)*20.0,
 		gfx.White, gfx.Cyan, 6)
 

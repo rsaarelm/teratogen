@@ -378,7 +378,6 @@ func (self *World) Creatures() iterable.Iterable {
 	return iterable.Filter(self.Entities(), pred)
 }
 
-
 func (self *World) IsOpen(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return false

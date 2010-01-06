@@ -4,13 +4,12 @@ import (
 	"exp/draw"
 	"hyades/gfx"
 	"hyades/num"
-	"hyades/sdl"
 	"image"
 	"math"
 	"rand"
 )
 
-func TestAnim1(context sdl.Context, anim *gfx.Anim) {
+func TestAnim1(anim *gfx.Anim) {
 	defer anim.Close()
 	t := int64(0)
 	for t < 2e9 {
@@ -26,7 +25,7 @@ func TestAnim1(context sdl.Context, anim *gfx.Anim) {
 	}
 }
 
-func TestAnim2(context sdl.Context, anim *gfx.Anim) {
+func TestAnim2(anim *gfx.Anim) {
 	defer anim.Close()
 	t := int64(0)
 	for t < 2e9 {
@@ -68,7 +67,7 @@ func (self *particle) Color() image.Color {
 }
 
 // Blasts particles in all directions from origin.
-func ParticleAnim(context sdl.Context, anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, startColor, endColor image.Color, particleCount int) {
+func ParticleAnim(anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, startColor, endColor image.Color, particleCount int) {
 	defer anim.Close()
 	particles := make([]*particle, particleCount)
 
