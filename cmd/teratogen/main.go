@@ -137,7 +137,7 @@ func main() {
 	if config.RngSeed != "" {
 		seed, err = BabbleToRandState(config.RngSeed)
 		if err != nil {
-			fmt.Printf("Invalid world seed: %s.\n", config.RngSeed)
+			fmt.Printf("Invalid genesis seed: %s.\n", config.RngSeed)
 			seed = num.RandStateFromClock()
 		}
 	}
