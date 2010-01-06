@@ -262,7 +262,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 			if moreAbove {
 				DrawString(g, xOff, yOff+lineH, "--more--")
 			}
-			for i := pos; i < num.IntMin(pos+numVisible, len(options)); i++ {
+			for i := pos; i < num.Imin(pos+numVisible, len(options)); i++ {
 				key := i - pos + 1
 				if key == 10 {
 					key = 0

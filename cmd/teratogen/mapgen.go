@@ -124,12 +124,12 @@ func (self *BspRoom) HorizontalSplit(pos int) {
 
 // Probability weight for vertical split, can't split below height minRoomDim * 2 + 1.
 func (self *BspRoom) VerticalSplitWeight() int {
-	return num.IntMax(0, self.Dim.Y-minRoomDim*2)
+	return num.Imax(0, self.Dim.Y-minRoomDim*2)
 }
 
 // Probability weight for horizontal split, can't split below width minRoomDim * 2 + 1.
 func (self *BspRoom) HorizontalSplitWeight() int {
-	return num.IntMax(0, self.Dim.X-minRoomDim*2)
+	return num.Imax(0, self.Dim.X-minRoomDim*2)
 }
 
 func MaybeSplitRoom(room *BspRoom) {

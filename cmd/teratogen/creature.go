@@ -9,7 +9,7 @@ import (
 	"math"
 )
 
-func (self *Entity) MaxWounds() int { return num.IntMax(1, (self.GetI(PropToughness)+3)*2+1) }
+func (self *Entity) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
 
 func (self *Entity) WoundDescription() string {
 	maxWounds := self.MaxWounds()

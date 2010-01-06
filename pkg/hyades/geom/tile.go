@@ -81,7 +81,7 @@ func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius fun
 				// Risen above an obstacle.
 				traversingObstacle = false
 				if v > 0 {
-					startSlope = num.Float64Max(
+					startSlope = num.Fmax(
 						startSlope,
 						(float64(v)-0.5)/(float64(u)-0.5))
 				}
