@@ -137,7 +137,12 @@ func (self *World) GetEntity(guid Guid) *Entity {
 func (self *World) DestroyEntity(ent *Entity) {
 	ent.RemoveSelf()
 	if ent == self.GetPlayer() {
-		GameOver("was wiped out of existence.")
+		if GameRunning() {
+			// Ensure gameover if player is destroyed by unknown means.
+			GameOver("was wiped out of existence.")
+		}
+		// XXX: The system can't currently handle the player entity being
+		// removed.
 		return
 	}
 	self.entities[ent.GetGuid()] = ent, false

@@ -142,6 +142,8 @@ func GetMsg() *MsgOut { return ui.msg }
 
 func Msg(format string, a ...) { fmt.Fprintf(ui.msg, format, a) }
 
+func GameRunning() bool { return ui.running }
+
 func Quit() { ui.running = false }
 
 func MarkMsgLinesSeen() { ui.oldestLineSeen = ui.msg.NumLines() - 1 }
