@@ -29,7 +29,7 @@ func (self *Entity) WoundDescription() string {
 	case wounds < 3:
 		return "grazed"
 	case wounds < 5:
-		return "cut"
+		return "bruised"
 	case wounds < 7:
 		return "battered"
 	}
