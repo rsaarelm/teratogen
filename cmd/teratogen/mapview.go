@@ -42,13 +42,14 @@ func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
 	return alg.EmptyIter()
 }
 
+func TilePos2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
+	return tilePos.X*TileW + TileW/2, tilePos.Y*TileH + TileH/2
+}
+
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
-	areaOriginWorldPos := world.GetPlayer().GetPos().ElemMult(
-		geom.Vec2I{TileW, TileH}).Plus(
-		geom.Vec2I{TileW / 2, TileH / 2}).Plus(
-		geom.Vec2I{-area.Dx() / 2, -area.Dy() / 2})
-	worldX = screenX - area.Min.X + areaOriginWorldPos.X
-	worldY = screenY - area.Min.Y + areaOriginWorldPos.Y
+	worldX, worldY = TilePos2WorldPos(GetWorld().GetPlayer().GetPos())
+	worldX += screenX - area.Min.X - area.Dx()/2
+	worldY += screenY - area.Min.Y - area.Dy()/2
 	return
 }
 
