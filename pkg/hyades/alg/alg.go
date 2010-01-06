@@ -4,7 +4,6 @@ package alg
 
 import (
 	"container/vector"
-	"exp/iterable"
 	"reflect"
 	"sort"
 )
@@ -59,32 +58,8 @@ func ChanData(in <-chan interface{}) (result []interface{}) {
 	return
 }
 
-type IterFunc func(c chan<- interface{})
-
-func (self IterFunc) Iter() <-chan interface{} {
-	c := make(chan interface{})
-	go self(c)
-	return c
-}
-
-// ReverseIter returns an Iterable that returns the elements if iter in
-// reverse order.
-func ReverseIter(iter iterable.Iterable) iterable.Iterable {
-	data := iterable.Data(iter)
-	return IterFunc(func(c chan<- interface{}) {
-		for i := len(data) - 1; i >= 0; i-- {
-			c <- data[i]
-		}
-		close(c)
-	})
-}
-
-func emptyIteration(c chan<- interface{}) { close(c) }
-
-// EmptyIter returns an Iterable that yields nothing. Useful in situations
-// where an interface requires that an Iterable is presented.
-func EmptyIter() iterable.Iterable { return IterFunc(emptyIteration) }
-
+// ArraysEqual returns whether two arrays have the same length and have all
+// corresponding elements satisfy the equality predicate.
 func ArraysEqual(eqPred func(e1, e2 interface{}) bool, a1, a2 []interface{}) bool {
 	if len(a1) != len(a2) {
 		return false
