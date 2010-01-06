@@ -93,3 +93,19 @@ func ParticleAnim(anim *gfx.Anim, x, y int, size int, lifetime int64, speed floa
 		anim.StopDraw()
 	}
 }
+
+func LineAnim(anim *gfx.Anim, p1, p2 draw.Point, lifetime int64, startColor, endColor image.Color, thickness int) {
+	defer anim.Close()
+	life := lifetime
+	for life > 0 {
+		g, t := anim.StartDraw()
+		life -= t
+		col := gfx.LerpColor(endColor, startColor, float64(life)/float64(lifetime))
+		if thickness == 1 {
+			gfx.Line(g, p1, p2, col)
+		} else {
+			gfx.ThickLine(g, p1, p2, col, thickness)
+		}
+		anim.StopDraw()
+	}
+}
