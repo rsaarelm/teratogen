@@ -1,10 +1,26 @@
-Go language thing using libtcod.
+Teratogen is a survival horror roguelike work-in-progress written in the Go
+programming language by Risto Saarelma.
 
-Environt variables needed:
+Where are the prebuilt binaries?
+--------------------------------
 
-GOROOT: The base dir of the Go language install
-GOARCH: The target architecture for Go language
+The current (2010-01-07) Go build system hardcodes the paths of shared
+objects, such as the SDL FFI bindings object, into the binary. This makes it
+difficult to build binaries who need to access their libraries from an
+undefined directory.
 
-You need to have a Go language source tree at $GOROOT and be able to write to
-it. The game libraries currently install to the $GOROOT tree. This may change
-in the future.
+The easiest way to get Teratogen working as of now is to install Go and build
+it yourself. See the INSTALL file for build instructions.
+
+Where's the Windows version?
+----------------------------
+
+Currently (2010-01-07) waiting for the mingw32 support of Go to appear in the
+main branch. The experimental Windows fork currently available only supports
+an older version of the Go language and won't build Teratogen.
+
+The Hyades packages
+-------------------
+
+Possibly reusable and library-like Go code goes into the package directories
+in pkg/hyades.

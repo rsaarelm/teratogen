@@ -1,0 +1,17 @@
+Building
+--------
+
+- Make sure the dev packages of SDL and SDL_mixer are installed. You need to
+  have have sdl-config in your path.
+
+- Install the Go language development environment from
+  <http://golang.org/doc/install.html>. Make sure you set $GOROOT, $GOOS and
+  $GOARCH environment variables according to the instructions.
+
+- Call "make" at teratogen base dir.
+
+- The teratogen binary is at cmd/teratogen/teratogen
+
+The current build system writes the game's libraries into the main Go install
+tree, so you will need to have write permissions there. This should change in
+the future.
