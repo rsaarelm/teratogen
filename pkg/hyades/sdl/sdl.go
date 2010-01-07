@@ -250,6 +250,12 @@ func (self *context) eventLoop() {
 				sym := int(keyEvt.keysym.sym)
 				isAscii := sym >= 32 && sym < 256
 
+				if isAscii && typ == KEYUP {
+					// No printable key when raising pressed keys. Good thing syms
+					// in the ascii range match printables.
+					chr = sym
+				}
+
 				if !isAscii {
 					// Nonprintable key.
 					chr = keyboard.Nonprintable | sym
