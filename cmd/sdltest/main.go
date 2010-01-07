@@ -30,7 +30,9 @@ const Elf_png = "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x5
 	"\x2e\xa8\xf4\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60\x82"
 
 func main() {
-	context, err := sdl.NewWindow(640, 480, "Hello SDL", false)
+	context, err := sdl.NewWindow(sdl.Config{
+		Width: 640, Height: 480, Title: "Hello SDL", Audio: true,
+	})
 	dbg.AssertNoError(err)
 
 	sprite, err := makePngSurface(context, strings.NewReader(Elf_png))

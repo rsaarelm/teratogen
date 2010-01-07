@@ -81,7 +81,10 @@ type Surface interface {
 }
 
 type context struct {
+	config Config
+
 	screen *C.SDL_Surface
+
 	kbd    chan int
 	mouse  chan draw.Mouse
 	resize chan bool
@@ -90,26 +93,41 @@ type context struct {
 	exitChan chan bool
 }
 
+type Config struct {
+	Width      int
+	Height     int
+	Title      string
+	Fullscreen bool
+	Audio      bool
+}
+
 // NewWindow initializes SDL and returns a new SDL context.
-func NewWindow(width, height int, title string, fullscreen bool) (result Context, err os.Error) {
-	flags := int64(DOUBLEBUF)
-	if fullscreen {
-		flags |= FULLSCREEN
+func NewWindow(config Config) (result Context, err os.Error) {
+	initFlags := int64(INIT_VIDEO)
+	if config.Audio {
+		initFlags |= INIT_AUDIO
 	}
-	if C.SDL_Init(INIT_VIDEO|INIT_AUDIO) == C.int(-1) {
+	screenFlags := int64(DOUBLEBUF)
+	if config.Fullscreen {
+		screenFlags |= FULLSCREEN
+	}
+	if C.SDL_Init(C.Uint32(initFlags)) == C.int(-1) {
 		err = os.NewError(getError())
 		return
 	}
-	screen := C.SDL_SetVideoMode(C.int(width), C.int(height), bitsPerPixel, C.Uint32(flags))
+	screen := C.SDL_SetVideoMode(C.int(config.Width), C.int(config.Height), bitsPerPixel, C.Uint32(screenFlags))
 	if screen == nil {
 		err = os.NewError(getError())
 		return
 	}
 	C.SDL_EnableUNICODE(1)
-	initAudio()
+	if config.Audio {
+		initAudio()
+	}
 
 	ctx := new(context)
 	result = ctx
+	ctx.config = config
 	ctx.screen = screen
 	ctx.kbd = make(chan int, 1)
 	ctx.mouse = make(chan draw.Mouse, 1)
@@ -171,6 +189,11 @@ func (self *context) IsNativeSurface(img image.Image) bool {
 }
 
 func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) {
+	if !self.config.Audio {
+		err = os.NewError("Audio not active.")
+		return
+	}
+
 	rw := C.SDL_RWFromMem(unsafe.Pointer(&wavData[0]), C.int(len(wavData)))
 	chunk := C.Mix_LoadWAV_RW(rw, 1)
 	if chunk == nil {
@@ -182,6 +205,11 @@ func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) 
 }
 
 func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error) {
+	if !self.config.Audio {
+		err = os.NewError("Audio not active.")
+		return
+	}
+
 	cs := C.CString(filename)
 	music := &C.music{C.Mix_LoadMUS(cs)}
 	C.free(unsafe.Pointer(cs))
@@ -294,7 +322,9 @@ func (self *context) eventLoop() {
 			}
 		}
 	}
-	exitAudio()
+	if self.config.Audio {
+		exitAudio()
+	}
 	C.SDL_Quit()
 	self.exitChan <- true
 }

@@ -71,7 +71,12 @@ func ReleaseUISync() { uiMutex.Unlock() }
 func newUI() (result *UI) {
 	result = new(UI)
 	result.InitAnims()
-	context, err := sdl.NewWindow(screenWidth, screenHeight, "Teratogen", config.Fullscreen)
+	context, err := sdl.NewWindow(sdl.Config{
+		Width: screenWidth, Height: screenHeight,
+		Title: "Teratogen", Fullscreen: config.Fullscreen,
+		Audio: config.Sound,
+	})
+
 	dbg.AssertNoError(err)
 	result.context = context
 	context.KeyRepeatOn()

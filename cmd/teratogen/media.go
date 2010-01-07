@@ -87,7 +87,9 @@ func InitMedia() {
 	makeTiles("chars", "media/chars.png", TileW, TileH, config.Scale*config.TileScale)
 	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.Scale*config.TileScale)
 	makeTiles("items", "media/items.png", TileW, TileH, config.Scale*config.TileScale)
-	makeSounds()
+	if config.Sound {
+		makeSounds()
+	}
 }
 
 func Media(name string) interface{} { return cache[name] }
