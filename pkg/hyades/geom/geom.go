@@ -11,6 +11,8 @@ type Vec2I struct {
 
 type Pt2I Vec2I
 
+var ZeroVec2I = Vec2I{0, 0}
+
 func (lhs Vec2I) Equals(rhs Vec2I) bool { return lhs.X == rhs.X && lhs.Y == rhs.Y }
 
 func (lhs Pt2I) Equals(rhs Pt2I) bool { return lhs.X == rhs.X && lhs.Y == rhs.Y }
