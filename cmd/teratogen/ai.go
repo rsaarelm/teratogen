@@ -22,3 +22,24 @@ func DoAI(crit *Entity) {
 		crit.TryMove(moveVec)
 	}
 }
+
+func SendPlayerInput(command func()) bool {
+	// Don't block, if the channel isn't expecting input, just move on and
+	// return false.
+	ok := playerInputChan <- command
+	return ok
+}
+
+var playerInputChan = make(chan func())
+
+func LogicLoop() {
+	for {
+		playerInput := <-playerInputChan
+		MarkMsgLinesSeen()
+
+		GetUISync()
+		playerInput()
+		RunAI()
+		ReleaseUISync()
+	}
+}

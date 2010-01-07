@@ -46,6 +46,8 @@ var TileW = baseTileW * 2
 var TileH = baseTileH * 2
 
 type UI struct {
+	gui.KeyHandlerStack
+
 	gfx.Anims
 	context sdl.Context
 	msg     *MsgOut
@@ -70,6 +72,7 @@ func ReleaseUISync() { uiMutex.Unlock() }
 
 func newUI() (result *UI) {
 	result = new(UI)
+	result.KeyHandlerStack.Init()
 	result.InitAnims()
 	context, err := sdl.NewWindow(sdl.Config{
 		Width: screenWidth, Height: screenHeight,
@@ -84,6 +87,7 @@ func newUI() (result *UI) {
 	result.running = true
 	result.mapView = NewMapView()
 	result.timePoint = time.Nanoseconds()
+	result.PushKeyHandler(result.mapView)
 
 	return
 }
@@ -156,14 +160,14 @@ func MarkMsgLinesSeen() { ui.oldestLineSeen = ui.msg.NumLines() - 1 }
 // Blocking getkey function to be called from within an UI-locking game
 // script. Unlocks the UI while waiting for key.
 func GetKey() (result int) {
+	ret := make(chan int)
+	ui.PushKeyHandler(gui.KeyHandlerFunc(func(keyCode int) { ret <- keyCode }))
+	defer ui.PopKeyHandler()
+
 	ReleaseUISync()
-	for {
-		result = <-ui.context.KeyboardChan()
-		if result > 0 {
-			break
-		}
-	}
+	result = <-ret
 	GetUISync()
+
 	return
 }
 
@@ -224,6 +228,10 @@ func MainUILoop() {
 
 		if mouseEvt, ok := <-ui.context.MouseChan(); ok {
 			prevMouseReceiver = gui.DispatchMouseEvent(area, ui, mouseEvt, prevMouseReceiver)
+		}
+
+		if keyEvt, ok := <-ui.context.KeyboardChan(); ok {
+			go ui.PeekKeyHandler().HandleKey(keyEvt)
 		}
 
 		if _, ok := <-ui.context.QuitChan(); ok {
