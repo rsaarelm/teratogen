@@ -6,7 +6,7 @@ TARG=teratogen
 
 SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
-all: build.cmds
+all: deps build.cmds
 
 run: $(TARG).run
 
