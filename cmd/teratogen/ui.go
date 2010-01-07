@@ -226,6 +226,10 @@ func MainUILoop() {
 			prevMouseReceiver = gui.DispatchMouseEvent(area, ui, mouseEvt, prevMouseReceiver)
 		}
 
+		if _, ok := <-ui.context.QuitChan(); ok {
+			Quit()
+		}
+
 		ReleaseUISync()
 
 		ui.context.FlushImage()
