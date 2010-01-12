@@ -103,13 +103,13 @@ type Config struct {
 
 // NewWindow initializes SDL and returns a new SDL context.
 func NewWindow(config Config) (result Context, err os.Error) {
-	initFlags := int64(INIT_VIDEO)
+	initFlags := int64(C.SDL_INIT_VIDEO)
 	if config.Audio {
-		initFlags |= INIT_AUDIO
+		initFlags |= C.SDL_INIT_AUDIO
 	}
-	screenFlags := int64(DOUBLEBUF)
+	screenFlags := int64(C.SDL_DOUBLEBUF)
 	if config.Fullscreen {
-		screenFlags |= FULLSCREEN
+		screenFlags |= C.SDL_FULLSCREEN
 	}
 	if C.SDL_Init(C.Uint32(initFlags)) == C.int(-1) {
 		err = os.NewError(getError())
@@ -169,7 +169,7 @@ func (self *context) Convert(img image.Image) Surface {
 	width, height := img.Width(), img.Height()
 
 	var rmask, gmask, bmask, amask C.Uint32
-	if BYTEORDER == BIG_ENDIAN {
+	if C.SDL_BYTEORDER == C.SDL_BIG_ENDIAN {
 		rmask, gmask, bmask, amask = 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
 	} else {
 		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
@@ -215,14 +215,16 @@ func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error)
 	C.free(unsafe.Pointer(cs))
 
 	if music.music == nil {
-		err = os.NewError(C.GoString(C.Mix_GetError()))
+		// err = os.NewError(C.GoString(C.Mix_GetError()))
+		// XXX: Cgo #define problem.
+		err = os.NewError(C.GoString(C.SDL_GetError()))
 	}
 	result = music
 	return
 }
 
 func (self *context) KeyRepeatOn() {
-	C.SDL_EnableKeyRepeat(DEFAULT_REPEAT_DELAY, DEFAULT_REPEAT_INTERVAL)
+	C.SDL_EnableKeyRepeat(C.SDL_DEFAULT_REPEAT_DELAY, C.SDL_DEFAULT_REPEAT_INTERVAL)
 }
 
 func (self *context) KeyRepeatOff() { C.SDL_EnableKeyRepeat(0, 0) }
@@ -239,7 +241,7 @@ func (self *context) eventLoop() {
 		}
 		if C.SDL_WaitEvent(&evt) != 0 {
 			switch typ := eventType(&evt); typ {
-			case KEYDOWN, KEYUP:
+			case C.SDL_KEYDOWN, C.SDL_KEYUP:
 				keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(&evt)))
 
 				// Truncate unicode printable char to 16 bits,
@@ -250,7 +252,7 @@ func (self *context) eventLoop() {
 				sym := int(keyEvt.keysym.sym)
 				isAscii := sym >= 32 && sym < 256
 
-				if isAscii && typ == KEYUP {
+				if isAscii && typ == C.SDL_KEYUP {
 					// No printable key when raising pressed keys. Good thing syms
 					// in the ascii range match printables.
 					chr = sym
@@ -268,34 +270,34 @@ func (self *context) eventLoop() {
 				// keys, to maintain the convention that
 				// printable keys must provide printable char
 				// values.
-				if !isAscii && mod&KMOD_LSHIFT != 0 {
+				if !isAscii && mod&C.KMOD_LSHIFT != 0 {
 					chr |= keyboard.LShift
 				}
-				if !isAscii && mod&KMOD_RSHIFT != 0 {
+				if !isAscii && mod&C.KMOD_RSHIFT != 0 {
 					chr |= keyboard.RShift
 				}
-				if mod&KMOD_LCTRL != 0 {
+				if mod&C.KMOD_LCTRL != 0 {
 					chr |= keyboard.LCtrl
 				}
-				if mod&KMOD_RCTRL != 0 {
+				if mod&C.KMOD_RCTRL != 0 {
 					chr |= keyboard.RCtrl
 				}
-				if mod&KMOD_LALT != 0 {
+				if mod&C.KMOD_LALT != 0 {
 					chr |= keyboard.LAlt
 				}
-				if mod&KMOD_RALT != 0 {
+				if mod&C.KMOD_RALT != 0 {
 					chr |= keyboard.RAlt
 				}
 
 				// As per the Context interface, key up is
 				// represented by a negative key value.
-				if typ == KEYUP {
+				if typ == C.SDL_KEYUP {
 					chr = -chr
 				}
 
 				// Non-blocking send.
 				_ = self.kbd <- chr
-			case MOUSEMOTION:
+			case C.SDL_MOUSEMOTION:
 				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
 				// XXX: SDL mouse button state *should* map
 				// directly to draw.Mouse.Buttons. Still a bit
@@ -307,13 +309,13 @@ func (self *context) eventLoop() {
 				}
 				// Non-blocking send
 				_ = self.mouse <- mouse
-			case MOUSEBUTTONDOWN, MOUSEBUTTONUP:
+			case C.SDL_MOUSEBUTTONDOWN, C.SDL_MOUSEBUTTONUP:
 				btnEvt := ((*C.SDL_MouseButtonEvent)(unsafe.Pointer(&evt)))
 				buttons := int(C.SDL_GetMouseState(nil, nil))
-				if typ == MOUSEBUTTONDOWN && btnEvt.button == BUTTON_WHEELUP {
+				if typ == C.SDL_MOUSEBUTTONDOWN && btnEvt.button == C.SDL_BUTTON_WHEELUP {
 					buttons += wheelUpBit
 				}
-				if typ == MOUSEBUTTONDOWN && btnEvt.button == BUTTON_WHEELDOWN {
+				if typ == C.SDL_MOUSEBUTTONDOWN && btnEvt.button == C.SDL_BUTTON_WHEELDOWN {
 					buttons += wheelDownBit
 				}
 				mouse := draw.Mouse{buttons,
@@ -321,9 +323,9 @@ func (self *context) eventLoop() {
 					time.Nanoseconds(),
 				}
 				_ = self.mouse <- mouse
-			case VIDEORESIZE:
+			case C.SDL_VIDEORESIZE:
 				_ = self.resize <- true
-			case QUIT:
+			case C.SDL_QUIT:
 				_ = self.quit <- true
 			}
 		}
@@ -404,7 +406,9 @@ func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
 	if surf, ok := img.(*C.SDL_Surface); ok {
 		// It's a SDL surface, do a fast SDL blit.
 		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-		C.SDL_BlitSurface(surf, nil, self, &rect)
+		//	C.SDL_BlitSurface(surf, nil, self, &rect)
+		// XXX: Cgo #define problem.
+		C.SDL_UpperBlit(surf, nil, self, &rect)
 	} else {
 		// It's something else, naively draw the individual pixels.
 		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
@@ -460,9 +464,12 @@ func initAudio() {
 	var audioFormat C.Uint16
 	switch sfx.DefaultSampleBytes {
 	case sfx.Bit8:
-		audioFormat = C.Uint16(AUDIO_S8)
+		audioFormat = C.Uint16(C.AUDIO_S8)
 	case sfx.Bit16:
-		audioFormat = C.Uint16(AUDIO_S16)
+		// audioFormat = C.Uint16(C.AUDIO_S16)
+		// XXX: Cgo #define problem
+		audioFormat = C.Uint16(C.AUDIO_S16LSB)
+
 	default:
 		dbg.Die("Bad audioBytesPerSample %v", sfx.DefaultSampleBytes)
 	}
