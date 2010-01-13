@@ -27,8 +27,8 @@ func (self *sortVec) Less(i, j int) bool {
 }
 func (self *sortVec) Swap(i, j int) { self.data.Swap(i, j) }
 
-// Return a new channel where the the first numItems from the previous channel
-// are sorted using the sort predicate.
+// PredicateSort sorts the values in the given vector using the given ordering
+// predicate.
 func PredicateSort(isLess func(i, j interface{}) bool, items *vector.Vector) {
 	sortable := &sortVec{items, isLess}
 	sort.Sort(sortable)

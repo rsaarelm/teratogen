@@ -83,9 +83,7 @@ func blankCopyOfType(typ reflect.Type) reflect.Value {
 		result := reflect.MakeZero(ptr).(*reflect.PtrValue)
 		result.PointTo(blankCopyOfType(ptr.Elem()))
 		return result
-	} else {
-		// Otherwise just copy the value straight up.
-		return reflect.MakeZero(typ)
 	}
-	panic("blankCopyFromValue")
+	// Otherwise just copy the value straight up.
+	return reflect.MakeZero(typ)
 }
