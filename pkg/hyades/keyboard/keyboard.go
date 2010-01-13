@@ -50,6 +50,36 @@ func ExtendedKeyName(keyCode int) (name string, ok bool) {
 	return "", false
 }
 
+func KeyCode(keyName string) (code int, ok bool) {
+	code, ok = keyCodes[keyName]
+	return
+}
+
+func KeyName(keyCode int) (name string, ok bool) {
+	name, ok = keyNames[keyCode]
+	return
+}
+
+// ExtendedKeyName returns a key name with modifiers
+func ExtendedKeyName(keyCode int) (name string, ok bool) {
+	if keyCode&Ctrl != 0 {
+		name += "C-"
+		keyCode &^= Ctrl
+	}
+	if keyCode&Alt != 0 {
+		name += "M-"
+		keyCode &^= Alt
+	}
+	if keyCode&Shift != 0 {
+		name += "S-"
+		keyCode &^= Shift
+	}
+	if innerName, ok := KeyName(keyCode); ok {
+		return name + innerName, true
+	}
+	return "", false
+}
+
 // Special key flags.
 const (
 	Nonprintable = 1 << (16 + iota)
