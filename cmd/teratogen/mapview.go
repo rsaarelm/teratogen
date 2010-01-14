@@ -78,7 +78,7 @@ func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) boo
 	return true
 }
 
-func (self *MapView) HandleKey(key int) {
+func (self *MapView) AsyncHandleKey(key int) {
 	key = keymap.Map(key)
 
 	switch key {
@@ -181,8 +181,9 @@ func (self *MapView) HandleKey(key int) {
 		world.Deserialize(loadFile)
 		Msg("Game loaded.\n")
 	}
-
 }
+
+func (self *MapView) HandleKey(key int) { go self.AsyncHandleKey(key) }
 
 func (self *MapView) MouseExited(event draw.Mouse) {
 }

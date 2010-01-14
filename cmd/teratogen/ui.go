@@ -231,7 +231,7 @@ func MainUILoop() {
 		}
 
 		if keyEvt, ok := <-ui.context.KeyboardChan(); ok {
-			go ui.PeekKeyHandler().HandleKey(keyEvt)
+			ui.PeekKeyHandler().HandleKey(keyEvt)
 		}
 
 		if _, ok := <-ui.context.QuitChan(); ok {
