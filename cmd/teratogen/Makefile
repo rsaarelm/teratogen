@@ -7,7 +7,6 @@ GOFILES=\
 	config.go\
 	creature.go\
 	entity.go\
-	input.go\
 	mapgen.go\
 	main.go\
 	mapview.go\
