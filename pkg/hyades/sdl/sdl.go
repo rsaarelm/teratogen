@@ -215,9 +215,7 @@ func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error)
 	C.free(unsafe.Pointer(cs))
 
 	if music.music == nil {
-		// err = os.NewError(C.GoString(C.Mix_GetError()))
-		// XXX: Cgo #define problem.
-		err = os.NewError(C.GoString(C.SDL_GetError()))
+		err = os.NewError(C.GoString(C.Mix_GetError()))
 	}
 	result = music
 	return
@@ -406,9 +404,7 @@ func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
 	if surf, ok := img.(*C.SDL_Surface); ok {
 		// It's a SDL surface, do a fast SDL blit.
 		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-		//	C.SDL_BlitSurface(surf, nil, self, &rect)
-		// XXX: Cgo #define problem.
-		C.SDL_UpperBlit(surf, nil, self, &rect)
+		C.SDL_BlitSurface(surf, nil, self, &rect)
 	} else {
 		// It's something else, naively draw the individual pixels.
 		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
@@ -466,8 +462,8 @@ func initAudio() {
 	case sfx.Bit8:
 		audioFormat = C.Uint16(C.AUDIO_S8)
 	case sfx.Bit16:
-		// audioFormat = C.Uint16(C.AUDIO_S16)
-		// XXX: Cgo #define problem
+		// XXX: Can't use AUDIO_S16 here as it's #defined to be "AUDIO_S16LSB",
+		// and cgo doesn't chase #defines with non-literal values.
 		audioFormat = C.Uint16(C.AUDIO_S16LSB)
 
 	default:
