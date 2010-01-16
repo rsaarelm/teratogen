@@ -78,6 +78,10 @@ func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) boo
 	return true
 }
 
+func (self *MapView) HandleTickEvent(elapsedNs int64) {
+	// TODO: Continuous movement if mouse button is pressed, etc.
+}
+
 func (self *MapView) AsyncHandleKey(key int) {
 	key = keymap.Map(key)
 

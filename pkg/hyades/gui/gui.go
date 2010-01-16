@@ -30,6 +30,10 @@ type Window struct {
 	Area   draw.Rectangle
 }
 
+func (self *Window) Children() iterable.Iterable {
+	return self.Widget.Children(self.Area)
+}
+
 // A drawing function that can serve as a simple leaf widget.
 type DrawFunc func(g gfx.Graphics, area draw.Rectangle)
 
@@ -69,4 +73,19 @@ func WidgetsContaining(pos draw.Point, area draw.Rectangle, root Widget) iterabl
 		iterInPoint(pos, area, root, c)
 		close(c)
 	}))
+}
+
+type TickHandler interface {
+	HandleTickEvent(elapsedNs int64)
+}
+
+func DispatchTickEvent(widget Widget, area draw.Rectangle, elapsedNs int64) {
+	window := &Window{widget, area}
+	if tickee, ok := window.Widget.(TickHandler); ok {
+		tickee.HandleTickEvent(elapsedNs)
+	}
+	for o := range window.Children().Iter() {
+		win := o.(*Window)
+		DispatchTickEvent(win.Widget, win.Area, elapsedNs)
+	}
 }

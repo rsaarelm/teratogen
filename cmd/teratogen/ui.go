@@ -225,6 +225,8 @@ func MainUILoop() {
 		area := draw.Rect(0, 0, g.Width(), g.Height())
 		ui.Draw(g, area)
 
+		gui.DispatchTickEvent(ui, area, timeElapsed)
+
 		if mouseEvt, ok := <-ui.context.MouseChan(); ok {
 			prevMouseReceiver = gui.DispatchMouseEvent(area, ui, mouseEvt, prevMouseReceiver)
 		}
