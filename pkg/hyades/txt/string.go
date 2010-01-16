@@ -1,6 +1,7 @@
 package txt
 
 import (
+	"hyades/num"
 	"strings"
 )
 
@@ -22,3 +23,32 @@ func PadString(str string, minLength int) (result string) {
 }
 
 func Capitalize(str string) (result string) { return strings.ToUpper(str[0:1]) + str[1:] }
+
+// EditDistance returns the edit or Levenshtein distance between two strings.
+// The edit distance is the minimum number of additions, deletions or changes
+// of a single character to change one string to another.
+func EditDistance(str1, str2 string) int {
+	d := make([][]int, len(str1)+1)
+	for i := 0; i < len(d); i++ {
+		d[i] = make([]int, len(str2)+1)
+	}
+
+	for i := 0; i <= len(str1); i++ {
+		d[i][0] = i
+	}
+	for j := 0; j <= len(str2); j++ {
+		d[0][j] = j
+	}
+
+	for j := 1; j <= len(str2); j++ {
+		for i := 1; i <= len(str1); i++ {
+			if str1[i-1] == str2[j-1] {
+				d[i][j] = d[i-1][j-1]
+			} else {
+				del, ins, subst := d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+1
+				d[i][j] = num.Imin(del, num.Imin(ins, subst))
+			}
+		}
+	}
+	return d[len(str1)][len(str2)]
+}
