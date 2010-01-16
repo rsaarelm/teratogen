@@ -30,10 +30,10 @@ type MouseListener interface {
 // will be notified that the mouse has exited its area.
 func DispatchMouseEvent(area draw.Rectangle, root Widget, event draw.Mouse, previousReceiver MouseListener) MouseListener {
 	pos := draw.Pt(event.X, event.Y)
-	for pair := range WidgetsContaining(pos, area, root).Iter() {
-		area, widget := UnpackWidgetIteration(pair)
-		if mouseReceiver, ok := widget.(MouseListener); ok {
-			if mouseReceiver.HandleMouseEvent(area, event) {
+	for childWindow := range WidgetsContaining(pos, area, root).Iter() {
+		child := childWindow.(*Window)
+		if mouseReceiver, ok := child.Widget.(MouseListener); ok {
+			if mouseReceiver.HandleMouseEvent(child.Area, event) {
 				if previousReceiver != nil && mouseReceiver != previousReceiver {
 					previousReceiver.MouseExited(event)
 				}

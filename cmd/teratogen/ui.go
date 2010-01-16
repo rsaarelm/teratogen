@@ -115,12 +115,11 @@ func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
 	cols, rows := 480/TileW-1, 320/TileH-1
 	return alg.IterFunc(func(c chan<- interface{}) {
-		c <- gui.PackWidgetIteration(draw.Rect(0, 0, TileW*cols, TileH*rows),
-			self.mapView)
-		c <- gui.PackWidgetIteration(draw.Rect(0, TileH*(rows+1), screenWidth, screenHeight),
-			gui.DrawFunc(drawMsgLines))
-		c <- gui.PackWidgetIteration(draw.Rect(TileW*(cols+1), 0, screenWidth, FontH*20),
-			gui.DrawFunc(drawStatus))
+		c <- &gui.Window{self.mapView, draw.Rect(0, 0, TileW*cols, TileH*rows)}
+		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
+			draw.Rect(0, TileH*(rows+1), screenWidth, screenHeight)}
+		c <- &gui.Window{gui.DrawFunc(drawStatus),
+			draw.Rect(TileW*(cols+1), 0, screenWidth, FontH*20)}
 		close(c)
 	})
 }
