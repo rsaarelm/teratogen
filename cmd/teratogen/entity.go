@@ -275,6 +275,7 @@ func (self *Entity) PropParent() *Entity {
 const (
 	numProp    byte = 1
 	stringProp byte = 2
+	guidProp   byte = 3
 )
 
 func saveProp(out io.Writer, prop interface{}) {
@@ -285,6 +286,9 @@ func saveProp(out io.Writer, prop interface{}) {
 	case string:
 		mem.WriteByte(out, stringProp)
 		mem.WriteString(out, a)
+	case Guid:
+		mem.WriteByte(out, guidProp)
+		mem.WriteString(out, string(a))
 	default:
 		dbg.Die("Bad prop type %#v", prop)
 	}
@@ -296,6 +300,8 @@ func loadProp(in io.Reader) interface{} {
 		return mem.ReadFloat64(in)
 	case stringProp:
 		return mem.ReadString(in)
+	case guidProp:
+		return Guid(mem.ReadString(in))
 	default:
 		dbg.Die("Bad prop type id %v", typ)
 	}
