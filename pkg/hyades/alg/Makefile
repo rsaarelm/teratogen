@@ -3,6 +3,7 @@ include $(GOROOT)/src/Make.$(GOARCH)
 TARG=hyades/alg
 GOFILES=\
 	alg.go\
+	bktree.go\
 	graph.go\
 	iter.go\
 	set.go\
