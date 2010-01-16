@@ -67,14 +67,6 @@ func Isignum(x int) int {
 // Base-2 logarithm.
 func Log2(x float64) float64 { return math.Log(x) / math.Log(2.0) }
 
-// Deterministic noise in [-1.0, 1.0). From Hugo Elias,
-// http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
-func Noise(seed int) float64 {
-	seed = (seed << 13) ^ seed
-	return (1.0 -
-		float64((seed*(seed*seed*15731+789221)+1376312589)&0x7fffffff)/
-			1073741824.0)
-}
 
 // Fracf returns the fractional part of f.
 func Fracf(f float64) (frac float64) {
@@ -82,8 +74,15 @@ func Fracf(f float64) (frac float64) {
 	return
 }
 
-// Linear interpolation between a and b using x = [0, 1].
-func Lerp(a, b float64, x float64) float64 { return a + (b-a)*x }
+// Lerp does linear interpolation between a and b using parameter 0 <= x <= 1.
+func Lerp(a, b float64, x float64) float64 { return a*(1-x) + b*x }
+
+// CosInterp does cosine interpolation between a and b using parameter 0 <= x
+// <= 1.
+func CosInterp(a, b float64, x float64) float64 {
+	f := (1 - math.Cos(x*math.Pi)) * 0.5
+	return Lerp(a, b, f)
+}
 
 func Clamp(min, max, x float64) float64 {
 	if x < min {
