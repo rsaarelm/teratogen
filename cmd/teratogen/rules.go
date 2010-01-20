@@ -501,7 +501,7 @@ func UseItem(user *Entity, item *Entity) {
 	}
 }
 
-func SmartPlayerPickup() *Entity {
+func SmartPlayerPickup(alwaysPickupFirst bool) *Entity {
 	world := GetWorld()
 	player := world.GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
@@ -512,7 +512,7 @@ func SmartPlayerPickup() *Entity {
 	}
 
 	choice := items[0]
-	if len(items) > 1 {
+	if len(items) > 1 && !alwaysPickupFirst {
 		var ok bool
 		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
 		if !ok {

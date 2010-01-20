@@ -12,15 +12,32 @@ import (
 	"time"
 )
 
+const mouseRepeatInterval = 150e6
+
+const (
+	leftButton   = 0
+	middleButton = 1
+	rightButton  = 2
+)
+
 type MapView struct {
 	gfx.Anims
 	timePoint int64
+	// Keeps track of the states of the three mouse buttons. -1 when the button
+	// is up, the time to spawn the next mouse-button-down event otherwise.
+	// XXX: Whether a mouse button should spawn periodic events when pressed is
+	// context-dependent, should have a more general scheduling mechanism for
+	// this.
+	mouseDownTime [3]int64
+	lastMouse     draw.Mouse
+	lastArea      draw.Rectangle
 }
 
 func NewMapView() (result *MapView) {
 	result = new(MapView)
 	result.InitAnims()
 	result.timePoint = time.Nanoseconds()
+	result.mouseDownTime = [3]int64{-1, -1, -1}
 	return
 }
 
@@ -60,15 +77,59 @@ func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (wo
 	return
 }
 
-func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) bool {
+func (self *MapView) onMouseButton(button int) {
+	player := GetWorld().GetPlayer()
+	event := self.lastMouse
+	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
 	tilePos := World2TilePos(wx, wy)
 	vec := tilePos.Minus(GetWorld().GetPlayer().GetPos())
-	if !vec.Equals(geom.ZeroVec2I) && (event.Buttons&1 != 0) {
-		// TODO: Better handling for keeping the button pressed.
-		dir8 := geom.Vec2IToDir8(vec)
-		SendPlayerInput(func() { SmartMovePlayer(dir8) })
+	switch button {
+	case leftButton:
+		// Move player in mouse directiion.
+		if !vec.Equals(geom.ZeroVec2I) {
+			dir8 := geom.Vec2IToDir8(vec)
+			SendPlayerInput(func() { SmartMovePlayer(dir8) })
+		} else {
+			// Clicking at player pos. Pick up the first item so that mousing
+			// isn't interrupted by a currently keyboard-only dialog if there are
+			// many items.
+
+			// TODO: Support choosing which item to pick up when using mouse.
+			if SmartPlayerPickup(true) != nil {
+				SendPlayerInput(func() {})
+			}
+		}
+
+	}
+}
+
+func (self *MapView) isMousePressed(button int) bool {
+	return self.mouseDownTime[button] >= 0
+}
+
+func (self *MapView) pressMouse(button int) {
+	if !self.isMousePressed(button) {
+		self.onMouseButton(button)
+		self.mouseDownTime[button] = time.Nanoseconds() + mouseRepeatInterval
+	}
+}
+
+func (self *MapView) releaseMouse(button int) { self.mouseDownTime[button] = -1 }
+
+func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) bool {
+	wx, wy := self.InvTransform(area, event.X, event.Y)
+
+	self.lastMouse = event
+	self.lastArea = area
+
+	for i := 0; i < 3; i++ {
+		if event.Buttons&(1<<byte(i)) != 0 {
+			self.pressMouse(i)
+		} else {
+			self.releaseMouse(i)
+		}
 	}
 
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), wx, wy,
@@ -79,7 +140,15 @@ func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) boo
 }
 
 func (self *MapView) HandleTickEvent(elapsedNs int64) {
-	// TODO: Continuous movement if mouse button is pressed, etc.
+	t := time.Nanoseconds()
+
+	for i := 0; i < 3; i++ {
+		// Mouse repeater logic.
+		if self.isMousePressed(i) && self.mouseDownTime[i] <= t {
+			self.mouseDownTime[i] = -1
+			self.pressMouse(i)
+		}
+	}
 }
 
 func (self *MapView) AsyncHandleKey(key int) {
@@ -112,7 +181,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			SendPlayerInput(func() {})
 		}
 	case ',':
-		if SmartPlayerPickup() != nil {
+		if SmartPlayerPickup(false) != nil {
 			SendPlayerInput(func() {})
 		}
 	case 'i':
@@ -190,4 +259,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 func (self *MapView) HandleKey(key int) { go self.AsyncHandleKey(key) }
 
 func (self *MapView) MouseExited(event draw.Mouse) {
+	for i := 0; i < 3; i++ {
+		self.releaseMouse(i)
+	}
 }
