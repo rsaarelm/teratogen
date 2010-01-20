@@ -251,6 +251,13 @@ func IsEnemyOf(ent *Entity, possibleEnemy *Entity) bool {
 	return false
 }
 
+// EnemiesAt iterates the enemies of ent at pos.
+func EnemiesAt(ent *Entity, pos geom.Pt2I) iterable.Iterable {
+	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Entity)) }
+
+	return iterable.Filter(GetWorld().EntitiesAt(pos), filter)
+}
+
 // The scaleDifference is defender scale - attacker scale.
 func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
 	// Hitting requires a minimal absolute success based on the scale of
@@ -287,6 +294,10 @@ func Attack(attacker *Entity, defender *Entity) {
 }
 
 func Shoot(attacker *Entity, target geom.Pt2I) {
+	if !GunEquipped(attacker) {
+		return
+	}
+
 	// TODO: Aiming precision etc.
 	origin := attacker.GetPos()
 	var hitPos geom.Pt2I
@@ -381,12 +392,9 @@ func SmartMovePlayer(dir int) {
 	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
-	for o := range world.EntitiesAt(target).Iter() {
-		ent := o.(*Entity)
-		if IsEnemyOf(player, ent) {
-			Attack(player, ent)
-			return
-		}
+	for o := range EnemiesAt(player, target).Iter() {
+		Attack(player, o.(*Entity))
+		return
 	}
 	// No attack, move normally.
 	MovePlayerDir(dir)

@@ -8,6 +8,7 @@ import (
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/keyboard"
+	"hyades/num"
 	"os"
 	"time"
 )
@@ -31,6 +32,9 @@ type MapView struct {
 	mouseDownTime [3]int64
 	lastMouse     draw.Mouse
 	lastArea      draw.Rectangle
+
+	// XXX: Hacky way to remember if shift is pressed.
+	shiftKeyState int
 }
 
 func NewMapView() (result *MapView) {
@@ -78,30 +82,50 @@ func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (wo
 }
 
 func (self *MapView) onMouseButton(button int) {
-	player := GetWorld().GetPlayer()
+	world := GetWorld()
+	player := world.GetPlayer()
 	event := self.lastMouse
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
 	tilePos := World2TilePos(wx, wy)
-	vec := tilePos.Minus(GetWorld().GetPlayer().GetPos())
+	vec := tilePos.Minus(player.GetPos())
 	switch button {
 	case leftButton:
-		// Move player in mouse directiion.
+		// Move player in mouse direction.
 		if !vec.Equals(geom.ZeroVec2I) {
 			dir8 := geom.Vec2IToDir8(vec)
 			SendPlayerInput(func() { SmartMovePlayer(dir8) })
 		} else {
-			// Clicking at player pos. Pick up the first item so that mousing
-			// isn't interrupted by a currently keyboard-only dialog if there are
-			// many items.
+			// Clicking at player pos.
+
+			// If there are stairs here, clicking on player goes down.
+			if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+				SendPlayerInput(func() { PlayerEnterStairs() })
+			}
+
+			// Pick up the first item so that mousing isn't interrupted by a
+			// currently keyboard-only dialog if there are many items.
 
 			// TODO: Support choosing which item to pick up when using mouse.
 			if SmartPlayerPickup(true) != nil {
 				SendPlayerInput(func() {})
 			}
 		}
+	case rightButton:
+		if !vec.Equals(geom.ZeroVec2I) {
+			// If shift is pressed, right-click always shoots.
+			if self.shiftKeyState > 0 {
+				SendPlayerInput(func() { Shoot(player, tilePos) })
+				return
+			}
 
+			// If there's an enemy, right-click shoots at it.
+			for _ = range EnemiesAt(player, tilePos).Iter() {
+				SendPlayerInput(func() { Shoot(player, tilePos) })
+				return
+			}
+		}
 	}
 }
 
@@ -153,6 +177,18 @@ func (self *MapView) HandleTickEvent(elapsedNs int64) {
 
 func (self *MapView) AsyncHandleKey(key int) {
 	key = keymap.Map(key)
+
+	// Key release events have negated keycodes, so taking abs value gets
+	// the event key regardless of whether it was pressed or released.
+	if abskey := num.Iabs(key); abskey == keyboard.K_RSHIFT || abskey == keyboard.K_LSHIFT {
+		self.shiftKeyState += key
+		if self.shiftKeyState < 0 {
+			// Hack to fix starting with the shift key pressed and being in an
+			// incosistent state. Zeroing out after going negative should help
+			// normalize the state.
+			self.shiftKeyState = 0
+		}
+	}
 
 	switch key {
 	case '.':
