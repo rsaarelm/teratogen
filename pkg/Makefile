@@ -4,6 +4,7 @@ DIRS=\
 	hyades/alg\
 	hyades/babble\
 	hyades/dbg\
+	hyades/entity\
 	hyades/fs\
 	hyades/geom\
 	hyades/gfx\
@@ -18,6 +19,7 @@ DIRS=\
 
 NOTEST=\
 	hyades/dbg\
+	hyades/entity\
 	hyades/fs\
 	hyades/gui\
 	hyades/keyboard\
