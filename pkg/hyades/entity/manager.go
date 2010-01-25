@@ -131,9 +131,9 @@ type Handler interface {
 	Add(guid Entity, component interface{})
 	// Remove removes this type of component from the given entity.
 	Remove(guid Entity)
-	// Get looks up this type of component for the given entity, found
-	// indicates if one was found and returned.
-	Get(guid Entity) (component interface{}, found bool)
+	// Get looks up this type of component for the given entity, return nil if
+	// component wasn't found.
+	Get(guid Entity) interface{}
 	// Serialize saves this set of components to a stream.
 	Serialize(out io.Writer)
 	// Deserialize initializes a new handler from a stream.

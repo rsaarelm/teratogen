@@ -192,7 +192,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	defer g.ClearClip()
 
 	DrawString(g, area.Min.X, area.Min.Y,
-		"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
+		"%v", txt.Capitalize(GetWorld().GetPlayer().WoundDescription()))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {

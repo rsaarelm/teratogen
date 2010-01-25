@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/mem"
@@ -21,7 +22,9 @@ const spawnsPerLevel = 32
 
 const numTerrainCells = mapWidth * mapHeight
 
-var world *World
+var manager *entity.Manager
+
+const WorldComponent = entity.ComponentFamily("world")
 
 func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
 	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
@@ -89,6 +92,7 @@ type TerrainTile struct {
 
 type Guid string
 
+func GetManager() *entity.Manager { return manager }
 
 type World struct {
 	playerId     Guid
@@ -99,9 +103,20 @@ type World struct {
 	currentLevel int32
 }
 
+func LoadGame(in io.Reader) {
+	manager = entity.NewManager()
+	manager.SetHandler(WorldComponent, new(World))
+	manager.Deserialize(in)
+}
+
+func SaveGame(out io.Writer) { manager.Serialize(out) }
+
 func NewWorld() (result *World) {
 	result = new(World)
-	world = result
+
+	manager = entity.NewManager()
+	manager.SetHandler(WorldComponent, result)
+
 	result.entities = make(map[Guid]*Entity)
 	result.initTerrain()
 
@@ -111,11 +126,9 @@ func NewWorld() (result *World) {
 	return
 }
 
-func SetWorld(newWorld *World) { world = newWorld }
-
 func GetWorld() *World {
-	dbg.AssertNotNil(world, "World not initialized.")
-	return world
+	dbg.AssertNotNil(manager, "World not initialized.")
+	return GetManager().Handler(WorldComponent).(*World)
 }
 
 func (self *World) Draw(g gfx.Graphics) {
@@ -538,4 +551,19 @@ func (self *World) Deserialize(in io.Reader) {
 		ent.Deserialize(in)
 		self.entities[guid] = ent
 	}
+}
+
+// Component handler interface stubs
+
+func (self *World) Add(guid entity.Entity, component interface{}) {
+}
+
+func (self *World) Remove(guid entity.Entity) {}
+
+func (self *World) Get(guid entity.Entity) interface{} {
+	return nil
+}
+
+func (self *World) EntityComponents() iterable.Iterable {
+	return alg.EmptyIter()
 }

@@ -224,7 +224,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		item := world.GetPlayer().GetChild()
+		item := GetWorld().GetPlayer().GetChild()
 		for item != nil {
 			if first {
 				first = false
@@ -242,7 +242,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'e':
 		EquipMenu()
 	case 'f':
-		player := world.GetPlayer()
+		player := GetWorld().GetPlayer()
 		if GunEquipped(player) {
 			target := ClosestCreatureSeenBy(player)
 			if target != nil {
@@ -255,7 +255,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case 'd':
 		// Drop item.
-		player := world.GetPlayer()
+		player := GetWorld().GetPlayer()
 		if player.HasContents() {
 			item, ok := ObjectChoiceDialog(
 				"Drop which item?", iterable.Data(player.Contents()))
@@ -276,7 +276,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'S':
 		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
-		world.Serialize(saveFile)
+		SaveGame(saveFile)
 		saveFile.Close()
 		Msg("Game saved.\n")
 	case 'L':
@@ -285,9 +285,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			Msg("Error loading game: " + err.String())
 			break
 		}
-		world = new(World)
-		SetWorld(world)
-		world.Deserialize(loadFile)
+		LoadGame(loadFile)
 		Msg("Game loaded.\n")
 	}
 }

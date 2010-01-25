@@ -303,7 +303,7 @@ func Shoot(attacker *Entity, target geom.Pt2I) {
 	var hitPos geom.Pt2I
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
-		if !world.IsOpen(hitPos) {
+		if !GetWorld().IsOpen(hitPos) {
 			break
 		}
 	}
@@ -313,7 +313,7 @@ func Shoot(attacker *Entity, target geom.Pt2I) {
 		damageFactor += gun.GetI(PropWoundBonus)
 	}
 
-	p1, p2 := draw.Pt(Tile2WorldPos(world.GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
@@ -435,7 +435,10 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel() { world.InitLevel(world.CurrentLevelNum() + 1) }
+func NextLevel() {
+	world := GetWorld()
+	world.InitLevel(world.CurrentLevelNum() + 1)
+}
 
 func IsCreature(o interface{}) bool {
 	switch o.(*Entity).GetClass() {
