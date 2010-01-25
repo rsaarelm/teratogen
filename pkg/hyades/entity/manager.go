@@ -30,13 +30,16 @@ type Manager struct {
 func NewManager() (result *Manager) {
 	result = new(Manager)
 	result.handlers = make(map[ComponentFamily]Handler)
+	result.liveEntities = make(map[Id]bool)
 	return
 }
 
 // NewEntity returns a new unique entity identifier.
-func (self *Manager) newEntity() Id {
+func (self *Manager) NewEntity() (result Id) {
 	self.nextGuid++
-	return Id(self.nextGuid)
+	result = Id(self.nextGuid)
+	self.liveEntities[result] = true
+	return
 }
 
 // Handler returns the component handler for the given component family.
@@ -53,8 +56,7 @@ func (self *Manager) SetHandler(family ComponentFamily, handler Handler) {
 // component families specified by the assemblage and returns the entity
 // value.
 func (self *Manager) BuildEntity(assemblage Assemblage) (result Id) {
-	result = self.newEntity()
-	self.liveEntities[result] = true
+	result = self.NewEntity()
 	for family, component := range assemblage {
 		self.Handler(family).Add(result, component)
 	}

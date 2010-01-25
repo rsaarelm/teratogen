@@ -50,31 +50,41 @@ func GetManager() *entity.Manager { return manager }
 type World struct {
 	playerId     Guid
 	entities     map[Guid]*Entity
-	terrain      []TerrainType
+	areaId       entity.Id
 	los          []LosState
 	guidCounter  uint64
 	currentLevel int32
 }
 
+func makeManager() (result *entity.Manager) {
+	result = entity.NewManager()
+	result.SetHandler(WorldComponent, new(World))
+	result.SetHandler(AreaComponent, new(AreaHandler))
+	return
+}
+
 func LoadGame(in io.Reader) {
-	manager = entity.NewManager()
-	manager.SetHandler(WorldComponent, new(World))
+	manager = makeManager()
 	manager.Deserialize(in)
 }
 
 func SaveGame(out io.Writer) { manager.Serialize(out) }
 
-func NewWorld() (result *World) {
-	result = new(World)
+func InitWorld() {
+	manager = makeManager()
+	world := GetWorld()
+	areas := manager.Handler(AreaComponent).(*AreaHandler)
+	areas.Init()
 
-	manager = entity.NewManager()
-	manager.SetHandler(WorldComponent, result)
+	world.areaId = manager.NewEntity()
+	area := NewArea()
+	areas.Add(world.areaId, area)
 
-	result.entities = make(map[Guid]*Entity)
-	result.initTerrain()
+	world.entities = make(map[Guid]*Entity)
+	world.initLos()
 
-	player := result.Spawn(prototypes["protagonist"])
-	result.playerId = player.GetGuid()
+	player := world.Spawn(prototypes["protagonist"])
+	world.playerId = player.GetGuid()
 
 	return
 }
@@ -82,6 +92,10 @@ func NewWorld() (result *World) {
 func GetWorld() *World {
 	dbg.AssertNotNil(manager, "World not initialized.")
 	return GetManager().Handler(WorldComponent).(*World)
+}
+
+func GetArea() *Area {
+	return GetManager().Handler(AreaComponent).Get(GetWorld().areaId).(*Area)
 }
 
 func (self *World) Draw(g gfx.Graphics) {
@@ -139,7 +153,7 @@ func (self *World) InitLevel(depth int) {
 
 	self.currentLevel = int32(depth)
 
-	self.initTerrain()
+	self.initLos()
 
 	// Bring over player object and player's inventory.
 	keep := new(vector.Vector)
@@ -157,12 +171,12 @@ func (self *World) InitLevel(depth int) {
 	}
 
 	if num.WithProb(0.5) {
-		self.makeCaveMap()
+		GetArea().MakeCaveMap()
 	} else {
-		self.makeBSPMap()
+		GetArea().MakeBSPMap()
 	}
 
-	self.SetTerrain(self.GetSpawnPos(), TerrainStairDown)
+	GetArea().SetTerrain(self.GetSpawnPos(), TerrainStairDown)
 
 	player.MoveAbs(self.GetSpawnPos())
 	self.DoLos(player.GetPos())
@@ -193,10 +207,7 @@ func makeSpawnDistribution(depth int) num.WeightedDist {
 
 func (self *World) CurrentLevelNum() int { return int(self.currentLevel) }
 
-func (self *World) initTerrain() {
-	self.terrain = make([]TerrainType, numTerrainCells)
-	self.los = make([]LosState, numTerrainCells)
-}
+func (self *World) initLos() { self.los = make([]LosState, numTerrainCells) }
 
 func (self *World) ClearLosSight() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
@@ -223,13 +234,13 @@ func (self *World) ClearLosMapped() {
 }
 
 func (self *World) MarkSeen(pos geom.Pt2I) {
-	if inTerrain(pos) {
+	if GetArea().InArea(pos) {
 		self.los[pos.X+pos.Y*mapWidth] = LosSeen
 	}
 }
 
 func (self *World) GetLos(pos geom.Pt2I) LosState {
-	if inTerrain(pos) {
+	if GetArea().InArea(pos) {
 		return self.los[pos.X+pos.Y*mapWidth]
 	}
 	return LosUnknown
@@ -238,7 +249,7 @@ func (self *World) GetLos(pos geom.Pt2I) LosState {
 func (self *World) DoLos(center geom.Pt2I) {
 	const losRadius = 12
 
-	blocks := func(vec geom.Vec2I) bool { return self.BlocksSight(center.Plus(vec)) }
+	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }
 
 	outOfRadius := func(vec geom.Vec2I) bool { return int(vec.Abs()) > losRadius }
 
@@ -284,7 +295,7 @@ func (self *World) OtherCreatures(excluded interface{}) iterable.Iterable {
 }
 
 func (self *World) IsOpen(pos geom.Pt2I) bool {
-	if IsObstacleTerrain(self.GetTerrain(pos)) {
+	if IsObstacleTerrain(GetArea().GetTerrain(pos)) {
 		return false
 	}
 	for o := range self.EntitiesAt(pos).Iter() {
@@ -310,10 +321,10 @@ func (self *World) isSpawnPos(pos geom.Pt2I) bool {
 	if !self.IsOpen(pos) {
 		return false
 	}
-	if self.GetTerrain(pos) == TerrainDoor {
+	if GetArea().GetTerrain(pos) == TerrainDoor {
 		return false
 	}
-	if self.GetTerrain(pos) == TerrainStairDown {
+	if GetArea().GetTerrain(pos) == TerrainStairDown {
 		return false
 	}
 	return true
@@ -386,8 +397,8 @@ func (self *World) Serialize(out io.Writer) {
 	mem.WriteString(out, string(self.playerId))
 	mem.WriteFixed(out, int64(self.guidCounter))
 	mem.WriteFixed(out, self.currentLevel)
+	mem.WriteFixed(out, int64(self.areaId))
 
-	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.terrain[i])) })
 	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.los[i])) })
 
 	mem.WriteFixed(out, int32(len(self.entities)))
@@ -403,10 +414,8 @@ func (self *World) Deserialize(in io.Reader) {
 	self.playerId = Guid(mem.ReadString(in))
 	self.guidCounter = uint64(mem.ReadInt64(in))
 	self.currentLevel = mem.ReadInt32(in)
+	self.areaId = entity.Id(mem.ReadInt64(in))
 
-	mem.ReadNTimes(in,
-		func(count int) { self.terrain = make([]TerrainType, count) },
-		func(i int, in io.Reader) { self.terrain[i] = TerrainType(mem.ReadByte(in)) })
 	mem.ReadNTimes(in,
 		func(count int) { self.los = make([]LosState, count) },
 		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })

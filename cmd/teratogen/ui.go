@@ -409,7 +409,7 @@ func UiHelpLines() iterable.Iterable {
 	if len(iterable.Data(TakeableItems(player.GetPos()))) > 0 {
 		vec.Push(",: pick up item")
 	}
-	if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
@@ -420,7 +420,7 @@ func StuffOnGroundMsg() {
 	world := GetWorld()
 	player := world.GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
-	stairs := world.GetTerrain(player.GetPos()) == TerrainStairDown
+	stairs := GetArea().GetTerrain(player.GetPos()) == TerrainStairDown
 	if len(items) > 1 {
 		Msg("There are several items here.\n")
 	} else if len(items) == 1 {

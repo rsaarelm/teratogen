@@ -43,18 +43,19 @@ var tileset1 = []string{
 	TerrainDirtFront: "tiles:5",
 }
 
+const AreaComponent = entity.ComponentFamily("area")
+
 type AreaHandler struct {
-	components map[entity.Id]*AreaComponent
+	components map[entity.Id]*Area
 }
 
-func NewAreaHandler() (result *AreaHandler) {
-	result = new(AreaHandler)
-	result.components = make(map[entity.Id]*AreaComponent)
+func (self *AreaHandler) Init() {
+	self.components = make(map[entity.Id]*Area)
 	return
 }
 
 func (self *AreaHandler) Add(guid entity.Id, component interface{}) {
-	self.components[guid] = component.(*AreaComponent)
+	self.components[guid] = component.(*Area)
 }
 
 func (self *AreaHandler) Remove(guid entity.Id) {
@@ -73,7 +74,8 @@ func (self *AreaHandler) Serialize(out io.Writer) {
 }
 
 func (self *AreaHandler) Deserialize(in io.Reader) {
-	entity.DeserializeHandlerComponents(in, self, mem.BlankCopier(new(AreaComponent)))
+	self.Init()
+	entity.DeserializeHandlerComponents(in, self, mem.BlankCopier(new(Area)))
 }
 
 func (self *AreaHandler) EntityComponents() iterable.Iterable {
@@ -81,24 +83,31 @@ func (self *AreaHandler) EntityComponents() iterable.Iterable {
 		for id, comp := range self.components {
 			c <- &entity.IdComponent{id, comp}
 		}
+		close(c)
 	})
 }
 
-type AreaComponent struct {
+type Area struct {
 	terrain []TerrainType
 }
 
-func (self *AreaComponent) Serialize(out io.Writer) {
+func NewArea() (result *Area) {
+	result = new(Area)
+	result.terrain = make([]TerrainType, numTerrainCells)
+	return
+}
+
+func (self *Area) Serialize(out io.Writer) {
 	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.terrain[i])) })
 }
 
-func (self *AreaComponent) Deserialize(in io.Reader) {
+func (self *Area) Deserialize(in io.Reader) {
 	mem.ReadNTimes(in,
 		func(count int) { self.terrain = make([]TerrainType, count) },
 		func(i int, in io.Reader) { self.terrain[i] = TerrainType(mem.ReadByte(in)) })
 }
 
-// TODO: Move methods from World to AreaComponent.
+// TODO: Move methods from World to Area.
 
 func IsObstacleTerrain(terrain TerrainType) bool {
 	switch terrain {
@@ -108,14 +117,11 @@ func IsObstacleTerrain(terrain TerrainType) bool {
 	return false
 }
 
-// Skinning data for a terrain tile set, describes the outward appearance of a
-// type of terrain.
-type TerrainTile struct {
-	IconId string
-	Name   string
+func (self *Area) InArea(pos geom.Pt2I) bool {
+	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight
 }
 
-func (self *World) BlocksSight(pos geom.Pt2I) bool {
+func (self *Area) BlocksSight(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(self.GetTerrain(pos)) {
 		return true
 	}
@@ -126,7 +132,20 @@ func (self *World) BlocksSight(pos geom.Pt2I) bool {
 	return false
 }
 
-func (self *World) makeBSPMap() {
+func (self *Area) GetTerrain(pos geom.Pt2I) TerrainType {
+	if self.InArea(pos) {
+		return self.terrain[pos.X+pos.Y*mapWidth]
+	}
+	return TerrainIndeterminate
+}
+
+func (self *Area) SetTerrain(pos geom.Pt2I, t TerrainType) {
+	if self.InArea(pos) {
+		self.terrain[pos.X+pos.Y*mapWidth] = t
+	}
+}
+
+func (self *Area) MakeBSPMap() {
 	area := MakeBspMap(1, 1, mapWidth-2, mapHeight-2)
 	graph := alg.NewSparseMatrixGraph()
 	area.FindConnectingWalls(graph)
@@ -147,7 +166,7 @@ func (self *World) makeBSPMap() {
 	}
 }
 
-func (self *World) makeCaveMap() {
+func (self *Area) MakeCaveMap() {
 	area := MakeCaveMap(mapWidth, mapHeight, 0.50)
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		switch area[pt.X][pt.Y] {
@@ -163,30 +182,13 @@ func (self *World) makeCaveMap() {
 	}
 }
 
-func inTerrain(pos geom.Pt2I) bool {
-	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight
-}
-
-func (self *World) GetTerrain(pos geom.Pt2I) TerrainType {
-	if inTerrain(pos) {
-		return self.terrain[pos.X+pos.Y*mapWidth]
-	}
-	return TerrainIndeterminate
-}
-
-func (self *World) SetTerrain(pos geom.Pt2I, t TerrainType) {
-	if inTerrain(pos) {
-		self.terrain[pos.X+pos.Y*mapWidth] = t
-	}
-}
-
 func (self *World) drawTerrain(g gfx.Graphics) {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if self.GetLos(pt) == LosUnknown {
 			continue
 		}
-		idx := self.GetTerrain(pt)
-		front := self.GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
+		idx := GetArea().GetTerrain(pt)
+		front := GetArea().GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
 		// XXX: Hack to get the front tile visuals
 		if idx == TerrainWall && front != TerrainWall && front != TerrainDoor {
 			idx = TerrainWallFront

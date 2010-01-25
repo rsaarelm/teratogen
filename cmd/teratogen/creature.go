@@ -122,7 +122,6 @@ func (self *Entity) TryMove(vec geom.Vec2I) (success bool) {
 }
 
 func (self *Entity) CanSeeTo(pos geom.Pt2I) bool {
-	world := GetWorld()
 	dist := 0
 	// TODO Customizable max sight range
 	sightRange := 18
@@ -136,7 +135,7 @@ func (self *Entity) CanSeeTo(pos geom.Pt2I) bool {
 		if pt.Equals(pos) {
 			break
 		}
-		if world.BlocksSight(pt) {
+		if GetArea().BlocksSight(pt) {
 			return false
 		}
 	}

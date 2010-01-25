@@ -426,8 +426,7 @@ func IsMobile(entity *Entity) bool {
 }
 
 func PlayerEnterStairs() {
-	world := GetWorld()
-	if world.GetTerrain(world.GetPlayer().GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(GetWorld().GetPlayer().GetPos()) == TerrainStairDown {
 		Msg("Going down...\n")
 		NextLevel()
 	} else {

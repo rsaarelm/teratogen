@@ -100,7 +100,7 @@ func (self *MapView) onMouseButton(button int) {
 			// Clicking at player pos.
 
 			// If there are stairs here, clicking on player goes down.
-			if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+			if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
 				SendPlayerInput(func() { PlayerEnterStairs() })
 			}
 
