@@ -11,9 +11,9 @@ import (
 )
 
 // Entities are nothing but GUID values.
-type Entity int64
+type Id int64
 
-const NilEntity = Entity(0)
+const NilId = Id(0)
 
 type ComponentFamily string
 
@@ -24,7 +24,7 @@ type Assemblage map[ComponentFamily]interface{}
 type Manager struct {
 	nextGuid     int64
 	handlers     map[ComponentFamily]Handler
-	liveEntities map[Entity]bool
+	liveEntities map[Id]bool
 }
 
 func NewManager() (result *Manager) {
@@ -34,9 +34,9 @@ func NewManager() (result *Manager) {
 }
 
 // NewEntity returns a new unique entity identifier.
-func (self *Manager) newEntity() Entity {
+func (self *Manager) newEntity() Id {
 	self.nextGuid++
-	return Entity(self.nextGuid)
+	return Id(self.nextGuid)
 }
 
 // Handler returns the component handler for the given component family.
@@ -52,7 +52,7 @@ func (self *Manager) SetHandler(family ComponentFamily, handler Handler) {
 // BuildEntity creates a new entity, gives it the component values in the
 // component families specified by the assemblage and returns the entity
 // value.
-func (self *Manager) BuildEntity(assemblage Assemblage) (result Entity) {
+func (self *Manager) BuildEntity(assemblage Assemblage) (result Id) {
 	result = self.newEntity()
 	self.liveEntities[result] = true
 	for family, component := range assemblage {
@@ -63,7 +63,7 @@ func (self *Manager) BuildEntity(assemblage Assemblage) (result Entity) {
 
 // RemoveEntity removes the entity from the Manager. It is removed from all
 // component systems it has a component in.
-func (self *Manager) RemoveEntity(entity Entity) {
+func (self *Manager) RemoveEntity(entity Id) {
 	for _, handler := range self.handlers {
 		handler.Remove(entity)
 	}
@@ -106,7 +106,7 @@ func (self *Manager) Deserialize(in io.Reader) {
 
 	nLiveEntities := int(mem.ReadInt32(in))
 	for i := 0; i < nLiveEntities; i++ {
-		ent := Entity(mem.ReadInt64(in))
+		ent := Id(mem.ReadInt64(in))
 		self.liveEntities[ent] = true
 	}
 
@@ -120,7 +120,7 @@ func (self *Manager) Deserialize(in io.Reader) {
 }
 
 type EntityComponent struct {
-	Entity    Entity
+	Entity    Id
 	Component interface{}
 }
 
@@ -128,12 +128,12 @@ type EntityComponent struct {
 // the game state.
 type Handler interface {
 	// Add adds a component for the given entity.
-	Add(guid Entity, component interface{})
+	Add(guid Id, component interface{})
 	// Remove removes this type of component from the given entity.
-	Remove(guid Entity)
+	Remove(guid Id)
 	// Get looks up this type of component for the given entity, return nil if
 	// component wasn't found.
-	Get(guid Entity) interface{}
+	Get(guid Id) interface{}
 	// Serialize saves this set of components to a stream.
 	Serialize(out io.Writer)
 	// Deserialize initializes a new handler from a stream.

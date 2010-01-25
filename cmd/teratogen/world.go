@@ -555,12 +555,12 @@ func (self *World) Deserialize(in io.Reader) {
 
 // Component handler interface stubs
 
-func (self *World) Add(guid entity.Entity, component interface{}) {
+func (self *World) Add(guid entity.Id, component interface{}) {
 }
 
-func (self *World) Remove(guid entity.Entity) {}
+func (self *World) Remove(guid entity.Id) {}
 
-func (self *World) Get(guid entity.Entity) interface{} {
+func (self *World) Get(guid entity.Id) interface{} {
 	return nil
 }
 
