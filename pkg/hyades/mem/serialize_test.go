@@ -30,7 +30,7 @@ type Simple struct {
 	x int
 }
 
-func (self *Simple) Serialize(out io.Writer) { WriteInt32(out, int32(self.x)) }
+func (self *Simple) Serialize(out io.Writer) { WriteFixed(out, int32(self.x)) }
 
 func (self *Simple) Deserialize(in io.Reader) { self.x = int(ReadInt32(in)) }
 

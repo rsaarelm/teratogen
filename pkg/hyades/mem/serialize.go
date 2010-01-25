@@ -1,9 +1,9 @@
 package mem
 
 import (
+	"encoding/binary"
 	"hyades/dbg"
 	"io"
-	"math"
 	"strings"
 )
 
@@ -12,71 +12,56 @@ type Serializable interface {
 	Deserialize(in io.Reader)
 }
 
+var endianness = binary.LittleEndian
+
 // XXX: The functions don't propagate errors, since that would clutter up the
 // serialization routines too much. Should make a more sophisticated error
 // handling system here, since this stuff deals with data from outside the
 // program and therefore shouldn't use assertions for error handling.
 
-func WriteByte(out io.Writer, b byte) {
-	_, err := out.Write([]byte{b})
+// WriteFixed writes a binary representation of data into out. The data must be
+// a fixed size value, either a numeric primitive type or an array or a struct
+// containing only fixed-size values.
+func WriteFixed(out io.Writer, data interface{}) {
+	// Simplify the one in package binary by fixing endianness and crashing on
+	// error.
+	err := binary.Write(out, endianness, data)
+	dbg.AssertNoError(err)
+}
+
+// ReadFixed reads a binary representation of a fixed data from in into a
+// pointer to the data value, dataPtr.
+func ReadFixed(in io.Reader, dataPtr interface{}) {
+	err := binary.Read(in, endianness, dataPtr)
 	dbg.AssertNoError(err)
 }
 
 func ReadByte(in io.Reader) byte {
-	var buf = make([]byte, 1)
-	_, err := in.Read(buf)
-	dbg.AssertNoError(err)
-	return buf[0]
+	var result byte
+	ReadFixed(in, &result)
+	return result
 }
 
-func WriteInt32(out io.Writer, num int32) {
-	buf := make([]byte, 4)
-	for i := 0; i < len(buf); i++ {
-		buf[i] = byte(num % 0x100)
-		num >>= 8
-	}
-	_, err := out.Write(buf)
-	dbg.AssertNoError(err)
+func ReadInt32(in io.Reader) int32 {
+	var result int32
+	ReadFixed(in, &result)
+	return result
 }
 
-func ReadInt32(in io.Reader) (result int32) {
-	buf := make([]byte, 4)
-	_, err := in.Read(buf)
-	dbg.AssertNoError(err)
-	for i := len(buf) - 1; i >= 0; i-- {
-		result <<= 8
-		result += int32(buf[i])
-	}
-	return
+func ReadInt64(in io.Reader) int64 {
+	var result int64
+	ReadFixed(in, &result)
+	return result
 }
 
-func WriteInt64(out io.Writer, num int64) {
-	buf := make([]byte, 8)
-	for i := 0; i < len(buf); i++ {
-		buf[i] = byte(num % 0x100)
-		num >>= 8
-	}
-	_, err := out.Write(buf)
-	dbg.AssertNoError(err)
+func ReadFloat64(in io.Reader) float64 {
+	var result float64
+	ReadFixed(in, &result)
+	return result
 }
-
-func ReadInt64(in io.Reader) (result int64) {
-	buf := make([]byte, 8)
-	_, err := in.Read(buf)
-	dbg.AssertNoError(err)
-	for i := len(buf) - 1; i >= 0; i-- {
-		result <<= 8
-		result += int64(buf[i])
-	}
-	return
-}
-
-func WriteFloat64(out io.Writer, num float64) { WriteInt64(out, int64(math.Float64bits(num))) }
-
-func ReadFloat64(in io.Reader) float64 { return math.Float64frombits(uint64(ReadInt64(in))) }
 
 func WriteString(out io.Writer, str string) {
-	WriteInt32(out, int32(len(str)))
+	WriteFixed(out, int32(len(str)))
 	if len(str) == 0 {
 		return
 	}
@@ -95,7 +80,7 @@ func ReadString(in io.Reader) string {
 }
 
 func WriteNTimes(out io.Writer, count int, write func(int, io.Writer)) {
-	WriteInt32(out, int32(count))
+	WriteFixed(out, int32(count))
 	for i := 0; i < count; i++ {
 		write(i, out)
 	}

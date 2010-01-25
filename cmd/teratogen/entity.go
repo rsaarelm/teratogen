@@ -281,13 +281,13 @@ const (
 func saveProp(out io.Writer, prop interface{}) {
 	switch a := prop.(type) {
 	case float64:
-		mem.WriteByte(out, numProp)
-		mem.WriteFloat64(out, a)
+		mem.WriteFixed(out, numProp)
+		mem.WriteFixed(out, a)
 	case string:
-		mem.WriteByte(out, stringProp)
+		mem.WriteFixed(out, stringProp)
 		mem.WriteString(out, a)
 	case Guid:
-		mem.WriteByte(out, guidProp)
+		mem.WriteFixed(out, guidProp)
 		mem.WriteString(out, string(a))
 	default:
 		dbg.Die("Bad prop type %#v", prop)
@@ -313,20 +313,20 @@ func (self *Entity) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
 	mem.WriteString(out, string(self.guid))
 	mem.WriteString(out, self.Name)
-	mem.WriteInt32(out, int32(self.pos.X))
-	mem.WriteInt32(out, int32(self.pos.Y))
+	mem.WriteFixed(out, int32(self.pos.X))
+	mem.WriteFixed(out, int32(self.pos.Y))
 	mem.WriteString(out, string(self.parentId))
 	mem.WriteString(out, string(self.siblingId))
 	mem.WriteString(out, string(self.childId))
-	mem.WriteInt32(out, int32(self.Class))
+	mem.WriteFixed(out, int32(self.Class))
 
-	mem.WriteInt32(out, int32(len(self.prop)))
+	mem.WriteFixed(out, int32(len(self.prop)))
 	for name, val := range self.prop {
 		mem.WriteString(out, name)
 		saveProp(out, val)
 	}
 
-	mem.WriteInt32(out, int32(len(self.hideProp)))
+	mem.WriteFixed(out, int32(len(self.hideProp)))
 	for name, _ := range self.hideProp {
 		mem.WriteString(out, name)
 	}

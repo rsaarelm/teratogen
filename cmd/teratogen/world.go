@@ -502,13 +502,13 @@ func (self *World) getGuid(name string) (result Guid) {
 
 func (self *World) Serialize(out io.Writer) {
 	mem.WriteString(out, string(self.playerId))
-	mem.WriteInt64(out, int64(self.guidCounter))
-	mem.WriteInt32(out, self.currentLevel)
+	mem.WriteFixed(out, int64(self.guidCounter))
+	mem.WriteFixed(out, self.currentLevel)
 
-	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.terrain[i])) })
-	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteByte(out, byte(self.los[i])) })
+	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.terrain[i])) })
+	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.los[i])) })
 
-	mem.WriteInt32(out, int32(len(self.entities)))
+	mem.WriteFixed(out, int32(len(self.entities)))
 	for guid, ent := range self.entities {
 		// Write the guid
 		mem.WriteString(out, string(guid))
