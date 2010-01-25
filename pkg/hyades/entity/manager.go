@@ -119,7 +119,7 @@ func (self *Manager) Deserialize(in io.Reader) {
 	}
 }
 
-type EntityComponent struct {
+type IdComponent struct {
 	Entity    Id
 	Component interface{}
 }
@@ -139,6 +139,34 @@ type Handler interface {
 	// Deserialize initializes a new handler from a stream.
 	Deserialize(in io.Reader)
 	// EntityComponents iterates through the entity, component pairs in this
-	// handler as EntityComponent values.
+	// handler as IdComponent values.
 	EntityComponents() iterable.Iterable
+}
+
+// SerializeHandlerComponents is an utility function that iterates through the
+// components of a handler, and serializes components using a Serialize method
+// which they must have.
+func SerializeHandlerComponents(out io.Writer, handler Handler) {
+	components := iterable.Data(handler.EntityComponents())
+	mem.WriteFixed(out, int32(len(components)))
+	for _, o := range components {
+		pair := o.(*IdComponent)
+		mem.WriteFixed(out, int64(pair.Entity))
+		comp := pair.Component.(mem.Serializable)
+		comp.Serialize(out)
+	}
+}
+
+// DeserializeHandlerComponents reads a sequence of components saved with
+// SerializeHandlerComponents from the input stream, constructs them using the
+// provided newComponent function, deserializes them with a Deserialize method
+// which they must have, and adds them to the handler.
+func DeserializeHandlerComponents(in io.Reader, handler Handler, newComponent func() interface{}) {
+	nComponents := int(mem.ReadInt32(in))
+	for i := 0; i < nComponents; i++ {
+		guid := Id(mem.ReadInt64(in))
+		component := newComponent().(mem.Serializable)
+		component.Deserialize(in)
+		handler.Add(guid, component)
+	}
 }

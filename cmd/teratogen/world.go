@@ -15,12 +15,8 @@ import (
 	"rand"
 )
 
-const mapWidth = 40
-const mapHeight = 20
 
 const spawnsPerLevel = 32
-
-const numTerrainCells = mapWidth * mapHeight
 
 var manager *entity.Manager
 
@@ -39,22 +35,6 @@ func Draw(g gfx.Graphics, spriteId string, x, y int) {
 	DrawSprite(g, spriteId, sx, sy)
 }
 
-// Behavioral terrain types.
-type TerrainType byte
-
-const (
-	// Used for terrain generation algorithms, set map to indeterminate
-	// initially.
-	TerrainIndeterminate TerrainType = iota
-	TerrainWallFront
-	TerrainWall
-	TerrainFloor
-	TerrainDoor
-	TerrainStairDown
-	TerrainDirtFront
-	TerrainDirt
-)
-
 type LosState byte
 
 const (
@@ -62,33 +42,6 @@ const (
 	LosMapped
 	LosSeen
 )
-
-var tileset1 = []string{
-	TerrainIndeterminate: "tiles:255",
-	TerrainWall: "tiles:2",
-	TerrainWallFront: "tiles:1",
-	TerrainFloor: "tiles:0",
-	TerrainDoor: "tiles:3",
-	TerrainStairDown: "tiles:4",
-	TerrainDirt: "tiles:6",
-	TerrainDirtFront: "tiles:5",
-}
-
-func IsObstacleTerrain(terrain TerrainType) bool {
-	switch terrain {
-	case TerrainWall, TerrainDirt:
-		return true
-	}
-	return false
-}
-
-// Skinning data for a terrain tile set, describes the outward appearance of a
-// type of terrain.
-type TerrainTile struct {
-	IconId string
-	Name   string
-}
-
 
 type Guid string
 
@@ -294,71 +247,6 @@ func (self *World) DoLos(center geom.Pt2I) {
 	}
 }
 
-func (self *World) BlocksSight(pos geom.Pt2I) bool {
-	if IsObstacleTerrain(self.GetTerrain(pos)) {
-		return true
-	}
-	if self.GetTerrain(pos) == TerrainDoor {
-		return true
-	}
-
-	return false
-}
-
-func (self *World) makeBSPMap() {
-	area := MakeBspMap(1, 1, mapWidth-2, mapHeight-2)
-	graph := alg.NewSparseMatrixGraph()
-	area.FindConnectingWalls(graph)
-	doors := DoorLocations(graph)
-
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		x, y := pt.X, pt.Y
-		if area.RoomAtPoint(x, y) != nil {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
-		} else {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainWall)
-		}
-	}
-
-	for pt := range doors.Iter() {
-		pt := pt.(geom.Pt2I)
-		self.SetTerrain(pt, TerrainDoor)
-	}
-}
-
-func (self *World) makeCaveMap() {
-	area := MakeCaveMap(mapWidth, mapHeight, 0.50)
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		switch area[pt.X][pt.Y] {
-		case CaveFloor:
-			self.SetTerrain(pt, TerrainFloor)
-		case CaveWall:
-			self.SetTerrain(pt, TerrainDirt)
-		case CaveUnknown:
-			self.SetTerrain(pt, TerrainDirt)
-		default:
-			dbg.Die("Bad data %v in generated cave map.", area[pt.X][pt.Y])
-		}
-	}
-}
-
-func inTerrain(pos geom.Pt2I) bool {
-	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight
-}
-
-func (self *World) GetTerrain(pos geom.Pt2I) TerrainType {
-	if inTerrain(pos) {
-		return self.terrain[pos.X+pos.Y*mapWidth]
-	}
-	return TerrainIndeterminate
-}
-
-func (self *World) SetTerrain(pos geom.Pt2I, t TerrainType) {
-	if inTerrain(pos) {
-		self.terrain[pos.X+pos.Y*mapWidth] = t
-	}
-}
-
 type worldEntityIterable struct {
 	w *World
 }
@@ -451,25 +339,6 @@ func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found 
 
 	// There really doesn't seem to be any open positions.
 	return geom.Pt2I{0, 0}, false
-}
-
-
-func (self *World) drawTerrain(g gfx.Graphics) {
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if self.GetLos(pt) == LosUnknown {
-			continue
-		}
-		idx := self.GetTerrain(pt)
-		front := self.GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
-		// XXX: Hack to get the front tile visuals
-		if idx == TerrainWall && front != TerrainWall && front != TerrainDoor {
-			idx = TerrainWallFront
-		}
-		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
-			idx = TerrainDirtFront
-		}
-		Draw(g, tileset1[idx], pt.X, pt.Y)
-	}
 }
 
 func (self *World) drawEntities(g gfx.Graphics) {
