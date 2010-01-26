@@ -10,9 +10,9 @@ import (
 	"math"
 )
 
-func (self *Entity) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
+func (self *Blob) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
 
-func (self *Entity) WoundDescription() string {
+func (self *Blob) WoundDescription() string {
 	maxWounds := self.MaxWounds()
 	wounds := self.GetI(PropWounds)
 	switch {
@@ -37,9 +37,9 @@ func (self *Entity) WoundDescription() string {
 	return "mangled"
 }
 
-func (self *Entity) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.MaxWounds() }
+func (self *Blob) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.MaxWounds() }
 
-func (self *Entity) MeleeDamageFactor() (result int) {
+func (self *Blob) MeleeDamageFactor() (result int) {
 	result = self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
 	if o, ok := self.GetGuidOpt(PropMeleeWeaponGuid); ok {
 		// Melee weapon bonus
@@ -48,7 +48,7 @@ func (self *Entity) MeleeDamageFactor() (result int) {
 	return
 }
 
-func (self *Entity) ArmorFactor() (result int) {
+func (self *Blob) ArmorFactor() (result int) {
 	result = self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
 	if o, ok := self.GetGuidOpt(PropBodyArmorGuid); ok {
 		// Body armor bonus.
@@ -57,7 +57,7 @@ func (self *Entity) ArmorFactor() (result int) {
 	return
 }
 
-func (self *Entity) Damage(woundLevel int, cause *Entity) {
+func (self *Blob) Damage(woundLevel int, cause *Blob) {
 	world := GetWorld()
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
@@ -89,7 +89,7 @@ func (self *Entity) Damage(woundLevel int, cause *Entity) {
 	}
 }
 
-func (self *Entity) MeleeWoundLevelAgainst(target *Entity, hitDegree int) (woundLevel int) {
+func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLevel int) {
 	damageFactor := self.MeleeDamageFactor() + hitDegree
 
 	armorFactor := target.ArmorFactor()
@@ -111,7 +111,7 @@ func (self *Entity) MeleeWoundLevelAgainst(target *Entity, hitDegree int) (wound
 	return
 }
 
-func (self *Entity) TryMove(vec geom.Vec2I) (success bool) {
+func (self *Blob) TryMove(vec geom.Vec2I) (success bool) {
 	world := GetWorld()
 
 	if world.IsOpen(self.GetPos().Plus(vec)) {
@@ -121,7 +121,7 @@ func (self *Entity) TryMove(vec geom.Vec2I) (success bool) {
 	return false
 }
 
-func (self *Entity) CanSeeTo(pos geom.Pt2I) bool {
+func (self *Blob) CanSeeTo(pos geom.Pt2I) bool {
 	dist := 0
 	// TODO Customizable max sight range
 	sightRange := 18

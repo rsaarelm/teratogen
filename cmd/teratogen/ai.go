@@ -4,7 +4,7 @@ import (
 	"hyades/geom"
 )
 
-func DoAI(crit *Entity) {
+func DoAI(crit *Blob) {
 	world := GetWorld()
 	player := world.GetPlayer()
 	if player == nil || player == crit {

@@ -261,7 +261,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 				"Drop which item?", iterable.Data(player.Contents()))
 			if ok {
 				SendPlayerInput(func() {
-					item := item.(*Entity)
+					item := item.(*Blob)
 					item.RemoveSelf()
 					Msg("Dropped %v.\n", item.GetName())
 				})

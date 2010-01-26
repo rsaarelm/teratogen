@@ -372,9 +372,9 @@ func EquipMenu() {
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
 		equippables := iterable.Data(iterable.Filter(player.Contents(),
-			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Entity)) }))
+			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob)) }))
 		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
-			player.Set(slots[choice], item.(*Entity).GetGuid())
+			player.Set(slots[choice], item.(*Blob).GetGuid())
 			Msg("Equipped %v.\n", item)
 		}
 	}
@@ -440,7 +440,7 @@ func ApplyItemMenu() (actionMade bool) {
 		return false
 	}
 	if item, ok := ObjectChoiceDialog("Use which item?", items); ok {
-		UseItem(player, item.(*Entity))
+		UseItem(player, item.(*Blob))
 		return true
 	} else {
 		Msg("Okay, then.\n")

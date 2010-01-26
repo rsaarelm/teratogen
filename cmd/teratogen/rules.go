@@ -115,7 +115,7 @@ func NewPrototype(name, parent, iconId string, class EntityClass, scarcity, minD
 	return
 }
 
-func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, target *Entity) {
+func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, target *Blob) {
 	if parent, ok := prototypes[self.Parent]; ok {
 		parent.applyProps(prototypes, target)
 	}
@@ -124,7 +124,7 @@ func (self *entityPrototype) applyProps(prototypes map[string]*entityPrototype, 
 	}
 }
 
-func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, target *Entity) {
+func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, target *Blob) {
 	target.IconId = self.IconId
 	target.Name = self.Name
 	target.Class = self.Class
@@ -239,7 +239,7 @@ func LevelDescription(level int) string {
 }
 
 // Return whether an entity considers another entity an enemy.
-func IsEnemyOf(ent *Entity, possibleEnemy *Entity) bool {
+func IsEnemyOf(ent *Blob, possibleEnemy *Blob) bool {
 	if ent.GetClass() == PlayerEntityClass &&
 		possibleEnemy.GetClass() == EnemyEntityClass {
 		return true
@@ -252,8 +252,8 @@ func IsEnemyOf(ent *Entity, possibleEnemy *Entity) bool {
 }
 
 // EnemiesAt iterates the enemies of ent at pos.
-func EnemiesAt(ent *Entity, pos geom.Pt2I) iterable.Iterable {
-	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Entity)) }
+func EnemiesAt(ent *Blob, pos geom.Pt2I) iterable.Iterable {
+	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Blob)) }
 
 	return iterable.Filter(GetWorld().EntitiesAt(pos), filter)
 }
@@ -271,7 +271,7 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 	return
 }
 
-func Attack(attacker *Entity, defender *Entity) {
+func Attack(attacker *Blob, defender *Blob) {
 	doesHit, hitDegree := IsMeleeHit(
 		attacker.GetI(PropMeleeSkill), defender.GetI(PropMeleeSkill),
 		defender.GetI(PropScale)-attacker.GetI(PropScale))
@@ -293,7 +293,7 @@ func Attack(attacker *Entity, defender *Entity) {
 	}
 }
 
-func Shoot(attacker *Entity, target geom.Pt2I) {
+func Shoot(attacker *Blob, target geom.Pt2I) {
 	if !GunEquipped(attacker) {
 		return
 	}
@@ -322,7 +322,7 @@ func Shoot(attacker *Entity, target geom.Pt2I) {
 	DamageEquipment(attacker, PropGunWeaponGuid)
 }
 
-func DamageEquipment(ent *Entity, slot string) {
+func DamageEquipment(ent *Blob, slot string) {
 	if o, ok := ent.GetGuidOpt(slot); ok {
 		if num.OneChanceIn(o.GetI(PropDurability)) {
 			if slot == PropGunWeaponGuid {
@@ -339,9 +339,9 @@ func DamageEquipment(ent *Entity, slot string) {
 	}
 }
 
-func DamagePos(pos geom.Pt2I, woundLevel int, cause *Entity) {
+func DamagePos(pos geom.Pt2I, woundLevel int, cause *Blob) {
 	for o := range iterable.Filter(GetWorld().EntitiesAt(pos), IsCreature).Iter() {
-		o.(*Entity).Damage(woundLevel, cause)
+		o.(*Blob).Damage(woundLevel, cause)
 	}
 }
 
@@ -367,7 +367,7 @@ func MovePlayerDir(dir int) {
 
 	// See if the player collided with something fun.
 	for o := range world.EntitiesAt(player.GetPos()).Iter() {
-		ent := o.(*Entity)
+		ent := o.(*Blob)
 		if ent == player {
 			continue
 		}
@@ -393,7 +393,7 @@ func SmartMovePlayer(dir int) {
 	target := player.GetPos().Plus(vec)
 
 	for o := range EnemiesAt(player, target).Iter() {
-		Attack(player, o.(*Entity))
+		Attack(player, o.(*Blob))
 		return
 	}
 	// No attack, move normally.
@@ -405,7 +405,7 @@ func RunAI() {
 	world := GetWorld()
 	enemyCount := 0
 	for o := range world.Creatures().Iter() {
-		crit := o.(*Entity)
+		crit := o.(*Blob)
 		if crit != world.GetPlayer() {
 			enemyCount++
 		}
@@ -421,9 +421,7 @@ func GameOver(reason string) {
 
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
-func IsMobile(entity *Entity) bool {
-	return entity.GetClass() > CreatureEntityClassStartMarker
-}
+func IsMobile(entity *Blob) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
 
 func PlayerEnterStairs() {
 	if GetArea().GetTerrain(GetWorld().GetPlayer().GetPos()) == TerrainStairDown {
@@ -440,21 +438,21 @@ func NextLevel() {
 }
 
 func IsCreature(o interface{}) bool {
-	switch o.(*Entity).GetClass() {
+	switch o.(*Blob).GetClass() {
 	case PlayerEntityClass, EnemyEntityClass:
 		return true
 	}
 	return false
 }
 
-func IsTakeableItem(e *Entity) bool { return e.Class == ItemEntityClass }
+func IsTakeableItem(e *Blob) bool { return e.Class == ItemEntityClass }
 
-func TakeItem(subject *Entity, item *Entity) {
+func TakeItem(subject *Blob, item *Blob) {
 	item.InsertSelf(subject)
 	Msg("%v takes %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
 }
 
-func DropItem(subject *Entity, item *Entity) {
+func DropItem(subject *Blob, item *Blob) {
 	// TODO: Check if the subject is holding the item.
 	item.RemoveSelf()
 	item.MoveAbs(subject.GetPos())
@@ -462,36 +460,34 @@ func DropItem(subject *Entity, item *Entity) {
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Entity)) })
+	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
 }
 
-// TODO: Change other functions to use interface{} instead of *Entity to make
+// TODO: Change other functions to use interface{} instead of *Blob to make
 // it easier to use them with iterable functions.
 
-func IsEquippableItem(o interface{}) bool { return o.(*Entity).Has(PropEquipmentSlot) }
+func IsEquippableItem(o interface{}) bool { return o.(*Blob).Has(PropEquipmentSlot) }
 
 func IsCarryingGear(o interface{}) bool {
-	return iterable.Any(o.(*Entity).Contents(), IsEquippableItem)
+	return iterable.Any(o.(*Blob).Contents(), IsEquippableItem)
 }
 
 func IsCarryingGearFor(o interface{}, slot string) bool {
-	return iterable.Any(o.(*Entity).Contents(), func(o interface{}) bool {
-		if itemSlot, ok := o.(*Entity).GetSOpt(PropEquipmentSlot); ok && itemSlot == slot {
+	return iterable.Any(o.(*Blob).Contents(), func(o interface{}) bool {
+		if itemSlot, ok := o.(*Blob).GetSOpt(PropEquipmentSlot); ok && itemSlot == slot {
 			return true
 		}
 		return false
 	})
 }
 
-func HasContents(o interface{}) bool { return o.(*Entity).GetChild() != nil }
+func HasContents(o interface{}) bool { return o.(*Blob).GetChild() != nil }
 
-func IsUsable(o interface{}) bool { return o.(*Entity).Has(PropItemUse) }
+func IsUsable(o interface{}) bool { return o.(*Blob).Has(PropItemUse) }
 
-func HasUsableItems(o interface{}) bool {
-	return iterable.Any(o.(*Entity).Contents(), IsUsable)
-}
+func HasUsableItems(o interface{}) bool { return iterable.Any(o.(*Blob).Contents(), IsUsable) }
 
-func UseItem(user *Entity, item *Entity) {
+func UseItem(user *Blob, item *Blob) {
 	if use, ok := item.GetIOpt(PropItemUse); ok {
 		switch use {
 		case NoUse:
@@ -511,7 +507,7 @@ func UseItem(user *Entity, item *Entity) {
 	}
 }
 
-func SmartPlayerPickup(alwaysPickupFirst bool) *Entity {
+func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 	world := GetWorld()
 	player := world.GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
@@ -530,7 +526,7 @@ func SmartPlayerPickup(alwaysPickupFirst bool) *Entity {
 			return nil
 		}
 	}
-	ent := choice.(*Entity)
+	ent := choice.(*Blob)
 	TakeItem(player, ent)
 	AutoEquip(player, ent)
 	return ent
@@ -538,7 +534,7 @@ func SmartPlayerPickup(alwaysPickupFirst bool) *Entity {
 
 // Autoequip equips item on owner if it can be equpped in a slot that
 // currently has nothing.
-func AutoEquip(owner *Entity, item *Entity) {
+func AutoEquip(owner *Blob, item *Blob) {
 	slot, ok := item.GetSOpt(PropEquipmentSlot)
 	if !ok {
 		return
@@ -551,7 +547,7 @@ func AutoEquip(owner *Entity, item *Entity) {
 	Msg("Equipped %v.\n", item)
 }
 
-func CanEquipIn(slotId string, e *Entity) bool {
+func CanEquipIn(slotId string, e *Blob) bool {
 	if eSlot, ok := e.GetSOpt(PropEquipmentSlot); ok {
 		return eSlot == slotId
 	}
@@ -572,21 +568,21 @@ func EntityDist(o1, o2 interface{}) float64 {
 }
 
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
-	ent := o.(*Entity)
-	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Entity).GetPos()) }
+	ent := o.(*Blob)
+	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Blob).GetPos()) }
 	return iterable.Filter(GetWorld().OtherCreatures(o), pred)
 }
 
-func ClosestCreatureSeenBy(o interface{}) *Entity {
+func ClosestCreatureSeenBy(o interface{}) *Blob {
 	distFromSelf := func(o1 interface{}) float64 { return EntityDist(o1, o) }
 	ret, ok := alg.IterMin(CreaturesSeenBy(o), distFromSelf)
 	if !ok {
 		return nil
 	}
-	return ret.(*Entity)
+	return ret.(*Blob)
 }
 
 func GunEquipped(o interface{}) bool {
-	_, ok := o.(*Entity).GetGuidOpt(PropGunWeaponGuid)
+	_, ok := o.(*Blob).GetGuidOpt(PropGunWeaponGuid)
 	return ok
 }

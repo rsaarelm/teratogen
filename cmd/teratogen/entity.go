@@ -3,16 +3,21 @@ package main
 import (
 	"exp/iterable"
 	"hyades/dbg"
+	"hyades/entity"
 	"hyades/geom"
 	"hyades/mem"
 	"io"
 )
 
-type Positioned interface {
-	GetPos() geom.Pt2I
+// A temporary component to hold the old Entity objects, before they get split
+// up to subcomponents.
+
+type BlobHandler struct {
+	blobs map[entity.Id]*Blob
 }
 
-type Entity struct {
+
+type Blob struct {
 	IconId    string
 	guid      Guid
 	Name      string
@@ -26,15 +31,15 @@ type Entity struct {
 	hideProp map[string]bool
 }
 
-func NewEntity(guid Guid) (result *Entity) {
-	result = new(Entity)
+func NewEntity(guid Guid) (result *Blob) {
+	result = new(Blob)
 	result.prop = make(map[string]interface{})
 	result.hideProp = make(map[string]bool)
 	result.guid = guid
 	return
 }
 
-func (self *Entity) GetPos() geom.Pt2I {
+func (self *Blob) GetPos() geom.Pt2I {
 	parent := self.GetParent()
 	if parent != nil {
 		return parent.GetPos()
@@ -42,21 +47,21 @@ func (self *Entity) GetPos() geom.Pt2I {
 	return self.pos
 }
 
-func (self *Entity) GetGuid() Guid { return self.guid }
+func (self *Blob) GetGuid() Guid { return self.guid }
 
-func (self *Entity) GetClass() EntityClass { return self.Class }
+func (self *Blob) GetClass() EntityClass { return self.Class }
 
-func (self *Entity) GetName() string { return self.Name }
+func (self *Blob) GetName() string { return self.Name }
 
-func (self *Entity) String() string { return self.Name }
+func (self *Blob) String() string { return self.Name }
 
-func (self *Entity) MoveAbs(pos geom.Pt2I) { self.pos = pos }
+func (self *Blob) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
-func (self *Entity) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
+func (self *Blob) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
-func (self *Entity) GetParent() *Entity { return GetWorld().GetEntity(self.parentId) }
+func (self *Blob) GetParent() *Blob { return GetWorld().GetEntity(self.parentId) }
 
-func (self *Entity) SetParent(e *Entity) {
+func (self *Blob) SetParent(e *Blob) {
 	if e != nil {
 		self.parentId = e.GetGuid()
 	} else {
@@ -64,9 +69,9 @@ func (self *Entity) SetParent(e *Entity) {
 	}
 }
 
-func (self *Entity) GetChild() *Entity { return GetWorld().GetEntity(self.childId) }
+func (self *Blob) GetChild() *Blob { return GetWorld().GetEntity(self.childId) }
 
-func (self *Entity) SetChild(e *Entity) {
+func (self *Blob) SetChild(e *Blob) {
 	if e != nil {
 		self.childId = e.GetGuid()
 	} else {
@@ -75,9 +80,9 @@ func (self *Entity) SetChild(e *Entity) {
 }
 
 // GetSibling return the next sibling of the entity, or nil if there are none.
-func (self *Entity) GetSibling() *Entity { return GetWorld().GetEntity(self.siblingId) }
+func (self *Blob) GetSibling() *Blob { return GetWorld().GetEntity(self.siblingId) }
 
-func (self *Entity) SetSibling(e *Entity) {
+func (self *Blob) SetSibling(e *Blob) {
 	if e != nil {
 		self.siblingId = e.GetGuid()
 	} else {
@@ -85,7 +90,7 @@ func (self *Entity) SetSibling(e *Entity) {
 	}
 }
 
-func (self *Entity) iterateChildrenWalk(c chan<- interface{}, recurse bool) {
+func (self *Blob) iterateChildrenWalk(c chan<- interface{}, recurse bool) {
 	node := self.GetChild()
 	for node != nil {
 		c <- node
@@ -97,13 +102,13 @@ func (self *Entity) iterateChildrenWalk(c chan<- interface{}, recurse bool) {
 	}
 }
 
-func (self *Entity) iterateChildren(c chan<- interface{}, recurse bool) {
+func (self *Blob) iterateChildren(c chan<- interface{}, recurse bool) {
 	self.iterateChildrenWalk(c, recurse)
 	close(c)
 }
 
 type entityContentIterable struct {
-	e         *Entity
+	e         *Blob
 	recursive bool
 }
 
@@ -115,19 +120,19 @@ func (self *entityContentIterable) Iter() <-chan interface{} {
 
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
-func (self *Entity) RecursiveContents() iterable.Iterable {
+func (self *Blob) RecursiveContents() iterable.Iterable {
 	return &entityContentIterable{self, true}
 }
 
 // Contents iterates through the children but not the grandchildren of the
 // entity.
-func (self *Entity) Contents() iterable.Iterable {
+func (self *Blob) Contents() iterable.Iterable {
 	return &entityContentIterable{self, false}
 }
 
-func (self *Entity) HasContents() bool { return self.GetChild() != nil }
+func (self *Blob) HasContents() bool { return self.GetChild() != nil }
 
-func (self *Entity) InsertSelf(parent *Entity) {
+func (self *Blob) InsertSelf(parent *Blob) {
 	self.RemoveSelf()
 	if parent.GetChild() != nil {
 		self.siblingId = parent.GetChild().GetGuid()
@@ -136,7 +141,7 @@ func (self *Entity) InsertSelf(parent *Entity) {
 	self.parentId = parent.GetGuid()
 }
 
-func (self *Entity) RemoveSelf() {
+func (self *Blob) RemoveSelf() {
 	parent := self.GetParent()
 	self.parentId = *new(Guid)
 	if parent != nil {
@@ -166,7 +171,7 @@ func (self *Entity) RemoveSelf() {
 	self.siblingId = *new(Guid)
 }
 
-func (self *Entity) Set(name string, value interface{}) *Entity {
+func (self *Blob) Set(name string, value interface{}) *Blob {
 	self.hideProp[name] = false, false
 	// Normalize
 	switch a := value.(type) {
@@ -188,11 +193,9 @@ func (self *Entity) Set(name string, value interface{}) *Entity {
 }
 
 // Convenience method.
-func (self *Entity) SetFlag(name string) *Entity {
-	return self.Set(name, 1)
-}
+func (self *Blob) SetFlag(name string) *Blob { return self.Set(name, 1) }
 
-func (self *Entity) Get(name string) interface{} {
+func (self *Blob) Get(name string) interface{} {
 	_, hidden := self.hideProp[name]
 	if hidden {
 		return nil
@@ -208,19 +211,19 @@ func (self *Entity) Get(name string) interface{} {
 	return nil
 }
 
-func (self *Entity) GetF(name string) float64 {
+func (self *Blob) GetF(name string) float64 {
 	prop := self.Get(name)
 	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
 	return prop.(float64)
 }
 
-func (self *Entity) GetI(name string) int {
+func (self *Blob) GetI(name string) int {
 	prop := self.Get(name)
 	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
 	return int(prop.(float64))
 }
 
-func (self *Entity) GetIOpt(name string) (val int, ok bool) {
+func (self *Blob) GetIOpt(name string) (val int, ok bool) {
 	prop := self.Get(name)
 	if prop == nil {
 		return
@@ -228,14 +231,14 @@ func (self *Entity) GetIOpt(name string) (val int, ok bool) {
 	return int(prop.(float64)), true
 }
 
-func (self *Entity) GetS(name string) string {
+func (self *Blob) GetS(name string) string {
 	prop := self.Get(name)
 	dbg.AssertNotNil(prop, "GetInt: Property %v not set", name)
 	return prop.(string)
 }
 
 
-func (self *Entity) GetSOpt(name string) (val string, ok bool) {
+func (self *Blob) GetSOpt(name string) (val string, ok bool) {
 	prop := self.Get(name)
 	if prop == nil {
 		return
@@ -246,7 +249,7 @@ func (self *Entity) GetSOpt(name string) (val string, ok bool) {
 // GetGuidOpt returns the entity for the guid in the properties if the
 // property is present. If the property isn't a guid or if the guid's object
 // can't be retrieved, runtime error.
-func (self *Entity) GetGuidOpt(name string) (obj *Entity, ok bool) {
+func (self *Blob) GetGuidOpt(name string) (obj *Blob, ok bool) {
 	prop := self.Get(name)
 	if prop == nil {
 		return
@@ -254,20 +257,20 @@ func (self *Entity) GetGuidOpt(name string) (obj *Entity, ok bool) {
 	return GetWorld().GetEntity(prop.(Guid)), true
 }
 
-func (self *Entity) Has(name string) bool { return self.Get(name) != nil }
+func (self *Blob) Has(name string) bool { return self.Get(name) != nil }
 
-func (self *Entity) Hide(name string) *Entity {
+func (self *Blob) Hide(name string) *Blob {
 	self.hideProp[name] = true
 	return self
 }
 
-func (self *Entity) Clear(name string) *Entity {
+func (self *Blob) Clear(name string) *Blob {
 	self.hideProp[name] = false, false
 	self.prop[name] = nil, false
 	return self
 }
 
-func (self *Entity) PropParent() *Entity {
+func (self *Blob) PropParent() *Blob {
 	// TODO
 	return nil
 }
@@ -309,7 +312,7 @@ func loadProp(in io.Reader) interface{} {
 	return nil
 }
 
-func (self *Entity) Serialize(out io.Writer) {
+func (self *Blob) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
 	mem.WriteString(out, string(self.guid))
 	mem.WriteString(out, self.Name)
@@ -332,7 +335,7 @@ func (self *Entity) Serialize(out io.Writer) {
 	}
 }
 
-func (self *Entity) Deserialize(in io.Reader) {
+func (self *Blob) Deserialize(in io.Reader) {
 	self.IconId = mem.ReadString(in)
 	self.guid = Guid(mem.ReadString(in))
 	self.Name = mem.ReadString(in)

@@ -49,7 +49,7 @@ func GetManager() *entity.Manager { return manager }
 
 type World struct {
 	playerId     Guid
-	entities     map[Guid]*Entity
+	entities     map[Guid]*Blob
 	areaId       entity.Id
 	los          []LosState
 	guidCounter  uint64
@@ -80,7 +80,7 @@ func InitWorld() {
 	area := NewArea()
 	areas.Add(world.areaId, area)
 
-	world.entities = make(map[Guid]*Entity)
+	world.entities = make(map[Guid]*Blob)
 	world.initLos()
 
 	player := world.Spawn(prototypes["protagonist"])
@@ -103,9 +103,9 @@ func (self *World) Draw(g gfx.Graphics) {
 	self.drawEntities(g)
 }
 
-func (self *World) GetPlayer() *Entity { return self.entities[self.playerId] }
+func (self *World) GetPlayer() *Blob { return self.entities[self.playerId] }
 
-func (self *World) GetEntity(guid Guid) *Entity {
+func (self *World) GetEntity(guid Guid) *Blob {
 	if guid == *new(Guid) {
 		return nil
 	}
@@ -114,7 +114,7 @@ func (self *World) GetEntity(guid Guid) *Entity {
 	return ent
 }
 
-func (self *World) DestroyEntity(ent *Entity) {
+func (self *World) DestroyEntity(ent *Blob) {
 	ent.RemoveSelf()
 	if ent == self.GetPlayer() {
 		if GameRunning() {
@@ -128,7 +128,7 @@ func (self *World) DestroyEntity(ent *Entity) {
 	self.entities[ent.GetGuid()] = ent, false
 }
 
-func (self *World) Spawn(prototype *entityPrototype) *Entity {
+func (self *World) Spawn(prototype *entityPrototype) *Blob {
 	guid := self.getGuid("")
 	ent := NewEntity(guid)
 	prototype.MakeEntity(prototypes, ent)
@@ -136,13 +136,13 @@ func (self *World) Spawn(prototype *entityPrototype) *Entity {
 	return ent
 }
 
-func (self *World) SpawnAt(prototype *entityPrototype, pos geom.Pt2I) (result *Entity) {
+func (self *World) SpawnAt(prototype *entityPrototype, pos geom.Pt2I) (result *Blob) {
 	result = self.Spawn(prototype)
 	result.MoveAbs(pos)
 	return
 }
 
-func (self *World) SpawnRandomPos(prototype *entityPrototype) (result *Entity) {
+func (self *World) SpawnRandomPos(prototype *entityPrototype) (result *Blob) {
 	return self.SpawnAt(prototype, self.GetSpawnPos())
 }
 
@@ -163,10 +163,10 @@ func (self *World) InitLevel(depth int) {
 		keep.Push(ent)
 	}
 
-	self.entities = make(map[Guid]*Entity)
+	self.entities = make(map[Guid]*Blob)
 
 	for i := range keep.Iter() {
-		ent := i.(*Entity)
+		ent := i.(*Blob)
 		self.entities[ent.GetGuid()] = ent
 	}
 
@@ -279,7 +279,7 @@ func (self *World) Entities() iterable.Iterable {
 
 func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 	posPred := func(obj interface{}) bool {
-		e := obj.(*Entity)
+		e := obj.(*Blob)
 		return e.GetParent() == nil && e.GetPos().Equals(pos)
 	}
 	return iterable.Filter(self.Entities(), posPred)
@@ -299,7 +299,7 @@ func (self *World) IsOpen(pos geom.Pt2I) bool {
 		return false
 	}
 	for o := range self.EntitiesAt(pos).Iter() {
-		ent := o.(*Entity)
+		ent := o.(*Blob)
 		if ent.Has(FlagObstacle) {
 			return false
 		}
@@ -356,7 +356,7 @@ func (self *World) drawEntities(g gfx.Graphics) {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
 	for o := range self.Entities().Iter() {
-		ent := o.(*Entity)
+		ent := o.(*Blob)
 		if ent.GetParent() != nil {
 			// Skip entities inside something.
 			continue
@@ -366,7 +366,7 @@ func (self *World) drawEntities(g gfx.Graphics) {
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 
 	for sorted := range seq.Iter() {
-		e := sorted.(*Entity)
+		e := sorted.(*Blob)
 		pos := e.GetPos()
 		seen := self.GetLos(pos) == LosSeen
 		mapped := seen || self.GetLos(pos) == LosMapped
@@ -380,7 +380,7 @@ func (self *World) drawEntities(g gfx.Graphics) {
 }
 
 func entityEarlierInDrawOrder(i, j interface{}) bool {
-	return i.(*Entity).GetClass() < j.(*Entity).GetClass()
+	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
 }
 
 func (self *World) getGuid(name string) (result Guid) {
@@ -420,12 +420,11 @@ func (self *World) Deserialize(in io.Reader) {
 		func(count int) { self.los = make([]LosState, count) },
 		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
 
-	// TODO: Entities.
-	self.entities = make(map[Guid]*Entity)
+	self.entities = make(map[Guid]*Blob)
 	for i, numEntities := 0, int(mem.ReadInt32(in)); i < numEntities; i++ {
 		guid := Guid(mem.ReadString(in))
 
-		ent := new(Entity)
+		ent := new(Blob)
 		ent.Deserialize(in)
 		self.entities[guid] = ent
 	}
