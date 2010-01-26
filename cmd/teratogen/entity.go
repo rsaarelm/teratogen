@@ -12,10 +12,13 @@ import (
 // A temporary component to hold the old Entity objects, before they get split
 // up to subcomponents.
 
+const BlobComponent = entity.ComponentFamily("blob")
+
 type BlobHandler struct {
 	blobs map[entity.Id]*Blob
 }
 
+func (self *BlobHandler) Init() { self.blobs = make(map[entity.Id]*Blob) }
 
 type Blob struct {
 	IconId    string

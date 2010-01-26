@@ -49,10 +49,7 @@ type AreaHandler struct {
 	components map[entity.Id]*Area
 }
 
-func (self *AreaHandler) Init() {
-	self.components = make(map[entity.Id]*Area)
-	return
-}
+func (self *AreaHandler) Init() { self.components = make(map[entity.Id]*Area) }
 
 func (self *AreaHandler) Add(guid entity.Id, component interface{}) {
 	self.components[guid] = component.(*Area)
