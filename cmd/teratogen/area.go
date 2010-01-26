@@ -1,7 +1,6 @@
 package main
 
 import (
-	"exp/iterable"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -44,45 +43,6 @@ var tileset1 = []string{
 }
 
 const AreaComponent = entity.ComponentFamily("area")
-
-type AreaHandler struct {
-	components map[entity.Id]*Area
-}
-
-func (self *AreaHandler) Init() { self.components = make(map[entity.Id]*Area) }
-
-func (self *AreaHandler) Add(guid entity.Id, component interface{}) {
-	self.components[guid] = component.(*Area)
-}
-
-func (self *AreaHandler) Remove(guid entity.Id) {
-	self.components[guid] = nil, false
-}
-
-func (self *AreaHandler) Get(guid entity.Id) interface{} {
-	if result, ok := self.components[guid]; ok {
-		return result
-	}
-	return nil
-}
-
-func (self *AreaHandler) Serialize(out io.Writer) {
-	entity.SerializeHandlerComponents(out, self)
-}
-
-func (self *AreaHandler) Deserialize(in io.Reader) {
-	self.Init()
-	entity.DeserializeHandlerComponents(in, self, mem.BlankCopier(new(Area)))
-}
-
-func (self *AreaHandler) EntityComponents() iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
-		for id, comp := range self.components {
-			c <- &entity.IdComponent{id, comp}
-		}
-		close(c)
-	})
-}
 
 type Area struct {
 	terrain []TerrainType

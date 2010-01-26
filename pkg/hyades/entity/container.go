@@ -16,10 +16,20 @@ type Container struct {
 }
 
 // Init initializes a new container handler. Prototype is an instance of the
-// concrete component type this container holds.
+// concrete component type this container holds. It is needed so that the
+// handler can deserialize the components.
 func (self *Container) Init(prototype interface{}) {
 	self.components = make(map[Id]interface{})
 	self.componentPrototype = prototype
+}
+
+// NewContainer returns a new container handler. Prototype is an instance of
+// the concrete component type this container holds. It is needed so that the
+// handler can deserialize the components.
+func NewContainer(prototype interface{}) (result *Container) {
+	result = new(Container)
+	result.Init(prototype)
+	return
 }
 
 func (self *Container) Add(guid Id, component interface{}) {

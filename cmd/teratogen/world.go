@@ -59,7 +59,7 @@ type World struct {
 func makeManager() (result *entity.Manager) {
 	result = entity.NewManager()
 	result.SetHandler(WorldComponent, new(World))
-	result.SetHandler(AreaComponent, new(AreaHandler))
+	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
 	return
 }
 
@@ -73,8 +73,7 @@ func SaveGame(out io.Writer) { manager.Serialize(out) }
 func InitWorld() {
 	manager = makeManager()
 	world := GetWorld()
-	areas := manager.Handler(AreaComponent).(*AreaHandler)
-	areas.Init()
+	areas := manager.Handler(AreaComponent).(*entity.Container)
 
 	world.areaId = manager.NewEntity()
 	area := NewArea()
