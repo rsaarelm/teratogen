@@ -3,7 +3,6 @@ package main
 import (
 	"container/vector"
 	"exp/iterable"
-	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -45,13 +44,11 @@ const (
 	LosSeen
 )
 
-type Guid string
-
 func GetManager() *entity.Manager { return manager }
 
 type World struct {
-	playerId     Guid
-	entities     map[Guid]*Blob
+	playerId     entity.Id
+	entities     map[entity.Id]*Blob
 	areaId       entity.Id
 	los          []LosState
 	guidCounter  uint64
@@ -62,6 +59,7 @@ func makeManager() (result *entity.Manager) {
 	result = entity.NewManager()
 	result.SetHandler(WorldComponent, new(World))
 	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
+	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
 	return
 }
@@ -82,7 +80,7 @@ func InitWorld() {
 	area := NewArea()
 	areas.Add(world.areaId, area)
 
-	world.entities = make(map[Guid]*Blob)
+	world.entities = make(map[entity.Id]*Blob)
 	world.initLos()
 
 	player := world.Spawn(prototypes["protagonist"])
@@ -100,6 +98,8 @@ func GetArea() *Area {
 	return GetManager().Handler(AreaComponent).Get(GetWorld().areaId).(*Area)
 }
 
+func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
+
 // GetContain gets the containment relation. Lhs is the container and rhs
 // values are the immediate containees (transitive containment, being in a
 // container in a container, won't show up in the top relation).
@@ -114,8 +114,8 @@ func (self *World) Draw(g gfx.Graphics) {
 
 func (self *World) GetPlayer() *Blob { return self.entities[self.playerId] }
 
-func (self *World) GetEntity(guid Guid) *Blob {
-	if guid == *new(Guid) {
+func (self *World) GetEntity(guid entity.Id) *Blob {
+	if guid == *new(entity.Id) {
 		return nil
 	}
 	ent, ok := self.entities[guid]
@@ -138,11 +138,14 @@ func (self *World) DestroyEntity(ent *Blob) {
 }
 
 func (self *World) Spawn(prototype *entityPrototype) *Blob {
-	guid := self.getGuid("")
-	ent := NewEntity(guid)
-	prototype.MakeEntity(prototypes, ent)
-	self.entities[guid] = ent
-	return ent
+	guid := GetManager().NewEntity()
+	blob := NewEntity(guid)
+
+	GetBlobs().Add(guid, blob)
+
+	prototype.MakeEntity(prototypes, blob)
+	self.entities[guid] = blob
+	return blob
 }
 
 func (self *World) SpawnAt(prototype *entityPrototype, pos geom.Pt2I) (result *Blob) {
@@ -172,7 +175,7 @@ func (self *World) InitLevel(depth int) {
 		keep.Push(ent)
 	}
 
-	self.entities = make(map[Guid]*Blob)
+	self.entities = make(map[entity.Id]*Blob)
 
 	for i := range keep.Iter() {
 		ent := i.(*Blob)
@@ -387,19 +390,8 @@ func entityEarlierInDrawOrder(i, j interface{}) bool {
 	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
 }
 
-func (self *World) getGuid(name string) (result Guid) {
-	// If the guid's already in use, keep incrementing the counter until we get a fresh one.
-	for ok := true; ok; _, ok = self.entities[result] {
-		result = Guid(fmt.Sprintf("%v#%v", name, self.guidCounter))
-		self.guidCounter++
-	}
-
-	return
-}
-
 func (self *World) Serialize(out io.Writer) {
-	mem.WriteString(out, string(self.playerId))
-	mem.WriteFixed(out, int64(self.guidCounter))
+	mem.WriteFixed(out, int64(self.playerId))
 	mem.WriteFixed(out, self.currentLevel)
 	mem.WriteFixed(out, int64(self.areaId))
 
@@ -408,15 +400,14 @@ func (self *World) Serialize(out io.Writer) {
 	mem.WriteFixed(out, int32(len(self.entities)))
 	for guid, ent := range self.entities {
 		// Write the guid
-		mem.WriteString(out, string(guid))
+		mem.WriteFixed(out, int64(guid))
 		// Then gob-save the entity using the factory.
 		ent.Serialize(out)
 	}
 }
 
 func (self *World) Deserialize(in io.Reader) {
-	self.playerId = Guid(mem.ReadString(in))
-	self.guidCounter = uint64(mem.ReadInt64(in))
+	self.playerId = entity.Id(mem.ReadInt64(in))
 	self.currentLevel = mem.ReadInt32(in)
 	self.areaId = entity.Id(mem.ReadInt64(in))
 
@@ -424,9 +415,9 @@ func (self *World) Deserialize(in io.Reader) {
 		func(count int) { self.los = make([]LosState, count) },
 		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
 
-	self.entities = make(map[Guid]*Blob)
+	self.entities = make(map[entity.Id]*Blob)
 	for i, numEntities := 0, int(mem.ReadInt32(in)); i < numEntities; i++ {
-		guid := Guid(mem.ReadString(in))
+		guid := entity.Id(mem.ReadInt64(in))
 
 		ent := new(Blob)
 		ent.Deserialize(in)

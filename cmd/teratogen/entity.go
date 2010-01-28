@@ -22,19 +22,19 @@ func (self *BlobHandler) Init() { self.blobs = make(map[entity.Id]*Blob) }
 
 type Blob struct {
 	IconId    string
-	guid      Guid
+	guid      entity.Id
 	Name      string
 	pos       geom.Pt2I
-	parentId  Guid
-	siblingId Guid
-	childId   Guid
+	parentId  entity.Id
+	siblingId entity.Id
+	childId   entity.Id
 	Class     EntityClass
 
 	prop     map[string]interface{}
 	hideProp map[string]bool
 }
 
-func NewEntity(guid Guid) (result *Blob) {
+func NewEntity(guid entity.Id) (result *Blob) {
 	result = new(Blob)
 	result.prop = make(map[string]interface{})
 	result.hideProp = make(map[string]bool)
@@ -50,7 +50,7 @@ func (self *Blob) GetPos() geom.Pt2I {
 	return self.pos
 }
 
-func (self *Blob) GetGuid() Guid { return self.guid }
+func (self *Blob) GetGuid() entity.Id { return self.guid }
 
 func (self *Blob) GetClass() EntityClass { return self.Class }
 
@@ -68,7 +68,7 @@ func (self *Blob) SetParent(e *Blob) {
 	if e != nil {
 		self.parentId = e.GetGuid()
 	} else {
-		self.parentId = *new(Guid)
+		self.parentId = *new(entity.Id)
 	}
 }
 
@@ -78,7 +78,7 @@ func (self *Blob) SetChild(e *Blob) {
 	if e != nil {
 		self.childId = e.GetGuid()
 	} else {
-		self.childId = *new(Guid)
+		self.childId = *new(entity.Id)
 	}
 }
 
@@ -89,7 +89,7 @@ func (self *Blob) SetSibling(e *Blob) {
 	if e != nil {
 		self.siblingId = e.GetGuid()
 	} else {
-		self.siblingId = *new(Guid)
+		self.siblingId = *new(entity.Id)
 	}
 }
 
@@ -146,7 +146,7 @@ func (self *Blob) InsertSelf(parent *Blob) {
 
 func (self *Blob) RemoveSelf() {
 	parent := self.GetParent()
-	self.parentId = *new(Guid)
+	self.parentId = *new(entity.Id)
 	if parent != nil {
 		if parent.GetChild().GetGuid() == self.GetGuid() {
 			// First child of parent, modify parent's child
@@ -171,14 +171,14 @@ func (self *Blob) RemoveSelf() {
 		// Move to where the parent is in the world.
 		self.MoveAbs(parent.GetPos())
 	}
-	self.siblingId = *new(Guid)
+	self.siblingId = *new(entity.Id)
 }
 
 func (self *Blob) Set(name string, value interface{}) *Blob {
 	self.hideProp[name] = false, false
 	// Normalize
 	switch a := value.(type) {
-	case Guid:
+	case entity.Id:
 	case string:
 	// Ok as it is
 	case float64:
@@ -257,7 +257,7 @@ func (self *Blob) GetGuidOpt(name string) (obj *Blob, ok bool) {
 	if prop == nil {
 		return
 	}
-	return GetWorld().GetEntity(prop.(Guid)), true
+	return GetWorld().GetEntity(prop.(entity.Id)), true
 }
 
 func (self *Blob) Has(name string) bool { return self.Get(name) != nil }
@@ -292,9 +292,9 @@ func saveProp(out io.Writer, prop interface{}) {
 	case string:
 		mem.WriteFixed(out, stringProp)
 		mem.WriteString(out, a)
-	case Guid:
+	case entity.Id:
 		mem.WriteFixed(out, guidProp)
-		mem.WriteString(out, string(a))
+		mem.WriteFixed(out, int64(a))
 	default:
 		dbg.Die("Bad prop type %#v", prop)
 	}
@@ -307,7 +307,7 @@ func loadProp(in io.Reader) interface{} {
 	case stringProp:
 		return mem.ReadString(in)
 	case guidProp:
-		return Guid(mem.ReadString(in))
+		return entity.Id(mem.ReadInt64(in))
 	default:
 		dbg.Die("Bad prop type id %v", typ)
 	}
@@ -317,13 +317,13 @@ func loadProp(in io.Reader) interface{} {
 
 func (self *Blob) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
-	mem.WriteString(out, string(self.guid))
+	mem.WriteFixed(out, int64(self.guid))
 	mem.WriteString(out, self.Name)
 	mem.WriteFixed(out, int32(self.pos.X))
 	mem.WriteFixed(out, int32(self.pos.Y))
-	mem.WriteString(out, string(self.parentId))
-	mem.WriteString(out, string(self.siblingId))
-	mem.WriteString(out, string(self.childId))
+	mem.WriteFixed(out, int64(self.parentId))
+	mem.WriteFixed(out, int64(self.siblingId))
+	mem.WriteFixed(out, int64(self.childId))
 	mem.WriteFixed(out, int32(self.Class))
 
 	mem.WriteFixed(out, int32(len(self.prop)))
@@ -340,13 +340,13 @@ func (self *Blob) Serialize(out io.Writer) {
 
 func (self *Blob) Deserialize(in io.Reader) {
 	self.IconId = mem.ReadString(in)
-	self.guid = Guid(mem.ReadString(in))
+	self.guid = entity.Id(mem.ReadInt64(in))
 	self.Name = mem.ReadString(in)
 	self.pos.X = int(mem.ReadInt32(in))
 	self.pos.Y = int(mem.ReadInt32(in))
-	self.parentId = Guid(mem.ReadString(in))
-	self.siblingId = Guid(mem.ReadString(in))
-	self.childId = Guid(mem.ReadString(in))
+	self.parentId = entity.Id(mem.ReadInt64(in))
+	self.siblingId = entity.Id(mem.ReadInt64(in))
+	self.childId = entity.Id(mem.ReadInt64(in))
 	self.Class = EntityClass(mem.ReadInt32(in))
 
 	self.prop = make(map[string]interface{})
