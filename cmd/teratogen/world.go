@@ -48,7 +48,6 @@ func GetManager() *entity.Manager { return manager }
 
 type World struct {
 	playerId     entity.Id
-	entities     map[entity.Id]*Blob
 	areaId       entity.Id
 	los          []LosState
 	guidCounter  uint64
@@ -80,7 +79,6 @@ func InitWorld() {
 	area := NewArea()
 	areas.Add(world.areaId, area)
 
-	world.entities = make(map[entity.Id]*Blob)
 	world.initLos()
 
 	player := world.Spawn(prototypes["protagonist"])
@@ -112,15 +110,13 @@ func (self *World) Draw(g gfx.Graphics) {
 	self.drawEntities(g)
 }
 
-func (self *World) GetPlayer() *Blob { return self.entities[self.playerId] }
+func (self *World) GetPlayer() *Blob { return self.GetEntity(self.playerId) }
 
 func (self *World) GetEntity(guid entity.Id) *Blob {
 	if guid == *new(entity.Id) {
 		return nil
 	}
-	ent, ok := self.entities[guid]
-	dbg.Assert(ok, "GetEntity: Entity '%v' not found", guid)
-	return ent
+	return GetBlobs().Get(guid).(*Blob)
 }
 
 func (self *World) DestroyEntity(ent *Blob) {
@@ -134,7 +130,7 @@ func (self *World) DestroyEntity(ent *Blob) {
 		// removed.
 		return
 	}
-	self.entities[ent.GetGuid()] = ent, false
+	GetManager().RemoveEntity(ent.GetGuid())
 }
 
 func (self *World) Spawn(prototype *entityPrototype) *Blob {
@@ -144,7 +140,6 @@ func (self *World) Spawn(prototype *entityPrototype) *Blob {
 	GetBlobs().Add(guid, blob)
 
 	prototype.MakeEntity(prototypes, blob)
-	self.entities[guid] = blob
 	return blob
 }
 
@@ -158,29 +153,29 @@ func (self *World) SpawnRandomPos(prototype *entityPrototype) (result *Blob) {
 	return self.SpawnAt(prototype, self.GetSpawnPos())
 }
 
-func (self *World) InitLevel(depth int) {
-	// Keep the player around even though the other entities get munged.
-	// TODO: When we start having inventories, keep the player's items too.
+func (self *World) clearNonplayerEntities() {
+	// Bring over player object and player's inventory.
 	player := self.GetPlayer()
+	keep := make(map[entity.Id]bool)
+	keep[player.GetGuid()] = true
+	for ent := range player.RecursiveContents().Iter() {
+		keep[ent.(*Blob).GetGuid()] = true
+	}
 
+	for o := range GetBlobs().EntityComponents().Iter() {
+		pair := o.(*entity.IdComponent)
+		if _, ok := keep[pair.Entity]; !ok {
+			defer GetManager().RemoveEntity(pair.Entity)
+		}
+	}
+}
+
+func (self *World) InitLevel(depth int) {
 	self.currentLevel = int32(depth)
 
 	self.initLos()
 
-	// Bring over player object and player's inventory.
-	keep := new(vector.Vector)
-	keep.Push(player)
-	self.entities[self.playerId] = player
-	for ent := range player.RecursiveContents().Iter() {
-		keep.Push(ent)
-	}
-
-	self.entities = make(map[entity.Id]*Blob)
-
-	for i := range keep.Iter() {
-		ent := i.(*Blob)
-		self.entities[ent.GetGuid()] = ent
-	}
+	self.clearNonplayerEntities()
 
 	if num.WithProb(0.5) {
 		GetArea().MakeCaveMap()
@@ -190,6 +185,7 @@ func (self *World) InitLevel(depth int) {
 
 	GetArea().SetTerrain(self.GetSpawnPos(), TerrainStairDown)
 
+	player := self.GetPlayer()
 	player.MoveAbs(self.GetSpawnPos())
 	self.DoLos(player.GetPos())
 
@@ -265,23 +261,8 @@ func (self *World) DoLos(center geom.Pt2I) {
 	}
 }
 
-type worldEntityIterable struct {
-	w *World
-}
-
-func (self *worldEntityIterable) Iter() <-chan interface{} {
-	c := make(chan interface{})
-	go func() {
-		for _, ent := range self.w.entities {
-			c <- ent
-		}
-		close(c)
-	}()
-	return c
-}
-
 func (self *World) Entities() iterable.Iterable {
-	return &worldEntityIterable{self}
+	return iterable.Map(GetBlobs().EntityComponents(), entity.IdComponent2Component)
 }
 
 func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
@@ -396,14 +377,6 @@ func (self *World) Serialize(out io.Writer) {
 	mem.WriteFixed(out, int64(self.areaId))
 
 	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.los[i])) })
-
-	mem.WriteFixed(out, int32(len(self.entities)))
-	for guid, ent := range self.entities {
-		// Write the guid
-		mem.WriteFixed(out, int64(guid))
-		// Then gob-save the entity using the factory.
-		ent.Serialize(out)
-	}
 }
 
 func (self *World) Deserialize(in io.Reader) {
@@ -414,15 +387,6 @@ func (self *World) Deserialize(in io.Reader) {
 	mem.ReadNTimes(in,
 		func(count int) { self.los = make([]LosState, count) },
 		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
-
-	self.entities = make(map[entity.Id]*Blob)
-	for i, numEntities := 0, int(mem.ReadInt32(in)); i < numEntities; i++ {
-		guid := entity.Id(mem.ReadInt64(in))
-
-		ent := new(Blob)
-		ent.Deserialize(in)
-		self.entities[guid] = ent
-	}
 }
 
 // Component handler interface stubs

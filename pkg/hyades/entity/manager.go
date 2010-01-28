@@ -126,6 +126,18 @@ type IdComponent struct {
 	Component interface{}
 }
 
+// IdComponent2Id maps IdComponent pointer to its Entity field. Handy with
+// iterable.Map.
+func IdComponent2Id(obj interface{}) interface{} {
+	return obj.(*IdComponent).Entity
+}
+
+// IdComponent2Component maps IdComponent pointer to its Component field.
+// Handy with iterable.Map.
+func IdComponent2Component(obj interface{}) interface{} {
+	return obj.(*IdComponent).Component
+}
+
 // Handler handles the entire collection of one type of component for
 // the game state.
 type Handler interface {
