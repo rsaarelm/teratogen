@@ -2,6 +2,7 @@ package main
 
 import (
 	"exp/iterable"
+	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
@@ -20,15 +21,15 @@ type BlobHandler struct {
 
 func (self *BlobHandler) Init() { self.blobs = make(map[entity.Id]*Blob) }
 
+// id2Blob converts ids to blob components, useful for iterable.Map.
+func id2Blob(id interface{}) interface{} { return GetBlobs().Get(id.(entity.Id)) }
+
 type Blob struct {
-	IconId    string
-	guid      entity.Id
-	Name      string
-	pos       geom.Pt2I
-	parentId  entity.Id
-	siblingId entity.Id
-	childId   entity.Id
-	Class     EntityClass
+	IconId string
+	guid   entity.Id
+	Name   string
+	pos    geom.Pt2I
+	Class  EntityClass
 
 	prop     map[string]interface{}
 	hideProp map[string]bool
@@ -62,116 +63,64 @@ func (self *Blob) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
 func (self *Blob) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
-func (self *Blob) GetParent() *Blob { return GetWorld().GetEntity(self.parentId) }
+func (self *Blob) GetParent() *Blob {
+	if id, ok := GetContain().GetLhs(self.GetGuid()); ok {
+		return GetBlobs().Get(id).(*Blob)
+	}
+	return nil
+}
+
+// GetTopParent gets the greatest grandparent of the entity.
+func (self *Blob) GetTopParent() (result *Blob) {
+	for p := self.GetParent(); p != nil; p = p.GetParent() {
+		result = p
+	}
+	return
+}
 
 func (self *Blob) SetParent(e *Blob) {
 	if e != nil {
-		self.parentId = e.GetGuid()
+		GetContain().AddPair(e.GetGuid(), self.GetGuid())
 	} else {
-		self.parentId = *new(entity.Id)
+		GetContain().RemoveWithRhs(self.GetGuid())
 	}
-}
-
-func (self *Blob) GetChild() *Blob { return GetWorld().GetEntity(self.childId) }
-
-func (self *Blob) SetChild(e *Blob) {
-	if e != nil {
-		self.childId = e.GetGuid()
-	} else {
-		self.childId = *new(entity.Id)
-	}
-}
-
-// GetSibling return the next sibling of the entity, or nil if there are none.
-func (self *Blob) GetSibling() *Blob { return GetWorld().GetEntity(self.siblingId) }
-
-func (self *Blob) SetSibling(e *Blob) {
-	if e != nil {
-		self.siblingId = e.GetGuid()
-	} else {
-		self.siblingId = *new(entity.Id)
-	}
-}
-
-func (self *Blob) iterateChildrenWalk(c chan<- interface{}, recurse bool) {
-	node := self.GetChild()
-	for node != nil {
-		c <- node
-		if recurse {
-
-			node.iterateChildrenWalk(c, recurse)
-		}
-		node = node.GetSibling()
-	}
-}
-
-func (self *Blob) iterateChildren(c chan<- interface{}, recurse bool) {
-	self.iterateChildrenWalk(c, recurse)
-	close(c)
-}
-
-type entityContentIterable struct {
-	e         *Blob
-	recursive bool
-}
-
-func (self *entityContentIterable) Iter() <-chan interface{} {
-	c := make(chan interface{})
-	go self.e.iterateChildren(c, self.recursive)
-	return c
 }
 
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
 func (self *Blob) RecursiveContents() iterable.Iterable {
-	return &entityContentIterable{self, true}
+	return alg.IterFunc(func(c chan<- interface{}) {
+		for o := range self.Contents().Iter() {
+			c <- o
+			for q := range o.(*Blob).RecursiveContents().Iter() {
+				c <- q
+			}
+		}
+		close(c)
+	})
 }
 
 // Contents iterates through the children but not the grandchildren of the
 // entity.
 func (self *Blob) Contents() iterable.Iterable {
-	return &entityContentIterable{self, false}
+	return iterable.Map(GetContain().IterRhs(self.GetGuid()), id2Blob)
 }
 
-func (self *Blob) HasContents() bool { return self.GetChild() != nil }
+func (self *Blob) HasContents() bool {
+	_, ok := GetContain().GetRhs(self.GetGuid())
+	return ok
+}
 
 func (self *Blob) InsertSelf(parent *Blob) {
 	self.RemoveSelf()
-	if parent.GetChild() != nil {
-		self.siblingId = parent.GetChild().GetGuid()
-	}
-	parent.SetChild(self)
-	self.parentId = parent.GetGuid()
+	GetContain().AddPair(parent.GetGuid(), self.GetGuid())
 }
 
 func (self *Blob) RemoveSelf() {
-	parent := self.GetParent()
-	self.parentId = *new(entity.Id)
-	if parent != nil {
-		if parent.GetChild().GetGuid() == self.GetGuid() {
-			// First child of parent, modify parent's child
-			// reference.
-			parent.SetChild(self.GetSibling())
-		} else {
-			// Part of a sibling list, modify elder siblings
-			// sibling reference.
-			node := parent.GetChild()
-			for {
-				if node.GetSibling() == nil {
-					dbg.Die("RemoveSelf: Entity not found among its siblings.")
-
-				}
-				if node.GetSibling().GetGuid() == self.GetGuid() {
-					node.SetSibling(self.GetSibling())
-					break
-				}
-				node = node.GetSibling()
-			}
-		}
-		// Move to where the parent is in the world.
+	if parent := self.GetTopParent(); parent != nil {
 		self.MoveAbs(parent.GetPos())
 	}
-	self.siblingId = *new(entity.Id)
+	GetContain().RemoveWithRhs(self.GetGuid())
 }
 
 func (self *Blob) Set(name string, value interface{}) *Blob {
@@ -321,9 +270,6 @@ func (self *Blob) Serialize(out io.Writer) {
 	mem.WriteString(out, self.Name)
 	mem.WriteFixed(out, int32(self.pos.X))
 	mem.WriteFixed(out, int32(self.pos.Y))
-	mem.WriteFixed(out, int64(self.parentId))
-	mem.WriteFixed(out, int64(self.siblingId))
-	mem.WriteFixed(out, int64(self.childId))
 	mem.WriteFixed(out, int32(self.Class))
 
 	mem.WriteFixed(out, int32(len(self.prop)))
@@ -344,9 +290,6 @@ func (self *Blob) Deserialize(in io.Reader) {
 	self.Name = mem.ReadString(in)
 	self.pos.X = int(mem.ReadInt32(in))
 	self.pos.Y = int(mem.ReadInt32(in))
-	self.parentId = entity.Id(mem.ReadInt64(in))
-	self.siblingId = entity.Id(mem.ReadInt64(in))
-	self.childId = entity.Id(mem.ReadInt64(in))
 	self.Class = EntityClass(mem.ReadInt32(in))
 
 	self.prop = make(map[string]interface{})

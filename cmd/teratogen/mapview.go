@@ -224,15 +224,14 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		item := GetWorld().GetPlayer().GetChild()
-		for item != nil {
+		for o := range GetWorld().GetPlayer().Contents().Iter() {
+			item := o.(*Blob)
 			if first {
 				first = false
 				Msg(" %v", item.Name)
 			} else {
 				Msg(", %v", item.Name)
 			}
-			item = item.GetSibling()
 		}
 		if first {
 			Msg(" nothing.\n")

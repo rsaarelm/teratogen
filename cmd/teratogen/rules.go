@@ -481,7 +481,7 @@ func IsCarryingGearFor(o interface{}, slot string) bool {
 	})
 }
 
-func HasContents(o interface{}) bool { return o.(*Blob).GetChild() != nil }
+func HasContents(o interface{}) bool { return o.(*Blob).HasContents() }
 
 func IsUsable(o interface{}) bool { return o.(*Blob).Has(PropItemUse) }
 

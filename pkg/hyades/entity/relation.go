@@ -63,8 +63,8 @@ func (self *Relation) AddPair(lhs, rhs Id) {
 		self.lhsIndex[lhs] = make(map[Id]bool)
 	}
 
-	if _, ok := self.rhsIndex[lhs]; !ok {
-		self.rhsIndex[lhs] = make(map[Id]bool)
+	if _, ok := self.rhsIndex[rhs]; !ok {
+		self.rhsIndex[rhs] = make(map[Id]bool)
 	}
 
 	self.lhsIndex[lhs][rhs] = true
