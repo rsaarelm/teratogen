@@ -193,12 +193,7 @@ func (self *World) InitLevel(depth int) {
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
 		proto := spawns.Sample(rand.Float64()).(*entityPrototype)
-		// XXX: Get this wrapped in a func.
-		guid := self.getGuid("")
-		ent := NewEntity(guid)
-		self.entities[guid] = ent
-
-		proto.MakeEntity(prototypes, ent)
+		ent := self.Spawn(proto)
 		ent.MoveAbs(self.GetSpawnPos())
 	}
 }
