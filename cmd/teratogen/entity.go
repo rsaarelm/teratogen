@@ -1,8 +1,6 @@
 package main
 
 import (
-	"exp/iterable"
-	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
@@ -62,66 +60,6 @@ func (self *Blob) String() string { return self.Name }
 func (self *Blob) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
 func (self *Blob) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
-
-func (self *Blob) GetParent() *Blob {
-	if id, ok := GetContain().GetLhs(self.GetGuid()); ok {
-		return GetBlobs().Get(id).(*Blob)
-	}
-	return nil
-}
-
-// GetTopParent gets the greatest grandparent of the entity.
-func (self *Blob) GetTopParent() (result *Blob) {
-	for p := self.GetParent(); p != nil; p = p.GetParent() {
-		result = p
-	}
-	return
-}
-
-func (self *Blob) SetParent(e *Blob) {
-	if e != nil {
-		GetContain().AddPair(e.GetGuid(), self.GetGuid())
-	} else {
-		GetContain().RemoveWithRhs(self.GetGuid())
-	}
-}
-
-// RecursiveContents iterates through all children and grandchildren of the
-// entity.
-func (self *Blob) RecursiveContents() iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
-		for o := range self.Contents().Iter() {
-			c <- o
-			for q := range o.(*Blob).RecursiveContents().Iter() {
-				c <- q
-			}
-		}
-		close(c)
-	})
-}
-
-// Contents iterates through the children but not the grandchildren of the
-// entity.
-func (self *Blob) Contents() iterable.Iterable {
-	return iterable.Map(GetContain().IterRhs(self.GetGuid()), id2Blob)
-}
-
-func (self *Blob) HasContents() bool {
-	_, ok := GetContain().GetRhs(self.GetGuid())
-	return ok
-}
-
-func (self *Blob) InsertSelf(parent *Blob) {
-	self.RemoveSelf()
-	GetContain().AddPair(parent.GetGuid(), self.GetGuid())
-}
-
-func (self *Blob) RemoveSelf() {
-	if parent := self.GetTopParent(); parent != nil {
-		self.MoveAbs(parent.GetPos())
-	}
-	GetContain().RemoveWithRhs(self.GetGuid())
-}
 
 func (self *Blob) Set(name string, value interface{}) *Blob {
 	self.hideProp[name] = false, false

@@ -21,8 +21,6 @@ var manager *entity.Manager
 
 const WorldComponent = entity.ComponentFamily("world")
 
-const ContainComponent = entity.ComponentFamily("contain")
-
 func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
 	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
 }
@@ -97,13 +95,6 @@ func GetArea() *Area {
 }
 
 func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
-
-// GetContain gets the containment relation. Lhs is the container and rhs
-// values are the immediate containees (transitive containment, being in a
-// container in a container, won't show up in the top relation).
-func GetContain() *entity.Relation {
-	return GetManager().Handler(ContainComponent).(*entity.Relation)
-}
 
 func (self *World) Draw(g gfx.Graphics) {
 	self.drawTerrain(g)

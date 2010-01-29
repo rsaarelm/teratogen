@@ -6,6 +6,7 @@ GOFILES=\
 	anim.go\
 	area.go\
 	config.go\
+	contain.go\
 	creature.go\
 	entity.go\
 	mapgen.go\
