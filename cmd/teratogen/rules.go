@@ -42,9 +42,9 @@ const (
 	PropEquipmentSlot = "equipmentSlot"
 
 	// Equipped gear.
-	PropBodyArmorGuid   = "bodyArmorGuid"
-	PropMeleeWeaponGuid = "meleeWeaponGuid"
-	PropGunWeaponGuid   = "gunWeaponGuid"
+	PropBodyArmorGuid   = "armorEquip"
+	PropMeleeWeaponGuid = "meleeEquip"
+	PropGunWeaponGuid   = "gunEquip"
 
 	// Extra damage capability
 	PropWoundBonus = "woundBonus"
@@ -309,8 +309,8 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 	}
 
 	damageFactor := 0
-	if gun, ok := attacker.GetGuidOpt(PropGunWeaponGuid); ok {
-		damageFactor += gun.GetI(PropWoundBonus)
+	if gun, ok := GetEquipment(attacker.GetGuid(), PropGunWeaponGuid); ok {
+		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
 	}
 
 	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
@@ -323,7 +323,8 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 }
 
 func DamageEquipment(ent *Blob, slot string) {
-	if o, ok := ent.GetGuidOpt(slot); ok {
+	if guid, ok := GetEquipment(ent.GetGuid(), slot); ok {
+		o := GetBlobs().Get(guid).(*Blob)
 		if num.OneChanceIn(o.GetI(PropDurability)) {
 			if slot == PropGunWeaponGuid {
 				Msg("The %s's %s is out of ammo.\n", ent.GetName(), o.GetName())
@@ -331,10 +332,6 @@ func DamageEquipment(ent *Blob, slot string) {
 				Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
 			}
 			GetWorld().DestroyEntity(o)
-			// XXX: Hackhackhach, need a robust system for knowing when an
-			// equipped item is destroyed and removing the slot reference. Having
-			// to do it manually will end up in trouble at some point.
-			ent.Clear(slot)
 		}
 	}
 }
@@ -543,7 +540,7 @@ func AutoEquip(owner *Blob, item *Blob) {
 		// Already got something equipped.
 		return
 	}
-	owner.Set(slot, item.GetGuid())
+	SetEquipment(owner.GetGuid(), slot, item.GetGuid())
 	Msg("Equipped %v.\n", item)
 }
 
@@ -583,6 +580,6 @@ func ClosestCreatureSeenBy(o interface{}) *Blob {
 }
 
 func GunEquipped(o interface{}) bool {
-	_, ok := o.(*Blob).GetGuidOpt(PropGunWeaponGuid)
+	_, ok := GetEquipment(o.(*Blob).GetGuid(), PropGunWeaponGuid)
 	return ok
 }

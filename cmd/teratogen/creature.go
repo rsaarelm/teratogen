@@ -41,18 +41,18 @@ func (self *Blob) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.
 
 func (self *Blob) MeleeDamageFactor() (result int) {
 	result = self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
-	if o, ok := self.GetGuidOpt(PropMeleeWeaponGuid); ok {
+	if o, ok := GetEquipment(self.GetGuid(), PropMeleeWeaponGuid); ok {
 		// Melee weapon bonus
-		result += o.GetI(PropWoundBonus)
+		result += GetBlobs().Get(o).(*Blob).GetI(PropWoundBonus)
 	}
 	return
 }
 
 func (self *Blob) ArmorFactor() (result int) {
 	result = self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
-	if o, ok := self.GetGuidOpt(PropBodyArmorGuid); ok {
+	if o, ok := GetEquipment(self.GetGuid(), PropBodyArmorGuid); ok {
 		// Body armor bonus.
-		result += o.GetI(PropDefenseBonus)
+		result += GetBlobs().Get(o).(*Blob).GetI(PropDefenseBonus)
 	}
 	return
 }

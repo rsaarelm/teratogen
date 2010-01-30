@@ -354,7 +354,8 @@ func EquipMenu() {
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
 	for i, prop := range slots {
-		if ent, ok := player.GetGuidOpt(prop); ok {
+		if id, ok := GetEquipment(player.GetGuid(), prop); ok {
+			ent := GetBlobs().Get(id).(*Blob)
 			items[i] = ent
 			options[i] = fmt.Sprintf("%s: %v", names[i], ent)
 		} else {
@@ -368,13 +369,13 @@ func EquipMenu() {
 		return
 	}
 	if items[choice] != nil {
-		player.Clear(slots[choice])
+		RemoveEquipment(player.GetGuid(), slots[choice])
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
 		equippables := iterable.Data(iterable.Filter(player.Contents(),
 			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob)) }))
 		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
-			player.Set(slots[choice], item.(*Blob).GetGuid())
+			SetEquipment(player.GetGuid(), slots[choice], item.(*Blob).GetGuid())
 			Msg("Equipped %v.\n", item)
 		}
 	}

@@ -57,7 +57,12 @@ func makeManager() (result *entity.Manager) {
 	result.SetHandler(WorldComponent, new(World))
 	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
 	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
+
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
+	result.SetHandler(MeleeEquipComponent, entity.NewRelation(entity.OneToOne))
+	result.SetHandler(GunEquipComponent, entity.NewRelation(entity.OneToOne))
+	result.SetHandler(ArmorEquipComponent, entity.NewRelation(entity.OneToOne))
+
 	return
 }
 
