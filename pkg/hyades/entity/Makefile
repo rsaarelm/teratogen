@@ -5,5 +5,6 @@ GOFILES=\
 	container.go\
 	manager.go\
 	relation.go\
+	util.go\
 
 include $(GOROOT)/src/Make.pkg
