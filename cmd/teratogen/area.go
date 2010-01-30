@@ -1,12 +1,12 @@
 package main
 
 import (
+	"gob"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
-	"hyades/mem"
 	"io"
 )
 
@@ -55,13 +55,15 @@ func NewArea() (result *Area) {
 }
 
 func (self *Area) Serialize(out io.Writer) {
-	mem.WriteNTimes(out, len(self.terrain), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.terrain[i])) })
+	enc := gob.NewEncoder(out)
+	err := enc.Encode(self)
+	dbg.AssertNoError(err)
 }
 
 func (self *Area) Deserialize(in io.Reader) {
-	mem.ReadNTimes(in,
-		func(count int) { self.terrain = make([]TerrainType, count) },
-		func(i int, in io.Reader) { self.terrain[i] = TerrainType(mem.ReadByte(in)) })
+	dec := gob.NewDecoder(in)
+	err := dec.Decode(self)
+	dbg.AssertNoError(err)
 }
 
 // TODO: Move methods from World to Area.
