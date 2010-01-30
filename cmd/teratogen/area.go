@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gob"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -54,17 +53,9 @@ func NewArea() (result *Area) {
 	return
 }
 
-func (self *Area) Serialize(out io.Writer) {
-	enc := gob.NewEncoder(out)
-	err := enc.Encode(self)
-	dbg.AssertNoError(err)
-}
+func (self *Area) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
 
-func (self *Area) Deserialize(in io.Reader) {
-	dec := gob.NewDecoder(in)
-	err := dec.Decode(self)
-	dbg.AssertNoError(err)
-}
+func (self *Area) Deserialize(in io.Reader) { entity.GobDeserialize(in, self) }
 
 // TODO: Move methods from World to Area.
 

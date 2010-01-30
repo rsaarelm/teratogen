@@ -3,6 +3,8 @@ package entity
 import (
 	"container/vector"
 	"exp/iterable"
+	"gob"
+	"hyades/dbg"
 	"hyades/mem"
 	"io"
 )
@@ -73,4 +75,20 @@ func DeserializeHandlerComponents(in io.Reader, handler Handler, newComponent fu
 		uniqId := int(mem.ReadInt32(in))
 		handler.Add(guid, uniqs[uniqId])
 	}
+}
+
+// GobSerialize writes val into the output stream using the gob package to
+// serialize it.
+func GobSerialize(out io.Writer, val interface{}) {
+	enc := gob.NewEncoder(out)
+	err := enc.Encode(val)
+	dbg.AssertNoError(err)
+}
+
+// GobDeserialize decodes a value serialized with the gob package into the
+// given struct value.
+func GobDeserialize(in io.Reader, val interface{}) {
+	dec := gob.NewDecoder(in)
+	err := dec.Decode(val)
+	dbg.AssertNoError(err)
 }
