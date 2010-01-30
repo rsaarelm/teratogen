@@ -100,7 +100,7 @@ func (self *MapView) onMouseButton(button int) {
 			// Clicking at player pos.
 
 			// If there are stairs here, clicking on player goes down.
-			if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+			if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
 				SendPlayerInput(func() { PlayerEnterStairs() })
 			}
 
@@ -224,15 +224,14 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		item := world.GetPlayer().GetChild()
-		for item != nil {
+		for o := range GetWorld().GetPlayer().Contents().Iter() {
+			item := o.(*Blob)
 			if first {
 				first = false
 				Msg(" %v", item.Name)
 			} else {
 				Msg(", %v", item.Name)
 			}
-			item = item.GetSibling()
 		}
 		if first {
 			Msg(" nothing.\n")
@@ -242,7 +241,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'e':
 		EquipMenu()
 	case 'f':
-		player := world.GetPlayer()
+		player := GetWorld().GetPlayer()
 		if GunEquipped(player) {
 			target := ClosestCreatureSeenBy(player)
 			if target != nil {
@@ -255,13 +254,13 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case 'd':
 		// Drop item.
-		player := world.GetPlayer()
+		player := GetWorld().GetPlayer()
 		if player.HasContents() {
 			item, ok := ObjectChoiceDialog(
 				"Drop which item?", iterable.Data(player.Contents()))
 			if ok {
 				SendPlayerInput(func() {
-					item := item.(*Entity)
+					item := item.(*Blob)
 					item.RemoveSelf()
 					Msg("Dropped %v.\n", item.GetName())
 				})
@@ -276,7 +275,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'S':
 		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
-		world.Serialize(saveFile)
+		SaveGame(saveFile)
 		saveFile.Close()
 		Msg("Game saved.\n")
 	case 'L':
@@ -285,9 +284,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			Msg("Error loading game: " + err.String())
 			break
 		}
-		world = new(World)
-		SetWorld(world)
-		world.Deserialize(loadFile)
+		LoadGame(loadFile)
 		Msg("Game loaded.\n")
 	}
 }

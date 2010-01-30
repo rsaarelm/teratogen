@@ -192,7 +192,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	defer g.ClearClip()
 
 	DrawString(g, area.Min.X, area.Min.Y,
-		"%v", txt.Capitalize(world.GetPlayer().WoundDescription()))
+		"%v", txt.Capitalize(GetWorld().GetPlayer().WoundDescription()))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
@@ -354,7 +354,8 @@ func EquipMenu() {
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
 	for i, prop := range slots {
-		if ent, ok := player.GetGuidOpt(prop); ok {
+		if id, ok := GetEquipment(player.GetGuid(), prop); ok {
+			ent := GetBlobs().Get(id).(*Blob)
 			items[i] = ent
 			options[i] = fmt.Sprintf("%s: %v", names[i], ent)
 		} else {
@@ -368,13 +369,13 @@ func EquipMenu() {
 		return
 	}
 	if items[choice] != nil {
-		player.Clear(slots[choice])
+		RemoveEquipment(player.GetGuid(), slots[choice])
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
 		equippables := iterable.Data(iterable.Filter(player.Contents(),
-			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Entity)) }))
+			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob)) }))
 		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
-			player.Set(slots[choice], item.(*Entity).GetGuid())
+			SetEquipment(player.GetGuid(), slots[choice], item.(*Blob).GetGuid())
 			Msg("Equipped %v.\n", item)
 		}
 	}
@@ -409,7 +410,7 @@ func UiHelpLines() iterable.Iterable {
 	if len(iterable.Data(TakeableItems(player.GetPos()))) > 0 {
 		vec.Push(",: pick up item")
 	}
-	if world.GetTerrain(player.GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
@@ -420,7 +421,7 @@ func StuffOnGroundMsg() {
 	world := GetWorld()
 	player := world.GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
-	stairs := world.GetTerrain(player.GetPos()) == TerrainStairDown
+	stairs := GetArea().GetTerrain(player.GetPos()) == TerrainStairDown
 	if len(items) > 1 {
 		Msg("There are several items here.\n")
 	} else if len(items) == 1 {
@@ -440,7 +441,7 @@ func ApplyItemMenu() (actionMade bool) {
 		return false
 	}
 	if item, ok := ObjectChoiceDialog("Use which item?", items); ok {
-		UseItem(player, item.(*Entity))
+		UseItem(player, item.(*Blob))
 		return true
 	} else {
 		Msg("Okay, then.\n")
