@@ -48,7 +48,6 @@ type World struct {
 	playerId     entity.Id
 	areaId       entity.Id
 	los          []LosState
-	guidCounter  uint64
 	currentLevel int32
 }
 
