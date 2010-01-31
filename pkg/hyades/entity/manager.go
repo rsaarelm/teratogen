@@ -17,9 +17,6 @@ const NilId = Id(0)
 
 type ComponentFamily string
 
-// Assemblages specify the initial component sets of new entities.
-type Assemblage map[ComponentFamily]interface{}
-
 // The manager holds all the component handlers and creates new entities.
 type Manager struct {
 	nextGuid     int64
@@ -50,17 +47,6 @@ func (self *Manager) Handler(family ComponentFamily) Handler {
 // SetHandler sets the component handler for the given component family.
 func (self *Manager) SetHandler(family ComponentFamily, handler Handler) {
 	self.handlers[family] = handler
-}
-
-// BuildEntity creates a new entity, gives it the component values in the
-// component families specified by the assemblage and returns the entity
-// value.
-func (self *Manager) BuildEntity(assemblage Assemblage) (result Id) {
-	result = self.NewEntity()
-	for family, component := range assemblage {
-		self.Handler(family).Add(result, component)
-	}
-	return
 }
 
 // RemoveEntity removes the entity from the Manager. It is removed from all
