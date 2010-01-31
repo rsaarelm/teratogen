@@ -193,7 +193,10 @@ func (self *World) InitLevel(depth int) {
 }
 
 func makeSpawnDistribution(depth int) num.WeightedDist {
-	weightFn := func(item interface{}) float64 { return item.(*entityPrototype).SpawnWeight(depth) }
+	weightFn := func(item interface{}) float64 {
+		proto := item.(*entityPrototype)
+		return SpawnWeight(proto.Scarcity, proto.MinDepth, depth)
+	}
 	values := make([]interface{}, len(prototypes))
 	i := 0
 	for _, val := range prototypes {

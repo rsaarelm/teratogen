@@ -131,18 +131,18 @@ func (self *entityPrototype) MakeEntity(prototypes map[string]*entityPrototype, 
 	self.applyProps(prototypes, target)
 }
 
-func (self *entityPrototype) SpawnWeight(depth int) (result float64) {
+func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
 	const outOfDepthFactor = 2.0
-	scarcity := float64(self.Scarcity)
+	fscarcity := float64(scarcity)
 
-	if depth < self.MinDepth {
+	if depth < minDepth {
 		// Exponentially increase the scarcity for each level out of depth
-		outOfDepth := self.MinDepth - depth
-		scarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
+		outOfDepth := minDepth - depth
+		fscarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
 	}
 
-	result = 1.0 / scarcity
+	result = 1.0 / fscarcity
 	// Make too scarse weights just plain zero.
 	if result < epsilon {
 		result = 0.0
