@@ -22,6 +22,8 @@ import (
 
 const bitsPerPixel = 32
 
+const keyBufferSize = 16
+
 //////////////////////////////////////////////////////////////////
 // SDL Context object
 //////////////////////////////////////////////////////////////////
@@ -129,7 +131,7 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	result = ctx
 	ctx.config = config
 	ctx.screen = screen
-	ctx.kbd = make(chan int, 1)
+	ctx.kbd = make(chan int, keyBufferSize)
 	ctx.mouse = make(chan draw.Mouse, 1)
 	ctx.resize = make(chan bool, 1)
 	ctx.quit = make(chan bool, 1)
@@ -294,7 +296,11 @@ func (self *context) eventLoop() {
 				}
 
 				// Non-blocking send.
-				_ = self.kbd <- chr
+				if ok := self.kbd <- chr; !ok {
+					// Key buffer is full. Drop oldest key.
+					_, _ = <-self.kbd
+					_ = self.kbd <- chr
+				}
 			case C.SDL_MOUSEMOTION:
 				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
 				// XXX: SDL mouse button state *should* map
