@@ -83,7 +83,7 @@ func InitWorld() {
 
 	world.initLos()
 
-	player := world.Spawn(prototypes["protagonist"])
+	player := world.Spawn("protagonist")
 	world.playerId = player.GetGuid()
 
 	return
@@ -128,24 +128,21 @@ func (self *World) DestroyEntity(ent *Blob) {
 	GetManager().RemoveEntity(ent.GetGuid())
 }
 
-func (self *World) Spawn(prototype *entityPrototype) *Blob {
-	guid := GetManager().NewEntity()
-	blob := NewEntity(guid)
+func (self *World) Spawn(name string) *Blob {
+	manager := GetManager()
+	guid := assemblages[name].MakeEntity(manager)
 
-	GetBlobs().Add(guid, blob)
-
-	prototype.MakeEntity(prototypes, blob)
-	return blob
+	return GetBlobs().Get(guid).(*Blob)
 }
 
-func (self *World) SpawnAt(prototype *entityPrototype, pos geom.Pt2I) (result *Blob) {
-	result = self.Spawn(prototype)
+func (self *World) SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
+	result = self.Spawn(name)
 	result.MoveAbs(pos)
 	return
 }
 
-func (self *World) SpawnRandomPos(prototype *entityPrototype) (result *Blob) {
-	return self.SpawnAt(prototype, self.GetSpawnPos())
+func (self *World) SpawnRandomPos(name string) (result *Blob) {
+	return self.SpawnAt(name, self.GetSpawnPos())
 }
 
 func (self *World) clearNonplayerEntities() {
@@ -186,7 +183,7 @@ func (self *World) InitLevel(depth int) {
 
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
-		proto := spawns.Sample(rand.Float64()).(*entityPrototype)
+		proto := spawns.Sample(rand.Float64()).(string)
 		ent := self.Spawn(proto)
 		ent.MoveAbs(self.GetSpawnPos())
 	}
@@ -194,13 +191,13 @@ func (self *World) InitLevel(depth int) {
 
 func makeSpawnDistribution(depth int) num.WeightedDist {
 	weightFn := func(item interface{}) float64 {
-		proto := item.(*entityPrototype)
+		proto := assemblages[item.(string)][BlobComponent].(*blobTemplate)
 		return SpawnWeight(proto.Scarcity, proto.MinDepth, depth)
 	}
-	values := make([]interface{}, len(prototypes))
+	values := make([]interface{}, len(assemblages))
 	i := 0
-	for _, val := range prototypes {
-		values[i] = val
+	for name, _ := range assemblages {
+		values[i] = name
 		i++
 	}
 	return num.MakeWeightedDist(weightFn, values)

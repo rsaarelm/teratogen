@@ -10,7 +10,7 @@ type ComponentTemplate interface {
 
 	// MakeComponent creates the component specified by this template and adds
 	// it to the given entity.
-	MakeComponent(manager Manager, entity Id)
+	MakeComponent(manager *Manager, guid Id)
 }
 
 // An assemblage is a collection of component templates. They specify entity
@@ -20,7 +20,7 @@ type Assemblage map[ComponentFamily]ComponentTemplate
 // MakeEntity applies all component templates in the assemblage to a new
 // entity in an unspecified order and returns the id of the resulting new
 // entity.
-func (self Assemblage) MakeEntity(manager Manager) (result Id) {
+func (self Assemblage) MakeEntity(manager *Manager) (result Id) {
 	result = manager.NewEntity()
 	for _, v := range self {
 		v.MakeComponent(manager, result)
