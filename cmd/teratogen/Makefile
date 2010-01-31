@@ -9,6 +9,7 @@ GOFILES=\
 	contain.go\
 	creature.go\
 	entity.go\
+	factory.go\
 	mapgen.go\
 	main.go\
 	mapview.go\
