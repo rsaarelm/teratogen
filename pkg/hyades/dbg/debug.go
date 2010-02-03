@@ -72,7 +72,7 @@ func PrintBacktrace() {
 	}
 }
 
-func Die(format string, a ...) {
+func Die(format string, a ...interface{}) {
 	panic(fmt.Sprintf(format, a))
 
 	// fmt.Print(msg + "\n")
@@ -84,22 +84,24 @@ func Die(format string, a ...) {
 	// os.Exit(1)
 }
 
-func Assert(exp bool, format string, a ...) {
+func Assert(exp bool, format string, a ...interface{}) {
 	if !exp {
 		Die(format, a)
 	}
 }
 
-func AssertNotNil(val interface{}, format string, a ...) {
+func AssertNotNil(val interface{}, format string, a ...interface{}) {
 	Assert(val != nil, format, a)
 }
 
-func AssertNil(val interface{}, format string, a ...) {
+func AssertNil(val interface{}, format string, a ...interface{}) {
 	Assert(val == nil, format, a)
 }
 
 // Make a note of a problem that isn't fatal but is still nice to know.
-func Warn(format string, a ...) { fmt.Println("Warning: " + fmt.Sprintf(format, a)) }
+func Warn(format string, a ...interface{}) {
+	fmt.Println("Warning: " + fmt.Sprintf(format, a))
+}
 
 func AssertNoError(err os.Error) {
 	if err != nil {
