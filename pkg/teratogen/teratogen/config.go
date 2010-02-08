@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"hyades/babble"
-	"hyades/keyboard"
+//	"hyades/keyboard"
 	"hyades/num"
 	"os"
 	"unsafe"
@@ -45,11 +45,11 @@ func ParseConfig() {
 
 	switch config.KeyLayout {
 	case "qwerty":
-		keymap = keyboard.KeyMap(keyboard.QwertyMap)
+//		keymap = keyboard.KeyMap(keyboard.QwertyMap)
 	case "colemak":
-		keymap = keyboard.KeyMap(keyboard.ColemakMap)
+//		keymap = keyboard.KeyMap(keyboard.ColemakMap)
 	case "dvorak":
-		keymap = keyboard.KeyMap(keyboard.DvorakMap)
+//		keymap = keyboard.KeyMap(keyboard.DvorakMap)
 	default:
 		usage()
 	}
@@ -62,14 +62,14 @@ func ParseConfig() {
 		usage()
 	}
 
-	screenWidth = config.Scale * baseScreenWidth
-	screenHeight = config.Scale * baseScreenHeight
+//	screenWidth = config.Scale * baseScreenWidth
+//	screenHeight = config.Scale * baseScreenHeight
 
-	FontW = config.Scale * baseFontW
-	FontH = config.Scale * baseFontH
+//	FontW = config.Scale * baseFontW
+//	FontH = config.Scale * baseFontH
 
-	TileW = baseTileW * config.Scale * config.TileScale
-	TileH = baseTileH * config.Scale * config.TileScale
+//	TileW = baseTileW * config.Scale * config.TileScale
+//	TileH = baseTileH * config.Scale * config.TileScale
 }
 
 func RandStateToBabble(state num.RandState) string {

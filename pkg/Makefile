@@ -13,10 +13,13 @@ DIRS=\
 	hyades/keyboard\
 	hyades/mem\
 	hyades/num\
-	hyades/sdl\
 	hyades/sfx\
 	hyades/txt\
 	teratogen/teratogen\
+
+#	teratogen/sdlui\
+
+#	hyades/sdl\
 
 NOTEST=\
 	hyades/dbg\
@@ -28,6 +31,8 @@ NOTEST=\
 	hyades/sdl\
 	hyades/sfx\
 	teratogen/teratogen\
+
+#	teratogen/sdlui\
 
 TEST=$(filter-out $(NOTEST),$(DIRS))
 

@@ -1,4 +1,4 @@
-package teratogen
+package sdlui
 
 import (
 	"container/vector"

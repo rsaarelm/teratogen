@@ -21,18 +21,18 @@ var manager *entity.Manager
 
 const WorldComponent = entity.ComponentFamily("world")
 
-func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
-}
-
-func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
-}
-
-func Draw(g gfx.Graphics, spriteId string, x, y int) {
-	sx, sy := DrawPos(geom.Pt2I{x, y})
-	DrawSprite(g, spriteId, sx, sy)
-}
+//func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
+//	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
+//}
+//
+//func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
+//	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
+//}
+//
+//func Draw(g gfx.Graphics, spriteId string, x, y int) {
+//	sx, sy := DrawPos(geom.Pt2I{x, y})
+//	DrawSprite(g, spriteId, sx, sy)
+//}
 
 type LosState byte
 
@@ -117,7 +117,7 @@ func (self *World) GetEntity(guid entity.Id) *Blob {
 func (self *World) DestroyEntity(ent *Blob) {
 	ent.RemoveSelf()
 	if ent == self.GetPlayer() {
-		if GameRunning() {
+		if /*GameRunning() */ false {
 			// Ensure gameover if player is destroyed by unknown means.
 			GameOver("was wiped out of existence.")
 		}
@@ -356,7 +356,7 @@ func (self *World) drawEntities(g gfx.Graphics) {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e) {
-				Draw(g, e.IconId, pos.X, pos.Y)
+//				Draw(g, e.IconId, pos.X, pos.Y)
 			}
 		}
 	}

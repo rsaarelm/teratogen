@@ -58,3 +58,6 @@ func (self *MsgOut) Write(p []byte) (n int, err os.Error) {
 	n = len(p)
 	return
 }
+
+func Msg(format string, a ...) { /* XXX Dummy function */ }
+

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"hyades/num"
-	"os"
+//	"os"
 	"teratogen/teratogen"
 )
 
@@ -11,6 +11,7 @@ func main() {
 	teratogen.ParseConfig()
 
 	seed := num.RandStateFromClock()
+/*
 	var err os.Error
 	if config.RngSeed != "" {
 		seed, err = teratogen.BabbleToRandState(config.RngSeed)
@@ -19,17 +20,18 @@ func main() {
 			seed = num.RandStateFromClock()
 		}
 	}
+*/
 
 	num.RestoreRngState(seed)
 	fmt.Println("Logos:", teratogen.RandStateToBabble(seed))
 
-	teratogen.InitUI()
-	teratogen.InitMedia()
+//	teratogen.InitUI()
+//	teratogen.InitMedia()
 
 	teratogen.InitWorld()
 
 	teratogen.GetWorld().InitLevel(1)
 
 	go teratogen.LogicLoop()
-	teratogen.MainUILoop()
+//	teratogen.MainUILoop()
 }

@@ -11,11 +11,8 @@ GOFILES=\
 	entity.go\
 	factory.go\
 	mapgen.go\
-	mapview.go\
-	media.go\
 	msg.go\
 	rules.go\
-	ui.go\
 	world.go\
 
 include $(GOROOT)/src/Make.pkg
