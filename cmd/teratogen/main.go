@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"hyades/num"
 	"os"
+	"teratogen/teratogen"
 )
 
 func main() {
-	ParseConfig()
+	teratogen.ParseConfig()
 
 	seed := num.RandStateFromClock()
 	var err os.Error
 	if config.RngSeed != "" {
-		seed, err = BabbleToRandState(config.RngSeed)
+		seed, err = teratogen.BabbleToRandState(config.RngSeed)
 		if err != nil {
 			fmt.Printf("Invalid genesis seed: %s.\n", config.RngSeed)
 			seed = num.RandStateFromClock()
@@ -20,15 +21,15 @@ func main() {
 	}
 
 	num.RestoreRngState(seed)
-	fmt.Println("Logos:", RandStateToBabble(seed))
+	fmt.Println("Logos:", teratogen.RandStateToBabble(seed))
 
-	InitUI()
-	InitMedia()
+	teratogen.InitUI()
+	teratogen.InitMedia()
 
-	InitWorld()
+	teratogen.InitWorld()
 
-	GetWorld().InitLevel(1)
+	teratogen.GetWorld().InitLevel(1)
 
-	go LogicLoop()
-	MainUILoop()
+	go teratogen.LogicLoop()
+	teratogen.MainUILoop()
 }
