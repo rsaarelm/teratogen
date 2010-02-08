@@ -136,7 +136,7 @@ func FilterTransparent(img draw.Image, transparencyColor image.Color) {
 
 func Clip(src image.Image, cons Constructor, rect draw.Rectangle) (result draw.Image) {
 	result = cons(rect.Dx(), rect.Dy())
-	draw.Draw(result, draw.Rect(0, 0, result.Width(), result.Height()), src, nil, rect.Min)
+	draw.Draw(result, draw.Rect(0, 0, result.Width(), result.Height()), src, rect.Min)
 	return
 }
 
