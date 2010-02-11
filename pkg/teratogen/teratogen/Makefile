@@ -3,7 +3,6 @@ include $(GOROOT)/src/Make.$(GOARCH)
 TARG=teratogen/teratogen
 GOFILES=\
 	ai.go\
-	anim.go\
 	area.go\
 	config.go\
 	contain.go\
