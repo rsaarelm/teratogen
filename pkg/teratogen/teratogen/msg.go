@@ -2,7 +2,6 @@ package teratogen
 
 import (
 	"container/vector"
-	"hyades/txt"
 	"os"
 	"strings"
 )
