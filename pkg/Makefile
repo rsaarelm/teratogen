@@ -30,7 +30,6 @@ NOTEST=\
 	hyades/num\
 	hyades/sdl\
 	hyades/sfx\
-	teratogen/teratogen\
 
 #	teratogen/sdlui\
 
