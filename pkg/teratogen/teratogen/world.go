@@ -14,7 +14,6 @@ import (
 	"rand"
 )
 
-
 const spawnsPerLevel = 32
 
 var manager *entity.Manager
@@ -42,27 +41,11 @@ const (
 	LosSeen
 )
 
-func GetManager() *entity.Manager { return manager }
-
 type World struct {
 	playerId     entity.Id
 	areaId       entity.Id
 	los          []LosState
 	currentLevel int32
-}
-
-func makeManager() (result *entity.Manager) {
-	result = entity.NewManager()
-	result.SetHandler(WorldComponent, new(World))
-	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
-	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
-
-	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
-	result.SetHandler(MeleeEquipComponent, entity.NewRelation(entity.OneToOne))
-	result.SetHandler(GunEquipComponent, entity.NewRelation(entity.OneToOne))
-	result.SetHandler(ArmorEquipComponent, entity.NewRelation(entity.OneToOne))
-
-	return
 }
 
 func LoadGame(in io.Reader) {
@@ -71,34 +54,6 @@ func LoadGame(in io.Reader) {
 }
 
 func SaveGame(out io.Writer) { manager.Serialize(out) }
-
-func InitWorld() {
-	manager = makeManager()
-	world := GetWorld()
-	areas := manager.Handler(AreaComponent).(*entity.Container)
-
-	world.areaId = manager.NewEntity()
-	area := NewArea()
-	areas.Add(world.areaId, area)
-
-	world.initLos()
-
-	player := world.Spawn("protagonist")
-	world.playerId = player.GetGuid()
-
-	return
-}
-
-func GetWorld() *World {
-	dbg.AssertNotNil(manager, "World not initialized.")
-	return GetManager().Handler(WorldComponent).(*World)
-}
-
-func GetArea() *Area {
-	return GetManager().Handler(AreaComponent).Get(GetWorld().areaId).(*Area)
-}
-
-func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
 
 func (self *World) Draw(g gfx.Graphics) {
 	self.drawTerrain(g)
@@ -159,33 +114,6 @@ func (self *World) clearNonplayerEntities() {
 		if _, ok := keep[pair.Entity]; !ok {
 			defer GetManager().RemoveEntity(pair.Entity)
 		}
-	}
-}
-
-func (self *World) InitLevel(depth int) {
-	self.currentLevel = int32(depth)
-
-	self.initLos()
-
-	self.clearNonplayerEntities()
-
-	if num.WithProb(0.5) {
-		GetArea().MakeCaveMap()
-	} else {
-		GetArea().MakeBSPMap()
-	}
-
-	GetArea().SetTerrain(self.GetSpawnPos(), TerrainStairDown)
-
-	player := self.GetPlayer()
-	player.MoveAbs(self.GetSpawnPos())
-	self.DoLos(player.GetPos())
-
-	spawns := makeSpawnDistribution(depth)
-	for i := 0; i < spawnsPerLevel; i++ {
-		proto := spawns.Sample(rand.Float64()).(string)
-		ent := self.Spawn(proto)
-		ent.MoveAbs(self.GetSpawnPos())
 	}
 }
 
@@ -256,6 +184,7 @@ func (self *World) DoLos(center geom.Pt2I) {
 	}
 }
 
+// TODO: These no longer belong in World.
 func (self *World) Entities() iterable.Iterable {
 	return iterable.Map(GetBlobs().EntityComponents(), entity.IdComponent2Component)
 }
@@ -277,6 +206,7 @@ func (self *World) OtherCreatures(excluded interface{}) iterable.Iterable {
 	return iterable.Filter(self.Entities(), pred)
 }
 
+// TODO: Move to Area
 func (self *World) IsOpen(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(GetArea().GetTerrain(pos)) {
 		return false
@@ -291,6 +221,7 @@ func (self *World) IsOpen(pos geom.Pt2I) bool {
 	return true
 }
 
+// TODO: Move to Area
 func (self *World) GetSpawnPos() (pos geom.Pt2I) {
 	pos, ok := self.GetMatchingPos(
 		func(pos geom.Pt2I) bool { return self.isSpawnPos(pos) })
@@ -300,6 +231,7 @@ func (self *World) GetSpawnPos() (pos geom.Pt2I) {
 	return
 }
 
+// TODO: Move to Area
 func (self *World) isSpawnPos(pos geom.Pt2I) bool {
 	if !self.IsOpen(pos) {
 		return false
@@ -313,6 +245,7 @@ func (self *World) isSpawnPos(pos geom.Pt2I) bool {
 	return true
 }
 
+// TODO: Move to Area
 func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found bool) {
 	const tries = 1024
 
@@ -335,6 +268,7 @@ func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found 
 	return geom.Pt2I{0, 0}, false
 }
 
+// TODO: Move to SDL client
 func (self *World) drawEntities(g gfx.Graphics) {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
@@ -356,12 +290,13 @@ func (self *World) drawEntities(g gfx.Graphics) {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e) {
-//				Draw(g, e.IconId, pos.X, pos.Y)
+				//				Draw(g, e.IconId, pos.X, pos.Y)
 			}
 		}
 	}
 }
 
+// TODO: Move to SDLClient
 func entityEarlierInDrawOrder(i, j interface{}) bool {
 	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
 }

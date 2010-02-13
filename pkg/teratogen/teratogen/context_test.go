@@ -7,32 +7,28 @@ import (
 )
 
 func TestWorld(t *testing.T) {
-	InitWorld()
-	world := GetWorld()
-	if world == nil {
-		t.Errorf("World not initialized.")
-	}
+	context := NewContext()
+	context.InitGame()
 
-	world.InitLevel(1)
-
-	if world.GetPlayer() == nil {
+	if context.GetPlayer() == nil {
 		t.Errorf("Player not initialized.")
 	}
 
 	// Store a string representation of player state for later.
-	playerState := fmt.Sprintf("%#v", world.GetPlayer())
+	playerState := fmt.Sprintf("%#v", context.GetPlayer())
 
 	// Try saving the game.
 	file := new(bytes.Buffer)
-	SaveGame(file)
+	context.Serialize(file)
 
+	context.InitGame()
 	// Munge stuff a bit.
-	world.InitLevel(2)
+	context.EnterLevel(2)
 
-	LoadGame(bytes.NewBuffer(file.Bytes()))
+	context = LoadContext(bytes.NewBuffer(file.Bytes()))
 
 	// See that at least some of the state is the same.
-	if playerState != fmt.Sprintf("%#v", world.GetPlayer()) {
+	if playerState != fmt.Sprintf("%#v", context.GetPlayer()) {
 		t.Errorf("Player state was changed during save-load.")
 	}
 }

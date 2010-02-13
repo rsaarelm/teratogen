@@ -5,6 +5,7 @@ GOFILES=\
 	ai.go\
 	area.go\
 	contain.go\
+	context.go\
 	creature.go\
 	entity.go\
 	factory.go\
