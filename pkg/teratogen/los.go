@@ -80,3 +80,7 @@ func (self *Los) DoLos(center geom.Pt2I) {
 		self.MarkSeen(center.Plus(pt))
 	}
 }
+
+func (self *Los) Width() int { return mapWidth }
+
+func (self *Los) Height() int { return mapHeight }

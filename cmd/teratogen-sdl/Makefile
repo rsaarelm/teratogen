@@ -18,8 +18,8 @@ media.tar.gz: $(MEDIAFILES)
 
 CLEANFILES+=media.tar.gz teratogen
 
-teratogen: teratogen_base media.tar.gz
+teratogen-sdl: teratogen_base media.tar.gz
 	cat teratogen_base media.tar.gz > teratogen
 	chmod a+x teratogen
 
-all: teratogen
+all: teratogen-sdl

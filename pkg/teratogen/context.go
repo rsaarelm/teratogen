@@ -1,8 +1,10 @@
 package teratogen
 
 import (
+	"exp/iterable"
 	"hyades/dbg"
 	"hyades/entity"
+	"hyades/geom"
 	"hyades/num"
 	"io"
 	"rand"
@@ -80,7 +82,7 @@ func (self *Context) EnterLevel(depth int) {
 	}
 }
 
-func (self *Context) GetPlayer() *Blob { return self.getWorld().GetPlayer() }
+func GetPlayer() *Blob { return GetWorld().GetPlayer() }
 
 func (self *Context) Deserialize(in io.Reader) {
 	self.manager = makeManager()
@@ -120,3 +122,19 @@ func GetArea() *Area {
 func GetLos() *Los { return GetManager().Handler(LosComponent).Get(GetWorld().areaId).(*Los) }
 
 func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
+
+// Entities iterates through all the game objects in the current context.
+// XXX: Currently only iterates entities with a blob component.
+func Entities() iterable.Iterable {
+	return iterable.Map(GetBlobs().EntityComponents(), entity.IdComponent2Component)
+}
+
+// EntitiesAt iterates through all entities which have a positional component
+// and are located at a given point.
+func EntitiesAt(pos geom.Pt2I) iterable.Iterable {
+	posPred := func(obj interface{}) bool {
+		e := obj.(*Blob)
+		return e.GetParent() == nil && e.GetPos().Equals(pos)
+	}
+	return iterable.Filter(Entities(), posPred)
+}

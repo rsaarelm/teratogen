@@ -130,6 +130,10 @@ func (self *Area) MakeCaveMap() {
 	}
 }
 
+func (self *Area) Width() int { return mapWidth }
+
+func (self *Area) Height() int { return mapHeight }
+
 func (self *World) drawTerrain(g gfx.Graphics) {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if GetLos().Get(pt) == LosUnknown {

@@ -10,12 +10,12 @@ func TestWorld(t *testing.T) {
 	context := NewContext()
 	context.InitGame()
 
-	if context.GetPlayer() == nil {
+	if GetPlayer() == nil {
 		t.Errorf("Player not initialized.")
 	}
 
 	// Store a string representation of player state for later.
-	playerState := fmt.Sprintf("%#v", context.GetPlayer())
+	playerState := fmt.Sprintf("%#v", GetPlayer())
 
 	// Try saving the game.
 	file := new(bytes.Buffer)
@@ -29,7 +29,7 @@ func TestWorld(t *testing.T) {
 	context = LoadContext(bytes.NewBuffer(save1))
 
 	// See that at least some of the state is the same.
-	if playerState != fmt.Sprintf("%#v", context.GetPlayer()) {
+	if playerState != fmt.Sprintf("%#v", GetPlayer()) {
 		t.Errorf("Player state was changed during save-load.")
 	}
 

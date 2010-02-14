@@ -12,6 +12,7 @@ GOFILES=\
 	los.go\
 	mapgen.go\
 	msg.go\
+	rng.go\
 	rules.go\
 	world.go\
 
