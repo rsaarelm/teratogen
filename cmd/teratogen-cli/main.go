@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"hyades/geom"
 	"hyades/num"
+	"os"
 	game "teratogen"
 )
 
@@ -16,6 +18,9 @@ func main() {
 	fmt.Println("Command-line teratogen.")
 
 	PrintArea()
+
+	fmt.Print("> ")
+	fmt.Println(ReadLine())
 }
 
 func PrintArea() {
@@ -49,4 +54,13 @@ func PrintArea() {
 		}
 		fmt.Println()
 	}
+}
+
+func ReadLine() (result string) {
+	in := bufio.NewReader(os.Stdin)
+	result, err := in.ReadString('\n')
+	if err != nil {
+		panic("ReadLine error.")
+	}
+	return
 }
