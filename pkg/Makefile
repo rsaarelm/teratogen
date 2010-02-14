@@ -15,9 +15,7 @@ DIRS=\
 	hyades/num\
 	hyades/sfx\
 	hyades/txt\
-	teratogen/teratogen\
-
-#	teratogen/sdlui\
+	teratogen\
 
 #	hyades/sdl\
 
@@ -30,8 +28,6 @@ NOTEST=\
 	hyades/num\
 	hyades/sdl\
 	hyades/sfx\
-
-#	teratogen/sdlui\
 
 TEST=$(filter-out $(NOTEST),$(DIRS))
 

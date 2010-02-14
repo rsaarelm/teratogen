@@ -1,4 +1,4 @@
-package sdlui
+package main
 
 import (
 	"container/vector"

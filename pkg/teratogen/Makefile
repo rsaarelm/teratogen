@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=teratogen/teratogen
+TARG=teratogen
 GOFILES=\
 	ai.go\
 	area.go\
