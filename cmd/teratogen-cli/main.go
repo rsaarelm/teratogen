@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"hyades/geom"
+	"hyades/gostak"
 	"hyades/num"
 	"os"
 	game "teratogen"
@@ -17,10 +18,12 @@ func main() {
 	context.InitGame()
 	fmt.Println("Command-line teratogen.")
 
+	interp := gostak.NewGostakState()
+	interp.LoadBuiltins()
+
 	PrintArea()
 
-	fmt.Print("> ")
-	fmt.Println(ReadLine())
+	Repl(interp)
 }
 
 func PrintArea() {
@@ -63,4 +66,16 @@ func ReadLine() (result string) {
 		panic("ReadLine error.")
 	}
 	return
+}
+
+func Repl(interp *gostak.GostakState) {
+	for {
+		fmt.Print("> ")
+		str := ReadLine()
+		interp.ParseString(str)
+
+		for i := 0; i < interp.Len(); i++ {
+			fmt.Println(interp.At(i))
+		}
+	}
 }
