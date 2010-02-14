@@ -57,8 +57,6 @@ func (self *Area) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
 
 func (self *Area) Deserialize(in io.Reader) { entity.GobDeserialize(in, self) }
 
-// TODO: Move methods from World to Area.
-
 func IsObstacleTerrain(terrain TerrainType) bool {
 	switch terrain {
 	case TerrainWall, TerrainDirt:
@@ -134,7 +132,7 @@ func (self *Area) MakeCaveMap() {
 
 func (self *World) drawTerrain(g gfx.Graphics) {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if self.GetLos(pt) == LosUnknown {
+		if GetLos().Get(pt) == LosUnknown {
 			continue
 		}
 		idx := GetArea().GetTerrain(pt)

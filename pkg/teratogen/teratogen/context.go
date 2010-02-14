@@ -31,9 +31,7 @@ func LoadContext(in io.Reader) (result *Context) {
 // GetContext returns the global Context value.
 func GetContext() (result *Context) { return gContext }
 
-func GetManager() *entity.Manager {
-	return GetContext().manager
-}
+func GetManager() *entity.Manager { return GetContext().manager }
 
 func (self *Context) InitGame() {
 	// TODO: Ditch World
@@ -51,11 +49,13 @@ func (self *Context) InitGame() {
 func (self *Context) EnterLevel(depth int) {
 	world := self.getWorld()
 
+	// Delete old area.
+	self.manager.RemoveEntity(world.areaId)
+
+	// Make new area.
 	world.areaId = self.manager.NewEntity()
 	GetManager().Handler(AreaComponent).Add(world.areaId, NewArea())
-
-	// TODO: Line-of-sight component
-	world.initLos()
+	GetManager().Handler(LosComponent).Add(world.areaId, NewLos())
 
 	// Move player and inventory to the new level, ditch other entities.
 	world.clearNonplayerEntities()
@@ -70,7 +70,7 @@ func (self *Context) EnterLevel(depth int) {
 
 	player := world.GetPlayer()
 	player.MoveAbs(world.GetSpawnPos())
-	world.DoLos(player.GetPos())
+	GetLos().DoLos(player.GetPos())
 
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
@@ -80,9 +80,7 @@ func (self *Context) EnterLevel(depth int) {
 	}
 }
 
-func (self *Context) GetPlayer() *Blob {
-	return self.getWorld().GetPlayer()
-}
+func (self *Context) GetPlayer() *Blob { return self.getWorld().GetPlayer() }
 
 func (self *Context) Deserialize(in io.Reader) {
 	self.manager = makeManager()
@@ -96,6 +94,7 @@ func makeManager() (result *entity.Manager) {
 	result = entity.NewManager()
 	result.SetHandler(WorldComponent, new(World))
 	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
+	result.SetHandler(LosComponent, entity.NewContainer(new(Los)))
 	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
 
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
@@ -117,5 +116,7 @@ func GetWorld() *World {
 func GetArea() *Area {
 	return GetManager().Handler(AreaComponent).Get(GetWorld().areaId).(*Area)
 }
+
+func GetLos() *Los { return GetManager().Handler(LosComponent).Get(GetWorld().areaId).(*Los) }
 
 func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
