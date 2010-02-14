@@ -144,6 +144,6 @@ func (self *World) drawTerrain(g gfx.Graphics) {
 		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
 			idx = TerrainDirtFront
 		}
-//		Draw(g, tileset1[idx], pt.X, pt.Y)
+		//		Draw(g, tileset1[idx], pt.X, pt.Y)
 	}
 }

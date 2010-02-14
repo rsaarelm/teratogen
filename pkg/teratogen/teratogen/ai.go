@@ -34,12 +34,12 @@ var playerInputChan = make(chan func())
 
 func LogicLoop() {
 	for {
-//		playerInput := <-playerInputChan
-//		MarkMsgLinesSeen()
-//
-//		GetUISync()
-//		playerInput()
-//		RunAI()
-//		ReleaseUISync()
+		//		playerInput := <-playerInputChan
+		//		MarkMsgLinesSeen()
+		//
+		//		GetUISync()
+		//		playerInput()
+		//		RunAI()
+		//		ReleaseUISync()
 	}
 }

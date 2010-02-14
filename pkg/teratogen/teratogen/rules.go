@@ -1,13 +1,13 @@
 package teratogen
 
 import (
-//	"exp/draw"
+	//	"exp/draw"
 	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
-//	"hyades/gfx"
+	//	"hyades/gfx"
 	"hyades/num"
 	"hyades/txt"
 	"math"
@@ -216,8 +216,8 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
 	}
 
-//	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
-//	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+	//	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	//	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
 	DamagePos(hitPos, damageFactor, attacker)
@@ -298,7 +298,7 @@ func SmartMovePlayer(dir int) {
 	}
 	// No attack, move normally.
 	MovePlayerDir(dir)
-//	StuffOnGroundMsg()
+	//	StuffOnGroundMsg()
 }
 
 func RunAI() {
@@ -314,9 +314,9 @@ func RunAI() {
 }
 
 func GameOver(reason string) {
-//	MsgMore()
+	//	MsgMore()
 	fmt.Printf("%v %v\n", txt.Capitalize(GetWorld().GetPlayer().Name), reason)
-//	Quit()
+	//	Quit()
 }
 
 // Return whether the entity moves around by itself and shouldn't be shown in
@@ -420,7 +420,7 @@ func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 	choice := items[0]
 	if len(items) > 1 && !alwaysPickupFirst {
 		var ok bool
-//		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
+		//		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
 		if !ok {
 			Msg("Okay, then.\n")
 			return nil
