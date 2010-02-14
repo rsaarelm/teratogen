@@ -28,7 +28,7 @@ func PrintArea() {
 	area := game.GetArea()
 
 	for y := 0; y < area.Height(); y++ {
-		for x := 0; x < area.Width(); x++ {
+	Cell: for x := 0; x < area.Width(); x++ {
 			pt := geom.Pt2I{x, y}
 			if los.Get(pt) == game.LosSeen {
 				for i := range game.EntitiesAt(pt).Iter() {
@@ -40,7 +40,7 @@ func PrintArea() {
 					} else {
 						fmt.Print("x")
 					}
-					continue
+					continue Cell
 				}
 				terrainType := area.GetTerrain(pt)
 				if game.IsObstacleTerrain(terrainType) {
