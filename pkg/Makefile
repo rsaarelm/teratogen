@@ -1,6 +1,7 @@
 all: deps install
 
 DIRS=\
+	gostak\
 	hyades/alg\
 	hyades/babble\
 	hyades/dbg\
@@ -8,7 +9,6 @@ DIRS=\
 	hyades/fs\
 	hyades/geom\
 	hyades/gfx\
-	hyades/gostak\
 	hyades/gui\
 	hyades/keyboard\
 	hyades/mem\

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"hyades/geom"
-	"hyades/gostak"
+	"gostak"
 	"hyades/num"
 	"os"
 	game "teratogen"
