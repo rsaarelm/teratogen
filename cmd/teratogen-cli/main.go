@@ -72,10 +72,13 @@ func Repl(interp *gostak.GostakState) {
 	for {
 		fmt.Print("> ")
 		str := ReadLine()
-		interp.ParseString(str)
+		err := interp.ParseString(str)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
 
 		for i := 0; i < interp.Len(); i++ {
-			fmt.Println(interp.At(i))
+			fmt.Printf("%d: %v\n", i, interp.At(i))
 		}
 	}
 }
