@@ -9,6 +9,7 @@ GOFILES=\
 	creature.go\
 	entity.go\
 	factory.go\
+	globals.go\
 	los.go\
 	mapgen.go\
 	msg.go\

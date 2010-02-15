@@ -5,8 +5,8 @@ import (
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/gfx"
 	"io"
+	"rand"
 )
 
 const mapWidth = 40
@@ -134,6 +134,8 @@ func (self *Area) Width() int { return mapWidth }
 
 func (self *Area) Height() int { return mapHeight }
 
+// TODO: Move to sdl-client
+/*
 func (self *World) drawTerrain(g gfx.Graphics) {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		if GetLos().Get(pt) == LosUnknown {
@@ -150,4 +152,63 @@ func (self *World) drawTerrain(g gfx.Graphics) {
 		}
 		//		Draw(g, tileset1[idx], pt.X, pt.Y)
 	}
+}
+*/
+
+func IsOpen(pos geom.Pt2I) bool {
+	if IsObstacleTerrain(GetArea().GetTerrain(pos)) {
+		return false
+	}
+	for o := range EntitiesAt(pos).Iter() {
+		ent := o.(*Blob)
+		if ent.Has(FlagObstacle) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func GetSpawnPos() (pos geom.Pt2I) {
+	pos, ok := GetMatchingPos(
+		func(pos geom.Pt2I) bool { return isSpawnPos(pos) })
+	// XXX: Maybe this shouldn't be an assert, since a situation where no
+	// spawn pos can be found can occur during play.
+	dbg.Assert(ok, "Couldn't find open spawn position.")
+	return
+}
+
+func isSpawnPos(pos geom.Pt2I) bool {
+	if !IsOpen(pos) {
+		return false
+	}
+	if GetArea().GetTerrain(pos) == TerrainDoor {
+		return false
+	}
+	if GetArea().GetTerrain(pos) == TerrainStairDown {
+		return false
+	}
+	return true
+}
+
+func GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found bool) {
+	const tries = 1024
+
+	for i := 0; i < tries; i++ {
+		x, y := rand.Intn(mapWidth), rand.Intn(mapHeight)
+		pos = geom.Pt2I{x, y}
+		if f(pos) {
+			return pos, true
+		}
+	}
+
+	// RNG has failed us, let's do an exhaustive search...
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		if f(pt) {
+			return pt, true
+		}
+	}
+
+	// There really doesn't seem to be any open positions.
+	return geom.Pt2I{0, 0}, false
 }

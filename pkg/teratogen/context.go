@@ -2,7 +2,6 @@ package teratogen
 
 import (
 	"exp/iterable"
-	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -36,31 +35,27 @@ func GetContext() (result *Context) { return gContext }
 func GetManager() *entity.Manager { return GetContext().manager }
 
 func (self *Context) InitGame() {
-	// TODO: Ditch World
+	globals := GetGlobals()
 
-	// TODO: "Globals" component to hold player id
-
-	world := self.getWorld()
-
-	player := world.Spawn("protagonist")
-	world.playerId = player.GetGuid()
+	player := Spawn("protagonist")
+	globals.PlayerId = player.GetGuid()
 
 	self.EnterLevel(1)
 }
 
 func (self *Context) EnterLevel(depth int) {
-	world := self.getWorld()
+	globals := GetGlobals()
 
 	// Delete old area.
-	self.manager.RemoveEntity(world.areaId)
+	self.manager.RemoveEntity(globals.AreaId)
 
 	// Make new area.
-	world.areaId = self.manager.NewEntity()
-	GetManager().Handler(AreaComponent).Add(world.areaId, NewArea())
-	GetManager().Handler(LosComponent).Add(world.areaId, NewLos())
+	globals.AreaId = self.manager.NewEntity()
+	GetManager().Handler(AreaComponent).Add(globals.AreaId, NewArea())
+	GetManager().Handler(LosComponent).Add(globals.AreaId, NewLos())
 
 	// Move player and inventory to the new level, ditch other entities.
-	world.clearNonplayerEntities()
+	clearNonplayerEntities()
 
 	if num.WithProb(0.5) {
 		GetArea().MakeCaveMap()
@@ -68,21 +63,38 @@ func (self *Context) EnterLevel(depth int) {
 		GetArea().MakeBSPMap()
 	}
 
-	GetArea().SetTerrain(world.GetSpawnPos(), TerrainStairDown)
+	GetArea().SetTerrain(GetSpawnPos(), TerrainStairDown)
 
-	player := world.GetPlayer()
-	player.MoveAbs(world.GetSpawnPos())
+	player := GetPlayer()
+	player.MoveAbs(GetSpawnPos())
 	GetLos().DoLos(player.GetPos())
 
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
 		proto := spawns.Sample(rand.Float64()).(string)
-		ent := world.Spawn(proto)
-		ent.MoveAbs(world.GetSpawnPos())
+		SpawnRandomPos(proto)
 	}
+
+	globals.CurrentLevel = int32(depth)
 }
 
-func GetPlayer() *Blob { return GetWorld().GetPlayer() }
+func GetBlob(guid entity.Id) *Blob { return GetBlobs().Get(guid).(*Blob) }
+
+func DestroyBlob(ent *Blob) {
+	ent.RemoveSelf()
+	if ent == GetPlayer() {
+		if /*GameRunning() */ false {
+			// Ensure gameover if player is destroyed by unknown means.
+			GameOver("was wiped out of existence.")
+		}
+		// XXX: The system can't currently handle the player entity being
+		// removed.
+		return
+	}
+	GetManager().RemoveEntity(ent.GetGuid())
+}
+
+func GetPlayer() *Blob { return GetBlob(GetGlobals().PlayerId) }
 
 func (self *Context) Deserialize(in io.Reader) {
 	self.manager = makeManager()
@@ -91,10 +103,9 @@ func (self *Context) Deserialize(in io.Reader) {
 
 func (self *Context) Serialize(out io.Writer) { self.manager.Serialize(out) }
 
-
 func makeManager() (result *entity.Manager) {
 	result = entity.NewManager()
-	result.SetHandler(WorldComponent, new(World))
+	result.SetHandler(GlobalsComponent, new(Globals))
 	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
 	result.SetHandler(LosComponent, entity.NewContainer(new(Los)))
 	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
@@ -107,19 +118,15 @@ func makeManager() (result *entity.Manager) {
 	return
 }
 
-func (self *Context) getWorld() *World { return self.manager.Handler(WorldComponent).(*World) }
-
-// XXX: Deprecated, try to work via context instead.
-func GetWorld() *World {
-	dbg.AssertNotNil(gContext, "World not initialized.")
-	return GetContext().getWorld()
-}
+func GetGlobals() *Globals { return GetManager().Handler(GlobalsComponent).(*Globals) }
 
 func GetArea() *Area {
-	return GetManager().Handler(AreaComponent).Get(GetWorld().areaId).(*Area)
+	return GetManager().Handler(AreaComponent).Get(GetGlobals().AreaId).(*Area)
 }
 
-func GetLos() *Los { return GetManager().Handler(LosComponent).Get(GetWorld().areaId).(*Los) }
+func GetLos() *Los {
+	return GetManager().Handler(LosComponent).Get(GetGlobals().AreaId).(*Los)
+}
 
 func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
 
@@ -137,4 +144,11 @@ func EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 		return e.GetParent() == nil && e.GetPos().Equals(pos)
 	}
 	return iterable.Filter(Entities(), posPred)
+}
+
+func Creatures() iterable.Iterable { return iterable.Filter(Entities(), IsCreature) }
+
+func OtherCreatures(excluded interface{}) iterable.Iterable {
+	pred := func(o interface{}) bool { return o != excluded && IsCreature(o) }
+	return iterable.Filter(Entities(), pred)
 }

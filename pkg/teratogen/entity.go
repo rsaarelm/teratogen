@@ -144,7 +144,7 @@ func (self *Blob) GetGuidOpt(name string) (obj *Blob, ok bool) {
 	if prop == nil {
 		return
 	}
-	return GetWorld().GetEntity(prop.(entity.Id)), true
+	return GetBlob(prop.(entity.Id)), true
 }
 
 func (self *Blob) Has(name string) bool { return self.Get(name) != nil }

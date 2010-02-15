@@ -1,24 +1,12 @@
 package teratogen
 
 import (
-	"container/vector"
-	"exp/iterable"
-	"hyades/alg"
-	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/gfx"
-	"hyades/mem"
 	"hyades/num"
-	"io"
-	"rand"
 )
 
 const spawnsPerLevel = 32
-
-var manager *entity.Manager
-
-const WorldComponent = entity.ComponentFamily("world")
 
 //func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
 //	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
@@ -33,67 +21,33 @@ const WorldComponent = entity.ComponentFamily("world")
 //	DrawSprite(g, spriteId, sx, sy)
 //}
 
-type World struct {
-	playerId     entity.Id
-	areaId       entity.Id
-	currentLevel int32
-}
-
-func LoadGame(in io.Reader) {
-	manager = makeManager()
-	manager.Deserialize(in)
-}
-
-func SaveGame(out io.Writer) { manager.Serialize(out) }
-
+/*
 func (self *World) Draw(g gfx.Graphics) {
 	self.drawTerrain(g)
 	self.drawEntities(g)
 }
+*/
 
-func (self *World) GetPlayer() *Blob { return self.GetEntity(self.playerId) }
-
-func (self *World) GetEntity(guid entity.Id) *Blob {
-	if guid == *new(entity.Id) {
-		return nil
-	}
-	return GetBlobs().Get(guid).(*Blob)
-}
-
-func (self *World) DestroyEntity(ent *Blob) {
-	ent.RemoveSelf()
-	if ent == self.GetPlayer() {
-		if /*GameRunning() */ false {
-			// Ensure gameover if player is destroyed by unknown means.
-			GameOver("was wiped out of existence.")
-		}
-		// XXX: The system can't currently handle the player entity being
-		// removed.
-		return
-	}
-	GetManager().RemoveEntity(ent.GetGuid())
-}
-
-func (self *World) Spawn(name string) *Blob {
+func Spawn(name string) *Blob {
 	manager := GetManager()
 	guid := assemblages[name].MakeEntity(manager)
 
 	return GetBlobs().Get(guid).(*Blob)
 }
 
-func (self *World) SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
-	result = self.Spawn(name)
+func SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
+	result = Spawn(name)
 	result.MoveAbs(pos)
 	return
 }
 
-func (self *World) SpawnRandomPos(name string) (result *Blob) {
-	return self.SpawnAt(name, self.GetSpawnPos())
+func SpawnRandomPos(name string) (result *Blob) {
+	return SpawnAt(name, GetSpawnPos())
 }
 
-func (self *World) clearNonplayerEntities() {
+func clearNonplayerEntities() {
 	// Bring over player object and player's inventory.
-	player := self.GetPlayer()
+	player := GetPlayer()
 	keep := make(map[entity.Id]bool)
 	keep[player.GetGuid()] = true
 	for ent := range player.RecursiveContents().Iter() {
@@ -122,93 +76,9 @@ func makeSpawnDistribution(depth int) num.WeightedDist {
 	return num.MakeWeightedDist(weightFn, values)
 }
 
-func (self *World) CurrentLevelNum() int { return int(self.currentLevel) }
-
-// TODO: These no longer belong in World.
-func (self *World) Entities() iterable.Iterable {
-	return iterable.Map(GetBlobs().EntityComponents(), entity.IdComponent2Component)
-}
-
-func (self *World) EntitiesAt(pos geom.Pt2I) iterable.Iterable {
-	posPred := func(obj interface{}) bool {
-		e := obj.(*Blob)
-		return e.GetParent() == nil && e.GetPos().Equals(pos)
-	}
-	return iterable.Filter(self.Entities(), posPred)
-}
-
-func (self *World) Creatures() iterable.Iterable {
-	return iterable.Filter(self.Entities(), IsCreature)
-}
-
-func (self *World) OtherCreatures(excluded interface{}) iterable.Iterable {
-	pred := func(o interface{}) bool { return o != excluded && IsCreature(o) }
-	return iterable.Filter(self.Entities(), pred)
-}
-
-// TODO: Move to Area
-func (self *World) IsOpen(pos geom.Pt2I) bool {
-	if IsObstacleTerrain(GetArea().GetTerrain(pos)) {
-		return false
-	}
-	for o := range self.EntitiesAt(pos).Iter() {
-		ent := o.(*Blob)
-		if ent.Has(FlagObstacle) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// TODO: Move to Area
-func (self *World) GetSpawnPos() (pos geom.Pt2I) {
-	pos, ok := self.GetMatchingPos(
-		func(pos geom.Pt2I) bool { return self.isSpawnPos(pos) })
-	// XXX: Maybe this shouldn't be an assert, since a situation where no
-	// spawn pos can be found can occur during play.
-	dbg.Assert(ok, "Couldn't find open spawn position.")
-	return
-}
-
-// TODO: Move to Area
-func (self *World) isSpawnPos(pos geom.Pt2I) bool {
-	if !self.IsOpen(pos) {
-		return false
-	}
-	if GetArea().GetTerrain(pos) == TerrainDoor {
-		return false
-	}
-	if GetArea().GetTerrain(pos) == TerrainStairDown {
-		return false
-	}
-	return true
-}
-
-// TODO: Move to Area
-func (self *World) GetMatchingPos(f func(geom.Pt2I) bool) (pos geom.Pt2I, found bool) {
-	const tries = 1024
-
-	for i := 0; i < tries; i++ {
-		x, y := rand.Intn(mapWidth), rand.Intn(mapHeight)
-		pos = geom.Pt2I{x, y}
-		if f(pos) {
-			return pos, true
-		}
-	}
-
-	// RNG has failed us, let's do an exhaustive search...
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if f(pt) {
-			return pt, true
-		}
-	}
-
-	// There really doesn't seem to be any open positions.
-	return geom.Pt2I{0, 0}, false
-}
 
 // TODO: Move to SDL client
+/*
 func (self *World) drawEntities(g gfx.Graphics) {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
@@ -240,30 +110,4 @@ func (self *World) drawEntities(g gfx.Graphics) {
 func entityEarlierInDrawOrder(i, j interface{}) bool {
 	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
 }
-
-func (self *World) Serialize(out io.Writer) {
-	mem.WriteFixed(out, int64(self.playerId))
-	mem.WriteFixed(out, self.currentLevel)
-	mem.WriteFixed(out, int64(self.areaId))
-}
-
-func (self *World) Deserialize(in io.Reader) {
-	self.playerId = entity.Id(mem.ReadInt64(in))
-	self.currentLevel = mem.ReadInt32(in)
-	self.areaId = entity.Id(mem.ReadInt64(in))
-}
-
-// Component handler interface stubs
-
-func (self *World) Add(guid entity.Id, component interface{}) {
-}
-
-func (self *World) Remove(guid entity.Id) {}
-
-func (self *World) Get(guid entity.Id) interface{} {
-	return nil
-}
-
-func (self *World) EntityComponents() iterable.Iterable {
-	return alg.EmptyIter()
-}
+*/

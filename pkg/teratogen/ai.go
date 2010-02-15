@@ -5,8 +5,7 @@ import (
 )
 
 func DoAI(crit *Blob) {
-	world := GetWorld()
-	player := world.GetPlayer()
+	player := GetPlayer()
 	if player == nil || player == crit {
 		return
 	}
