@@ -356,13 +356,13 @@ func convertRect(rect draw.Rectangle) C.SDL_Rect {
 	}
 }
 
-// Due to syntax issues, I can't access a C struct field called "type"
-// directly. This function implements an indirect way.
+// Cgo can't access the "type" field of the SDL_Event union type directly.
+// This function casts the union into a minimal struct that contains only the
+// leading type byte.
 func eventType(evt *C.SDL_Event) byte {
-	// XXX: Exploiting the fact that type is always the first field in the
-	// struct. This isn't totally guaranteed, but I think SDL exploits it
-	// too, so they're not that likely to change it.
-	return *((*byte)(unsafe.Pointer(evt)))
+	return byte(((*struct {
+		_type C.Uint8
+	})(unsafe.Pointer(evt)))._type)
 }
 
 //////////////////////////////////////////////////////////////////
