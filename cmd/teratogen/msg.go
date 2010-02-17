@@ -2,14 +2,9 @@ package main
 
 import (
 	"container/vector"
-	"hyades/txt"
 	"os"
 	"strings"
 )
-
-func updateTicker(str string, lineLength int) string {
-	return txt.PadString(txt.EatPrefix(str, 1), lineLength)
-}
 
 type MsgOut struct {
 	lines *vector.StringVector
