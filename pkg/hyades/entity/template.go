@@ -42,7 +42,7 @@ func (self Assemblage) Derive(child Assemblage) (result Assemblage) {
 
 func copyAssemblage(assemblage Assemblage) (result Assemblage) {
 	result = make(Assemblage)
-	for k, v := range (assemblage) {
+	for k, v := range assemblage {
 		result[k] = v
 	}
 	return

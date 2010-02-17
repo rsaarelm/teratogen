@@ -1,8 +1,8 @@
 *.o
 *.8
+*.6
 _obj/
 cmd/databake/databake
-cmd/palsort/palsort
 cmd/sdltest/sdltest
 cmd/teratogen/teratogen
 *.cgo?.go

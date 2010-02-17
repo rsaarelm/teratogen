@@ -139,7 +139,7 @@ func DrawChar(g gfx.Graphics, char int, x, y int) {
 }
 
 // TODO: Support color
-func DrawString(g gfx.Graphics, x, y int, format string, a ...) {
+func DrawString(g gfx.Graphics, x, y int, format string, a ...interface{}) {
 	for _, char := range fmt.Sprintf(format, a) {
 		DrawChar(g, char, x, y)
 		x += FontW
@@ -148,7 +148,7 @@ func DrawString(g gfx.Graphics, x, y int, format string, a ...) {
 
 func GetMsg() *MsgOut { return ui.msg }
 
-func Msg(format string, a ...) { fmt.Fprintf(ui.msg, format, a) }
+func Msg(format string, a ...interface{}) { fmt.Fprintf(ui.msg, format, a) }
 
 func GameRunning() bool { return ui.running }
 

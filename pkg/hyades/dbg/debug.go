@@ -54,7 +54,7 @@ func StopClock(name string) {
 }
 
 func PrintClocks() {
-	for name, clock := range (clocks) {
+	for name, clock := range clocks {
 		fmt.Printf("%s: %f\n", name, float64(clock.Nanoseconds())/1e9)
 	}
 }

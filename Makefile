@@ -1,4 +1,4 @@
-CMDS=databake palsort sdltest teratogen
+CMDS=databake sdltest teratogen
 
 GOMAKE=$(GOBIN)/gomake
 
