@@ -181,7 +181,7 @@ func (self *context) Convert(img image.Image) Surface {
 		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask,
 		amask)
 
-	draw.Draw(surf, draw.Rect(0, 0, width, height), img, nil, draw.Pt(0, 0))
+	draw.Draw(surf, draw.Rect(0, 0, width, height), img, draw.Pt(0, 0))
 	return surf
 }
 
@@ -414,7 +414,7 @@ func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
 	} else {
 		// It's something else, naively draw the individual pixels.
 		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
-			self, nil, draw.Pt(0, 0))
+			self, draw.Pt(0, 0))
 
 	}
 }
