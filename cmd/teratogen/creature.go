@@ -1,13 +1,13 @@
-package teratogen
+package main
 
 import (
 	"exp/iterable"
 	"fmt"
 	"hyades/geom"
-	//	"hyades/gfx"
+	"hyades/gfx"
 	"hyades/num"
 	"hyades/txt"
-	//	"math"
+	"math"
 )
 
 func (self *Blob) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
@@ -58,16 +58,17 @@ func (self *Blob) ArmorFactor() (result int) {
 }
 
 func (self *Blob) Damage(woundLevel int, cause *Blob) {
+	world := GetWorld()
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
-	//	sx, sy := CenterDrawPos(self.GetPos())
-	//	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-	//		config.TileScale, 2e8, float64(config.TileScale)*20.0,
-	//		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
+	sx, sy := CenterDrawPos(self.GetPos())
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
+		config.TileScale, 2e8, float64(config.TileScale)*20.0,
+		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 
 	if self.IsKilledByWounds() {
-		//PlaySound("death")
-		if self == GetPlayer() {
+		PlaySound("death")
+		if self == world.GetPlayer() {
 			Msg("You die.\n")
 			var msg string
 			if cause != nil {
@@ -79,9 +80,9 @@ func (self *Blob) Damage(woundLevel int, cause *Blob) {
 		} else {
 			Msg("%v killed.\n", txt.Capitalize(self.Name))
 		}
-		DestroyBlob(self)
+		world.DestroyEntity(self)
 	} else {
-		//PlaySound("hit")
+		PlaySound("hit")
 
 		Msg("%v %v.\n",
 			txt.Capitalize(self.Name), self.WoundDescription())
@@ -111,7 +112,9 @@ func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLeve
 }
 
 func (self *Blob) TryMove(vec geom.Vec2I) (success bool) {
-	if IsOpen(self.GetPos().Plus(vec)) {
+	world := GetWorld()
+
+	if world.IsOpen(self.GetPos().Plus(vec)) {
 		self.Move(vec)
 		return true
 	}

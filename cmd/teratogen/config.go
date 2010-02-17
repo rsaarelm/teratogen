@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"flag"
 	"fmt"
-	//	"hyades/keyboard"
+	"hyades/babble"
+	"hyades/keyboard"
 	"hyades/num"
 	"os"
+	"unsafe"
 )
 
 type Config struct {
@@ -42,11 +45,11 @@ func ParseConfig() {
 
 	switch config.KeyLayout {
 	case "qwerty":
-		//		keymap = keyboard.KeyMap(keyboard.QwertyMap)
+		keymap = keyboard.KeyMap(keyboard.QwertyMap)
 	case "colemak":
-		//		keymap = keyboard.KeyMap(keyboard.ColemakMap)
+		keymap = keyboard.KeyMap(keyboard.ColemakMap)
 	case "dvorak":
-		//		keymap = keyboard.KeyMap(keyboard.DvorakMap)
+		keymap = keyboard.KeyMap(keyboard.DvorakMap)
 	default:
 		usage()
 	}
@@ -59,12 +62,33 @@ func ParseConfig() {
 		usage()
 	}
 
-	//	screenWidth = config.Scale * baseScreenWidth
-	//	screenHeight = config.Scale * baseScreenHeight
+	screenWidth = config.Scale * baseScreenWidth
+	screenHeight = config.Scale * baseScreenHeight
 
-	//	FontW = config.Scale * baseFontW
-	//	FontH = config.Scale * baseFontH
+	FontW = config.Scale * baseFontW
+	FontH = config.Scale * baseFontH
 
-	//	TileW = baseTileW * config.Scale * config.TileScale
-	//	TileH = baseTileH * config.Scale * config.TileScale
+	TileW = baseTileW * config.Scale * config.TileScale
+	TileH = baseTileH * config.Scale * config.TileScale
+}
+
+func RandStateToBabble(state num.RandState) string {
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.BigEndian, state)
+	return babble.EncodeToString(buf.Bytes())
+}
+
+func BabbleToRandState(bab string) (result num.RandState, err os.Error) {
+	data, err := babble.DecodeString(bab)
+	if err != nil {
+		return
+	}
+	if len(data) != unsafe.Sizeof(num.RandState(0)) {
+		err = os.NewError("Bad babble data length.")
+		return
+	}
+	var state num.RandState
+	err = binary.Read(bytes.NewBuffer(data), binary.BigEndian, &state)
+	result = state
+	return
 }

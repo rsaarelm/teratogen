@@ -1,4 +1,4 @@
-package teratogen
+package main
 
 import (
 	"container/vector"

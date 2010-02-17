@@ -1,11 +1,12 @@
-package teratogen
+package main
 
 import (
 	"hyades/geom"
 )
 
 func DoAI(crit *Blob) {
-	player := GetPlayer()
+	world := GetWorld()
+	player := world.GetPlayer()
 	if player == nil || player == crit {
 		return
 	}
@@ -33,12 +34,12 @@ var playerInputChan = make(chan func())
 
 func LogicLoop() {
 	for {
-		//		playerInput := <-playerInputChan
-		//		MarkMsgLinesSeen()
-		//
-		//		GetUISync()
-		//		playerInput()
-		//		RunAI()
-		//		ReleaseUISync()
+		playerInput := <-playerInputChan
+		MarkMsgLinesSeen()
+
+		GetUISync()
+		playerInput()
+		RunAI()
+		ReleaseUISync()
 	}
 }

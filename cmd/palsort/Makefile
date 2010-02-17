@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=teratogen-cli
+TARG=palsort
 GOFILES=\
 	main.go\
 

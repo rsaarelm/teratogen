@@ -1,12 +1,10 @@
 *.o
 *.8
-*.6
 _obj/
 cmd/databake/databake
 cmd/palsort/palsort
 cmd/sdltest/sdltest
-cmd/teratogen-sdl/teratogen-sdl
-cmd/teratogen-cli/teratogen-cli
+cmd/teratogen/teratogen
 *.cgo?.go
 *.cgo?.?
 *_cgo_*

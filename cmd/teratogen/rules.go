@@ -1,13 +1,13 @@
-package teratogen
+package main
 
 import (
-	//	"exp/draw"
+	"exp/draw"
 	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/geom"
-	//	"hyades/gfx"
+	"hyades/gfx"
 	"hyades/num"
 	"hyades/txt"
 	"math"
@@ -158,7 +158,7 @@ func IsEnemyOf(ent *Blob, possibleEnemy *Blob) bool {
 func EnemiesAt(ent *Blob, pos geom.Pt2I) iterable.Iterable {
 	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Blob)) }
 
-	return iterable.Filter(EntitiesAt(pos), filter)
+	return iterable.Filter(GetWorld().EntitiesAt(pos), filter)
 }
 
 // The scaleDifference is defender scale - attacker scale.
@@ -206,7 +206,7 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 	var hitPos geom.Pt2I
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
-		if !IsOpen(hitPos) {
+		if !GetWorld().IsOpen(hitPos) {
 			break
 		}
 	}
@@ -216,8 +216,8 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
 	}
 
-	//	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
-	//	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
 	DamagePos(hitPos, damageFactor, attacker)
@@ -234,13 +234,13 @@ func DamageEquipment(ent *Blob, slot string) {
 			} else {
 				Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
 			}
-			DestroyBlob(o)
+			GetWorld().DestroyEntity(o)
 		}
 	}
 }
 
 func DamagePos(pos geom.Pt2I, woundLevel int, cause *Blob) {
-	for o := range iterable.Filter(EntitiesAt(pos), IsCreature).Iter() {
+	for o := range iterable.Filter(GetWorld().EntitiesAt(pos), IsCreature).Iter() {
 		o.(*Blob).Damage(woundLevel, cause)
 	}
 }
@@ -257,15 +257,16 @@ func FudgeOpposed(ability, difficulty int) int {
 }
 
 func MovePlayerDir(dir int) {
-	player := GetPlayer()
-	GetLos().ClearSight()
+	world := GetWorld()
+	player := world.GetPlayer()
+	world.ClearLosSight()
 	player.TryMove(geom.Dir8ToVec(dir))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
 
 	// See if the player collided with something fun.
-	for o := range EntitiesAt(player.GetPos()).Iter() {
+	for o := range world.EntitiesAt(player.GetPos()).Iter() {
 		ent := o.(*Blob)
 		if ent == player {
 			continue
@@ -274,19 +275,20 @@ func MovePlayerDir(dir int) {
 			// TODO: Different globe effects.
 			if player.GetI(PropWounds) > 0 {
 				Msg("The globe bursts. You feel better.\n")
-				//PlaySound("heal")
+				PlaySound("heal")
 				player.Set(PropWounds, player.GetI(PropWounds)-1)
 				// Deferring this until the iteration is over.
-				defer DestroyBlob(ent)
+				defer world.DestroyEntity(ent)
 			}
 		}
 	}
 
-	GetLos().DoLos(player.GetPos())
+	world.DoLos(player.GetPos())
 }
 
 func SmartMovePlayer(dir int) {
-	player := GetPlayer()
+	world := GetWorld()
+	player := world.GetPlayer()
 	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
@@ -296,14 +298,15 @@ func SmartMovePlayer(dir int) {
 	}
 	// No attack, move normally.
 	MovePlayerDir(dir)
-	//	StuffOnGroundMsg()
+	StuffOnGroundMsg()
 }
 
 func RunAI() {
+	world := GetWorld()
 	enemyCount := 0
-	for o := range Creatures().Iter() {
+	for o := range world.Creatures().Iter() {
 		crit := o.(*Blob)
-		if crit != GetPlayer() {
+		if crit != world.GetPlayer() {
 			enemyCount++
 		}
 		DoAI(crit)
@@ -311,9 +314,9 @@ func RunAI() {
 }
 
 func GameOver(reason string) {
-	//	MsgMore()
-	fmt.Printf("%v %v\n", txt.Capitalize(GetPlayer().Name), reason)
-	//	Quit()
+	MsgMore()
+	fmt.Printf("%v %v\n", txt.Capitalize(GetWorld().GetPlayer().Name), reason)
+	Quit()
 }
 
 // Return whether the entity moves around by itself and shouldn't be shown in
@@ -321,7 +324,7 @@ func GameOver(reason string) {
 func IsMobile(entity *Blob) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
 
 func PlayerEnterStairs() {
-	if GetArea().GetTerrain(GetPlayer().GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(GetWorld().GetPlayer().GetPos()) == TerrainStairDown {
 		Msg("Going down...\n")
 		NextLevel()
 	} else {
@@ -329,7 +332,10 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel() { GetContext().EnterLevel(GetCurrentLevel()) }
+func NextLevel() {
+	world := GetWorld()
+	world.InitLevel(world.CurrentLevelNum() + 1)
+}
 
 func IsCreature(o interface{}) bool {
 	switch o.(*Blob).GetClass() {
@@ -354,7 +360,7 @@ func DropItem(subject *Blob, item *Blob) {
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
+	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
 }
 
 // TODO: Change other functions to use interface{} instead of *Blob to make
@@ -389,9 +395,9 @@ func UseItem(user *Blob, item *Blob) {
 		case MedkitUse:
 			if user.GetI(PropWounds) > 0 {
 				Msg("You feel much better.\n")
-				//PlaySound("heal")
+				PlaySound("heal")
 				user.Set(PropWounds, 0)
-				DestroyBlob(item)
+				GetWorld().DestroyEntity(item)
 			} else {
 				Msg("You feel fine already.\n")
 			}
@@ -402,7 +408,8 @@ func UseItem(user *Blob, item *Blob) {
 }
 
 func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
-	player := GetPlayer()
+	world := GetWorld()
+	player := world.GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
 
 	if len(items) == 0 {
@@ -413,7 +420,7 @@ func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 	choice := items[0]
 	if len(items) > 1 && !alwaysPickupFirst {
 		var ok bool
-		//		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
+		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
 		if !ok {
 			Msg("Okay, then.\n")
 			return nil
@@ -463,7 +470,7 @@ func EntityDist(o1, o2 interface{}) float64 {
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
 	ent := o.(*Blob)
 	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Blob).GetPos()) }
-	return iterable.Filter(OtherCreatures(o), pred)
+	return iterable.Filter(GetWorld().OtherCreatures(o), pred)
 }
 
 func ClosestCreatureSeenBy(o interface{}) *Blob {

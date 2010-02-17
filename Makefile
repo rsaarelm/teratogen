@@ -1,8 +1,8 @@
-CMDS=databake teratogen-cli
+CMDS=databake palsort sdltest teratogen
 
 GOMAKE=$(GOBIN)/gomake
 
-TARG=teratogen-cli
+TARG=teratogen
 
 SUB=$(LIBS:%=pkg/%) $(CMDS:%=cmd/%)
 
