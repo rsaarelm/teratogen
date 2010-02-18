@@ -98,7 +98,7 @@ func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	}
 
 	result = 1.0 / fscarcity
-	// Make too scarse weights just plain zero.
+	// Make too scarce weights just plain zero.
 	if result < epsilon {
 		result = 0.0
 	}
