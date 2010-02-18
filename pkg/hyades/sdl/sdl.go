@@ -6,6 +6,13 @@ package sdl
 
 // A struct to help cgo get a handle on the opaque Mix_Music type.
 typedef struct music { Mix_Music *music; } music;
+
+// XXX: Workaround to nested struct misalignment with cgo.
+void unpackKeyeventKludge(SDL_KeyboardEvent* event, int* keysym, int* mod, int* unicode) {
+ *keysym = event->keysym.sym;
+ *mod = event->keysym.mod;
+ *unicode = event->keysym.unicode;
+}
 */
 import "C"
 
@@ -247,9 +254,16 @@ func (self *context) eventLoop() {
 				// Truncate unicode printable char to 16 bits,
 				// leave the rest of the bits for special
 				// modifiers.
-				chr := int(keyEvt.keysym.unicode) & 0xffff
-
-				sym := int(keyEvt.keysym.sym)
+				//chr := int(keyEvt.keysym.unicode) & 0xffff
+				//sym := int(keyEvt.keysym.sym)
+				// Key modifiers.
+				//mod := int(keyEvt.keysym.mod)
+				// XXX: cgo bug workaround
+				var c_sym, c_mod, c_chr C.int
+				C.unpackKeyeventKludge(keyEvt, &c_sym, &c_mod, &c_chr)
+				sym := int(c_sym)
+				mod := int(c_mod)
+				chr := int(c_chr) & 0xffff
 				isAscii := sym >= 32 && sym < 256
 
 				if isAscii && typ == C.SDL_KEYUP {
@@ -262,9 +276,6 @@ func (self *context) eventLoop() {
 					// Nonprintable key.
 					chr = keyboard.Nonprintable | sym
 				}
-
-				// Key modifiers.
-				mod := int(keyEvt.keysym.mod)
 
 				// XXX: Shift flag is *not* set for printable
 				// keys, to maintain the convention that
