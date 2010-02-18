@@ -33,18 +33,9 @@ func Draw(g gfx.Graphics, spriteId string, x, y int) {
 	DrawSprite(g, spriteId, sx, sy)
 }
 
-type LosState byte
-
-const (
-	LosUnknown LosState = iota
-	LosMapped
-	LosSeen
-)
-
 type World struct {
 	playerId     entity.Id
 	areaId       entity.Id
-	los          []LosState
 	currentLevel int32
 }
 
@@ -125,57 +116,6 @@ func makeSpawnDistribution(depth int) num.WeightedDist {
 }
 
 func (self *World) CurrentLevelNum() int { return int(self.currentLevel) }
-
-func (self *World) initLos() { self.los = make([]LosState, numTerrainCells) }
-
-func (self *World) ClearLosSight() {
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		idx := pt.X + mapWidth*pt.Y
-		if self.los[idx] == LosSeen {
-			self.los[idx] = LosMapped
-		}
-	}
-}
-
-// Debug command that makes the entire map visible.
-func (self *World) WizardEye() {
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		idx := pt.X + mapWidth*pt.Y
-		self.los[idx] = LosSeen
-	}
-}
-
-func (self *World) ClearLosMapped() {
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		idx := pt.X + mapWidth*pt.Y
-		self.los[idx] = LosUnknown
-	}
-}
-
-func (self *World) MarkSeen(pos geom.Pt2I) {
-	if GetArea().InArea(pos) {
-		self.los[pos.X+pos.Y*mapWidth] = LosSeen
-	}
-}
-
-func (self *World) GetLos(pos geom.Pt2I) LosState {
-	if GetArea().InArea(pos) {
-		return self.los[pos.X+pos.Y*mapWidth]
-	}
-	return LosUnknown
-}
-
-func (self *World) DoLos(center geom.Pt2I) {
-	const losRadius = 12
-
-	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }
-
-	outOfRadius := func(vec geom.Vec2I) bool { return int(vec.Abs()) > losRadius }
-
-	for pt := range geom.LineOfSight(blocks, outOfRadius) {
-		self.MarkSeen(center.Plus(pt))
-	}
-}
 
 // TODO: These no longer belong in World.
 func (self *World) Entities() iterable.Iterable {
@@ -277,8 +217,8 @@ func (self *World) drawEntities(g gfx.Graphics) {
 	for sorted := range seq.Iter() {
 		e := sorted.(*Blob)
 		pos := e.GetPos()
-		seen := self.GetLos(pos) == LosSeen
-		mapped := seen || self.GetLos(pos) == LosMapped
+		seen := GetLos().Get(pos) == LosSeen
+		mapped := seen || GetLos().Get(pos) == LosMapped
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e) {
@@ -296,18 +236,12 @@ func (self *World) Serialize(out io.Writer) {
 	mem.WriteFixed(out, int64(self.playerId))
 	mem.WriteFixed(out, self.currentLevel)
 	mem.WriteFixed(out, int64(self.areaId))
-
-	mem.WriteNTimes(out, len(self.los), func(i int, out io.Writer) { mem.WriteFixed(out, byte(self.los[i])) })
 }
 
 func (self *World) Deserialize(in io.Reader) {
 	self.playerId = entity.Id(mem.ReadInt64(in))
 	self.currentLevel = mem.ReadInt32(in)
 	self.areaId = entity.Id(mem.ReadInt64(in))
-
-	mem.ReadNTimes(in,
-		func(count int) { self.los = make([]LosState, count) },
-		func(i int, in io.Reader) { self.los[i] = LosState(mem.ReadByte(in)) })
 }
 
 // Component handler interface stubs

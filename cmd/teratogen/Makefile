@@ -11,6 +11,7 @@ GOFILES=\
 	creature.go\
 	entity.go\
 	factory.go\
+	los.go\
 	mapgen.go\
 	main.go\
 	mapview.go\
