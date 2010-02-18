@@ -332,10 +332,7 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel() {
-	world := GetWorld()
-	world.InitLevel(world.CurrentLevelNum() + 1)
-}
+func NextLevel() { GetContext().EnterLevel(GetWorld().CurrentLevelNum() + 1) }
 
 func IsCreature(o interface{}) bool {
 	switch o.(*Blob).GetClass() {

@@ -25,9 +25,7 @@ func main() {
 	InitUI()
 	InitMedia()
 
-	InitWorld()
-
-	GetWorld().InitLevel(1)
+	NewContext().InitGame()
 
 	go LogicLoop()
 	MainUILoop()

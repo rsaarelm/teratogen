@@ -7,6 +7,7 @@ GOFILES=\
 	area.go\
 	config.go\
 	contain.go\
+	context.go\
 	creature.go\
 	entity.go\
 	factory.go\

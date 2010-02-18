@@ -275,7 +275,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'S':
 		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
-		SaveGame(saveFile)
+		GetContext().Serialize(saveFile)
 		saveFile.Close()
 		Msg("Game saved.\n")
 	case 'L':
@@ -284,7 +284,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			Msg("Error loading game: " + err.String())
 			break
 		}
-		LoadGame(loadFile)
+		GetContext().Deserialize(loadFile)
 		Msg("Game loaded.\n")
 	}
 }
