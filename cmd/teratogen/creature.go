@@ -58,7 +58,6 @@ func (self *Blob) ArmorFactor() (result int) {
 }
 
 func (self *Blob) Damage(woundLevel int, cause *Blob) {
-	world := GetWorld()
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
 	sx, sy := CenterDrawPos(self.GetPos())
@@ -68,7 +67,7 @@ func (self *Blob) Damage(woundLevel int, cause *Blob) {
 
 	if self.IsKilledByWounds() {
 		PlaySound("death")
-		if self == world.GetPlayer() {
+		if self == GetPlayer() {
 			Msg("You die.\n")
 			var msg string
 			if cause != nil {
@@ -80,7 +79,7 @@ func (self *Blob) Damage(woundLevel int, cause *Blob) {
 		} else {
 			Msg("%v killed.\n", txt.Capitalize(self.Name))
 		}
-		world.DestroyEntity(self)
+		DestroyBlob(self)
 	} else {
 		PlaySound("hit")
 
@@ -112,9 +111,7 @@ func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLeve
 }
 
 func (self *Blob) TryMove(vec geom.Vec2I) (success bool) {
-	world := GetWorld()
-
-	if world.IsOpen(self.GetPos().Plus(vec)) {
+	if IsOpen(self.GetPos().Plus(vec)) {
 		self.Move(vec)
 		return true
 	}

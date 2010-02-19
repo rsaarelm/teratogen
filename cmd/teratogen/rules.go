@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/num"
@@ -158,7 +159,7 @@ func IsEnemyOf(ent *Blob, possibleEnemy *Blob) bool {
 func EnemiesAt(ent *Blob, pos geom.Pt2I) iterable.Iterable {
 	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Blob)) }
 
-	return iterable.Filter(GetWorld().EntitiesAt(pos), filter)
+	return iterable.Filter(EntitiesAt(pos), filter)
 }
 
 // The scaleDifference is defender scale - attacker scale.
@@ -206,7 +207,7 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 	var hitPos geom.Pt2I
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
-		if !GetWorld().IsOpen(hitPos) {
+		if !IsOpen(hitPos) {
 			break
 		}
 	}
@@ -216,7 +217,7 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
 	}
 
-	p1, p2 := draw.Pt(Tile2WorldPos(GetWorld().GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	p1, p2 := draw.Pt(Tile2WorldPos(GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
@@ -234,13 +235,13 @@ func DamageEquipment(ent *Blob, slot string) {
 			} else {
 				Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
 			}
-			GetWorld().DestroyEntity(o)
+			DestroyBlob(o)
 		}
 	}
 }
 
 func DamagePos(pos geom.Pt2I, woundLevel int, cause *Blob) {
-	for o := range iterable.Filter(GetWorld().EntitiesAt(pos), IsCreature).Iter() {
+	for o := range iterable.Filter(EntitiesAt(pos), IsCreature).Iter() {
 		o.(*Blob).Damage(woundLevel, cause)
 	}
 }
@@ -257,8 +258,7 @@ func FudgeOpposed(ability, difficulty int) int {
 }
 
 func MovePlayerDir(dir int) {
-	world := GetWorld()
-	player := world.GetPlayer()
+	player := GetPlayer()
 	GetLos().ClearSight()
 	player.TryMove(geom.Dir8ToVec(dir))
 
@@ -266,7 +266,7 @@ func MovePlayerDir(dir int) {
 	// too.
 
 	// See if the player collided with something fun.
-	for o := range world.EntitiesAt(player.GetPos()).Iter() {
+	for o := range EntitiesAt(player.GetPos()).Iter() {
 		ent := o.(*Blob)
 		if ent == player {
 			continue
@@ -278,7 +278,7 @@ func MovePlayerDir(dir int) {
 				PlaySound("heal")
 				player.Set(PropWounds, player.GetI(PropWounds)-1)
 				// Deferring this until the iteration is over.
-				defer world.DestroyEntity(ent)
+				defer DestroyBlob(ent)
 			}
 		}
 	}
@@ -287,8 +287,7 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
-	world := GetWorld()
-	player := world.GetPlayer()
+	player := GetPlayer()
 	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
@@ -302,11 +301,10 @@ func SmartMovePlayer(dir int) {
 }
 
 func RunAI() {
-	world := GetWorld()
 	enemyCount := 0
-	for o := range world.Creatures().Iter() {
+	for o := range Creatures().Iter() {
 		crit := o.(*Blob)
-		if crit != world.GetPlayer() {
+		if crit != GetPlayer() {
 			enemyCount++
 		}
 		DoAI(crit)
@@ -315,7 +313,7 @@ func RunAI() {
 
 func GameOver(reason string) {
 	MsgMore()
-	fmt.Printf("%v %v\n", txt.Capitalize(GetWorld().GetPlayer().Name), reason)
+	fmt.Printf("%v %v\n", txt.Capitalize(GetPlayer().Name), reason)
 	Quit()
 }
 
@@ -324,7 +322,7 @@ func GameOver(reason string) {
 func IsMobile(entity *Blob) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
 
 func PlayerEnterStairs() {
-	if GetArea().GetTerrain(GetWorld().GetPlayer().GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(GetPlayer().GetPos()) == TerrainStairDown {
 		Msg("Going down...\n")
 		NextLevel()
 	} else {
@@ -332,7 +330,7 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel() { GetContext().EnterLevel(GetWorld().CurrentLevelNum() + 1) }
+func NextLevel() { GetContext().EnterLevel(GetCurrentLevel()) }
 
 func IsCreature(o interface{}) bool {
 	switch o.(*Blob).GetClass() {
@@ -357,7 +355,7 @@ func DropItem(subject *Blob, item *Blob) {
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(GetWorld().EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
+	return iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
 }
 
 // TODO: Change other functions to use interface{} instead of *Blob to make
@@ -394,7 +392,7 @@ func UseItem(user *Blob, item *Blob) {
 				Msg("You feel much better.\n")
 				PlaySound("heal")
 				user.Set(PropWounds, 0)
-				GetWorld().DestroyEntity(item)
+				DestroyBlob(item)
 			} else {
 				Msg("You feel fine already.\n")
 			}
@@ -405,8 +403,7 @@ func UseItem(user *Blob, item *Blob) {
 }
 
 func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
-	world := GetWorld()
-	player := world.GetPlayer()
+	player := GetPlayer()
 	items := iterable.Data(TakeableItems(player.GetPos()))
 
 	if len(items) == 0 {
@@ -467,7 +464,7 @@ func EntityDist(o1, o2 interface{}) float64 {
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
 	ent := o.(*Blob)
 	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Blob).GetPos()) }
-	return iterable.Filter(GetWorld().OtherCreatures(o), pred)
+	return iterable.Filter(OtherCreatures(o), pred)
 }
 
 func ClosestCreatureSeenBy(o interface{}) *Blob {
@@ -482,4 +479,55 @@ func ClosestCreatureSeenBy(o interface{}) *Blob {
 func GunEquipped(o interface{}) bool {
 	_, ok := GetEquipment(o.(*Blob).GetGuid(), PropGunWeaponGuid)
 	return ok
+}
+
+const spawnsPerLevel = 32
+
+
+func Spawn(name string) *Blob {
+	manager := GetManager()
+	guid := assemblages[name].MakeEntity(manager)
+
+	return GetBlobs().Get(guid).(*Blob)
+}
+
+func SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
+	result = Spawn(name)
+	result.MoveAbs(pos)
+	return
+}
+
+func SpawnRandomPos(name string) (result *Blob) {
+	return SpawnAt(name, GetSpawnPos())
+}
+
+func clearNonplayerEntities() {
+	// Bring over player object and player's inventory.
+	player := GetPlayer()
+	keep := make(map[entity.Id]bool)
+	keep[player.GetGuid()] = true
+	for ent := range player.RecursiveContents().Iter() {
+		keep[ent.(*Blob).GetGuid()] = true
+	}
+
+	for o := range GetBlobs().EntityComponents().Iter() {
+		pair := o.(*entity.IdComponent)
+		if _, ok := keep[pair.Entity]; !ok {
+			defer GetManager().RemoveEntity(pair.Entity)
+		}
+	}
+}
+
+func makeSpawnDistribution(depth int) num.WeightedDist {
+	weightFn := func(item interface{}) float64 {
+		proto := assemblages[item.(string)][BlobComponent].(*blobTemplate)
+		return SpawnWeight(proto.Scarcity, proto.MinDepth, depth)
+	}
+	values := make([]interface{}, len(assemblages))
+	i := 0
+	for name, _ := range assemblages {
+		values[i] = name
+		i++
+	}
+	return num.MakeWeightedDist(weightFn, values)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/vector"
 	"exp/draw"
 	"exp/iterable"
 	"hyades/alg"
@@ -45,6 +46,55 @@ func NewMapView() (result *MapView) {
 	return
 }
 
+func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
+	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
+}
+
+func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
+	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
+}
+
+func Draw(g gfx.Graphics, spriteId string, x, y int) {
+	sx, sy := DrawPos(geom.Pt2I{x, y})
+	DrawSprite(g, spriteId, sx, sy)
+}
+
+func DrawWorld(g gfx.Graphics) {
+	drawTerrain(g)
+	drawEntities(g)
+}
+
+func drawEntities(g gfx.Graphics) {
+	// Make a vector of the entities sorted in draw order.
+	seq := new(vector.Vector)
+	for o := range Entities().Iter() {
+		ent := o.(*Blob)
+		if ent.GetParent() != nil {
+			// Skip entities inside something.
+			continue
+		}
+		seq.Push(ent)
+	}
+	alg.PredicateSort(entityEarlierInDrawOrder, seq)
+
+	for sorted := range seq.Iter() {
+		e := sorted.(*Blob)
+		pos := e.GetPos()
+		seen := GetLos().Get(pos) == LosSeen
+		mapped := seen || GetLos().Get(pos) == LosMapped
+		// TODO: Draw static (item) entities from map memory.
+		if mapped {
+			if seen || !IsMobile(e) {
+				Draw(g, e.IconId, pos.X, pos.Y)
+			}
+		}
+	}
+}
+
+func entityEarlierInDrawOrder(i, j interface{}) bool {
+	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
+}
+
 func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }
 
 func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
@@ -54,11 +104,10 @@ func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	elapsed := time.Nanoseconds() - self.timePoint
 	self.timePoint += elapsed
 
-	world := GetWorld()
 	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
-	g2.Center(area, world.GetPlayer().GetPos().X*TileW+TileW/2,
-		world.GetPlayer().GetPos().Y*TileH+TileH/2)
-	world.Draw(g2)
+	g2.Center(area, GetPlayer().GetPos().X*TileW+TileW/2,
+		GetPlayer().GetPos().Y*TileH+TileH/2)
+	DrawWorld(g2)
 	self.DrawAnims(g2, elapsed)
 }
 
@@ -75,15 +124,14 @@ func World2TilePos(worldX, worldY int) geom.Pt2I {
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
-	worldX, worldY = Tile2WorldPos(GetWorld().GetPlayer().GetPos())
+	worldX, worldY = Tile2WorldPos(GetPlayer().GetPos())
 	worldX += screenX - area.Min.X - area.Dx()/2
 	worldY += screenY - area.Min.Y - area.Dy()/2
 	return
 }
 
 func (self *MapView) onMouseButton(button int) {
-	world := GetWorld()
-	player := world.GetPlayer()
+	player := GetPlayer()
 	event := self.lastMouse
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
@@ -224,7 +272,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		for o := range GetWorld().GetPlayer().Contents().Iter() {
+		for o := range GetPlayer().Contents().Iter() {
 			item := o.(*Blob)
 			if first {
 				first = false
@@ -241,7 +289,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'e':
 		EquipMenu()
 	case 'f':
-		player := GetWorld().GetPlayer()
+		player := GetPlayer()
 		if GunEquipped(player) {
 			target := ClosestCreatureSeenBy(player)
 			if target != nil {
@@ -254,7 +302,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case 'd':
 		// Drop item.
-		player := GetWorld().GetPlayer()
+		player := GetPlayer()
 		if player.HasContents() {
 			item, ok := ObjectChoiceDialog(
 				"Drop which item?", iterable.Data(player.Contents()))

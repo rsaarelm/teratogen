@@ -11,6 +11,7 @@ GOFILES=\
 	creature.go\
 	entity.go\
 	factory.go\
+	globals.go\
 	los.go\
 	mapgen.go\
 	main.go\
@@ -19,7 +20,6 @@ GOFILES=\
 	msg.go\
 	rules.go\
 	ui.go\
-	world.go\
 
 include $(GOROOT)/src/Make.cmd
 
