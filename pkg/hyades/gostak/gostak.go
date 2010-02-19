@@ -7,6 +7,9 @@ import (
 	"container/vector"
 	"fmt"
 	"reflect"
+	"scanner"
+	"strconv"
+	"strings"
 )
 
 type CellType byte
@@ -24,11 +27,13 @@ type GostakCell struct {
 	data interface{}
 }
 
-func newNumCell(num float64) *GostakCell { return &GostakCell{LiteralNum, num} }
+func newNumCell(num float64) GostakCell { return GostakCell{LiteralNum, num} }
 
-func newStringCell(str string) *GostakCell { return &GostakCell{LiteralString, str} }
+func newStringCell(str string) GostakCell { return GostakCell{LiteralString, str} }
 
-func newBoolCell(b bool) *GostakCell { return &GostakCell{LiteralBool, b} }
+func newBoolCell(b bool) GostakCell { return GostakCell{LiteralBool, b} }
+
+func newWordCell(str string) GostakCell { return GostakCell{Word, str} }
 
 type GostakState struct {
 	dataStack *vector.Vector
@@ -54,25 +59,29 @@ func (self *GostakState) At(pos int) interface{} {
 	return self.dataStack.At(self.dataStack.Len() - 1 - pos)
 }
 
+func (self *GostakState) EvalCell(cell GostakCell) {
+	switch cell.typ {
+	case LiteralNum, LiteralString, LiteralBool, Quotation:
+		self.Push(cell.data)
+	case Word:
+		prog, ok := self.words[cell.data.(string)]
+		if !ok {
+			panic(fmt.Sprintf("Word %v not defined.", cell.data.(string)))
+		}
+
+		typ := reflect.Typeof(prog)
+		if _, ok2 := typ.(*reflect.FuncType); ok2 {
+			self.ApplyFunc(prog)
+		} else {
+			seq := prog.([]GostakCell)
+			self.Eval(seq)
+		}
+	}
+}
+
 func (self *GostakState) Eval(cells []GostakCell) {
 	for _, cell := range cells {
-		switch cell.typ {
-		case LiteralNum, LiteralString, LiteralBool, Quotation:
-			self.Push(cell.data)
-		case Word:
-			prog, ok := self.words[cell.data.(string)]
-			if !ok {
-				panic(fmt.Sprintf("Word %v not defined.", cell.data.(string)))
-			}
-
-			typ := reflect.Typeof(prog)
-			if _, ok2 := typ.(*reflect.FuncType); ok2 {
-				self.ApplyFunc(prog)
-			} else {
-				seq := prog.([]GostakCell)
-				self.Eval(seq)
-			}
-		}
+		self.EvalCell(cell)
 	}
 }
 
@@ -123,6 +132,54 @@ func (self *GostakState) ApplyFunc(fn interface{}) {
 	} else {
 		panic("Tried to apply a non-func value.")
 	}
+}
+
+func (self *GostakState) ParseString(str string) {
+	// XXX: Golang parser is not a good fit for Forth-style syntax. Need
+	// something that first splits the input at whitespaces, then looks at the
+	// individual tokens.
+	cells := new(vector.Vector)
+	scan := new(scanner.Scanner).Init(strings.NewReader(str))
+	scan.Mode = scanner.GoTokens
+	token := scan.Scan()
+	for token != scanner.EOF {
+		fmt.Println("'", scan.TokenText(), "'")
+		switch token {
+		case scanner.Ident:
+			cells.Push(newWordCell(scan.TokenText()))
+		case scanner.Int, scanner.Float:
+			num, _ := strconv.Atof64(scan.TokenText())
+			cells.Push(newNumCell(num))
+		case scanner.RawString, scanner.String:
+			cells.Push(newStringCell(scan.TokenText()))
+		case '+', '-', '*', '/', '.':
+			// XXX: Hack for pushing operators in. Won't do multichar
+			// not-ident-recognizable words, though we definitely want those
+			// supported.
+			cells.Push(newWordCell(string([]byte{byte(token)})))
+		case '[':
+			// TODO: Open quotation, need parse levels.
+		case ']':
+			// TODO: Close quotation, need parse levels.
+		case scanner.Comment:
+			// NOP
+		}
+
+		token = scan.Scan()
+	}
+	for o := range cells.Iter() {
+		cell := o.(GostakCell)
+		self.EvalCell(cell)
+	}
+}
+
+// LoadBuiltins sets up some basic words like displaying values and arithmetic.
+func (self *GostakState) LoadBuiltins() {
+	self.DefineNativeWord(".", func(x interface{}) { fmt.Println(x) })
+	self.DefineNativeWord("+", func(x, y float64) float64 { return x + y })
+	self.DefineNativeWord("-", func(x, y float64) float64 { return x - y })
+	self.DefineNativeWord("*", func(x, y float64) float64 { return x * y })
+	self.DefineNativeWord("/", func(x, y float64) float64 { return x / y })
 }
 
 // A hacky trick to make the reflect value be an interface value.
