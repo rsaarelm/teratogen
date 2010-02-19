@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.$(GOARCH)
 
-TARG=hyades/gostak
+TARG=gostak
 GOFILES=\
 	gostak.go\
 
