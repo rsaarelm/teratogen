@@ -6,6 +6,7 @@ package gostak
 import (
 	"container/vector"
 	"fmt"
+	"os"
 	"reflect"
 	"scanner"
 	"strconv"
@@ -59,14 +60,15 @@ func (self *GostakState) At(pos int) interface{} {
 	return self.dataStack.At(self.dataStack.Len() - 1 - pos)
 }
 
-func (self *GostakState) EvalCell(cell GostakCell) {
+func (self *GostakState) EvalCell(cell GostakCell) (err os.Error) {
 	switch cell.typ {
 	case LiteralNum, LiteralString, LiteralBool, Quotation:
 		self.Push(cell.data)
 	case Word:
 		prog, ok := self.words[cell.data.(string)]
 		if !ok {
-			panic(fmt.Sprintf("Word %v not defined.", cell.data.(string)))
+			err = os.NewError(fmt.Sprintf("Word %v not defined.", cell.data.(string)))
+			return
 		}
 
 		typ := reflect.Typeof(prog)
@@ -77,12 +79,17 @@ func (self *GostakState) EvalCell(cell GostakCell) {
 			self.Eval(seq)
 		}
 	}
+	return
 }
 
-func (self *GostakState) Eval(cells []GostakCell) {
+func (self *GostakState) Eval(cells []GostakCell) (err os.Error) {
 	for _, cell := range cells {
-		self.EvalCell(cell)
+		err = self.EvalCell(cell)
+		if err != nil {
+			return
+		}
 	}
+	return
 }
 
 func (self *GostakState) DefineWord(word string, data []GostakCell) {
@@ -134,7 +141,7 @@ func (self *GostakState) ApplyFunc(fn interface{}) {
 	}
 }
 
-func (self *GostakState) ParseString(str string) {
+func (self *GostakState) ParseString(str string) (err os.Error) {
 	// XXX: Golang parser is not a good fit for Forth-style syntax. Need
 	// something that first splits the input at whitespaces, then looks at the
 	// individual tokens.
@@ -143,7 +150,6 @@ func (self *GostakState) ParseString(str string) {
 	scan.Mode = scanner.GoTokens
 	token := scan.Scan()
 	for token != scanner.EOF {
-		fmt.Println("'", scan.TokenText(), "'")
 		switch token {
 		case scanner.Ident:
 			cells.Push(newWordCell(scan.TokenText()))
@@ -169,8 +175,12 @@ func (self *GostakState) ParseString(str string) {
 	}
 	for o := range cells.Iter() {
 		cell := o.(GostakCell)
-		self.EvalCell(cell)
+		err = self.EvalCell(cell)
+		if err != nil {
+			return
+		}
 	}
+	return
 }
 
 // LoadBuiltins sets up some basic words like displaying values and arithmetic.
