@@ -180,7 +180,9 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 	return
 }
 
-func Attack(attacker *Blob, defender *Blob) {
+func Attack(attackerId, defenderId entity.Id) {
+	attacker, defender := GetBlob(attackerId), GetBlob(defenderId)
+
 	doesHit, hitDegree := IsMeleeHit(
 		attacker.GetI(PropMeleeSkill), defender.GetI(PropMeleeSkill),
 		defender.GetI(PropScale)-attacker.GetI(PropScale))
@@ -296,7 +298,7 @@ func SmartMovePlayer(dir int) {
 	target := GetPos(PlayerId()).Plus(vec)
 
 	for o := range EnemiesAt(PlayerId(), target).Iter() {
-		Attack(GetBlob(PlayerId()), o.(*Blob))
+		Attack(PlayerId(), o.(*Blob).GetGuid())
 		return
 	}
 	// No attack, move normally.
@@ -311,7 +313,7 @@ func RunAI() {
 		if crit.GetGuid() != PlayerId() {
 			enemyCount++
 		}
-		DoAI(crit)
+		DoAI(crit.GetGuid())
 	}
 }
 

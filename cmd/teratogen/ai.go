@@ -2,23 +2,24 @@ package main
 
 import (
 	"hyades/geom"
+	"hyades/entity"
 )
 
-func DoAI(crit *Blob) {
+func DoAI(critId entity.Id) {
 	playerId := PlayerId()
-	if crit.GetGuid() == playerId {
+	if critId == playerId {
 		return
 	}
 
-	dirVec := GetPos(playerId).Minus(crit.GetPos())
+	dirVec := GetPos(playerId).Minus(GetPos(critId))
 	dir8 := geom.Vec2IToDir8(dirVec)
 	moveVec := geom.Dir8ToVec(dir8)
 
-	if crit.GetPos().Plus(moveVec).Equals(GetPos(playerId)) {
-		Attack(crit, GetBlob(playerId))
+	if GetPos(critId).Plus(moveVec).Equals(GetPos(playerId)) {
+		Attack(critId, playerId)
 	} else {
 		// TODO: Going around obstacles.
-		crit.TryMove(moveVec)
+		GetBlob(critId).TryMove(moveVec)
 	}
 }
 
