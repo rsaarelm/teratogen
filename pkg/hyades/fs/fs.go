@@ -85,7 +85,7 @@ func SelfExe() string {
 }
 
 func UnpackGzFile(filename string) (data []byte, err os.Error) {
-	fileData, e := ioutil.ReadFile("/proc/self/exe")
+	fileData, e := ioutil.ReadFile(filename)
 	if e != nil {
 		err = e
 		return
