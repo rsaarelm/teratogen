@@ -18,6 +18,7 @@ GOFILES=\
 	mapview.go\
 	media.go\
 	msg.go\
+	name.go\
 	position.go\
 	rules.go\
 	ui.go\

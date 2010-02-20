@@ -46,8 +46,8 @@ func (self *Position) Deserialize(in io.Reader) {
 }
 
 
-func PosComp(guid entity.Id) *Position {
-	if posComp := GetManager().Handler(PosComponent).Get(guid); posComp != nil {
+func PosComp(id entity.Id) *Position {
+	if posComp := GetManager().Handler(PosComponent).Get(id); posComp != nil {
 		return posComp.(*Position)
 	}
 	return nil

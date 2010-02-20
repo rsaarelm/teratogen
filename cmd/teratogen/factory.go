@@ -69,6 +69,7 @@ func init() {
 	a := assemblages
 	a["creature"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("creature"),
 		BlobComponent: BlobTemplate("creature", "", EnemyEntityClass, -1, 0, KW{
 			FlagObstacle: 1,
 			PropStrength: Fair,
@@ -79,18 +80,21 @@ func init() {
 			PropDensity: 0})}
 	a["protagonist"] = a["creature"].Derive(entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("protagonist"),
 		BlobComponent: BlobTemplate("protagonist", "chars:0", PlayerEntityClass, -1, 0, KW{
 			PropStrength: Great,
 			PropToughness: Good,
 			PropMeleeSkill: Good})})
 	a["zombie"] = a["creature"].Derive(entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("zombie"),
 		BlobComponent: BlobTemplate("zombie", "chars:1", EnemyEntityClass, 100, 0, KW{
 			PropStrength: Fair,
 			PropToughness: Poor,
 			PropMeleeSkill: Fair})})
 	a["dogthing"] = a["creature"].Derive(entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("dog-thing"),
 		BlobComponent: BlobTemplate("dog-thing", "chars:2", EnemyEntityClass, 150, 0, KW{
 			PropStrength: Fair,
 			PropToughness: Fair,
@@ -98,6 +102,7 @@ func init() {
 			PropScale: -1})})
 	a["ogre"] = a["creature"].Derive(entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("ogre"),
 		BlobComponent: BlobTemplate("ogre", "chars:15", EnemyEntityClass, 600, 5, KW{
 			PropStrength: Great,
 			PropToughness: Great,
@@ -105,6 +110,7 @@ func init() {
 			PropScale: 3})})
 	a["boss1"] = a["creature"].Derive(entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("elder spawn"),
 		BlobComponent: BlobTemplate("elder spawn", "chars:5", EnemyEntityClass, 3000, 10, KW{
 			PropStrength: Legendary,
 			PropToughness: Legendary,
@@ -113,24 +119,29 @@ func init() {
 
 	a["globe"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("health globe"),
 		BlobComponent: BlobTemplate("health globe", "items:1", GlobeEntityClass, 30, 0, KW{})}
 	a["plantpot"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("plant pot"),
 		BlobComponent: BlobTemplate("plant pot", "items:3", ItemEntityClass, 200, 0, KW{})}
 	a["pistol"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("pistol"),
 		BlobComponent: BlobTemplate("pistol", "items:4", ItemEntityClass, 200, 0, KW{
 			PropEquipmentSlot: PropGunWeaponGuid,
 			PropWoundBonus: 1,
 			PropDurability: 12})}
 	a["machete"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("machete"),
 		BlobComponent: BlobTemplate("machete", "items:5", ItemEntityClass, 200, 0, KW{
 			PropEquipmentSlot: PropMeleeWeaponGuid,
 			PropWoundBonus: 2,
 			PropDurability: 20})}
 	a["kevlar"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("kevlar armor"),
 		BlobComponent: BlobTemplate("kevlar armor", "items:6", ItemEntityClass, 200, 0, KW{
 			PropEquipmentSlot: PropBodyArmorGuid,
 			PropToughness: Good,
@@ -138,6 +149,7 @@ func init() {
 			PropDurability: 20})}
 	a["medkit"] = entity.Assemblage{
 		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate("medkit"),
 		BlobComponent: BlobTemplate("medkit", "items:7", ItemEntityClass, 200, 0, KW{
 			PropItemUse: MedkitUse})}
 }
