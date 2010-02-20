@@ -20,6 +20,14 @@ func GetContain() *entity.Relation {
 	return GetManager().Handler(ContainComponent).(*entity.Relation)
 }
 
+func GetParent(guid entity.Id) entity.Id {
+	id, ok := GetContain().GetLhs(guid)
+	if ok {
+		return id
+	}
+	return entity.NilId
+}
+
 // TODO: Turn inventory methods from Blob component methods into plain
 // functions on entity guids.
 
