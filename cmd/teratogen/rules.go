@@ -387,14 +387,14 @@ func TakeableItems(pos geom.Pt2I) iterable.Iterable {
 // TODO: Change other functions to use interface{} instead of *Blob to make
 // it easier to use them with iterable functions.
 
-func IsEquippableItem(o interface{}) bool { return o.(*Blob).Has(PropEquipmentSlot) }
+func IsEquippableItem(id entity.Id) bool { return GetBlob(id).Has(PropEquipmentSlot) }
 
 func IsCarryingGear(o interface{}) bool {
-	return iterable.Any(o.(*Blob).Contents(), IsEquippableItem)
+	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsEquippableItem))
 }
 
 func IsCarryingGearFor(o interface{}, slot string) bool {
-	return iterable.Any(o.(*Blob).Contents(), func(o interface{}) bool {
+	return iterable.Any(iterable.Map(Contents(o.(*Blob).GetGuid()), id2Blob), func(o interface{}) bool {
 		if itemSlot, ok := o.(*Blob).GetSOpt(PropEquipmentSlot); ok && itemSlot == slot {
 			return true
 		}
@@ -402,11 +402,11 @@ func IsCarryingGearFor(o interface{}, slot string) bool {
 	})
 }
 
-func HasContents(o interface{}) bool { return o.(*Blob).HasContents() }
+func IsUsable(id entity.Id) bool { return GetBlob(id).Has(PropItemUse) }
 
-func IsUsable(o interface{}) bool { return o.(*Blob).Has(PropItemUse) }
-
-func HasUsableItems(o interface{}) bool { return iterable.Any(o.(*Blob).Contents(), IsUsable) }
+func HasUsableItems(o interface{}) bool {
+	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsUsable))
+}
 
 func UseItem(user *Blob, item *Blob) {
 	if use, ok := item.GetIOpt(PropItemUse); ok {
@@ -537,8 +537,8 @@ func clearNonplayerEntities() {
 	player := GetBlob(PlayerId())
 	keep := make(map[entity.Id]bool)
 	keep[player.GetGuid()] = true
-	for ent := range player.RecursiveContents().Iter() {
-		keep[ent.(*Blob).GetGuid()] = true
+	for o := range RecursiveContents(player.GetGuid()).Iter() {
+		keep[o.(entity.Id)] = true
 	}
 
 	for o := range GetBlobs().EntityComponents().Iter() {

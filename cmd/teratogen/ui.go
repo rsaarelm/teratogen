@@ -373,7 +373,7 @@ func EquipMenu() {
 		RemoveEquipment(player.GetGuid(), slots[choice])
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
-		equippables := iterable.Data(iterable.Filter(player.Contents(),
+		equippables := iterable.Data(iterable.Filter(iterable.Map(Contents(player.GetGuid()), id2Blob),
 			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob)) }))
 		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
 			SetEquipment(player.GetGuid(), slots[choice], item.(*Blob).GetGuid())
@@ -390,7 +390,7 @@ func UiHelpLines() iterable.Iterable {
 
 	player := GetBlob(PlayerId())
 
-	if HasContents(player) {
+	if HasContents(player.GetGuid()) {
 		vec.Push("i: inventory")
 		vec.Push("d: drop item")
 	}
@@ -434,7 +434,8 @@ func StuffOnGroundMsg() {
 func ApplyItemMenu() (actionMade bool) {
 	player := GetBlob(PlayerId())
 
-	items := iterable.Data(iterable.Filter(player.Contents(), IsUsable))
+	items := iterable.Data(iterable.Filter(iterable.Map(Contents(PlayerId()), id2Blob),
+		EntityFilterFn(IsUsable)))
 	if len(items) == 0 {
 		Msg("You have no usable items.\n")
 		return false

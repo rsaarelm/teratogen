@@ -276,8 +276,8 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		for o := range GetBlob(PlayerId()).Contents().Iter() {
-			item := o.(*Blob)
+		for o := range Contents(GetBlob(PlayerId()).GetGuid()).Iter() {
+			item := GetBlob(o.(entity.Id))
 			if first {
 				first = false
 				Msg(" %v", GetName(item.GetGuid()))
@@ -305,9 +305,9 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case 'd':
 		// Drop item.
-		if GetBlob(PlayerId()).HasContents() {
+		if HasContents(PlayerId()) {
 			item, ok := ObjectChoiceDialog(
-				"Drop which item?", iterable.Data(GetBlob(PlayerId()).Contents()))
+				"Drop which item?", iterable.Data(iterable.Map(Contents(PlayerId()), id2Blob)))
 			if ok {
 				SendPlayerInput(func() {
 					item := item.(*Blob)

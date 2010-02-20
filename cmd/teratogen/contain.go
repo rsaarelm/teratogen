@@ -35,16 +35,17 @@ func GetTopParent(id entity.Id) (topId entity.Id) {
 	return
 }
 
-// TODO: Turn inventory methods from Blob component methods into plain
-// functions on entity guids.
+// Contents iterates through the children but not the grandchildren of the
+// entity.
+func Contents(id entity.Id) iterable.Iterable { return GetContain().IterRhs(id) }
 
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
-func (self *Blob) RecursiveContents() iterable.Iterable {
+func RecursiveContents(id entity.Id) iterable.Iterable {
 	return alg.IterFunc(func(c chan<- interface{}) {
-		for o := range self.Contents().Iter() {
+		for o := range Contents(id).Iter() {
 			c <- o
-			for q := range o.(*Blob).RecursiveContents().Iter() {
+			for q := range RecursiveContents(o.(entity.Id)).Iter() {
 				c <- q
 			}
 		}
@@ -52,16 +53,13 @@ func (self *Blob) RecursiveContents() iterable.Iterable {
 	})
 }
 
-// Contents iterates through the children but not the grandchildren of the
-// entity.
-func (self *Blob) Contents() iterable.Iterable {
-	return iterable.Map(GetContain().IterRhs(self.GetGuid()), id2Blob)
-}
-
-func (self *Blob) HasContents() bool {
-	_, ok := GetContain().GetRhs(self.GetGuid())
+func HasContents(id entity.Id) bool {
+	_, ok := GetContain().GetRhs(id)
 	return ok
 }
+
+// TODO: Turn inventory methods from Blob component methods into plain
+// functions on entity guids.
 
 func (self *Blob) InsertSelf(parent *Blob) {
 	self.RemoveSelf()
