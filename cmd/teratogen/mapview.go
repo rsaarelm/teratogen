@@ -163,13 +163,13 @@ func (self *MapView) onMouseButton(button int) {
 		if !vec.Equals(geom.ZeroVec2I) {
 			// If shift is pressed, right-click always shoots.
 			if self.shiftKeyState > 0 {
-				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), tilePos) })
+				SendPlayerInput(func() { Shoot(PlayerId(), tilePos) })
 				return
 			}
 
 			// If there's an enemy, right-click shoots at it.
 			for _ = range EnemiesAt(PlayerId(), tilePos).Iter() {
-				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), tilePos) })
+				SendPlayerInput(func() { Shoot(PlayerId(), tilePos) })
 				return
 			}
 		}
@@ -291,7 +291,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		if GunEquipped(GetBlob(PlayerId())) {
 			target := ClosestCreatureSeenBy(GetBlob(PlayerId()))
 			if target != nil {
-				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), target.GetPos()) })
+				SendPlayerInput(func() { Shoot(PlayerId(), target.GetPos()) })
 			} else {
 				Msg("You see nothing to shoot.\n")
 			}

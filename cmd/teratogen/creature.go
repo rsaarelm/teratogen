@@ -3,6 +3,7 @@ package main
 import (
 	"exp/iterable"
 	"fmt"
+	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/num"
@@ -57,7 +58,7 @@ func (self *Blob) ArmorFactor() (result int) {
 	return
 }
 
-func (self *Blob) Damage(woundLevel int, cause *Blob) {
+func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
 	sx, sy := CenterDrawPos(self.GetPos())
@@ -70,8 +71,8 @@ func (self *Blob) Damage(woundLevel int, cause *Blob) {
 		if self.GetGuid() == PlayerId() {
 			Msg("You die.\n")
 			var msg string
-			if cause != nil {
-				msg = fmt.Sprintf("killed by %v.", cause.GetName())
+			if causerId != entity.NilId {
+				msg = fmt.Sprintf("killed by %v.", GetBlob(causerId).GetName())
 			} else {
 				msg = "killed."
 			}

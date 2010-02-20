@@ -192,19 +192,21 @@ func Attack(attackerId, defenderId entity.Id) {
 		// XXX: Assuming melee attack.
 		woundLevel := attacker.MeleeWoundLevelAgainst(defender, hitDegree)
 
+		DamageEquipment(attackerId, PropMeleeWeaponGuid)
+		DamageEquipment(defenderId, PropBodyArmorGuid)
+
 		if woundLevel > 0 {
-			defender.Damage(woundLevel, attacker)
+			defender.Damage(woundLevel, attackerId)
 		} else {
 			Msg("%v undamaged.\n", txt.Capitalize(defender.GetName()))
 		}
-		DamageEquipment(attacker, PropMeleeWeaponGuid)
-		DamageEquipment(defender, PropBodyArmorGuid)
 	} else {
 		Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
 	}
 }
 
-func Shoot(attacker *Blob, target geom.Pt2I) {
+func Shoot(attackerId entity.Id, target geom.Pt2I) {
+	attacker := GetBlob(attackerId)
 	if !GunEquipped(attacker) {
 		return
 	}
@@ -228,12 +230,13 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
-	DamagePos(hitPos, damageFactor, attacker)
+	DamagePos(hitPos, damageFactor, attackerId)
 
-	DamageEquipment(attacker, PropGunWeaponGuid)
+	DamageEquipment(attackerId, PropGunWeaponGuid)
 }
 
-func DamageEquipment(ent *Blob, slot string) {
+func DamageEquipment(ownerId entity.Id, slot string) {
+	ent := GetBlob(ownerId)
 	if guid, ok := GetEquipment(ent.GetGuid(), slot); ok {
 		o := GetBlobs().Get(guid).(*Blob)
 		if num.OneChanceIn(o.GetI(PropDurability)) {
@@ -247,9 +250,9 @@ func DamageEquipment(ent *Blob, slot string) {
 	}
 }
 
-func DamagePos(pos geom.Pt2I, woundLevel int, cause *Blob) {
+func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
 	for o := range iterable.Filter(EntitiesAt(pos), IsCreature).Iter() {
-		o.(*Blob).Damage(woundLevel, cause)
+		o.(*Blob).Damage(woundLevel, causerId)
 	}
 }
 
