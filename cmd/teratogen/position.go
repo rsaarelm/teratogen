@@ -23,12 +23,18 @@ func (self *posTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) 
 }
 
 
+// The position component.
 type Position struct {
 	pos geom.Pt2I
 }
 
+// Pos returns the position in the position component.
+func (self *Position) Pos() geom.Pt2I { return self.pos }
+
+// MoveAbs sets the position in the position component.
 func (self *Position) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
+// Move adds the given vector to the position in the position component.
 func (self *Position) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
 func (self *Position) Serialize(out io.Writer) {
@@ -38,6 +44,7 @@ func (self *Position) Serialize(out io.Writer) {
 func (self *Position) Deserialize(in io.Reader) {
 	entity.GobDeserialize(in, self)
 }
+
 
 func PosComp(guid entity.Id) *Position {
 	if posComp := GetManager().Handler(PosComponent).Get(guid); posComp != nil {
