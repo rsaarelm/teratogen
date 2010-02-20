@@ -1,6 +1,7 @@
 package main
 
 import (
+	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"io"
@@ -45,12 +46,13 @@ func PosComp(guid entity.Id) *Position {
 	return nil
 }
 
-func GetPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
-	if position := PosComp(guid); position != nil {
-		return position.pos, true
-	}
+func HasPosComp(guid entity.Id) bool { return PosComp(guid) != nil }
 
-	ok = false
+func GetPos(guid entity.Id) (result geom.Pt2I) {
+	if position := PosComp(guid); position != nil {
+		return position.pos
+	}
+	dbg.Die("%v has no position component.", guid)
 	return
 }
 
@@ -81,5 +83,8 @@ func GetParentPosOrPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
 		return
 	}
 
-	return GetPos(guid)
+	if ok = HasPosComp(guid); ok {
+		pos = GetPos(guid)
+	}
+	return
 }

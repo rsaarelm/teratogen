@@ -26,7 +26,6 @@ type Blob struct {
 	IconId string
 	guid   entity.Id
 	Name   string
-	pos    geom.Pt2I
 	Class  EntityClass
 
 	prop     map[string]interface{}
@@ -42,12 +41,13 @@ func NewEntity(guid entity.Id) (result *Blob) {
 }
 
 func (self *Blob) GetPos() geom.Pt2I {
-	parent := self.GetParent()
-	if parent != nil {
-		return parent.GetPos()
-	}
-	return self.pos
+	pos, _ := GetParentPosOrPos(self.GetGuid())
+	return pos
 }
+
+func (self *Blob) MoveAbs(pos geom.Pt2I) { PosComp(self.GetGuid()).MoveAbs(pos) }
+
+func (self *Blob) Move(vec geom.Vec2I) { PosComp(self.GetGuid()).Move(vec) }
 
 func (self *Blob) GetGuid() entity.Id { return self.guid }
 
@@ -56,10 +56,6 @@ func (self *Blob) GetClass() EntityClass { return self.Class }
 func (self *Blob) GetName() string { return self.Name }
 
 func (self *Blob) String() string { return self.Name }
-
-func (self *Blob) MoveAbs(pos geom.Pt2I) { self.pos = pos }
-
-func (self *Blob) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
 
 func (self *Blob) Set(name string, value interface{}) *Blob {
 	self.hideProp[name] = false, false
@@ -206,8 +202,6 @@ func (self *Blob) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
 	mem.WriteFixed(out, int64(self.guid))
 	mem.WriteString(out, self.Name)
-	mem.WriteFixed(out, int32(self.pos.X))
-	mem.WriteFixed(out, int32(self.pos.Y))
 	mem.WriteFixed(out, int32(self.Class))
 
 	mem.WriteFixed(out, int32(len(self.prop)))
@@ -226,8 +220,6 @@ func (self *Blob) Deserialize(in io.Reader) {
 	self.IconId = mem.ReadString(in)
 	self.guid = entity.Id(mem.ReadInt64(in))
 	self.Name = mem.ReadString(in)
-	self.pos.X = int(mem.ReadInt32(in))
-	self.pos.Y = int(mem.ReadInt32(in))
 	self.Class = EntityClass(mem.ReadInt32(in))
 
 	self.prop = make(map[string]interface{})
