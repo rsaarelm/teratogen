@@ -7,7 +7,6 @@ import (
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/num"
-	"hyades/txt"
 	"math"
 )
 
@@ -72,20 +71,19 @@ func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
 			Msg("You die.\n")
 			var msg string
 			if causerId != entity.NilId {
-				msg = fmt.Sprintf("killed by %v.", GetBlob(causerId).GetName())
+				msg = fmt.Sprintf("killed by %v.", GetName(causerId))
 			} else {
 				msg = "killed."
 			}
 			GameOver(msg)
 		} else {
-			Msg("%v killed.\n", txt.Capitalize(self.Name))
+			Msg("%v killed.\n", GetCapName(self.GetGuid()))
 		}
 		DestroyBlob(self)
 	} else {
 		PlaySound("hit")
 
-		Msg("%v %v.\n",
-			txt.Capitalize(self.Name), self.WoundDescription())
+		Msg("%v %v.\n", GetCapName(self.GetGuid()), self.WoundDescription())
 	}
 }
 

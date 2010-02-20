@@ -280,9 +280,9 @@ func (self *MapView) AsyncHandleKey(key int) {
 			item := o.(*Blob)
 			if first {
 				first = false
-				Msg(" %v", item.Name)
+				Msg(" %v", GetName(item.GetGuid()))
 			} else {
-				Msg(", %v", item.Name)
+				Msg(", %v", GetName(item.GetGuid()))
 			}
 		}
 		if first {
@@ -312,7 +312,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 				SendPlayerInput(func() {
 					item := item.(*Blob)
 					item.RemoveSelf()
-					Msg("Dropped %v.\n", item.GetName())
+					Msg("Dropped %v.\n", GetName(item.GetGuid()))
 				})
 			} else {
 				Msg("Okay, then.\n")

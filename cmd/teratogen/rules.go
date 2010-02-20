@@ -10,7 +10,6 @@ import (
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/num"
-	"hyades/txt"
 	"math"
 	"rand"
 )
@@ -188,7 +187,7 @@ func Attack(attackerId, defenderId entity.Id) {
 		defender.GetI(PropScale)-attacker.GetI(PropScale))
 
 	if doesHit {
-		Msg("%v hits. ", txt.Capitalize(attacker.GetName()))
+		Msg("%v hits. ", GetCapName(attackerId))
 		// XXX: Assuming melee attack.
 		woundLevel := attacker.MeleeWoundLevelAgainst(defender, hitDegree)
 
@@ -198,10 +197,10 @@ func Attack(attackerId, defenderId entity.Id) {
 		if woundLevel > 0 {
 			defender.Damage(woundLevel, attackerId)
 		} else {
-			Msg("%v undamaged.\n", txt.Capitalize(defender.GetName()))
+			Msg("%v undamaged.\n", GetCapName(defenderId))
 		}
 	} else {
-		Msg("%v missed.\n", txt.Capitalize(attacker.GetName()))
+		Msg("%v missed.\n", GetCapName(attackerId))
 	}
 }
 
@@ -237,13 +236,13 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 
 func DamageEquipment(ownerId entity.Id, slot string) {
 	ent := GetBlob(ownerId)
-	if guid, ok := GetEquipment(ent.GetGuid(), slot); ok {
-		o := GetBlobs().Get(guid).(*Blob)
+	if itemId, ok := GetEquipment(ent.GetGuid(), slot); ok {
+		o := GetBlobs().Get(itemId).(*Blob)
 		if num.OneChanceIn(o.GetI(PropDurability)) {
 			if slot == PropGunWeaponGuid {
-				Msg("The %s's %s is out of ammo.\n", ent.GetName(), o.GetName())
+				Msg("The %s's %s is out of ammo.\n", GetName(ownerId), GetName(itemId))
 			} else {
-				Msg("The %s's %s breaks.\n", ent.GetName(), o.GetName())
+				Msg("The %s's %s breaks.\n", GetName(ownerId), GetName(itemId))
 			}
 			DestroyBlob(o)
 		}
@@ -326,7 +325,7 @@ func RunAI() {
 
 func GameOver(reason string) {
 	MsgMore()
-	fmt.Printf("%v %v\n", txt.Capitalize(GetBlob(PlayerId()).Name), reason)
+	fmt.Printf("%v %v\n", GetCapName(PlayerId()), reason)
 	Quit()
 }
 
@@ -371,14 +370,14 @@ func IsTakeableItem(e *Blob) bool { return e.Class == ItemEntityClass }
 
 func TakeItem(subject *Blob, item *Blob) {
 	item.InsertSelf(subject)
-	Msg("%v takes %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
+	Msg("%v takes %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
 }
 
 func DropItem(subject *Blob, item *Blob) {
 	// TODO: Check if the subject is holding the item.
 	item.RemoveSelf()
 	PosComp(item.GetGuid()).MoveAbs(GetPos(subject.GetGuid()))
-	Msg("%v drops %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
+	Msg("%v drops %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
