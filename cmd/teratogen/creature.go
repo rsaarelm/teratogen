@@ -67,7 +67,7 @@ func (self *Blob) Damage(woundLevel int, cause *Blob) {
 
 	if self.IsKilledByWounds() {
 		PlaySound("death")
-		if self == GetPlayer() {
+		if self.GetGuid() == PlayerId() {
 			Msg("You die.\n")
 			var msg string
 			if cause != nil {

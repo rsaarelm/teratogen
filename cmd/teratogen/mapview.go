@@ -105,8 +105,8 @@ func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	self.timePoint += elapsed
 
 	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
-	g2.Center(area, GetPlayer().GetPos().X*TileW+TileW/2,
-		GetPlayer().GetPos().Y*TileH+TileH/2)
+	g2.Center(area, GetPos(PlayerId()).X*TileW+TileW/2,
+		GetPos(PlayerId()).Y*TileH+TileH/2)
 	DrawWorld(g2)
 	self.DrawAnims(g2, elapsed)
 }
@@ -124,20 +124,19 @@ func World2TilePos(worldX, worldY int) geom.Pt2I {
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
-	worldX, worldY = Tile2WorldPos(GetPlayer().GetPos())
+	worldX, worldY = Tile2WorldPos(GetPos(PlayerId()))
 	worldX += screenX - area.Min.X - area.Dx()/2
 	worldY += screenY - area.Min.Y - area.Dy()/2
 	return
 }
 
 func (self *MapView) onMouseButton(button int) {
-	player := GetPlayer()
 	event := self.lastMouse
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
 	tilePos := World2TilePos(wx, wy)
-	vec := tilePos.Minus(player.GetPos())
+	vec := tilePos.Minus(GetPos(PlayerId()))
 	switch button {
 	case leftButton:
 		// Move player in mouse direction.
@@ -148,7 +147,7 @@ func (self *MapView) onMouseButton(button int) {
 			// Clicking at player pos.
 
 			// If there are stairs here, clicking on player goes down.
-			if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
+			if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
 				SendPlayerInput(func() { PlayerEnterStairs() })
 			}
 
@@ -164,13 +163,13 @@ func (self *MapView) onMouseButton(button int) {
 		if !vec.Equals(geom.ZeroVec2I) {
 			// If shift is pressed, right-click always shoots.
 			if self.shiftKeyState > 0 {
-				SendPlayerInput(func() { Shoot(player, tilePos) })
+				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), tilePos) })
 				return
 			}
 
 			// If there's an enemy, right-click shoots at it.
-			for _ = range EnemiesAt(player, tilePos).Iter() {
-				SendPlayerInput(func() { Shoot(player, tilePos) })
+			for _ = range EnemiesAt(GetBlob(PlayerId()), tilePos).Iter() {
+				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), tilePos) })
 				return
 			}
 		}
@@ -272,7 +271,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		for o := range GetPlayer().Contents().Iter() {
+		for o := range GetBlob(PlayerId()).Contents().Iter() {
 			item := o.(*Blob)
 			if first {
 				first = false
@@ -289,11 +288,10 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'e':
 		EquipMenu()
 	case 'f':
-		player := GetPlayer()
-		if GunEquipped(player) {
-			target := ClosestCreatureSeenBy(player)
+		if GunEquipped(GetBlob(PlayerId())) {
+			target := ClosestCreatureSeenBy(GetBlob(PlayerId()))
 			if target != nil {
-				SendPlayerInput(func() { Shoot(player, target.GetPos()) })
+				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), target.GetPos()) })
 			} else {
 				Msg("You see nothing to shoot.\n")
 			}
@@ -302,10 +300,9 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case 'd':
 		// Drop item.
-		player := GetPlayer()
-		if player.HasContents() {
+		if GetBlob(PlayerId()).HasContents() {
 			item, ok := ObjectChoiceDialog(
-				"Drop which item?", iterable.Data(player.Contents()))
+				"Drop which item?", iterable.Data(GetBlob(PlayerId()).Contents()))
 			if ok {
 				SendPlayerInput(func() {
 					item := item.(*Blob)

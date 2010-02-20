@@ -5,17 +5,17 @@ import (
 )
 
 func DoAI(crit *Blob) {
-	player := GetPlayer()
-	if player == nil || player == crit {
+	playerId := PlayerId()
+	if crit.GetGuid() == playerId {
 		return
 	}
 
-	dirVec := player.GetPos().Minus(crit.GetPos())
+	dirVec := GetPos(playerId).Minus(crit.GetPos())
 	dir8 := geom.Vec2IToDir8(dirVec)
 	moveVec := geom.Dir8ToVec(dir8)
 
-	if crit.GetPos().Plus(moveVec).Equals(player.GetPos()) {
-		Attack(crit, player)
+	if crit.GetPos().Plus(moveVec).Equals(GetPos(playerId)) {
+		Attack(crit, GetBlob(playerId))
 	} else {
 		// TODO: Going around obstacles.
 		crit.TryMove(moveVec)

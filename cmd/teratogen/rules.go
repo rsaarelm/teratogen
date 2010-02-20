@@ -217,7 +217,7 @@ func Shoot(attacker *Blob, target geom.Pt2I) {
 		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
 	}
 
-	p1, p2 := draw.Pt(Tile2WorldPos(GetPlayer().GetPos())), draw.Pt(Tile2WorldPos(hitPos))
+	p1, p2 := draw.Pt(Tile2WorldPos(GetPos(PlayerId()))), draw.Pt(Tile2WorldPos(hitPos))
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
@@ -258,7 +258,7 @@ func FudgeOpposed(ability, difficulty int) int {
 }
 
 func MovePlayerDir(dir int) {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	GetLos().ClearSight()
 	player.TryMove(geom.Dir8ToVec(dir))
 
@@ -287,7 +287,7 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	vec := geom.Dir8ToVec(dir)
 	target := player.GetPos().Plus(vec)
 
@@ -304,7 +304,7 @@ func RunAI() {
 	enemyCount := 0
 	for o := range Creatures().Iter() {
 		crit := o.(*Blob)
-		if crit != GetPlayer() {
+		if crit.GetGuid() != PlayerId() {
 			enemyCount++
 		}
 		DoAI(crit)
@@ -313,7 +313,7 @@ func RunAI() {
 
 func GameOver(reason string) {
 	MsgMore()
-	fmt.Printf("%v %v\n", txt.Capitalize(GetPlayer().Name), reason)
+	fmt.Printf("%v %v\n", txt.Capitalize(GetBlob(PlayerId()).Name), reason)
 	Quit()
 }
 
@@ -322,7 +322,7 @@ func GameOver(reason string) {
 func IsMobile(entity *Blob) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
 
 func PlayerEnterStairs() {
-	if GetArea().GetTerrain(GetPlayer().GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
 		Msg("Going down...\n")
 		NextLevel()
 	} else {
@@ -403,7 +403,7 @@ func UseItem(user *Blob, item *Blob) {
 }
 
 func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	items := iterable.Data(TakeableItems(player.GetPos()))
 
 	if len(items) == 0 {
@@ -503,7 +503,7 @@ func SpawnRandomPos(name string) (result *Blob) {
 
 func clearNonplayerEntities() {
 	// Bring over player object and player's inventory.
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	keep := make(map[entity.Id]bool)
 	keep[player.GetGuid()] = true
 	for ent := range player.RecursiveContents().Iter() {

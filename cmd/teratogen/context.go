@@ -65,9 +65,9 @@ func (self *Context) EnterLevel(depth int) {
 
 	GetArea().SetTerrain(GetSpawnPos(), TerrainStairDown)
 
-	player := GetPlayer()
-	player.MoveAbs(GetSpawnPos())
-	GetLos().DoLos(player.GetPos())
+	playerId := PlayerId()
+	PosComp(playerId).MoveAbs(GetSpawnPos())
+	GetLos().DoLos(GetPos(playerId))
 
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
@@ -82,7 +82,7 @@ func GetBlob(guid entity.Id) *Blob { return GetBlobs().Get(guid).(*Blob) }
 
 func DestroyBlob(ent *Blob) {
 	ent.RemoveSelf()
-	if ent == GetPlayer() {
+	if ent.GetGuid() == PlayerId() {
 		if /*GameRunning() */ false {
 			// Ensure gameover if player is destroyed by unknown means.
 			GameOver("was wiped out of existence.")
@@ -94,7 +94,7 @@ func DestroyBlob(ent *Blob) {
 	GetManager().RemoveEntity(ent.GetGuid())
 }
 
-func GetPlayer() *Blob { return GetBlob(GetGlobals().PlayerId) }
+func PlayerId() entity.Id { return GetGlobals().PlayerId }
 
 func (self *Context) Deserialize(in io.Reader) {
 	self.manager = makeManager()

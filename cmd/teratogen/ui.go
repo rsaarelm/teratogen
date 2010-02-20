@@ -192,7 +192,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	defer g.ClearClip()
 
 	DrawString(g, area.Min.X, area.Min.Y,
-		"%v", txt.Capitalize(GetPlayer().WoundDescription()))
+		"%v", txt.Capitalize(GetBlob(PlayerId()).WoundDescription()))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
@@ -348,7 +348,7 @@ func ObjectChoiceDialog(prompt string, objs []interface{}) (result interface{}, 
 }
 
 func EquipMenu() {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	slots := [...]string{PropBodyArmorGuid, PropMeleeWeaponGuid, PropGunWeaponGuid}
 	names := [...]string{"body armor", "melee weapon", "gun"}
 	options := make([]interface{}, len(slots))
@@ -387,7 +387,7 @@ func UiHelpLines() iterable.Iterable {
 	vec.Push("arrow keys: move, attack adjacent")
 	vec.Push("q: quit")
 
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 
 	if HasContents(player) {
 		vec.Push("i: inventory")
@@ -417,7 +417,7 @@ func UiHelpLines() iterable.Iterable {
 
 // Write a message about interesting stuff on the ground.
 func StuffOnGroundMsg() {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 	items := iterable.Data(TakeableItems(player.GetPos()))
 	stairs := GetArea().GetTerrain(player.GetPos()) == TerrainStairDown
 	if len(items) > 1 {
@@ -431,7 +431,7 @@ func StuffOnGroundMsg() {
 }
 
 func ApplyItemMenu() (actionMade bool) {
-	player := GetPlayer()
+	player := GetBlob(PlayerId())
 
 	items := iterable.Data(iterable.Filter(player.Contents(), IsUsable))
 	if len(items) == 0 {
