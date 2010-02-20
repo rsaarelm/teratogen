@@ -3,12 +3,39 @@ package main
 import (
 	"hyades/entity"
 	"hyades/geom"
+	"io"
 )
 
 const PosComponent = entity.ComponentFamily("position")
 
+
+type posTemplate struct{}
+
+func PosTemplate() *posTemplate { return new(posTemplate) }
+
+func (self *posTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
+	return self
+}
+
+func (self *posTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
+	GetManager().Handler(PosComponent).Add(guid, new(Position))
+}
+
+
 type Position struct {
 	pos geom.Pt2I
+}
+
+func (self *Position) MoveAbs(pos geom.Pt2I) { self.pos = pos }
+
+func (self *Position) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
+
+func (self *Position) Serialize(out io.Writer) {
+	entity.GobSerialize(out, self)
+}
+
+func (self *Position) Deserialize(in io.Reader) {
+	entity.GobDeserialize(in, self)
 }
 
 func PosComp(guid entity.Id) *Position {
@@ -56,7 +83,3 @@ func GetParentPosOrPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
 
 	return GetPos(guid)
 }
-
-func (self *Position) MoveAbs(pos geom.Pt2I) { self.pos = pos }
-
-func (self *Position) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
