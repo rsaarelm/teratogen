@@ -84,7 +84,7 @@ func drawEntities(g gfx.Graphics) {
 		mapped := seen || GetLos().Get(pos) == LosMapped
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
-			if seen || !IsMobile(e) {
+			if seen || !IsMobile(e.GetGuid()) {
 				Draw(g, e.IconId, pos.X, pos.Y)
 			}
 		}

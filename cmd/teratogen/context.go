@@ -142,9 +142,11 @@ func EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 	return iterable.Filter(Entities(), posPred)
 }
 
-func Creatures() iterable.Iterable { return iterable.Filter(Entities(), IsCreature) }
+func Creatures() iterable.Iterable {
+	return iterable.Filter(Entities(), func(o interface{}) bool { return IsCreature(o.(*Blob).GetGuid()) })
+}
 
 func OtherCreatures(excluded interface{}) iterable.Iterable {
-	pred := func(o interface{}) bool { return o != excluded && IsCreature(o) }
+	pred := func(o interface{}) bool { return o != excluded && IsCreature(o.(*Blob).GetGuid()) }
 	return iterable.Filter(Entities(), pred)
 }

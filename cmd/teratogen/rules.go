@@ -251,7 +251,7 @@ func DamageEquipment(ownerId entity.Id, slot string) {
 }
 
 func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
-	for o := range iterable.Filter(EntitiesAt(pos), IsCreature).Iter() {
+	for o := range iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsCreature(o.(*Blob).GetGuid()) }).Iter() {
 		o.(*Blob).Damage(woundLevel, causerId)
 	}
 }
@@ -328,7 +328,12 @@ func GameOver(reason string) {
 
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
-func IsMobile(entity *Blob) bool { return entity.GetClass() > CreatureEntityClassStartMarker }
+func IsMobile(id entity.Id) bool {
+	if entity := GetBlob(id); entity != nil {
+		return entity.GetClass() > CreatureEntityClassStartMarker
+	}
+	return false
+}
 
 func PlayerEnterStairs() {
 	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
@@ -341,10 +346,19 @@ func PlayerEnterStairs() {
 
 func NextLevel() { GetContext().EnterLevel(GetCurrentLevel()) }
 
-func IsCreature(o interface{}) bool {
-	switch o.(*Blob).GetClass() {
-	case PlayerEntityClass, EnemyEntityClass:
-		return true
+// EntityFilterFn takes a predicate function that works on entity.Ids and
+// converts it into a function that works on interface{} values that can be
+// used with the iterable API.
+func EntityFilterFn(entityPred func(entity.Id) bool) (func(interface{}) bool) {
+	return func(o interface{}) bool { return entityPred(o.(entity.Id)) }
+}
+
+func IsCreature(id entity.Id) bool {
+	if ent := GetBlob(id); ent != nil {
+		switch ent.GetClass() {
+		case PlayerEntityClass, EnemyEntityClass:
+			return true
+		}
 	}
 	return false
 }
