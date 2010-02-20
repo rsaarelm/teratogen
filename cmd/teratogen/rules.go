@@ -143,7 +143,12 @@ func LevelDescription(level int) string {
 }
 
 // Return whether an entity considers another entity an enemy.
-func IsEnemyOf(ent *Blob, possibleEnemy *Blob) bool {
+func IsEnemyOf(id, possibleEnemyId entity.Id) bool {
+	ent, possibleEnemy := GetBlob(id), GetBlob(possibleEnemyId)
+	if ent == nil || possibleEnemy == nil {
+		return false
+	}
+
 	if ent.GetClass() == PlayerEntityClass &&
 		possibleEnemy.GetClass() == EnemyEntityClass {
 		return true
@@ -156,8 +161,8 @@ func IsEnemyOf(ent *Blob, possibleEnemy *Blob) bool {
 }
 
 // EnemiesAt iterates the enemies of ent at pos.
-func EnemiesAt(ent *Blob, pos geom.Pt2I) iterable.Iterable {
-	filter := func(o interface{}) bool { return IsEnemyOf(ent, o.(*Blob)) }
+func EnemiesAt(id entity.Id, pos geom.Pt2I) iterable.Iterable {
+	filter := func(o interface{}) bool { return IsEnemyOf(id, o.(*Blob).GetGuid()) }
 
 	return iterable.Filter(EntitiesAt(pos), filter)
 }
@@ -287,12 +292,11 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
-	player := GetBlob(PlayerId())
 	vec := geom.Dir8ToVec(dir)
-	target := player.GetPos().Plus(vec)
+	target := GetPos(PlayerId()).Plus(vec)
 
-	for o := range EnemiesAt(player, target).Iter() {
-		Attack(player, o.(*Blob))
+	for o := range EnemiesAt(PlayerId(), target).Iter() {
+		Attack(GetBlob(PlayerId()), o.(*Blob))
 		return
 	}
 	// No attack, move normally.

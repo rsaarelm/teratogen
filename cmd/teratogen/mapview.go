@@ -168,7 +168,7 @@ func (self *MapView) onMouseButton(button int) {
 			}
 
 			// If there's an enemy, right-click shoots at it.
-			for _ = range EnemiesAt(GetBlob(PlayerId()), tilePos).Iter() {
+			for _ = range EnemiesAt(PlayerId(), tilePos).Iter() {
 				SendPlayerInput(func() { Shoot(GetBlob(PlayerId()), tilePos) })
 				return
 			}
