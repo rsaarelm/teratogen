@@ -407,10 +407,10 @@ func UiHelpLines() iterable.Iterable {
 		vec.Push("f: fire gun")
 	}
 
-	if len(iterable.Data(TakeableItems(player.GetPos()))) > 0 {
+	if len(iterable.Data(TakeableItems(GetPos(player.GetGuid())))) > 0 {
 		vec.Push(",: pick up item")
 	}
-	if GetArea().GetTerrain(player.GetPos()) == TerrainStairDown {
+	if GetArea().GetTerrain(GetPos(player.GetGuid())) == TerrainStairDown {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
@@ -419,8 +419,8 @@ func UiHelpLines() iterable.Iterable {
 // Write a message about interesting stuff on the ground.
 func StuffOnGroundMsg() {
 	player := GetBlob(PlayerId())
-	items := iterable.Data(TakeableItems(player.GetPos()))
-	stairs := GetArea().GetTerrain(player.GetPos()) == TerrainStairDown
+	items := iterable.Data(TakeableItems(GetPos(player.GetGuid())))
+	stairs := GetArea().GetTerrain(GetPos(player.GetGuid())) == TerrainStairDown
 	if len(items) > 1 {
 		Msg("There are several items here.\n")
 	} else if len(items) == 1 {

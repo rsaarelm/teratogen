@@ -84,7 +84,7 @@ func drawEntities(g gfx.Graphics) {
 
 	for sorted := range seq.Iter() {
 		e := sorted.(*Blob)
-		pos := e.GetPos()
+		pos := GetPos(e.GetGuid())
 		seen := GetLos().Get(pos) == LosSeen
 		mapped := seen || GetLos().Get(pos) == LosMapped
 		// TODO: Draw static (item) entities from map memory.

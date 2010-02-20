@@ -212,7 +212,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 	}
 
 	// TODO: Aiming precision etc.
-	origin := attacker.GetPos()
+	origin := GetPos(attacker.GetGuid())
 	var hitPos geom.Pt2I
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
@@ -276,7 +276,7 @@ func MovePlayerDir(dir int) {
 	// too.
 
 	// See if the player collided with something fun.
-	for o := range EntitiesAt(player.GetPos()).Iter() {
+	for o := range EntitiesAt(GetPos(player.GetGuid())).Iter() {
 		id := o.(entity.Id)
 		ent := GetBlob(id)
 		if ent == nil {
@@ -297,7 +297,7 @@ func MovePlayerDir(dir int) {
 		}
 	}
 
-	GetLos().DoLos(player.GetPos())
+	GetLos().DoLos(GetPos(player.GetGuid()))
 }
 
 func SmartMovePlayer(dir int) {
@@ -377,7 +377,7 @@ func TakeItem(subject *Blob, item *Blob) {
 func DropItem(subject *Blob, item *Blob) {
 	// TODO: Check if the subject is holding the item.
 	item.RemoveSelf()
-	item.MoveAbs(subject.GetPos())
+	PosComp(item.GetGuid()).MoveAbs(GetPos(subject.GetGuid()))
 	Msg("%v drops %v.\n", txt.Capitalize(subject.GetName()), item.GetName())
 }
 
@@ -431,7 +431,7 @@ func UseItem(user *Blob, item *Blob) {
 
 func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 	player := GetBlob(PlayerId())
-	itemIds := iterable.Data(TakeableItems(player.GetPos()))
+	itemIds := iterable.Data(TakeableItems(GetPos(player.GetGuid())))
 	// XXX: Blob kludge
 	items := make([]interface{}, len(itemIds))
 	for i := 0; i < len(items); i++ {
@@ -493,7 +493,9 @@ func EntityDist(o1, o2 interface{}) float64 {
 
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
 	id := o.(entity.Id)
-	pred := func(o interface{}) bool { return GetBlob(id).CanSeeTo(GetBlob(o.(entity.Id)).GetPos()) }
+	pred := func(o interface{}) bool {
+		return GetBlob(id).CanSeeTo(GetPos(GetBlob(o.(entity.Id)).GetGuid()))
+	}
 	return iterable.Filter(OtherCreatures(o), pred)
 }
 
@@ -523,7 +525,7 @@ func Spawn(name string) *Blob {
 
 func SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
 	result = Spawn(name)
-	result.MoveAbs(pos)
+	PosComp(result.GetGuid()).MoveAbs(pos)
 	return
 }
 

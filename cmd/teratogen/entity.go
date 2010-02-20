@@ -3,7 +3,6 @@ package main
 import (
 	"hyades/dbg"
 	"hyades/entity"
-	"hyades/geom"
 	"hyades/mem"
 	"io"
 )
@@ -39,15 +38,6 @@ func NewEntity(guid entity.Id) (result *Blob) {
 	result.guid = guid
 	return
 }
-
-func (self *Blob) GetPos() geom.Pt2I {
-	pos, _ := GetParentPosOrPos(self.GetGuid())
-	return pos
-}
-
-func (self *Blob) MoveAbs(pos geom.Pt2I) { PosComp(self.GetGuid()).MoveAbs(pos) }
-
-func (self *Blob) Move(vec geom.Vec2I) { PosComp(self.GetGuid()).Move(vec) }
 
 func (self *Blob) GetGuid() entity.Id { return self.guid }
 

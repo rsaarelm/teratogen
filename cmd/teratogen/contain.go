@@ -86,7 +86,7 @@ func (self *Blob) InsertSelf(parent *Blob) {
 
 func (self *Blob) RemoveSelf() {
 	if parent := self.GetTopParent(); parent != nil {
-		self.MoveAbs(parent.GetPos())
+		PosComp(self.GetGuid()).MoveAbs(GetPos(parent.GetGuid()))
 	}
 	GetContain().RemoveWithRhs(self.GetGuid())
 	RemoveEquipped(self.GetGuid())

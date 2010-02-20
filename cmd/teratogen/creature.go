@@ -61,7 +61,7 @@ func (self *Blob) ArmorFactor() (result int) {
 func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
 	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
 
-	sx, sy := CenterDrawPos(self.GetPos())
+	sx, sy := CenterDrawPos(GetPos(self.GetGuid()))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
@@ -112,8 +112,8 @@ func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLeve
 }
 
 func (self *Blob) TryMove(vec geom.Vec2I) (success bool) {
-	if IsOpen(self.GetPos().Plus(vec)) {
-		self.Move(vec)
+	if IsOpen(GetPos(self.GetGuid()).Plus(vec)) {
+		PosComp(self.GetGuid()).Move(vec)
 		return true
 	}
 	return false
@@ -123,7 +123,7 @@ func (self *Blob) CanSeeTo(pos geom.Pt2I) bool {
 	dist := 0
 	// TODO Customizable max sight range
 	sightRange := 18
-	for o := range iterable.Drop(geom.Line(self.GetPos(), pos), 1).Iter() {
+	for o := range iterable.Drop(geom.Line(GetPos(self.GetGuid()), pos), 1).Iter() {
 		if dist > sightRange {
 			return false
 		}
