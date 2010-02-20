@@ -20,39 +20,23 @@ func GetContain() *entity.Relation {
 	return GetManager().Handler(ContainComponent).(*entity.Relation)
 }
 
-func GetParent(guid entity.Id) entity.Id {
-	id, ok := GetContain().GetLhs(guid)
+func GetParent(id entity.Id) entity.Id {
+	parentId, ok := GetContain().GetLhs(id)
 	if ok {
-		return id
+		return parentId
 	}
 	return entity.NilId
 }
 
-// TODO: Turn inventory methods from Blob component methods into plain
-// functions on entity guids.
-
-func (self *Blob) GetParent() *Blob {
-	if id, ok := GetContain().GetLhs(self.GetGuid()); ok {
-		return GetBlobs().Get(id).(*Blob)
-	}
-	return nil
-}
-
-// GetTopParent gets the greatest grandparent of the entity.
-func (self *Blob) GetTopParent() (result *Blob) {
-	for p := self.GetParent(); p != nil; p = p.GetParent() {
-		result = p
+func GetTopParent(id entity.Id) (topId entity.Id) {
+	for parentId := GetParent(id); parentId != entity.NilId; parentId = GetParent(parentId) {
+		topId = parentId
 	}
 	return
 }
 
-func (self *Blob) SetParent(e *Blob) {
-	if e != nil {
-		GetContain().AddPair(e.GetGuid(), self.GetGuid())
-	} else {
-		GetContain().RemoveWithRhs(self.GetGuid())
-	}
-}
+// TODO: Turn inventory methods from Blob component methods into plain
+// functions on entity guids.
 
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
@@ -85,8 +69,8 @@ func (self *Blob) InsertSelf(parent *Blob) {
 }
 
 func (self *Blob) RemoveSelf() {
-	if parent := self.GetTopParent(); parent != nil {
-		PosComp(self.GetGuid()).MoveAbs(GetPos(parent.GetGuid()))
+	if parentId := GetTopParent(self.GetGuid()); parentId != entity.NilId {
+		PosComp(self.GetGuid()).MoveAbs(GetPos(parentId))
 	}
 	GetContain().RemoveWithRhs(self.GetGuid())
 	RemoveEquipped(self.GetGuid())

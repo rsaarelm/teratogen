@@ -74,7 +74,7 @@ func drawEntities(g gfx.Graphics) {
 		if ent == nil {
 			continue
 		}
-		if ent.GetParent() != nil {
+		if GetParent(ent.GetGuid()) != entity.NilId {
 			// Skip entities inside something.
 			continue
 		}
