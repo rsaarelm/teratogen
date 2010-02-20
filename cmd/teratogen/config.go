@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"hyades/babble"
+	"hyades/fs"
 	"hyades/keyboard"
 	"hyades/num"
 	"os"
@@ -13,15 +14,16 @@ import (
 )
 
 type Config struct {
-	Sound      bool
-	Fullscreen bool
-	KeyLayout  string
-	RngSeed    string
-	Scale      int
-	TileScale  int
+	Sound       bool
+	Fullscreen  bool
+	KeyLayout   string
+	RngSeed     string
+	Scale       int
+	TileScale   int
+	ArchiveFile string
 }
 
-func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 2, 1} }
+func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 2, 1, fs.SelfExe()} }
 
 var config *Config
 
@@ -40,6 +42,7 @@ func ParseConfig() {
 	flag.StringVar(&config.RngSeed, "logos", config.RngSeed, "Genesis seed.")
 	flag.IntVar(&config.Scale, "scale", config.Scale, "Window scaling factor, 1|2")
 	flag.IntVar(&config.TileScale, "tilescale", config.TileScale, "Tile scaling factor, 1|2")
+	flag.StringVar(&config.ArchiveFile, "archive", fs.SelfExe(), "Media archive file.")
 	flag.Usage = usage
 	flag.Parse()
 

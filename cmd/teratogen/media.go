@@ -29,7 +29,7 @@ func Load(filename string) (data []byte, err os.Error) {
 
 func initArchive() {
 	cache = make(map[string]interface{})
-	arch, err := fs.ArchiveFromTarGzFile(fs.SelfExe())
+	arch, err := fs.ArchiveFromTarGzFile(config.ArchiveFile)
 	dbg.AssertNil(err, "%v", err)
 	archive = arch
 }
