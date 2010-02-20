@@ -78,10 +78,21 @@ func (self *Archive) ListFiles() (list []string, err os.Error) {
 	return
 }
 
+func FileExists(filepath string) bool {
+	_, err := os.Stat(filepath)
+	return err == nil
+}
+
 // Returns a file name that can be used to access the currently run binary.
 func SelfExe() string {
-	// XXX: Works only on Linux
-	return "/proc/self/exe"
+	// The proc self/exe gives the self file on Linux.
+	const procSelfExe = "/proc/self/exe"
+	if FileExists(procSelfExe) {
+		return procSelfExe
+	}
+	// Otherwise just use the command-line argument and hope it points to the
+	// correct file.
+	return os.Args[0]
 }
 
 func UnpackGzFile(filename string) (data []byte, err os.Error) {
