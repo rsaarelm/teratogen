@@ -78,7 +78,13 @@ func (self *Context) EnterLevel(depth int) {
 	globals.CurrentLevel = int32(depth)
 }
 
-func GetBlob(guid entity.Id) *Blob { return GetBlobs().Get(guid).(*Blob) }
+func GetBlob(guid entity.Id) *Blob {
+	obj := GetBlobs().Get(guid)
+	if obj != nil {
+		return obj.(*Blob)
+	}
+	return nil
+}
 
 func DestroyBlob(ent *Blob) {
 	ent.RemoveSelf()
@@ -130,23 +136,24 @@ func GetLos() *Los {
 
 func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
 
-func Entities() iterable.Iterable {
-	return iterable.Map(GetBlobs().EntityComponents(), entity.IdComponent2Component)
-}
+// Entities returns an iteration of all the entity ids in the game.
+func Entities() iterable.Iterable { return GetManager().Entities() }
 
+// EntitiesAt returns an iteration of the ids of positionable entities at a
+// given position.
 func EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 	posPred := func(obj interface{}) bool {
-		e := obj.(*Blob)
-		return e.GetParent() == nil && e.GetPos().Equals(pos)
+		id := obj.(entity.Id)
+		return GetParent(id) == entity.NilId && HasPosComp(id) && GetPos(id).Equals(pos)
 	}
 	return iterable.Filter(Entities(), posPred)
 }
 
 func Creatures() iterable.Iterable {
-	return iterable.Filter(Entities(), func(o interface{}) bool { return IsCreature(o.(*Blob).GetGuid()) })
+	return iterable.Filter(Entities(), EntityFilterFn(IsCreature))
 }
 
-func OtherCreatures(excluded interface{}) iterable.Iterable {
-	pred := func(o interface{}) bool { return o != excluded && IsCreature(o.(*Blob).GetGuid()) }
+func OtherCreatures(excludedId interface{}) iterable.Iterable {
+	pred := func(o interface{}) bool { return o != excludedId && IsCreature(o.(entity.Id)) }
 	return iterable.Filter(Entities(), pred)
 }

@@ -66,6 +66,7 @@ func (self *Manager) Entities() iterable.Iterable {
 		for entity, _ := range self.liveEntities {
 			c <- entity
 		}
+		close(c)
 	})
 }
 

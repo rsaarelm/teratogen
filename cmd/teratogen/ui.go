@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/entity"
 	"hyades/gfx"
 	"hyades/gui"
 	"hyades/keyboard"
@@ -423,7 +424,7 @@ func StuffOnGroundMsg() {
 	if len(items) > 1 {
 		Msg("There are several items here.\n")
 	} else if len(items) == 1 {
-		Msg("There is %v here.\n", items[0])
+		Msg("There is %v here.\n", GetBlob(items[0].(entity.Id)))
 	}
 	if stairs {
 		Msg("There are stairs down here.\n")

@@ -6,6 +6,7 @@ import (
 	"exp/iterable"
 	"hyades/alg"
 	"hyades/dbg"
+	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/keyboard"
@@ -68,7 +69,11 @@ func drawEntities(g gfx.Graphics) {
 	// Make a vector of the entities sorted in draw order.
 	seq := new(vector.Vector)
 	for o := range Entities().Iter() {
-		ent := o.(*Blob)
+		id := o.(entity.Id)
+		ent := GetBlob(id)
+		if ent == nil {
+			continue
+		}
 		if ent.GetParent() != nil {
 			// Skip entities inside something.
 			continue
@@ -289,9 +294,9 @@ func (self *MapView) AsyncHandleKey(key int) {
 		EquipMenu()
 	case 'f':
 		if GunEquipped(GetBlob(PlayerId())) {
-			target := ClosestCreatureSeenBy(GetBlob(PlayerId()))
-			if target != nil {
-				SendPlayerInput(func() { Shoot(PlayerId(), target.GetPos()) })
+			targetId := ClosestCreatureSeenBy(PlayerId())
+			if targetId != entity.NilId {
+				SendPlayerInput(func() { Shoot(PlayerId(), GetPos(targetId)) })
 			} else {
 				Msg("You see nothing to shoot.\n")
 			}

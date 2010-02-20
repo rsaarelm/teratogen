@@ -162,7 +162,7 @@ func IsEnemyOf(id, possibleEnemyId entity.Id) bool {
 
 // EnemiesAt iterates the enemies of ent at pos.
 func EnemiesAt(id entity.Id, pos geom.Pt2I) iterable.Iterable {
-	filter := func(o interface{}) bool { return IsEnemyOf(id, o.(*Blob).GetGuid()) }
+	filter := func(o interface{}) bool { return IsEnemyOf(id, o.(entity.Id)) }
 
 	return iterable.Filter(EntitiesAt(pos), filter)
 }
@@ -251,8 +251,8 @@ func DamageEquipment(ownerId entity.Id, slot string) {
 }
 
 func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
-	for o := range iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsCreature(o.(*Blob).GetGuid()) }).Iter() {
-		o.(*Blob).Damage(woundLevel, causerId)
+	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
+		GetBlob(o.(entity.Id)).Damage(woundLevel, causerId)
 	}
 }
 
@@ -277,7 +277,11 @@ func MovePlayerDir(dir int) {
 
 	// See if the player collided with something fun.
 	for o := range EntitiesAt(player.GetPos()).Iter() {
-		ent := o.(*Blob)
+		id := o.(entity.Id)
+		ent := GetBlob(id)
+		if ent == nil {
+			continue
+		}
 		if ent == player {
 			continue
 		}
@@ -301,7 +305,7 @@ func SmartMovePlayer(dir int) {
 	target := GetPos(PlayerId()).Plus(vec)
 
 	for o := range EnemiesAt(PlayerId(), target).Iter() {
-		Attack(PlayerId(), o.(*Blob).GetGuid())
+		Attack(PlayerId(), o.(entity.Id))
 		return
 	}
 	// No attack, move normally.
@@ -312,11 +316,11 @@ func SmartMovePlayer(dir int) {
 func RunAI() {
 	enemyCount := 0
 	for o := range Creatures().Iter() {
-		crit := o.(*Blob)
-		if crit.GetGuid() != PlayerId() {
+		id := o.(entity.Id)
+		if id != PlayerId() {
 			enemyCount++
 		}
-		DoAI(crit.GetGuid())
+		DoAI(id)
 	}
 }
 
@@ -378,7 +382,7 @@ func DropItem(subject *Blob, item *Blob) {
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(o.(*Blob)) })
+	return iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(GetBlob(o.(entity.Id))) })
 }
 
 // TODO: Change other functions to use interface{} instead of *Blob to make
@@ -427,8 +431,15 @@ func UseItem(user *Blob, item *Blob) {
 
 func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 	player := GetBlob(PlayerId())
-	items := iterable.Data(TakeableItems(player.GetPos()))
+	itemIds := iterable.Data(TakeableItems(player.GetPos()))
+	// XXX: Blob kludge
+	items := make([]interface{}, len(itemIds))
+	for i := 0; i < len(items); i++ {
+		items[i] = GetBlob(itemIds[i].(entity.Id))
+	}
 
+	// TODO: Drop blob kludge, rewrite to use MultiChoiceDialog, since ids
+	// don't name themselves nicey.
 	if len(items) == 0 {
 		Msg("Nothing to take here.\n")
 		return nil
@@ -472,31 +483,27 @@ func CanEquipIn(slotId string, e *Blob) bool {
 }
 
 func EntityDist(o1, o2 interface{}) float64 {
-	e1, ok1 := o1.(interface {
-		GetPos() geom.Pt2I
-	})
-	e2, ok2 := o2.(interface {
-		GetPos() geom.Pt2I
-	})
-	if !ok1 || !ok2 {
-		return math.MaxFloat64
+	id1, id2 := o1.(entity.Id), o2.(entity.Id)
+
+	if HasPosComp(id1) && HasPosComp(id2) {
+		return GetPos(id1).Minus(GetPos(id2)).Abs()
 	}
-	return e1.GetPos().Minus(e2.GetPos()).Abs()
+	return math.MaxFloat64
 }
 
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
-	ent := o.(*Blob)
-	pred := func(o interface{}) bool { return ent.CanSeeTo(o.(*Blob).GetPos()) }
+	id := o.(entity.Id)
+	pred := func(o interface{}) bool { return GetBlob(id).CanSeeTo(GetBlob(o.(entity.Id)).GetPos()) }
 	return iterable.Filter(OtherCreatures(o), pred)
 }
 
-func ClosestCreatureSeenBy(o interface{}) *Blob {
+func ClosestCreatureSeenBy(o interface{}) entity.Id {
 	distFromSelf := func(o1 interface{}) float64 { return EntityDist(o1, o) }
 	ret, ok := alg.IterMin(CreaturesSeenBy(o), distFromSelf)
 	if !ok {
-		return nil
+		return entity.NilId
 	}
-	return ret.(*Blob)
+	return ret.(entity.Id)
 }
 
 func GunEquipped(o interface{}) bool {

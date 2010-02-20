@@ -154,9 +154,11 @@ func IsOpen(pos geom.Pt2I) bool {
 		return false
 	}
 	for o := range EntitiesAt(pos).Iter() {
-		ent := o.(*Blob)
-		if ent.Has(FlagObstacle) {
-			return false
+		id := o.(entity.Id)
+		if ent := GetBlob(id); ent != nil {
+			if ent.Has(FlagObstacle) {
+				return false
+			}
 		}
 	}
 
