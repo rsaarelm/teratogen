@@ -551,8 +551,8 @@ func clearNonplayerEntities() {
 
 func makeSpawnDistribution(depth int) num.WeightedDist {
 	weightFn := func(item interface{}) float64 {
-		proto := assemblages[item.(string)][BlobComponent].(*blobTemplate)
-		return SpawnWeight(proto.Scarcity, proto.MinDepth, depth)
+		metadata := assemblages[item.(string)][Metadata].(*metaTemplate)
+		return SpawnWeight(metadata.Scarcity, metadata.MinDepth, depth)
 	}
 	values := make([]interface{}, len(assemblages))
 	i := 0

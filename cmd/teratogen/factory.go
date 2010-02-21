@@ -4,23 +4,43 @@ import (
 	"hyades/entity"
 )
 
-type blobTemplate struct {
-	IconId   string
-	Class    EntityClass
-	Scarcity int
-	MinDepth int
-	Props    map[string]interface{}
-}
-
 // Keyword argument emulation with maps
 type KW map[string]interface{}
 
-func BlobTemplate(iconId string, class EntityClass, scarcity, minDepth int, kwargs KW) (result *blobTemplate) {
+
+// The Metadata doesn't match any entity component, nor does it affect the
+// entities created. It is for the use of the entity generator algorithm,
+// which uses it to tell how likely the different entitities are to spawn.
+const Metadata = entity.ComponentFamily("dummy-metadata")
+
+type metaTemplate struct {
+	Scarcity int
+	MinDepth int
+}
+
+func MetaTemplate(scarcity, minDepth int) *metaTemplate {
+	return &metaTemplate{scarcity, minDepth}
+}
+
+func (self *metaTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
+	return c
+}
+
+func (self *metaTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
+	// no-op
+}
+
+
+type blobTemplate struct {
+	IconId string
+	Class  EntityClass
+	Props  map[string]interface{}
+}
+
+func BlobTemplate(iconId string, class EntityClass, kwargs KW) (result *blobTemplate) {
 	result = new(blobTemplate)
 	result.IconId = iconId
 	result.Class = class
-	result.Scarcity = scarcity
-	result.MinDepth = minDepth
 
 	result.Props = make(map[string]interface{})
 	for k, v := range kwargs {
@@ -37,7 +57,7 @@ func (self *blobTemplate) applyProps(target *Blob) {
 
 func (self *blobTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
 	child := c.(*blobTemplate)
-	result := BlobTemplate(child.IconId, child.Class, child.Scarcity, child.MinDepth, KW{})
+	result := BlobTemplate(child.IconId, child.Class, KW{})
 	for key, val := range self.Props {
 		result.Props[key] = val
 	}
@@ -64,9 +84,10 @@ func init() {
 	assemblages = make(map[string]entity.Assemblage)
 	a := assemblages
 	a["creature"] = entity.Assemblage{
+		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("creature"),
-		BlobComponent: BlobTemplate("", EnemyEntityClass, -1, 0, KW{
+		BlobComponent: BlobTemplate("", EnemyEntityClass, KW{
 			FlagObstacle: 1,
 			PropStrength: Fair,
 			PropToughness: Fair,
@@ -75,77 +96,88 @@ func init() {
 			PropWounds: 0,
 			PropDensity: 0})}
 	a["protagonist"] = a["creature"].Derive(entity.Assemblage{
+		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("protagonist"),
-		BlobComponent: BlobTemplate("chars:0", PlayerEntityClass, -1, 0, KW{
+		BlobComponent: BlobTemplate("chars:0", PlayerEntityClass, KW{
 			PropStrength: Great,
 			PropToughness: Good,
 			PropMeleeSkill: Good})})
 	a["zombie"] = a["creature"].Derive(entity.Assemblage{
+		Metadata: MetaTemplate(100, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("zombie"),
-		BlobComponent: BlobTemplate("chars:1", EnemyEntityClass, 100, 0, KW{
+		BlobComponent: BlobTemplate("chars:1", EnemyEntityClass, KW{
 			PropStrength: Fair,
 			PropToughness: Poor,
 			PropMeleeSkill: Fair})})
 	a["dogthing"] = a["creature"].Derive(entity.Assemblage{
+		Metadata: MetaTemplate(150, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("dog-thing"),
-		BlobComponent: BlobTemplate("chars:2", EnemyEntityClass, 150, 0, KW{
+		BlobComponent: BlobTemplate("chars:2", EnemyEntityClass, KW{
 			PropStrength: Fair,
 			PropToughness: Fair,
 			PropMeleeSkill: Good,
 			PropScale: -1})})
 	a["ogre"] = a["creature"].Derive(entity.Assemblage{
+		Metadata: MetaTemplate(600, 5),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("ogre"),
-		BlobComponent: BlobTemplate("chars:15", EnemyEntityClass, 600, 5, KW{
+		BlobComponent: BlobTemplate("chars:15", EnemyEntityClass, KW{
 			PropStrength: Great,
 			PropToughness: Great,
 			PropMeleeSkill: Fair,
 			PropScale: 3})})
 	a["boss1"] = a["creature"].Derive(entity.Assemblage{
+		Metadata: MetaTemplate(3000, 10),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("elder spawn"),
-		BlobComponent: BlobTemplate("chars:5", EnemyEntityClass, 3000, 10, KW{
+		BlobComponent: BlobTemplate("chars:5", EnemyEntityClass, KW{
 			PropStrength: Legendary,
 			PropToughness: Legendary,
 			PropMeleeSkill: Superb,
 			PropScale: 5})})
 
 	a["globe"] = entity.Assemblage{
+		Metadata: MetaTemplate(30, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("health globe"),
-		BlobComponent: BlobTemplate("items:1", GlobeEntityClass, 30, 0, KW{})}
+		BlobComponent: BlobTemplate("items:1", GlobeEntityClass, KW{})}
 	a["plantpot"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("plant pot"),
-		BlobComponent: BlobTemplate("items:3", ItemEntityClass, 200, 0, KW{})}
+		BlobComponent: BlobTemplate("items:3", ItemEntityClass, KW{})}
 	a["pistol"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("pistol"),
-		BlobComponent: BlobTemplate("items:4", ItemEntityClass, 200, 0, KW{
+		BlobComponent: BlobTemplate("items:4", ItemEntityClass, KW{
 			PropEquipmentSlot: PropGunWeaponGuid,
 			PropWoundBonus: 1,
 			PropDurability: 12})}
 	a["machete"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("machete"),
-		BlobComponent: BlobTemplate("items:5", ItemEntityClass, 200, 0, KW{
+		BlobComponent: BlobTemplate("items:5", ItemEntityClass, KW{
 			PropEquipmentSlot: PropMeleeWeaponGuid,
 			PropWoundBonus: 2,
 			PropDurability: 20})}
 	a["kevlar"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("kevlar armor"),
-		BlobComponent: BlobTemplate("items:6", ItemEntityClass, 200, 0, KW{
+		BlobComponent: BlobTemplate("items:6", ItemEntityClass, KW{
 			PropEquipmentSlot: PropBodyArmorGuid,
 			PropToughness: Good,
 			PropDefenseBonus: 1,
 			PropDurability: 20})}
 	a["medkit"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("medkit"),
-		BlobComponent: BlobTemplate("items:7", ItemEntityClass, 200, 0, KW{
+		BlobComponent: BlobTemplate("items:7", ItemEntityClass, KW{
 			PropItemUse: MedkitUse})}
 }
