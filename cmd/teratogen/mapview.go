@@ -329,6 +329,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		saveFile.Close()
 		Msg("Game saved.\n")
 	case 'L':
+		GetUISync()
 		loadFile, err := os.Open("/tmp/saved.gam", os.O_RDONLY, 0666)
 		if err != nil {
 			Msg("Error loading game: " + err.String())
@@ -336,6 +337,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 		GetContext().Deserialize(loadFile)
 		Msg("Game loaded.\n")
+		ReleaseUISync()
 	}
 }
 
