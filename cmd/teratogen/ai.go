@@ -19,7 +19,7 @@ func DoAI(critId entity.Id) {
 		Attack(critId, playerId)
 	} else {
 		// TODO: Going around obstacles.
-		GetBlob(critId).TryMove(moveVec)
+		TryMove(critId, moveVec)
 	}
 }
 

@@ -88,12 +88,7 @@ func init() {
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("creature"),
 		BlobComponent: BlobTemplate("", EnemyEntityClass, KW{
-			FlagObstacle: 1,
-			PropStrength: Fair,
-			PropToughness: Fair,
-			PropMeleeSkill: Fair,
-			PropScale: 0,
-			PropDensity: 0})}
+			FlagObstacle: 1})}
 	a["protagonist"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
@@ -104,10 +99,7 @@ func init() {
 			Melee: Good,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:0", PlayerEntityClass, KW{
-			PropStrength: Great,
-			PropToughness: Good,
-			PropMeleeSkill: Good})})
+		BlobComponent: BlobTemplate("chars:0", PlayerEntityClass, KW{})})
 	a["zombie"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(100, 0),
 		PosComponent: PosTemplate(),
@@ -118,10 +110,7 @@ func init() {
 			Melee: Fair,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:1", EnemyEntityClass, KW{
-			PropStrength: Fair,
-			PropToughness: Poor,
-			PropMeleeSkill: Fair})})
+		BlobComponent: BlobTemplate("chars:1", EnemyEntityClass, KW{})})
 	a["dogthing"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(150, 0),
 		PosComponent: PosTemplate(),
@@ -132,11 +121,7 @@ func init() {
 			Melee: Good,
 			Scale: -1,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:2", EnemyEntityClass, KW{
-			PropStrength: Fair,
-			PropToughness: Fair,
-			PropMeleeSkill: Good,
-			PropScale: -1})})
+		BlobComponent: BlobTemplate("chars:2", EnemyEntityClass, KW{})})
 	a["ogre"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(600, 5),
 		PosComponent: PosTemplate(),
@@ -147,11 +132,7 @@ func init() {
 			Melee: Fair,
 			Scale: 3,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:15", EnemyEntityClass, KW{
-			PropStrength: Great,
-			PropToughness: Great,
-			PropMeleeSkill: Fair,
-			PropScale: 3})})
+		BlobComponent: BlobTemplate("chars:15", EnemyEntityClass, KW{})})
 	a["boss1"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(3000, 10),
 		PosComponent: PosTemplate(),
@@ -162,11 +143,7 @@ func init() {
 			Melee: Superb,
 			Scale: 5,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:5", EnemyEntityClass, KW{
-			PropStrength: Legendary,
-			PropToughness: Legendary,
-			PropMeleeSkill: Superb,
-			PropScale: 5})})
+		BlobComponent: BlobTemplate("chars:5", EnemyEntityClass, KW{})})
 
 	a["globe"] = entity.Assemblage{
 		Metadata: MetaTemplate(30, 0),
@@ -200,7 +177,6 @@ func init() {
 		NameComponent: NameTemplate("kevlar armor"),
 		BlobComponent: BlobTemplate("items:6", ItemEntityClass, KW{
 			PropEquipmentSlot: PropBodyArmorGuid,
-			PropToughness: Good,
 			PropDefenseBonus: 1,
 			PropDurability: 20})}
 	a["medkit"] = entity.Assemblage{

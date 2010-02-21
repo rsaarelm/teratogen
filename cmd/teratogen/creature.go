@@ -1,10 +1,8 @@
 package main
 
 import (
-	"exp/iterable"
 	"fmt"
 	"hyades/entity"
-	"hyades/geom"
 	"hyades/gfx"
 	"hyades/num"
 	"math"
@@ -75,35 +73,35 @@ func (self *Creature) WoundDescription() string {
 
 func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
-func (self *Blob) MeleeDamageFactor() (result int) {
-	result = self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
-	if o, ok := GetEquipment(self.GetGuid(), PropMeleeWeaponGuid); ok {
+func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
+	result = self.Str + self.Scale + self.Density
+	if o, ok := GetEquipment(id, PropMeleeWeaponGuid); ok {
 		// Melee weapon bonus
-		result += GetBlobs().Get(o).(*Blob).GetI(PropWoundBonus)
+		result += GetBlob(o).GetI(PropWoundBonus)
 	}
 	return
 }
 
-func (self *Blob) ArmorFactor() (result int) {
-	result = self.GetI(PropScale) + self.GetI(PropDensity) + self.GetI(PropToughness)
-	if o, ok := GetEquipment(self.GetGuid(), PropBodyArmorGuid); ok {
+func (self *Creature) ArmorFactor(id entity.Id) (result int) {
+	result = self.Scale + self.Density + self.Tough
+	if o, ok := GetEquipment(id, PropBodyArmorGuid); ok {
 		// Body armor bonus.
-		result += GetBlobs().Get(o).(*Blob).GetI(PropDefenseBonus)
+		result += GetBlob(o).GetI(PropDefenseBonus)
 	}
 	return
 }
 
-func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
-	GetCreature(self.GetGuid()).Wounds += (woundLevel + 1) / 2
+func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
+	self.Wounds += (woundLevel + 1) / 2
 
-	sx, sy := CenterDrawPos(GetPos(self.GetGuid()))
+	sx, sy := CenterDrawPos(GetPos(id))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 
-	if GetCreature(self.GetGuid()).IsKilledByWounds() {
+	if self.IsKilledByWounds() {
 		PlaySound("death")
-		if self.GetGuid() == PlayerId() {
+		if id == PlayerId() {
 			Msg("You die.\n")
 			var msg string
 			if causerId != entity.NilId {
@@ -113,20 +111,20 @@ func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
 			}
 			GameOver(msg)
 		} else {
-			Msg("%v killed.\n", GetCapName(self.GetGuid()))
+			Msg("%v killed.\n", GetCapName(id))
 		}
-		DestroyBlob(self)
+		DestroyBlob(GetBlob(id))
 	} else {
 		PlaySound("hit")
 
-		Msg("%v %v.\n", GetCapName(self.GetGuid()), GetCreature(self.GetGuid()).WoundDescription())
+		Msg("%v %v.\n", GetCapName(id), self.WoundDescription())
 	}
 }
 
-func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLevel int) {
-	damageFactor := self.MeleeDamageFactor() + hitDegree
+func (self *Creature) MeleeWoundLevelAgainst(id, targetId entity.Id, hitDegree int) (woundLevel int) {
+	damageFactor := self.MeleeDamageFactor(id) + hitDegree
 
-	armorFactor := target.ArmorFactor()
+	armorFactor := GetCreature(targetId).ArmorFactor(targetId)
 
 	woundLevel = damageFactor - armorFactor
 
@@ -143,33 +141,4 @@ func (self *Blob) MeleeWoundLevelAgainst(target *Blob, hitDegree int) (woundLeve
 		}
 	}
 	return
-}
-
-func (self *Blob) TryMove(vec geom.Vec2I) (success bool) {
-	if IsOpen(GetPos(self.GetGuid()).Plus(vec)) {
-		PosComp(self.GetGuid()).Move(vec)
-		return true
-	}
-	return false
-}
-
-func (self *Blob) CanSeeTo(pos geom.Pt2I) bool {
-	dist := 0
-	// TODO Customizable max sight range
-	sightRange := 18
-	for o := range iterable.Drop(geom.Line(GetPos(self.GetGuid()), pos), 1).Iter() {
-		if dist > sightRange {
-			return false
-		}
-		dist++
-		pt := o.(geom.Pt2I)
-		// Can see to the final cell even if that cell does block further sight.
-		if pt.Equals(pos) {
-			break
-		}
-		if GetArea().BlocksSight(pt) {
-			return false
-		}
-	}
-	return true
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"exp/iterable"
 	"hyades/entity"
 	"hyades/geom"
 )
@@ -74,4 +75,25 @@ func (self *Los) DoLos(center geom.Pt2I) {
 	for pt := range geom.LineOfSight(blocks, outOfRadius) {
 		self.MarkSeen(center.Plus(pt))
 	}
+}
+
+func CanSeeTo(start, end geom.Pt2I) bool {
+	dist := 0
+	// TODO Customizable max sight range
+	sightRange := 18
+	for o := range iterable.Drop(geom.Line(start, end), 1).Iter() {
+		if dist > sightRange {
+			return false
+		}
+		dist++
+		pt := o.(geom.Pt2I)
+		// Can see to the final cell even if that cell does block further sight.
+		if pt.Equals(end) {
+			break
+		}
+		if GetArea().BlocksSight(pt) {
+			return false
+		}
+	}
+	return true
 }

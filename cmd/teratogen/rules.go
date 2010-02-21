@@ -31,12 +31,6 @@ const (
 )
 
 const (
-	PropStrength   = "strength"
-	PropToughness  = "toughness"
-	PropMeleeSkill = "meleeSkill"
-	PropScale      = "scale"
-	PropDensity    = "density"
-
 	// Slot type, where does this item go if it's gear.
 	PropEquipmentSlot = "equipmentSlot"
 
@@ -179,22 +173,22 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 }
 
 func Attack(attackerId, defenderId entity.Id) {
-	attacker, defender := GetBlob(attackerId), GetBlob(defenderId)
+	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
 
-	doesHit, hitDegree := IsMeleeHit(
-		attacker.GetI(PropMeleeSkill), defender.GetI(PropMeleeSkill),
-		defender.GetI(PropScale)-attacker.GetI(PropScale))
+	doesHit, hitDegree := IsMeleeHit(attCrit.Melee, defCrit.Melee,
+		defCrit.Scale-attCrit.Scale)
 
 	if doesHit {
 		Msg("%v hits. ", GetCapName(attackerId))
 		// XXX: Assuming melee attack.
-		woundLevel := attacker.MeleeWoundLevelAgainst(defender, hitDegree)
+		woundLevel := attCrit.MeleeWoundLevelAgainst(
+			attackerId, defenderId, hitDegree)
 
 		DamageEquipment(attackerId, PropMeleeWeaponGuid)
 		DamageEquipment(defenderId, PropBodyArmorGuid)
 
 		if woundLevel > 0 {
-			defender.Damage(woundLevel, attackerId)
+			defCrit.Damage(defenderId, woundLevel, attackerId)
 		} else {
 			Msg("%v undamaged.\n", GetCapName(defenderId))
 		}
@@ -250,7 +244,8 @@ func DamageEquipment(ownerId entity.Id, slot string) {
 
 func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
 	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
-		GetBlob(o.(entity.Id)).Damage(woundLevel, causerId)
+		id := o.(entity.Id)
+		GetCreature(id).Damage(id, woundLevel, causerId)
 	}
 }
 
@@ -268,7 +263,7 @@ func FudgeOpposed(ability, difficulty int) int {
 func MovePlayerDir(dir int) {
 	player := GetBlob(PlayerId())
 	GetLos().ClearSight()
-	player.TryMove(geom.Dir8ToVec(dir))
+	TryMove(PlayerId(), geom.Dir8ToVec(dir))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
@@ -492,9 +487,7 @@ func EntityDist(o1, o2 interface{}) float64 {
 
 func CreaturesSeenBy(o interface{}) iterable.Iterable {
 	id := o.(entity.Id)
-	pred := func(o interface{}) bool {
-		return GetBlob(id).CanSeeTo(GetPos(GetBlob(o.(entity.Id)).GetGuid()))
-	}
+	pred := func(o interface{}) bool { return CanSeeTo(GetPos(id), GetPos(o.(entity.Id))) }
 	return iterable.Filter(OtherCreatures(o), pred)
 }
 

@@ -86,3 +86,11 @@ func GetParentPosOrPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
 	}
 	return
 }
+
+func TryMove(id entity.Id, vec geom.Vec2I) (success bool) {
+	if IsOpen(GetPos(id).Plus(vec)) {
+		PosComp(id).Move(vec)
+		return true
+	}
+	return false
+}
