@@ -299,9 +299,9 @@ func EntityFilterFn(entityPred func(entity.Id) bool) (func(interface{}) bool) {
 
 func IsTakeableItem(e *Blob) bool { return IsItem(e.GetGuid()) }
 
-func TakeItem(subject *Blob, item *Blob) {
-	SetParent(item.GetGuid(), subject.GetGuid())
-	Msg("%v takes %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
+func TakeItem(takerId, itemId entity.Id) {
+	SetParent(itemId, takerId)
+	Msg("%v takes %v.\n", GetCapName(takerId), GetName(itemId))
 }
 
 func DropItem(subject *Blob, item *Blob) {
@@ -358,50 +358,41 @@ func UseItem(userId, itemId entity.Id) {
 	}
 }
 
-func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
+func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 	player := GetBlob(PlayerId())
 	itemIds := iterable.Data(TakeableItems(GetPos(player.GetGuid())))
-	// XXX: Blob kludge
-	items := make([]interface{}, len(itemIds))
-	for i := 0; i < len(items); i++ {
-		items[i] = GetBlob(itemIds[i].(entity.Id))
-	}
 
-	// TODO: Drop blob kludge, rewrite to use MultiChoiceDialog, since ids
-	// don't name themselves nicey.
-	if len(items) == 0 {
+	if len(itemIds) == 0 {
 		Msg("Nothing to take here.\n")
-		return nil
+		return entity.NilId
 	}
 
-	choice := items[0]
-	if len(items) > 1 && !alwaysPickupFirst {
-		var ok bool
-		choice, ok = ObjectChoiceDialog("Pick up which item?", items)
-		if !ok {
+	id := itemIds[0].(entity.Id)
+	if len(itemIds) > 1 && !alwaysPickupFirst {
+		id = EntityChoiceDialog("Pick up which item?", itemIds)
+		if id == entity.NilId {
 			Msg("Okay, then.\n")
-			return nil
+			return entity.NilId
 		}
 	}
-	ent := choice.(*Blob)
-	TakeItem(player, ent)
-	AutoEquip(player, ent)
-	return ent
+	TakeItem(PlayerId(), id)
+	AutoEquip(PlayerId(), id)
+	return id
 }
 
 // Autoequip equips item on owner if it can be equpped in a slot that
 // currently has nothing.
-func AutoEquip(owner *Blob, item *Blob) {
-	slot := GetItem(item.GetGuid()).EquipmentSlot
+func AutoEquip(ownerId, itemId entity.Id) {
+	slot := GetItem(itemId).EquipmentSlot
 	if slot == NoEquipSlot {
 		return
 	}
-	if _, ok := GetEquipment(owner.GetGuid(), slot); ok {
+	if _, ok := GetEquipment(ownerId, slot); ok {
 		// Already got something equipped.
 		return
 	}
-	SetEquipment(owner.GetGuid(), slot, item.GetGuid())
-	Msg("Equipped %v.\n", item)
+	SetEquipment(ownerId, slot, itemId)
+	Msg("Equipped %v.\n", GetName(itemId))
 }
 
 func EntityDist(o1, o2 interface{}) float64 {

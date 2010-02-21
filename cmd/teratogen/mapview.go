@@ -160,7 +160,7 @@ func (self *MapView) onMouseButton(button int) {
 			// currently keyboard-only dialog if there are many items.
 
 			// TODO: Support choosing which item to pick up when using mouse.
-			if SmartPlayerPickup(true) != nil {
+			if SmartPlayerPickup(true) != entity.NilId {
 				SendPlayerInput(func() {})
 			}
 		}
@@ -269,7 +269,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			SendPlayerInput(func() {})
 		}
 	case ',':
-		if SmartPlayerPickup(false) != nil {
+		if SmartPlayerPickup(false) != entity.NilId {
 			SendPlayerInput(func() {})
 		}
 	case 'i':
@@ -306,13 +306,12 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'd':
 		// Drop item.
 		if HasContents(PlayerId()) {
-			item, ok := ObjectChoiceDialog(
-				"Drop which item?", iterable.Data(iterable.Map(Contents(PlayerId()), id2Blob)))
-			if ok {
+			id := EntityChoiceDialog(
+				"Drop which item?", iterable.Data(Contents(PlayerId())))
+			if id != entity.NilId {
 				SendPlayerInput(func() {
-					item := item.(*Blob)
-					SetParent(item.GetGuid(), entity.NilId)
-					Msg("Dropped %v.\n", GetName(item.GetGuid()))
+					SetParent(id, entity.NilId)
+					Msg("Dropped %v.\n", GetName(id))
 				})
 			} else {
 				Msg("Okay, then.\n")

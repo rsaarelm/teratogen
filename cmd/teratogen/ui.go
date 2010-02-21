@@ -332,20 +332,16 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	panic("MultiChoiceDialog exited unexpectedly")
 }
 
-func ObjectChoiceDialog(prompt string, objs []interface{}) (result interface{}, ok bool) {
-	names := make([]interface{}, len(objs))
-	for i, obj := range objs {
-		if stringer, ok := obj.(fmt.Stringer); ok {
-			names[i] = stringer.String()
-		} else {
-			names[i] = fmt.Sprint(obj)
-		}
+func EntityChoiceDialog(prompt string, ids []interface{}) entity.Id {
+	names := make([]interface{}, len(ids))
+	for i, o := range ids {
+		names[i] = GetName(o.(entity.Id))
 	}
 	idx, ok := MultiChoiceDialogA(prompt, names)
 	if ok {
-		result = objs[idx]
+		return ids[idx].(entity.Id)
 	}
-	return
+	return entity.NilId
 }
 
 func EquipMenu() {
@@ -373,11 +369,12 @@ func EquipMenu() {
 		RemoveEquipment(player.GetGuid(), slots[choice])
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
-		equippables := iterable.Data(iterable.Filter(iterable.Map(Contents(player.GetGuid()), id2Blob),
-			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob).GetGuid()) }))
-		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
-			SetEquipment(player.GetGuid(), slots[choice], item.(*Blob).GetGuid())
-			Msg("Equipped %v.\n", item)
+		equippables := iterable.Data(iterable.Filter(Contents(player.GetGuid()),
+			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(entity.Id)) }))
+		prompt := fmt.Sprintf("Equip %s", names[choice])
+		if id := EntityChoiceDialog(prompt, equippables); id != entity.NilId {
+			SetEquipment(PlayerId(), slots[choice], id)
+			Msg("Equipped %v.\n", GetName(id))
 		}
 	}
 }
@@ -432,15 +429,14 @@ func StuffOnGroundMsg() {
 }
 
 func ApplyItemMenu() (actionMade bool) {
-	items := iterable.Data(iterable.Map(iterable.Filter(Contents(PlayerId()),
-		EntityFilterFn(IsUsable)),
-		id2Blob))
+	items := iterable.Data(iterable.Filter(Contents(PlayerId()),
+		EntityFilterFn(IsUsable)))
 	if len(items) == 0 {
 		Msg("You have no usable items.\n")
 		return false
 	}
-	if item, ok := ObjectChoiceDialog("Use which item?", items); ok {
-		UseItem(PlayerId(), item.(*Blob).GetGuid())
+	if id := EntityChoiceDialog("Use which item?", items); id != entity.NilId {
+		UseItem(PlayerId(), id)
 		return true
 	} else {
 		Msg("Okay, then.\n")
