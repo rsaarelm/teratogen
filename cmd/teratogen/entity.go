@@ -24,7 +24,6 @@ func id2Blob(id interface{}) interface{} { return GetBlobs().Get(id.(entity.Id))
 type Blob struct {
 	IconId string
 	guid   entity.Id
-	Class  EntityClass
 
 	prop     map[string]interface{}
 	hideProp map[string]bool
@@ -39,8 +38,6 @@ func NewEntity(guid entity.Id) (result *Blob) {
 }
 
 func (self *Blob) GetGuid() entity.Id { return self.guid }
-
-func (self *Blob) GetClass() EntityClass { return self.Class }
 
 func (self *Blob) String() string { return GetName(self.GetGuid()) }
 
@@ -188,7 +185,6 @@ func loadProp(in io.Reader) interface{} {
 func (self *Blob) Serialize(out io.Writer) {
 	mem.WriteString(out, self.IconId)
 	mem.WriteFixed(out, int64(self.guid))
-	mem.WriteFixed(out, int32(self.Class))
 
 	mem.WriteFixed(out, int32(len(self.prop)))
 	for name, val := range self.prop {
@@ -205,7 +201,6 @@ func (self *Blob) Serialize(out io.Writer) {
 func (self *Blob) Deserialize(in io.Reader) {
 	self.IconId = mem.ReadString(in)
 	self.guid = entity.Id(mem.ReadInt64(in))
-	self.Class = EntityClass(mem.ReadInt32(in))
 
 	self.prop = make(map[string]interface{})
 	self.hideProp = make(map[string]bool)

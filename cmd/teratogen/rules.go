@@ -42,26 +42,6 @@ const (
 	MedkitUse
 )
 
-// Put item classes before creature classes, so we can use this to control
-// draw order as well.
-type EntityClass int
-
-// XXX: Save compatibility is easily broken with this as adding things in the
-// categories displaces the values further up.
-
-const (
-	EmptyEntityClass EntityClass = iota
-
-	// Item classes
-	GlobeEntityClass // Globe items are used when stepped on.
-	ItemEntityClass  // Items can be picked up and dropped.
-
-	// Creature classes
-	CreatureEntityClassStartMarker
-
-	PlayerEntityClass
-	EnemyEntityClass
-)
 
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
@@ -120,19 +100,21 @@ func LevelDescription(level int) string {
 
 // Return whether an entity considers another entity an enemy.
 func IsEnemyOf(id, possibleEnemyId entity.Id) bool {
-	ent, possibleEnemy := GetBlob(id), GetBlob(possibleEnemyId)
-	if ent == nil || possibleEnemy == nil {
+	if id == possibleEnemyId {
 		return false
 	}
 
-	if ent.GetClass() == PlayerEntityClass &&
-		possibleEnemy.GetClass() == EnemyEntityClass {
+	if id == entity.NilId || possibleEnemyId == entity.NilId {
+		return false
+	}
+
+	// XXX: Currently player is the enemy of every other creature. This should
+	// be replaced with a more general faction system.
+	if IsCreature(id) && IsCreature(possibleEnemyId) &&
+		(id == PlayerId() || possibleEnemyId == PlayerId()) {
 		return true
 	}
-	if ent.GetClass() == EnemyEntityClass &&
-		possibleEnemy.GetClass() == PlayerEntityClass {
-		return true
-	}
+
 	return false
 }
 
@@ -244,7 +226,6 @@ func FudgeOpposed(ability, difficulty int) int {
 }
 
 func MovePlayerDir(dir int) {
-	player := GetBlob(PlayerId())
 	GetLos().ClearSight()
 	TryMove(PlayerId(), geom.Dir8ToVec(dir))
 
@@ -252,28 +233,29 @@ func MovePlayerDir(dir int) {
 	// too.
 
 	// See if the player collided with something fun.
-	for o := range EntitiesAt(GetPos(player.GetGuid())).Iter() {
+	for o := range EntitiesAt(GetPos(PlayerId())).Iter() {
 		id := o.(entity.Id)
-		ent := GetBlob(id)
-		if ent == nil {
+		if id == entity.NilId {
 			continue
 		}
-		if ent == player {
+		if id == PlayerId() {
 			continue
 		}
-		if ent.GetClass() == GlobeEntityClass {
+		// TODO: Replace the kludgy special case recognition with a trigger
+		// component that gets run when the entity is stepped on.
+		if GetName(id) == "health globe" {
 			// TODO: Different globe effects.
 			if GetCreature(PlayerId()).Wounds > 0 {
 				Msg("The globe bursts. You feel better.\n")
 				PlaySound("heal")
 				GetCreature(PlayerId()).Wounds -= 1
 				// Deferring this until the iteration is over.
-				defer DestroyBlob(ent)
+				defer Destroy(id)
 			}
 		}
 	}
 
-	GetLos().DoLos(GetPos(player.GetGuid()))
+	GetLos().DoLos(GetPos(PlayerId()))
 }
 
 func SmartMovePlayer(dir int) {
@@ -308,12 +290,7 @@ func GameOver(reason string) {
 
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
-func IsMobile(id entity.Id) bool {
-	if entity := GetBlob(id); entity != nil {
-		return entity.GetClass() > CreatureEntityClassStartMarker
-	}
-	return false
-}
+func IsMobile(id entity.Id) bool { return IsCreature(id) }
 
 func PlayerEnterStairs() {
 	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
@@ -333,17 +310,7 @@ func EntityFilterFn(entityPred func(entity.Id) bool) (func(interface{}) bool) {
 	return func(o interface{}) bool { return entityPred(o.(entity.Id)) }
 }
 
-func IsCreature(id entity.Id) bool {
-	if ent := GetBlob(id); ent != nil {
-		switch ent.GetClass() {
-		case PlayerEntityClass, EnemyEntityClass:
-			return true
-		}
-	}
-	return false
-}
-
-func IsTakeableItem(e *Blob) bool { return e.Class == ItemEntityClass }
+func IsTakeableItem(e *Blob) bool { return IsItem(e.GetGuid()) }
 
 func TakeItem(subject *Blob, item *Blob) {
 	SetParent(item.GetGuid(), subject.GetGuid())

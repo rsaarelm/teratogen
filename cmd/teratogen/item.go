@@ -60,7 +60,14 @@ type Item struct {
 	DefenseBonus  int
 }
 
-func GetItem(id entity.Id) *Item { return GetManager().Handler(ItemComponent).Get(id).(*Item) }
+func GetItem(id entity.Id) *Item {
+	if id := GetManager().Handler(ItemComponent).Get(id); id != nil {
+		return id.(*Item)
+	}
+	return nil
+}
+
+func IsItem(id entity.Id) bool { return GetItem(id) != nil }
 
 func GetEquipment(creature entity.Id, slot EquipSlot) (guid entity.Id, found bool) {
 	if rel := slot.Relation(); rel != nil {

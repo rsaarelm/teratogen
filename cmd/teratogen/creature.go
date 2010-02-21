@@ -41,8 +41,13 @@ type Creature struct {
 }
 
 func GetCreature(id entity.Id) *Creature {
-	return GetManager().Handler(CreatureComponent).Get(id).(*Creature)
+	if id := GetManager().Handler(CreatureComponent).Get(id); id != nil {
+		return id.(*Creature)
+	}
+	return nil
 }
+
+func IsCreature(id entity.Id) bool { return GetCreature(id) != nil }
 
 func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Tough+3)*2+1) }
 

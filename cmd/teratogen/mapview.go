@@ -97,7 +97,7 @@ func drawEntities(g gfx.Graphics) {
 }
 
 func entityEarlierInDrawOrder(i, j interface{}) bool {
-	return i.(*Blob).GetClass() < j.(*Blob).GetClass()
+	return !IsCreature(i.(*Blob).GetGuid()) && IsCreature(j.(*Blob).GetGuid())
 }
 
 func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }
