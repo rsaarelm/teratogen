@@ -118,7 +118,7 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 		} else {
 			Msg("%v killed.\n", GetCapName(id))
 		}
-		DestroyBlob(GetBlob(id))
+		Destroy(id)
 	} else {
 		PlaySound("hit")
 
