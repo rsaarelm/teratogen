@@ -18,7 +18,7 @@ func (self *posTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemp
 }
 
 func (self *posTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
-	GetManager().Handler(PosComponent).Add(guid, new(Position))
+	manager.Handler(PosComponent).Add(guid, new(Position))
 }
 
 

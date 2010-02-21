@@ -15,7 +15,7 @@ func (self NameTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemp
 }
 
 func (self NameTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
-	GetManager().Handler(NameComponent).Add(guid, &Name{string(self)})
+	manager.Handler(NameComponent).Add(guid, &Name{string(self)})
 }
 
 

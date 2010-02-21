@@ -29,7 +29,7 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		Scale: self.Scale,
 		Density: self.Density,
 		Wounds: 0}
-	GetManager().Handler(CreatureComponent).Add(guid, result)
+	manager.Handler(CreatureComponent).Add(guid, result)
 }
 
 
