@@ -434,8 +434,9 @@ func StuffOnGroundMsg() {
 func ApplyItemMenu() (actionMade bool) {
 	player := GetBlob(PlayerId())
 
-	items := iterable.Data(iterable.Filter(iterable.Map(Contents(PlayerId()), id2Blob),
-		EntityFilterFn(IsUsable)))
+	items := iterable.Data(iterable.Map(iterable.Filter(Contents(PlayerId()),
+		EntityFilterFn(IsUsable)),
+		id2Blob))
 	if len(items) == 0 {
 		Msg("You have no usable items.\n")
 		return false
