@@ -432,8 +432,6 @@ func StuffOnGroundMsg() {
 }
 
 func ApplyItemMenu() (actionMade bool) {
-	player := GetBlob(PlayerId())
-
 	items := iterable.Data(iterable.Map(iterable.Filter(Contents(PlayerId()),
 		EntityFilterFn(IsUsable)),
 		id2Blob))
@@ -442,7 +440,7 @@ func ApplyItemMenu() (actionMade bool) {
 		return false
 	}
 	if item, ok := ObjectChoiceDialog("Use which item?", items); ok {
-		UseItem(player, item.(*Blob))
+		UseItem(PlayerId(), item.(*Blob).GetGuid())
 		return true
 	} else {
 		Msg("Okay, then.\n")

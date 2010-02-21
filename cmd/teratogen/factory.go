@@ -151,7 +151,7 @@ func init() {
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("plant pot"),
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0},
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse},
 		BlobComponent: BlobTemplate("items:3", KW{})}
 	a["pistol"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
@@ -161,7 +161,8 @@ func init() {
 			EquipmentSlot: GunEquipSlot,
 			Durability: 12,
 			WoundBonus: 1,
-			DefenseBonus: 0},
+			DefenseBonus: 0,
+			Use: NoUse},
 		BlobComponent: BlobTemplate("items:4", KW{})}
 	a["machete"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
@@ -171,7 +172,8 @@ func init() {
 			EquipmentSlot: MeleeEquipSlot,
 			Durability: 20,
 			WoundBonus: 2,
-			DefenseBonus: 0},
+			DefenseBonus: 0,
+			Use: NoUse},
 		BlobComponent: BlobTemplate("items:5", KW{})}
 	a["kevlar"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
@@ -181,13 +183,13 @@ func init() {
 			EquipmentSlot: ArmorEquipSlot,
 			Durability: 20,
 			WoundBonus: 0,
-			DefenseBonus: 1},
+			DefenseBonus: 1,
+			Use: NoUse},
 		BlobComponent: BlobTemplate("items:6", KW{})}
 	a["medkit"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("medkit"),
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0},
-		BlobComponent: BlobTemplate("items:7", KW{
-			PropItemUse: MedkitUse})}
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse},
+		BlobComponent: BlobTemplate("items:7", KW{})}
 }

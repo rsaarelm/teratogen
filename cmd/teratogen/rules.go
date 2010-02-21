@@ -31,17 +31,8 @@ const (
 )
 
 const (
-	PropItemUse = "itemUse"
-
 	FlagObstacle = "isObstacle"
 )
-
-// Item use type
-const (
-	NoUse = iota
-	MedkitUse
-)
-
 
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
@@ -344,29 +335,29 @@ func IsCarryingGearFor(o interface{}, slot EquipSlot) bool {
 	return iterable.Any(Contents(o.(*Blob).GetGuid()), func(item interface{}) bool { return CanEquipIn(slot, item.(entity.Id)) })
 }
 
-func IsUsable(id entity.Id) bool { return GetBlob(id).Has(PropItemUse) }
+func IsUsable(id entity.Id) bool { return IsItem(id) && GetItem(id).Use != NoUse }
 
 func HasUsableItems(o interface{}) bool {
 	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsUsable))
 }
 
-func UseItem(user *Blob, item *Blob) {
-	if use, ok := item.GetIOpt(PropItemUse); ok {
-		switch use {
+func UseItem(userId, itemId entity.Id) {
+	if item := GetItem(itemId); item != nil {
+		switch item.Use {
 		case NoUse:
 			Msg("Nothing happens.\n")
 		case MedkitUse:
-			crit := GetCreature(user.GetGuid())
+			crit := GetCreature(userId)
 			if crit.Wounds > 0 {
 				Msg("You feel much better.\n")
 				PlaySound("heal")
 				crit.Wounds = 0
-				DestroyBlob(item)
+				Destroy(itemId)
 			} else {
 				Msg("You feel fine already.\n")
 			}
 		default:
-			dbg.Die("Unknown use %v.", use)
+			dbg.Die("Unknown use %v.", item.Use)
 		}
 	}
 }

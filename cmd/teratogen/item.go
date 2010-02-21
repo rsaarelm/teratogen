@@ -12,6 +12,8 @@ const (
 	ArmorEquipComponent = entity.ComponentFamily("armorEquip")
 )
 
+type EquipSlot int
+
 // Equipment slots
 const (
 	NoEquipSlot EquipSlot = iota
@@ -20,7 +22,15 @@ const (
 	ArmorEquipSlot
 )
 
-type EquipSlot int
+
+// Item use type
+type ItemUse int
+
+const (
+	NoUse ItemUse = iota
+	MedkitUse
+)
+
 
 func (self EquipSlot) Relation() *entity.Relation {
 	switch self {
@@ -48,7 +58,8 @@ func (self *ItemTemplate) MakeComponent(manager *entity.Manager, guid entity.Id)
 		EquipmentSlot: self.EquipmentSlot,
 		Durability: self.Durability,
 		WoundBonus: self.WoundBonus,
-		DefenseBonus: self.DefenseBonus}
+		DefenseBonus: self.DefenseBonus,
+		Use: self.Use}
 	manager.Handler(ItemComponent).Add(guid, result)
 }
 
@@ -58,6 +69,7 @@ type Item struct {
 	Durability    int
 	WoundBonus    int
 	DefenseBonus  int
+	Use           ItemUse
 }
 
 func GetItem(id entity.Id) *Item {
