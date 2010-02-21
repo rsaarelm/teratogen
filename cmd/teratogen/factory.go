@@ -154,11 +154,17 @@ func init() {
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("plant pot"),
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0},
 		BlobComponent: BlobTemplate("items:3", ItemEntityClass, KW{})}
 	a["pistol"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("pistol"),
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: GunEquipSlot,
+			Durability: 12,
+			WoundBonus: 1,
+			DefenseBonus: 0},
 		BlobComponent: BlobTemplate("items:4", ItemEntityClass, KW{
 			PropEquipmentSlot: PropGunWeaponGuid,
 			PropWoundBonus: 1,
@@ -167,6 +173,11 @@ func init() {
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("machete"),
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: MeleeEquipSlot,
+			Durability: 20,
+			WoundBonus: 2,
+			DefenseBonus: 0},
 		BlobComponent: BlobTemplate("items:5", ItemEntityClass, KW{
 			PropEquipmentSlot: PropMeleeWeaponGuid,
 			PropWoundBonus: 2,
@@ -175,6 +186,11 @@ func init() {
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("kevlar armor"),
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: ArmorEquipSlot,
+			Durability: 20,
+			WoundBonus: 0,
+			DefenseBonus: 1},
 		BlobComponent: BlobTemplate("items:6", ItemEntityClass, KW{
 			PropEquipmentSlot: PropBodyArmorGuid,
 			PropDefenseBonus: 1,
@@ -183,6 +199,7 @@ func init() {
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("medkit"),
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0},
 		BlobComponent: BlobTemplate("items:7", ItemEntityClass, KW{
 			PropItemUse: MedkitUse})}
 }

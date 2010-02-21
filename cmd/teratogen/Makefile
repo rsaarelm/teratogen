@@ -12,6 +12,7 @@ GOFILES=\
 	entity.go\
 	factory.go\
 	globals.go\
+	item.go\
 	los.go\
 	mapgen.go\
 	main.go\
