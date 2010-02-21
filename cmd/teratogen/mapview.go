@@ -293,7 +293,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'e':
 		EquipMenu()
 	case 'f':
-		if GunEquipped(GetBlob(PlayerId())) {
+		if GunEquipped(PlayerId()) {
 			targetId := ClosestCreatureSeenBy(PlayerId())
 			if targetId != entity.NilId {
 				SendPlayerInput(func() { Shoot(PlayerId(), GetPos(targetId)) })

@@ -151,13 +151,12 @@ func Attack(attackerId, defenderId entity.Id) {
 }
 
 func Shoot(attackerId entity.Id, target geom.Pt2I) {
-	attacker := GetBlob(attackerId)
-	if !GunEquipped(attacker) {
+	if !GunEquipped(attackerId) {
 		return
 	}
 
 	// TODO: Aiming precision etc.
-	origin := GetPos(attacker.GetGuid())
+	origin := GetPos(attackerId)
 	var hitPos geom.Pt2I
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
@@ -167,11 +166,11 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 	}
 
 	damageFactor := 0
-	if gun, ok := GetEquipment(attacker.GetGuid(), GunEquipSlot); ok {
+	if gun, ok := GetEquipment(attackerId, GunEquipSlot); ok {
 		damageFactor += GetItem(gun).WoundBonus
 	}
 
-	p1, p2 := draw.Pt(Tile2WorldPos(GetPos(PlayerId()))), draw.Pt(Tile2WorldPos(hitPos))
+	p1, p2 := draw.Pt(Tile2WorldPos(GetPos(attackerId))), draw.Pt(Tile2WorldPos(hitPos))
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
@@ -323,8 +322,8 @@ func IsEquippableItem(id entity.Id) bool {
 	return item != nil && item.EquipmentSlot != NoEquipSlot
 }
 
-func IsCarryingGear(o interface{}) bool {
-	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsEquippableItem))
+func IsCarryingGear(id entity.Id) bool {
+	return iterable.Any(Contents(id), EntityFilterFn(IsEquippableItem))
 }
 
 func IsCarryingGearFor(o interface{}, slot EquipSlot) bool {
@@ -333,8 +332,8 @@ func IsCarryingGearFor(o interface{}, slot EquipSlot) bool {
 
 func IsUsable(id entity.Id) bool { return IsItem(id) && GetItem(id).Use != NoUse }
 
-func HasUsableItems(o interface{}) bool {
-	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsUsable))
+func HasUsableItems(id entity.Id) bool {
+	return iterable.Any(Contents(id), EntityFilterFn(IsUsable))
 }
 
 func UseItem(userId, itemId entity.Id) {
@@ -395,9 +394,7 @@ func AutoEquip(ownerId, itemId entity.Id) {
 	Msg("Equipped %v.\n", GetName(itemId))
 }
 
-func EntityDist(o1, o2 interface{}) float64 {
-	id1, id2 := o1.(entity.Id), o2.(entity.Id)
-
+func EntityDist(id1, id2 entity.Id) float64 {
 	if HasPosComp(id1) && HasPosComp(id2) {
 		return GetPos(id1).Minus(GetPos(id2)).Abs()
 	}
@@ -410,17 +407,17 @@ func CreaturesSeenBy(o interface{}) iterable.Iterable {
 	return iterable.Filter(OtherCreatures(o), pred)
 }
 
-func ClosestCreatureSeenBy(o interface{}) entity.Id {
-	distFromSelf := func(o1 interface{}) float64 { return EntityDist(o1, o) }
-	ret, ok := alg.IterMin(CreaturesSeenBy(o), distFromSelf)
+func ClosestCreatureSeenBy(id entity.Id) entity.Id {
+	distFromSelf := func(idOther interface{}) float64 { return EntityDist(idOther.(entity.Id), id) }
+	ret, ok := alg.IterMin(CreaturesSeenBy(id), distFromSelf)
 	if !ok {
 		return entity.NilId
 	}
 	return ret.(entity.Id)
 }
 
-func GunEquipped(o interface{}) bool {
-	_, ok := GetEquipment(o.(*Blob).GetGuid(), GunEquipSlot)
+func GunEquipped(id entity.Id) bool {
+	_, ok := GetEquipment(id, GunEquipSlot)
 	return ok
 }
 

@@ -385,29 +385,27 @@ func UiHelpLines() iterable.Iterable {
 	vec.Push("arrow keys: move, attack adjacent")
 	vec.Push("q: quit")
 
-	player := GetBlob(PlayerId())
-
-	if HasContents(player.GetGuid()) {
+	if HasContents(PlayerId()) {
 		vec.Push("i: inventory")
 		vec.Push("d: drop item")
 	}
 
-	if HasUsableItems(player) {
+	if HasUsableItems(PlayerId()) {
 		vec.Push("a: use item")
 	}
 
-	if IsCarryingGear(player) {
+	if IsCarryingGear(PlayerId()) {
 		vec.Push("e: equip/remove gear")
 	}
 
-	if GunEquipped(player) {
+	if GunEquipped(PlayerId()) {
 		vec.Push("f: fire gun")
 	}
 
-	if len(iterable.Data(TakeableItems(GetPos(player.GetGuid())))) > 0 {
+	if len(iterable.Data(TakeableItems(GetPos(PlayerId())))) > 0 {
 		vec.Push(",: pick up item")
 	}
-	if GetArea().GetTerrain(GetPos(player.GetGuid())) == TerrainStairDown {
+	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
