@@ -70,34 +70,36 @@ func drawEntities(g gfx.Graphics) {
 	seq := new(vector.Vector)
 	for o := range Entities().Iter() {
 		id := o.(entity.Id)
-		ent := GetBlob(id)
-		if ent == nil {
+		if id == entity.NilId {
 			continue
 		}
-		if GetParent(ent.GetGuid()) != entity.NilId {
+		if !HasPosComp(id) {
+			continue
+		}
+		if GetParent(id) != entity.NilId {
 			// Skip entities inside something.
 			continue
 		}
-		seq.Push(ent)
+		seq.Push(id)
 	}
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 
 	for sorted := range seq.Iter() {
-		e := sorted.(*Blob)
-		pos := GetPos(e.GetGuid())
+		id := sorted.(entity.Id)
+		pos := GetPos(id)
 		seen := GetLos().Get(pos) == LosSeen
 		mapped := seen || GetLos().Get(pos) == LosMapped
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
-			if seen || !IsMobile(e.GetGuid()) {
-				Draw(g, GetIconId(e.GetGuid()), pos.X, pos.Y)
+			if seen || !IsMobile(id) {
+				Draw(g, GetIconId(id), pos.X, pos.Y)
 			}
 		}
 	}
 }
 
 func entityEarlierInDrawOrder(i, j interface{}) bool {
-	return !IsCreature(i.(*Blob).GetGuid()) && IsCreature(j.(*Blob).GetGuid())
+	return !IsCreature(i.(entity.Id)) && IsCreature(j.(entity.Id))
 }
 
 func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }
@@ -276,13 +278,13 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Show inventory.
 		Msg("Carried:")
 		first := true
-		for o := range Contents(GetBlob(PlayerId()).GetGuid()).Iter() {
-			item := GetBlob(o.(entity.Id))
+		for o := range Contents(PlayerId()).Iter() {
+			id := o.(entity.Id)
 			if first {
 				first = false
-				Msg(" %v", GetName(item.GetGuid()))
+				Msg(" %v", GetName(id))
 			} else {
-				Msg(", %v", GetName(item.GetGuid()))
+				Msg(", %v", GetName(id))
 			}
 		}
 		if first {

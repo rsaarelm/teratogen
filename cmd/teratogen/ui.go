@@ -345,16 +345,15 @@ func EntityChoiceDialog(prompt string, ids []interface{}) entity.Id {
 }
 
 func EquipMenu() {
-	player := GetBlob(PlayerId())
+	subjectId := PlayerId()
 	slots := [...]EquipSlot{ArmorEquipSlot, MeleeEquipSlot, GunEquipSlot}
 	names := [...]string{"body armor", "melee weapon", "gun"}
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
 	for i, prop := range slots {
-		if id, ok := GetEquipment(player.GetGuid(), prop); ok {
-			ent := GetBlobs().Get(id).(*Blob)
-			items[i] = ent
-			options[i] = fmt.Sprintf("%s: %v", names[i], ent)
+		if id, ok := GetEquipment(subjectId, prop); ok {
+			items[i] = id
+			options[i] = fmt.Sprintf("%s: %v", names[i], GetName(id))
 		} else {
 			options[i] = fmt.Sprintf("%s: <nothing>", names[i])
 		}
@@ -366,14 +365,14 @@ func EquipMenu() {
 		return
 	}
 	if items[choice] != nil {
-		RemoveEquipment(player.GetGuid(), slots[choice])
-		Msg("Unequipped %v.\n", items[choice])
+		RemoveEquipment(subjectId, slots[choice])
+		Msg("Unequipped %v.\n", GetName(items[choice].(entity.Id)))
 	} else {
-		equippables := iterable.Data(iterable.Filter(Contents(player.GetGuid()),
+		equippables := iterable.Data(iterable.Filter(Contents(subjectId),
 			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(entity.Id)) }))
 		prompt := fmt.Sprintf("Equip %s", names[choice])
 		if id := EntityChoiceDialog(prompt, equippables); id != entity.NilId {
-			SetEquipment(PlayerId(), slots[choice], id)
+			SetEquipment(subjectId, slots[choice], id)
 			Msg("Equipped %v.\n", GetName(id))
 		}
 	}
@@ -413,13 +412,13 @@ func UiHelpLines() iterable.Iterable {
 
 // Write a message about interesting stuff on the ground.
 func StuffOnGroundMsg() {
-	player := GetBlob(PlayerId())
-	items := iterable.Data(TakeableItems(GetPos(player.GetGuid())))
-	stairs := GetArea().GetTerrain(GetPos(player.GetGuid())) == TerrainStairDown
+	subjectId := PlayerId()
+	items := iterable.Data(TakeableItems(GetPos(subjectId)))
+	stairs := GetArea().GetTerrain(GetPos(subjectId)) == TerrainStairDown
 	if len(items) > 1 {
 		Msg("There are several items here.\n")
 	} else if len(items) == 1 {
-		Msg("There is %v here.\n", GetBlob(items[0].(entity.Id)))
+		Msg("There is %v here.\n", GetName(items[0].(entity.Id)))
 	}
 	if stairs {
 		Msg("There are stairs down here.\n")
