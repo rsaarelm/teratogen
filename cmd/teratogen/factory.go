@@ -93,7 +93,6 @@ func init() {
 			PropToughness: Fair,
 			PropMeleeSkill: Fair,
 			PropScale: 0,
-			PropWounds: 0,
 			PropDensity: 0})}
 	a["protagonist"] = a["creature"].Derive(entity.Assemblage{
 		Metadata: MetaTemplate(-1, 0),

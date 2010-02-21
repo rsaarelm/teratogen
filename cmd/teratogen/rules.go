@@ -35,7 +35,6 @@ const (
 	PropToughness  = "toughness"
 	PropMeleeSkill = "meleeSkill"
 	PropScale      = "scale"
-	PropWounds     = "wounds"
 	PropDensity    = "density"
 
 	// Slot type, where does this item go if it's gear.
@@ -286,10 +285,10 @@ func MovePlayerDir(dir int) {
 		}
 		if ent.GetClass() == GlobeEntityClass {
 			// TODO: Different globe effects.
-			if player.GetI(PropWounds) > 0 {
+			if GetCreature(PlayerId()).Wounds > 0 {
 				Msg("The globe bursts. You feel better.\n")
 				PlaySound("heal")
-				player.Set(PropWounds, player.GetI(PropWounds)-1)
+				GetCreature(PlayerId()).Wounds -= 1
 				// Deferring this until the iteration is over.
 				defer DestroyBlob(ent)
 			}
@@ -414,10 +413,11 @@ func UseItem(user *Blob, item *Blob) {
 		case NoUse:
 			Msg("Nothing happens.\n")
 		case MedkitUse:
-			if user.GetI(PropWounds) > 0 {
+			crit := GetCreature(user.GetGuid())
+			if crit.Wounds > 0 {
 				Msg("You feel much better.\n")
 				PlaySound("heal")
-				user.Set(PropWounds, 0)
+				crit.Wounds = 0
 				DestroyBlob(item)
 			} else {
 				Msg("You feel fine already.\n")

@@ -46,34 +46,34 @@ func GetCreature(id entity.Id) *Creature {
 	return GetManager().Handler(CreatureComponent).Get(id).(*Creature)
 }
 
-func (self *Blob) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
+func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Tough+3)*2+1) }
 
-func (self *Blob) WoundDescription() string {
+func (self *Creature) WoundDescription() string {
 	maxWounds := self.MaxWounds()
-	wounds := self.GetI(PropWounds)
 	switch {
-	case maxWounds-wounds < 2:
+	// Statuses where the creature is seriously hurt.
+	case maxWounds-self.Wounds < 2:
 		return "near death"
-	case maxWounds-wounds < 4:
+	case maxWounds-self.Wounds < 4:
 		return "badly hurt"
-	case maxWounds-wounds < 6:
+	case maxWounds-self.Wounds < 6:
 		return "hurt"
 	// Now describing grazed statuses, which there can be more if the
 	// creature is very tough and takes a long time to get to Hurt.
-	case wounds < 1:
+	case self.Wounds < 1:
 		return "unhurt"
-	case wounds < 3:
+	case self.Wounds < 3:
 		return "grazed"
-	case wounds < 5:
+	case self.Wounds < 5:
 		return "bruised"
-	case wounds < 7:
+	case self.Wounds < 7:
 		return "battered"
 	}
 	// Lots of wounds, but still not really Hurt.
 	return "mangled"
 }
 
-func (self *Blob) IsKilledByWounds() bool { return self.GetI(PropWounds) > self.MaxWounds() }
+func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
 func (self *Blob) MeleeDamageFactor() (result int) {
 	result = self.GetI(PropStrength) + self.GetI(PropScale) + self.GetI(PropDensity)
@@ -94,14 +94,14 @@ func (self *Blob) ArmorFactor() (result int) {
 }
 
 func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
-	self.Set(PropWounds, self.GetI(PropWounds)+(woundLevel+1)/2)
+	GetCreature(self.GetGuid()).Wounds += (woundLevel + 1) / 2
 
 	sx, sy := CenterDrawPos(GetPos(self.GetGuid()))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 
-	if self.IsKilledByWounds() {
+	if GetCreature(self.GetGuid()).IsKilledByWounds() {
 		PlaySound("death")
 		if self.GetGuid() == PlayerId() {
 			Msg("You die.\n")
@@ -119,7 +119,7 @@ func (self *Blob) Damage(woundLevel int, causerId entity.Id) {
 	} else {
 		PlaySound("hit")
 
-		Msg("%v %v.\n", GetCapName(self.GetGuid()), self.WoundDescription())
+		Msg("%v %v.\n", GetCapName(self.GetGuid()), GetCreature(self.GetGuid()).WoundDescription())
 	}
 }
 
