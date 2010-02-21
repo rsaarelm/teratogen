@@ -5,8 +5,12 @@ import (
 )
 
 
-const ItemComponent = entity.ComponentFamily("item")
-
+const (
+	ItemComponent       = entity.ComponentFamily("item")
+	MeleeEquipComponent = entity.ComponentFamily("meleeEquip")
+	GunEquipComponent   = entity.ComponentFamily("gunEquip")
+	ArmorEquipComponent = entity.ComponentFamily("armorEquip")
+)
 
 // Equipment slots
 const (
@@ -54,4 +58,34 @@ func (self *Item) EquipRelation() *entity.Relation {
 		return GetManager().Handler(ArmorEquipComponent).(*entity.Relation)
 	}
 	return nil
+}
+
+func GetEquipment(creature entity.Id, slot string) (guid entity.Id, found bool) {
+	// Crashes here if slot isn't a relation component name.
+	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
+	return rel.GetRhs(creature)
+}
+
+func SetEquipment(creature entity.Id, slot string, equipment entity.Id) {
+	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
+	rel.AddPair(creature, equipment)
+}
+
+// RemoveEquipment remover whatever a creature has equipped in a given slot.
+func RemoveEquipment(creature entity.Id, slot string) (removed entity.Id, found bool) {
+	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
+	removed, found = GetEquipment(creature, slot)
+	if found {
+		rel.RemovePair(creature, removed)
+	}
+	return
+}
+
+// RemoveEquipped removes an item from an equipped relation if it is in one.
+func RemoveEquipped(item entity.Id) {
+	blob := GetBlobs().Get(item).(*Blob)
+	if slot, ok := blob.GetSOpt(PropEquipmentSlot); ok {
+		rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
+		rel.RemoveWithRhs(item)
+	}
 }
