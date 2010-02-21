@@ -309,10 +309,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			id := EntityChoiceDialog(
 				"Drop which item?", iterable.Data(Contents(PlayerId())))
 			if id != entity.NilId {
-				SendPlayerInput(func() {
-					SetParent(id, entity.NilId)
-					Msg("Dropped %v.\n", GetName(id))
-				})
+				SendPlayerInput(func() { DropItem(PlayerId(), id) })
 			} else {
 				Msg("Okay, then.\n")
 			}

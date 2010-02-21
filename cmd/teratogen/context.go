@@ -37,8 +37,8 @@ func GetManager() *entity.Manager { return GetContext().manager }
 func (self *Context) InitGame() {
 	globals := GetGlobals()
 
-	player := Spawn("protagonist")
-	globals.PlayerId = player.GetGuid()
+	playerId := Spawn("protagonist")
+	globals.PlayerId = playerId
 
 	self.EnterLevel(1)
 }
@@ -49,13 +49,13 @@ func (self *Context) EnterLevel(depth int) {
 	// Delete old area.
 	self.manager.RemoveEntity(globals.AreaId)
 
+	// Move player and inventory to the new level, ditch other entities.
+	clearNonplayerEntities()
+
 	// Make new area.
 	globals.AreaId = self.manager.NewEntity()
 	GetManager().Handler(AreaComponent).Add(globals.AreaId, NewArea())
 	GetManager().Handler(LosComponent).Add(globals.AreaId, NewLos())
-
-	// Move player and inventory to the new level, ditch other entities.
-	clearNonplayerEntities()
 
 	if num.WithProb(0.5) {
 		GetArea().MakeCaveMap()

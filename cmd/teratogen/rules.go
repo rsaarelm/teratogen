@@ -296,26 +296,21 @@ func EntityFilterFn(entityPred func(entity.Id) bool) (func(interface{}) bool) {
 	return func(o interface{}) bool { return entityPred(o.(entity.Id)) }
 }
 
-func IsTakeableItem(e *Blob) bool { return IsItem(e.GetGuid()) }
+func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
 
 func TakeItem(takerId, itemId entity.Id) {
 	SetParent(itemId, takerId)
 	Msg("%v takes %v.\n", GetCapName(takerId), GetName(itemId))
 }
 
-func DropItem(subject *Blob, item *Blob) {
-	// TODO: Check if the subject is holding the item.
-	SetParent(item.GetGuid(), entity.NilId)
-	PosComp(item.GetGuid()).MoveAbs(GetPos(subject.GetGuid()))
-	Msg("%v drops %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
+func DropItem(dropperId, itemId entity.Id) {
+	SetParent(itemId, entity.NilId)
+	Msg("%v drops %v.\n", GetCapName(dropperId), GetName(itemId))
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(EntitiesAt(pos), func(o interface{}) bool { return IsTakeableItem(GetBlob(o.(entity.Id))) })
+	return iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsTakeableItem))
 }
-
-// TODO: Change other functions to use interface{} instead of *Blob to make
-// it easier to use them with iterable functions.
 
 func IsEquippableItem(id entity.Id) bool {
 	item := GetItem(id)
@@ -324,10 +319,6 @@ func IsEquippableItem(id entity.Id) bool {
 
 func IsCarryingGear(id entity.Id) bool {
 	return iterable.Any(Contents(id), EntityFilterFn(IsEquippableItem))
-}
-
-func IsCarryingGearFor(o interface{}, slot EquipSlot) bool {
-	return iterable.Any(Contents(o.(*Blob).GetGuid()), func(item interface{}) bool { return CanEquipIn(slot, item.(entity.Id)) })
 }
 
 func IsUsable(id entity.Id) bool { return IsItem(id) && GetItem(id).Use != NoUse }
@@ -358,8 +349,7 @@ func UseItem(userId, itemId entity.Id) {
 }
 
 func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
-	player := GetBlob(PlayerId())
-	itemIds := iterable.Data(TakeableItems(GetPos(player.GetGuid())))
+	itemIds := iterable.Data(TakeableItems(GetPos(PlayerId())))
 
 	if len(itemIds) == 0 {
 		Msg("Nothing to take here.\n")
@@ -424,36 +414,31 @@ func GunEquipped(id entity.Id) bool {
 const spawnsPerLevel = 32
 
 
-func Spawn(name string) *Blob {
-	manager := GetManager()
-	guid := assemblages[name].MakeEntity(manager)
-
-	return GetBlobs().Get(guid).(*Blob)
+func Spawn(name string) entity.Id {
+	id := assemblages[name].MakeEntity(GetManager())
+	return id
 }
 
-func SpawnAt(name string, pos geom.Pt2I) (result *Blob) {
+func SpawnAt(name string, pos geom.Pt2I) (result entity.Id) {
 	result = Spawn(name)
-	PosComp(result.GetGuid()).MoveAbs(pos)
+	PosComp(result).MoveAbs(pos)
 	return
 }
 
-func SpawnRandomPos(name string) (result *Blob) {
-	return SpawnAt(name, GetSpawnPos())
-}
+func SpawnRandomPos(name string) entity.Id { return SpawnAt(name, GetSpawnPos()) }
 
 func clearNonplayerEntities() {
 	// Bring over player object and player's inventory.
-	player := GetBlob(PlayerId())
 	keep := make(map[entity.Id]bool)
-	keep[player.GetGuid()] = true
-	for o := range RecursiveContents(player.GetGuid()).Iter() {
+	keep[PlayerId()] = true
+	for o := range RecursiveContents(PlayerId()).Iter() {
 		keep[o.(entity.Id)] = true
 	}
 
-	for o := range GetBlobs().EntityComponents().Iter() {
-		pair := o.(*entity.IdComponent)
-		if _, ok := keep[pair.Entity]; !ok {
-			defer GetManager().RemoveEntity(pair.Entity)
+	for o := range Entities().Iter() {
+		id := o.(entity.Id)
+		if _, ok := keep[id]; !ok {
+			defer Destroy(id)
 		}
 	}
 }
