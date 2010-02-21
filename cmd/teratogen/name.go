@@ -3,7 +3,6 @@ package main
 import (
 	"hyades/entity"
 	"hyades/txt"
-	"io"
 )
 
 const NameComponent = entity.ComponentFamily("name")
@@ -24,10 +23,6 @@ func (self NameTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) 
 type Name struct {
 	name string
 }
-
-func (self *Name) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
-
-func (self *Name) Deserialize(in io.Reader) { entity.GobDeserialize(in, self) }
 
 
 // GetName returns the name of an entity. If the entity has no name component,

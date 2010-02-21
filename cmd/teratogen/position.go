@@ -4,7 +4,6 @@ import (
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
-	"io"
 )
 
 const PosComponent = entity.ComponentFamily("position")
@@ -36,14 +35,6 @@ func (self *Position) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
 // Move adds the given vector to the position in the position component.
 func (self *Position) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
-
-func (self *Position) Serialize(out io.Writer) {
-	entity.GobSerialize(out, self)
-}
-
-func (self *Position) Deserialize(in io.Reader) {
-	entity.GobDeserialize(in, self)
-}
 
 
 func PosComp(id entity.Id) *Position {

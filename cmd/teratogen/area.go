@@ -6,7 +6,6 @@ import (
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/gfx"
-	"io"
 	"rand"
 )
 
@@ -53,10 +52,6 @@ func NewArea() (result *Area) {
 	result.terrain = make([]TerrainType, numTerrainCells)
 	return
 }
-
-func (self *Area) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
-
-func (self *Area) Deserialize(in io.Reader) { entity.GobDeserialize(in, self) }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
 	switch terrain {

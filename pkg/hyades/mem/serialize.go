@@ -2,6 +2,7 @@ package mem
 
 import (
 	"encoding/binary"
+	"gob"
 	"hyades/dbg"
 	"io"
 	"strings"
@@ -94,5 +95,44 @@ func ReadNTimes(in io.Reader, init func(int), read func(int, io.Reader)) {
 	init(count)
 	for i := 0; i < count; i++ {
 		read(i, in)
+	}
+}
+
+
+// GobSerialize writes val into the output stream using the gob package to
+// serialize it.
+func GobSerialize(out io.Writer, val interface{}) {
+	enc := gob.NewEncoder(out)
+	err := enc.Encode(val)
+	dbg.AssertNoError(err)
+}
+
+// GobDeserialize decodes a value serialized with the gob package into the
+// given struct value.
+func GobDeserialize(in io.Reader, val interface{}) {
+	dec := gob.NewDecoder(in)
+	err := dec.Decode(val)
+	dbg.AssertNoError(err)
+}
+
+// GobOrMethodSerialize checks if val implements the Serializable interface.
+// If it does, it serializes val using val's Serialize method. Otherwise it
+// uses the gob package.
+func GobOrMethodSerialize(out io.Writer, val interface{}) {
+	if ser, ok := val.(Serializable); ok {
+		ser.Serialize(out)
+	} else {
+		GobSerialize(out, val)
+	}
+}
+
+// GobOrMethodDeserialize checks if val implements the Serializable interface.
+// If it does, it deserializes to val using val's Deserialize method.
+// Otherwise it uses the gob package.
+func GobOrMethodDeserialize(in io.Reader, val interface{}) {
+	if ser, ok := val.(Serializable); ok {
+		ser.Deserialize(in)
+	} else {
+		GobDeserialize(in, val)
 	}
 }

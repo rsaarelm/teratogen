@@ -4,6 +4,7 @@ import (
 	"exp/iterable"
 	"hyades/alg"
 	"hyades/entity"
+	"hyades/mem"
 	"io"
 )
 
@@ -16,10 +17,10 @@ type Globals struct {
 	CurrentLevel int32
 }
 
-func (self *Globals) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
+func (self *Globals) Serialize(out io.Writer) { mem.GobSerialize(out, self) }
 
 func (self *Globals) Deserialize(in io.Reader) {
-	entity.GobDeserialize(in, self)
+	mem.GobDeserialize(in, self)
 }
 
 func (self *Globals) Add(guid entity.Id, component interface{}) {

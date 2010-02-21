@@ -3,8 +3,6 @@ package entity
 import (
 	"container/vector"
 	"exp/iterable"
-	"gob"
-	"hyades/dbg"
 	"hyades/mem"
 	"io"
 )
@@ -41,7 +39,7 @@ func SerializeHandlerComponents(out io.Writer, handler Handler) {
 	// once.
 	mem.WriteFixed(out, int32(len(uniqs)))
 	for _, o := range uniqs {
-		o.(mem.Serializable).Serialize(out)
+		mem.GobOrMethodSerialize(out, o)
 	}
 
 	// Write the entity ids and the indices to the unique component table.
@@ -66,7 +64,7 @@ func DeserializeHandlerComponents(in io.Reader, handler Handler, newComponent fu
 	uniqs := make([]interface{}, nUniqs)
 	for i := 0; i < nUniqs; i++ {
 		uniqs[i] = newComponent()
-		uniqs[i].(mem.Serializable).Deserialize(in)
+		mem.GobOrMethodDeserialize(in, uniqs[i])
 	}
 
 	nComponents := int(mem.ReadInt32(in))
@@ -75,20 +73,4 @@ func DeserializeHandlerComponents(in io.Reader, handler Handler, newComponent fu
 		uniqId := int(mem.ReadInt32(in))
 		handler.Add(guid, uniqs[uniqId])
 	}
-}
-
-// GobSerialize writes val into the output stream using the gob package to
-// serialize it.
-func GobSerialize(out io.Writer, val interface{}) {
-	enc := gob.NewEncoder(out)
-	err := enc.Encode(val)
-	dbg.AssertNoError(err)
-}
-
-// GobDeserialize decodes a value serialized with the gob package into the
-// given struct value.
-func GobDeserialize(in io.Reader, val interface{}) {
-	dec := gob.NewDecoder(in)
-	err := dec.Decode(val)
-	dbg.AssertNoError(err)
 }

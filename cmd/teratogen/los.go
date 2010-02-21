@@ -3,7 +3,6 @@ package main
 import (
 	"hyades/entity"
 	"hyades/geom"
-	"io"
 )
 
 type LosState byte
@@ -27,10 +26,6 @@ func NewLos() (result *Los) {
 	result.los = make([]LosState, mapWidth*mapHeight)
 	return
 }
-
-func (self *Los) Serialize(out io.Writer) { entity.GobSerialize(out, self) }
-
-func (self *Los) Deserialize(in io.Reader) { entity.GobDeserialize(in, self) }
 
 func (self *Los) ClearSight() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
