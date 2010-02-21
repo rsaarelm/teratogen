@@ -8,20 +8,21 @@ import (
 const NameComponent = entity.ComponentFamily("name")
 
 
-type NameTemplate string
+type NameTemplate Name
 
 func (self NameTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
 	return c
 }
 
 func (self NameTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
-	manager.Handler(NameComponent).Add(guid, &Name{string(self)})
+	manager.Handler(NameComponent).Add(guid, &Name{self.Name, self.IconId})
 }
 
 
 // Name component. Will probably get more structure than this eventually.
 type Name struct {
-	name string
+	Name   string
+	IconId string
 }
 
 
@@ -29,9 +30,16 @@ type Name struct {
 // it returns a string representation of its id value.
 func GetName(id entity.Id) string {
 	if nameComp := GetManager().Handler(NameComponent).Get(id); nameComp != nil {
-		return nameComp.(*Name).name
+		return nameComp.(*Name).Name
 	}
 	return string(id)
+}
+
+func GetIconId(id entity.Id) string {
+	if nameComp := GetManager().Handler(NameComponent).Get(id); nameComp != nil {
+		return nameComp.(*Name).IconId
+	}
+	return ""
 }
 
 // GetCapName returns the capitalized name of an entity.

@@ -90,7 +90,7 @@ func drawEntities(g gfx.Graphics) {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !IsMobile(e.GetGuid()) {
-				Draw(g, e.IconId, pos.X, pos.Y)
+				Draw(g, GetIconId(e.GetGuid()), pos.X, pos.Y)
 			}
 		}
 	}
