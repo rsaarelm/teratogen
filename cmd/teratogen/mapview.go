@@ -311,7 +311,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			if ok {
 				SendPlayerInput(func() {
 					item := item.(*Blob)
-					item.RemoveSelf()
+					SetParent(item.GetGuid(), entity.NilId)
 					Msg("Dropped %v.\n", GetName(item.GetGuid()))
 				})
 			} else {

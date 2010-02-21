@@ -35,6 +35,29 @@ func GetTopParent(id entity.Id) (topId entity.Id) {
 	return
 }
 
+func SetParent(id, newParentId entity.Id) {
+	oldParentId := GetParent(id)
+
+	if newParentId == oldParentId {
+		return
+	}
+
+	if newParentId == entity.NilId {
+		if parentPos, ok := GetParentPosOrPos(id); oldParentId != entity.NilId && ok {
+			// Move to the position of the topmost positioned parent when
+			// removing from containment.
+			SetPos(id, parentPos)
+		}
+	}
+
+	GetContain().RemoveWithRhs(id)
+	RemoveEquipped(id)
+
+	if newParentId != entity.NilId {
+		GetContain().AddPair(newParentId, id)
+	}
+}
+
 // Contents iterates through the children but not the grandchildren of the
 // entity.
 func Contents(id entity.Id) iterable.Iterable { return GetContain().IterRhs(id) }
@@ -56,22 +79,6 @@ func RecursiveContents(id entity.Id) iterable.Iterable {
 func HasContents(id entity.Id) bool {
 	_, ok := GetContain().GetRhs(id)
 	return ok
-}
-
-// TODO: Turn inventory methods from Blob component methods into plain
-// functions on entity guids.
-
-func (self *Blob) InsertSelf(parent *Blob) {
-	self.RemoveSelf()
-	GetContain().AddPair(parent.GetGuid(), self.GetGuid())
-}
-
-func (self *Blob) RemoveSelf() {
-	if parentId := GetTopParent(self.GetGuid()); parentId != entity.NilId {
-		PosComp(self.GetGuid()).MoveAbs(GetPos(parentId))
-	}
-	GetContain().RemoveWithRhs(self.GetGuid())
-	RemoveEquipped(self.GetGuid())
 }
 
 func GetEquipment(creature entity.Id, slot string) (guid entity.Id, found bool) {

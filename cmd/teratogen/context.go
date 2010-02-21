@@ -87,7 +87,7 @@ func GetBlob(guid entity.Id) *Blob {
 }
 
 func DestroyBlob(ent *Blob) {
-	ent.RemoveSelf()
+	SetParent(ent.GetGuid(), entity.NilId)
 	if ent.GetGuid() == PlayerId() {
 		if /*GameRunning() */ false {
 			// Ensure gameover if player is destroyed by unknown means.

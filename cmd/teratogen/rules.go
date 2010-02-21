@@ -369,13 +369,13 @@ func IsCreature(id entity.Id) bool {
 func IsTakeableItem(e *Blob) bool { return e.Class == ItemEntityClass }
 
 func TakeItem(subject *Blob, item *Blob) {
-	item.InsertSelf(subject)
+	SetParent(item.GetGuid(), subject.GetGuid())
 	Msg("%v takes %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
 }
 
 func DropItem(subject *Blob, item *Blob) {
 	// TODO: Check if the subject is holding the item.
-	item.RemoveSelf()
+	SetParent(item.GetGuid(), entity.NilId)
 	PosComp(item.GetGuid()).MoveAbs(GetPos(subject.GetGuid()))
 	Msg("%v drops %v.\n", GetCapName(subject.GetGuid()), GetName(item.GetGuid()))
 }
