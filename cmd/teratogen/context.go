@@ -78,14 +78,6 @@ func (self *Context) EnterLevel(depth int) {
 	globals.CurrentLevel = int32(depth)
 }
 
-func GetBlob(id entity.Id) *Blob {
-	obj := GetBlobs().Get(id)
-	if obj != nil {
-		return obj.(*Blob)
-	}
-	return nil
-}
-
 func Destroy(id entity.Id) {
 	SetParent(id, entity.NilId)
 	if id == PlayerId() {
@@ -99,8 +91,6 @@ func Destroy(id entity.Id) {
 	}
 	GetManager().RemoveEntity(id)
 }
-
-func DestroyBlob(ent *Blob) { Destroy(ent.GetGuid()) }
 
 func PlayerId() entity.Id { return GetGlobals().PlayerId }
 
@@ -116,7 +106,6 @@ func makeManager() (result *entity.Manager) {
 	result.SetHandler(GlobalsComponent, new(Globals))
 	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
 	result.SetHandler(LosComponent, entity.NewContainer(new(Los)))
-	result.SetHandler(BlobComponent, entity.NewContainer(new(Blob)))
 	result.SetHandler(PosComponent, entity.NewContainer(new(Position)))
 	result.SetHandler(NameComponent, entity.NewContainer(new(Name)))
 	result.SetHandler(CreatureComponent, entity.NewContainer(new(Creature)))
@@ -139,8 +128,6 @@ func GetArea() *Area {
 func GetLos() *Los {
 	return GetManager().Handler(LosComponent).Get(GetGlobals().AreaId).(*Los)
 }
-
-func GetBlobs() entity.Handler { return GetManager().Handler(BlobComponent) }
 
 // Entities returns an iteration of all the entity ids in the game.
 func Entities() iterable.Iterable { return GetManager().Entities() }

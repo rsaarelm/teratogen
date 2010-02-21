@@ -9,7 +9,6 @@ GOFILES=\
 	contain.go\
 	context.go\
 	creature.go\
-	entity.go\
 	factory.go\
 	globals.go\
 	item.go\

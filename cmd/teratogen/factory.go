@@ -31,47 +31,6 @@ func (self *metaTemplate) MakeComponent(manager *entity.Manager, guid entity.Id)
 }
 
 
-type blobTemplate struct {
-	Props map[string]interface{}
-}
-
-func BlobTemplate(kwargs KW) (result *blobTemplate) {
-	result = new(blobTemplate)
-
-	result.Props = make(map[string]interface{})
-	for k, v := range kwargs {
-		result.Props[k] = v
-	}
-	return
-}
-
-func (self *blobTemplate) applyProps(target *Blob) {
-	for key, val := range self.Props {
-		target.Set(key, val)
-	}
-}
-
-func (self *blobTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
-	child := c.(*blobTemplate)
-	result := BlobTemplate(KW{})
-	for key, val := range self.Props {
-		result.Props[key] = val
-	}
-
-	for key, val := range child.Props {
-		result.Props[key] = val
-	}
-
-	return result
-}
-
-func (self *blobTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
-	blobs := manager.Handler(BlobComponent)
-	blob := NewEntity(guid)
-	self.applyProps(blob)
-	blobs.Add(guid, blob)
-}
-
 var assemblages map[string]entity.Assemblage
 
 func init() {
@@ -87,7 +46,7 @@ func init() {
 			Melee: Good,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["zombie"] = entity.Assemblage{
 		Metadata: MetaTemplate(100, 0),
 		PosComponent: PosTemplate(),
@@ -98,7 +57,7 @@ func init() {
 			Melee: Fair,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["dogthing"] = entity.Assemblage{
 		Metadata: MetaTemplate(150, 0),
 		PosComponent: PosTemplate(),
@@ -109,7 +68,7 @@ func init() {
 			Melee: Good,
 			Scale: -1,
 			Density: 0},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["ogre"] = entity.Assemblage{
 		Metadata: MetaTemplate(600, 5),
 		PosComponent: PosTemplate(),
@@ -120,7 +79,7 @@ func init() {
 			Melee: Fair,
 			Scale: 3,
 			Density: 0},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["boss1"] = entity.Assemblage{
 		Metadata: MetaTemplate(3000, 10),
 		PosComponent: PosTemplate(),
@@ -131,19 +90,19 @@ func init() {
 			Melee: Superb,
 			Scale: 5,
 			Density: 0},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 
 	a["globe"] = entity.Assemblage{
 		Metadata: MetaTemplate(30, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"health globe", "items:1"},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["plantpot"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"plant pot", "items:3"},
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["pistol"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
@@ -154,7 +113,7 @@ func init() {
 			WoundBonus: 1,
 			DefenseBonus: 0,
 			Use: NoUse},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["machete"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
@@ -165,7 +124,7 @@ func init() {
 			WoundBonus: 2,
 			DefenseBonus: 0,
 			Use: NoUse},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["kevlar"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
@@ -176,11 +135,11 @@ func init() {
 			WoundBonus: 0,
 			DefenseBonus: 1,
 			Use: NoUse},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 	a["medkit"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"medkit", "items:7"},
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse},
-		BlobComponent: BlobTemplate(KW{})}
+	}
 }
