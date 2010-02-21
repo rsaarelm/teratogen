@@ -99,6 +99,12 @@ func init() {
 		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("protagonist"),
+		CreatureComponent: &CreatureTemplate{
+			Str: Great,
+			Tough: Good,
+			Melee: Good,
+			Scale: 0,
+			Density: 0},
 		BlobComponent: BlobTemplate("chars:0", PlayerEntityClass, KW{
 			PropStrength: Great,
 			PropToughness: Good,
@@ -107,6 +113,12 @@ func init() {
 		Metadata: MetaTemplate(100, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("zombie"),
+		CreatureComponent: &CreatureTemplate{
+			Str: Fair,
+			Tough: Poor,
+			Melee: Fair,
+			Scale: 0,
+			Density: 0},
 		BlobComponent: BlobTemplate("chars:1", EnemyEntityClass, KW{
 			PropStrength: Fair,
 			PropToughness: Poor,
@@ -115,6 +127,12 @@ func init() {
 		Metadata: MetaTemplate(150, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("dog-thing"),
+		CreatureComponent: &CreatureTemplate{
+			Str: Fair,
+			Tough: Fair,
+			Melee: Good,
+			Scale: -1,
+			Density: 0},
 		BlobComponent: BlobTemplate("chars:2", EnemyEntityClass, KW{
 			PropStrength: Fair,
 			PropToughness: Fair,
@@ -124,6 +142,12 @@ func init() {
 		Metadata: MetaTemplate(600, 5),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("ogre"),
+		CreatureComponent: &CreatureTemplate{
+			Str: Great,
+			Tough: Great,
+			Melee: Fair,
+			Scale: 3,
+			Density: 0},
 		BlobComponent: BlobTemplate("chars:15", EnemyEntityClass, KW{
 			PropStrength: Great,
 			PropToughness: Great,
@@ -133,6 +157,12 @@ func init() {
 		Metadata: MetaTemplate(3000, 10),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("elder spawn"),
+		CreatureComponent: &CreatureTemplate{
+			Str: Legendary,
+			Tough: Legendary,
+			Melee: Superb,
+			Scale: 5,
+			Density: 0},
 		BlobComponent: BlobTemplate("chars:5", EnemyEntityClass, KW{
 			PropStrength: Legendary,
 			PropToughness: Legendary,

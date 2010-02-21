@@ -10,6 +10,42 @@ import (
 	"math"
 )
 
+
+const CreatureComponent = entity.ComponentFamily("creature")
+
+
+type CreatureTemplate struct {
+	Str, Tough, Melee int
+	Scale, Density    int
+}
+
+func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
+	return c
+}
+
+func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
+	result := &Creature{
+		Str: self.Str,
+		Tough: self.Tough,
+		Melee: self.Melee,
+		Scale: self.Scale,
+		Density: self.Density,
+		Wounds: 0}
+	GetManager().Handler(CreatureComponent).Add(guid, result)
+}
+
+
+// Creature component. Stats etc.
+type Creature struct {
+	Str, Tough, Melee int
+	Scale, Density    int
+	Wounds            int
+}
+
+func GetCreature(id entity.Id) *Creature {
+	return GetManager().Handler(CreatureComponent).Get(id).(*Creature)
+}
+
 func (self *Blob) MaxWounds() int { return num.Imax(1, (self.GetI(PropToughness)+3)*2+1) }
 
 func (self *Blob) WoundDescription() string {
