@@ -31,22 +31,6 @@ const (
 )
 
 const (
-	// Slot type, where does this item go if it's gear.
-	PropEquipmentSlot = "equipmentSlot"
-
-	// Equipped gear.
-	PropBodyArmorGuid   = "armorEquip"
-	PropMeleeWeaponGuid = "meleeEquip"
-	PropGunWeaponGuid   = "gunEquip"
-
-	// Extra damage capability
-	PropWoundBonus = "woundBonus"
-	// Extra defense capability
-	PropDefenseBonus = "defenseBonus"
-
-	// How resistant is gear to breaking.
-	PropDurability = "durability"
-
 	PropItemUse = "itemUse"
 
 	FlagObstacle = "isObstacle"
@@ -184,8 +168,8 @@ func Attack(attackerId, defenderId entity.Id) {
 		woundLevel := attCrit.MeleeWoundLevelAgainst(
 			attackerId, defenderId, hitDegree)
 
-		DamageEquipment(attackerId, PropMeleeWeaponGuid)
-		DamageEquipment(defenderId, PropBodyArmorGuid)
+		DamageEquipment(attackerId, MeleeEquipSlot)
+		DamageEquipment(defenderId, ArmorEquipSlot)
 
 		if woundLevel > 0 {
 			defCrit.Damage(defenderId, woundLevel, attackerId)
@@ -214,8 +198,8 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 	}
 
 	damageFactor := 0
-	if gun, ok := GetEquipment(attacker.GetGuid(), PropGunWeaponGuid); ok {
-		damageFactor += GetBlobs().Get(gun).(*Blob).GetI(PropWoundBonus)
+	if gun, ok := GetEquipment(attacker.GetGuid(), GunEquipSlot); ok {
+		damageFactor += GetItem(gun).WoundBonus
 	}
 
 	p1, p2 := draw.Pt(Tile2WorldPos(GetPos(PlayerId()))), draw.Pt(Tile2WorldPos(hitPos))
@@ -224,20 +208,19 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 	// TODO: Sparks when hitting walls.
 	DamagePos(hitPos, damageFactor, attackerId)
 
-	DamageEquipment(attackerId, PropGunWeaponGuid)
+	DamageEquipment(attackerId, GunEquipSlot)
 }
 
-func DamageEquipment(ownerId entity.Id, slot string) {
-	ent := GetBlob(ownerId)
-	if itemId, ok := GetEquipment(ent.GetGuid(), slot); ok {
-		o := GetBlobs().Get(itemId).(*Blob)
-		if num.OneChanceIn(o.GetI(PropDurability)) {
-			if slot == PropGunWeaponGuid {
+func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
+	if itemId, ok := GetEquipment(ownerId, slot); ok {
+		item := GetItem(itemId)
+		if num.OneChanceIn(item.Durability) {
+			if slot == GunEquipSlot {
 				Msg("The %s's %s is out of ammo.\n", GetName(ownerId), GetName(itemId))
 			} else {
 				Msg("The %s's %s breaks.\n", GetName(ownerId), GetName(itemId))
 			}
-			DestroyBlob(o)
+			Destroy(itemId)
 		}
 	}
 }
@@ -381,19 +364,17 @@ func TakeableItems(pos geom.Pt2I) iterable.Iterable {
 // TODO: Change other functions to use interface{} instead of *Blob to make
 // it easier to use them with iterable functions.
 
-func IsEquippableItem(id entity.Id) bool { return GetBlob(id).Has(PropEquipmentSlot) }
+func IsEquippableItem(id entity.Id) bool {
+	item := GetItem(id)
+	return item != nil && item.EquipmentSlot != NoEquipSlot
+}
 
 func IsCarryingGear(o interface{}) bool {
 	return iterable.Any(Contents(o.(*Blob).GetGuid()), EntityFilterFn(IsEquippableItem))
 }
 
-func IsCarryingGearFor(o interface{}, slot string) bool {
-	return iterable.Any(iterable.Map(Contents(o.(*Blob).GetGuid()), id2Blob), func(o interface{}) bool {
-		if itemSlot, ok := o.(*Blob).GetSOpt(PropEquipmentSlot); ok && itemSlot == slot {
-			return true
-		}
-		return false
-	})
+func IsCarryingGearFor(o interface{}, slot EquipSlot) bool {
+	return iterable.Any(Contents(o.(*Blob).GetGuid()), func(item interface{}) bool { return CanEquipIn(slot, item.(entity.Id)) })
 }
 
 func IsUsable(id entity.Id) bool { return GetBlob(id).Has(PropItemUse) }
@@ -457,23 +438,16 @@ func SmartPlayerPickup(alwaysPickupFirst bool) *Blob {
 // Autoequip equips item on owner if it can be equpped in a slot that
 // currently has nothing.
 func AutoEquip(owner *Blob, item *Blob) {
-	slot, ok := item.GetSOpt(PropEquipmentSlot)
-	if !ok {
+	slot := GetItem(item.GetGuid()).EquipmentSlot
+	if slot == NoEquipSlot {
 		return
 	}
-	if _, ok := owner.GetGuidOpt(slot); ok {
+	if _, ok := GetEquipment(owner.GetGuid(), slot); ok {
 		// Already got something equipped.
 		return
 	}
 	SetEquipment(owner.GetGuid(), slot, item.GetGuid())
 	Msg("Equipped %v.\n", item)
-}
-
-func CanEquipIn(slotId string, e *Blob) bool {
-	if eSlot, ok := e.GetSOpt(PropEquipmentSlot); ok {
-		return eSlot == slotId
-	}
-	return false
 }
 
 func EntityDist(o1, o2 interface{}) float64 {
@@ -501,7 +475,7 @@ func ClosestCreatureSeenBy(o interface{}) entity.Id {
 }
 
 func GunEquipped(o interface{}) bool {
-	_, ok := GetEquipment(o.(*Blob).GetGuid(), PropGunWeaponGuid)
+	_, ok := GetEquipment(o.(*Blob).GetGuid(), GunEquipSlot)
 	return ok
 }
 

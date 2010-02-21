@@ -350,7 +350,7 @@ func ObjectChoiceDialog(prompt string, objs []interface{}) (result interface{}, 
 
 func EquipMenu() {
 	player := GetBlob(PlayerId())
-	slots := [...]string{PropBodyArmorGuid, PropMeleeWeaponGuid, PropGunWeaponGuid}
+	slots := [...]EquipSlot{ArmorEquipSlot, MeleeEquipSlot, GunEquipSlot}
 	names := [...]string{"body armor", "melee weapon", "gun"}
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
@@ -374,7 +374,7 @@ func EquipMenu() {
 		Msg("Unequipped %v.\n", items[choice])
 	} else {
 		equippables := iterable.Data(iterable.Filter(iterable.Map(Contents(player.GetGuid()), id2Blob),
-			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob)) }))
+			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(*Blob).GetGuid()) }))
 		if item, ok := ObjectChoiceDialog(fmt.Sprintf("Equip %s", names[choice]), equippables); ok {
 			SetEquipment(player.GetGuid(), slots[choice], item.(*Blob).GetGuid())
 			Msg("Equipped %v.\n", item)

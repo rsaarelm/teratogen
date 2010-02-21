@@ -165,10 +165,7 @@ func init() {
 			Durability: 12,
 			WoundBonus: 1,
 			DefenseBonus: 0},
-		BlobComponent: BlobTemplate("items:4", ItemEntityClass, KW{
-			PropEquipmentSlot: PropGunWeaponGuid,
-			PropWoundBonus: 1,
-			PropDurability: 12})}
+		BlobComponent: BlobTemplate("items:4", ItemEntityClass, KW{})}
 	a["machete"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
@@ -178,10 +175,7 @@ func init() {
 			Durability: 20,
 			WoundBonus: 2,
 			DefenseBonus: 0},
-		BlobComponent: BlobTemplate("items:5", ItemEntityClass, KW{
-			PropEquipmentSlot: PropMeleeWeaponGuid,
-			PropWoundBonus: 2,
-			PropDurability: 20})}
+		BlobComponent: BlobTemplate("items:5", ItemEntityClass, KW{})}
 	a["kevlar"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),
@@ -191,10 +185,7 @@ func init() {
 			Durability: 20,
 			WoundBonus: 0,
 			DefenseBonus: 1},
-		BlobComponent: BlobTemplate("items:6", ItemEntityClass, KW{
-			PropEquipmentSlot: PropBodyArmorGuid,
-			PropDefenseBonus: 1,
-			PropDurability: 20})}
+		BlobComponent: BlobTemplate("items:6", ItemEntityClass, KW{})}
 	a["medkit"] = entity.Assemblage{
 		Metadata: MetaTemplate(200, 0),
 		PosComponent: PosTemplate(),

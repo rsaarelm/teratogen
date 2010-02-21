@@ -75,18 +75,18 @@ func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWou
 
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 	result = self.Str + self.Scale + self.Density
-	if o, ok := GetEquipment(id, PropMeleeWeaponGuid); ok {
+	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
 		// Melee weapon bonus
-		result += GetBlob(o).GetI(PropWoundBonus)
+		result += GetItem(o).WoundBonus
 	}
 	return
 }
 
 func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 	result = self.Scale + self.Density + self.Tough
-	if o, ok := GetEquipment(id, PropBodyArmorGuid); ok {
+	if o, ok := GetEquipment(id, ArmorEquipSlot); ok {
 		// Body armor bonus.
-		result += GetBlob(o).GetI(PropDefenseBonus)
+		result += GetItem(o).DefenseBonus
 	}
 	return
 }

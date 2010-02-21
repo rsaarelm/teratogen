@@ -14,11 +14,25 @@ const (
 
 // Equipment slots
 const (
-	NoEquipSlot = iota
+	NoEquipSlot EquipSlot = iota
 	MeleeEquipSlot
 	GunEquipSlot
 	ArmorEquipSlot
 )
+
+type EquipSlot int
+
+func (self EquipSlot) Relation() *entity.Relation {
+	switch self {
+	case MeleeEquipSlot:
+		return GetManager().Handler(MeleeEquipComponent).(*entity.Relation)
+	case GunEquipSlot:
+		return GetManager().Handler(GunEquipComponent).(*entity.Relation)
+	case ArmorEquipSlot:
+		return GetManager().Handler(ArmorEquipComponent).(*entity.Relation)
+	}
+	return nil
+}
 
 
 // There's currently no structural difference between item template and item,
@@ -40,7 +54,7 @@ func (self *ItemTemplate) MakeComponent(manager *entity.Manager, guid entity.Id)
 
 
 type Item struct {
-	EquipmentSlot int
+	EquipmentSlot EquipSlot
 	Durability    int
 	WoundBonus    int
 	DefenseBonus  int
@@ -48,44 +62,40 @@ type Item struct {
 
 func GetItem(id entity.Id) *Item { return GetManager().Handler(ItemComponent).Get(id).(*Item) }
 
-func (self *Item) EquipRelation() *entity.Relation {
-	switch self.EquipmentSlot {
-	case MeleeEquipSlot:
-		return GetManager().Handler(MeleeEquipComponent).(*entity.Relation)
-	case GunEquipSlot:
-		return GetManager().Handler(GunEquipComponent).(*entity.Relation)
-	case ArmorEquipSlot:
-		return GetManager().Handler(ArmorEquipComponent).(*entity.Relation)
+func GetEquipment(creature entity.Id, slot EquipSlot) (guid entity.Id, found bool) {
+	if rel := slot.Relation(); rel != nil {
+		return rel.GetRhs(creature)
 	}
-	return nil
+	return
 }
 
-func GetEquipment(creature entity.Id, slot string) (guid entity.Id, found bool) {
-	// Crashes here if slot isn't a relation component name.
-	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
-	return rel.GetRhs(creature)
-}
-
-func SetEquipment(creature entity.Id, slot string, equipment entity.Id) {
-	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
-	rel.AddPair(creature, equipment)
+func SetEquipment(creature entity.Id, slot EquipSlot, equipment entity.Id) {
+	if rel := slot.Relation(); rel != nil {
+		rel.AddPair(creature, equipment)
+	}
 }
 
 // RemoveEquipment remover whatever a creature has equipped in a given slot.
-func RemoveEquipment(creature entity.Id, slot string) (removed entity.Id, found bool) {
-	rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
-	removed, found = GetEquipment(creature, slot)
-	if found {
-		rel.RemovePair(creature, removed)
+func RemoveEquipment(creature entity.Id, slot EquipSlot) (removed entity.Id, found bool) {
+	if rel := slot.Relation(); rel != nil {
+		removed, found = GetEquipment(creature, slot)
+		if found {
+			rel.RemovePair(creature, removed)
+		}
 	}
 	return
 }
 
 // RemoveEquipped removes an item from an equipped relation if it is in one.
-func RemoveEquipped(item entity.Id) {
-	blob := GetBlobs().Get(item).(*Blob)
-	if slot, ok := blob.GetSOpt(PropEquipmentSlot); ok {
-		rel := GetManager().Handler(entity.ComponentFamily(slot)).(*entity.Relation)
-		rel.RemoveWithRhs(item)
+func RemoveEquipped(itemId entity.Id) {
+	if item := GetItem(itemId); item != nil {
+		if item.EquipmentSlot != NoEquipSlot {
+			item.EquipmentSlot.Relation().RemoveWithRhs(itemId)
+		}
 	}
+}
+
+func CanEquipIn(slot EquipSlot, itemId entity.Id) bool {
+	item := GetItem(itemId)
+	return slot != NoEquipSlot && item != nil && slot == item.EquipmentSlot
 }

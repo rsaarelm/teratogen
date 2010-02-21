@@ -78,17 +78,17 @@ func (self *Context) EnterLevel(depth int) {
 	globals.CurrentLevel = int32(depth)
 }
 
-func GetBlob(guid entity.Id) *Blob {
-	obj := GetBlobs().Get(guid)
+func GetBlob(id entity.Id) *Blob {
+	obj := GetBlobs().Get(id)
 	if obj != nil {
 		return obj.(*Blob)
 	}
 	return nil
 }
 
-func DestroyBlob(ent *Blob) {
-	SetParent(ent.GetGuid(), entity.NilId)
-	if ent.GetGuid() == PlayerId() {
+func Destroy(id entity.Id) {
+	SetParent(id, entity.NilId)
+	if id == PlayerId() {
 		if /*GameRunning() */ false {
 			// Ensure gameover if player is destroyed by unknown means.
 			GameOver("was wiped out of existence.")
@@ -97,8 +97,10 @@ func DestroyBlob(ent *Blob) {
 		// removed.
 		return
 	}
-	GetManager().RemoveEntity(ent.GetGuid())
+	GetManager().RemoveEntity(id)
 }
+
+func DestroyBlob(ent *Blob) { Destroy(ent.GetGuid()) }
 
 func PlayerId() entity.Id { return GetGlobals().PlayerId }
 
