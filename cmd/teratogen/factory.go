@@ -80,13 +80,7 @@ var assemblages map[string]entity.Assemblage
 func init() {
 	assemblages = make(map[string]entity.Assemblage)
 	a := assemblages
-	a["creature"] = entity.Assemblage{
-		Metadata: MetaTemplate(-1, 0),
-		PosComponent: PosTemplate(),
-		NameComponent: NameTemplate("creature"),
-		BlobComponent: BlobTemplate("", KW{
-			FlagObstacle: 1})}
-	a["protagonist"] = a["creature"].Derive(entity.Assemblage{
+	a["protagonist"] = entity.Assemblage{
 		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("protagonist"),
@@ -96,8 +90,8 @@ func init() {
 			Melee: Good,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:0", KW{})})
-	a["zombie"] = a["creature"].Derive(entity.Assemblage{
+		BlobComponent: BlobTemplate("chars:0", KW{})}
+	a["zombie"] = entity.Assemblage{
 		Metadata: MetaTemplate(100, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("zombie"),
@@ -107,8 +101,8 @@ func init() {
 			Melee: Fair,
 			Scale: 0,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:1", KW{})})
-	a["dogthing"] = a["creature"].Derive(entity.Assemblage{
+		BlobComponent: BlobTemplate("chars:1", KW{})}
+	a["dogthing"] = entity.Assemblage{
 		Metadata: MetaTemplate(150, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("dog-thing"),
@@ -118,8 +112,8 @@ func init() {
 			Melee: Good,
 			Scale: -1,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:2", KW{})})
-	a["ogre"] = a["creature"].Derive(entity.Assemblage{
+		BlobComponent: BlobTemplate("chars:2", KW{})}
+	a["ogre"] = entity.Assemblage{
 		Metadata: MetaTemplate(600, 5),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("ogre"),
@@ -129,8 +123,8 @@ func init() {
 			Melee: Fair,
 			Scale: 3,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:15", KW{})})
-	a["boss1"] = a["creature"].Derive(entity.Assemblage{
+		BlobComponent: BlobTemplate("chars:15", KW{})}
+	a["boss1"] = entity.Assemblage{
 		Metadata: MetaTemplate(3000, 10),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate("elder spawn"),
@@ -140,7 +134,7 @@ func init() {
 			Melee: Superb,
 			Scale: 5,
 			Density: 0},
-		BlobComponent: BlobTemplate("chars:5", KW{})})
+		BlobComponent: BlobTemplate("chars:5", KW{})}
 
 	a["globe"] = entity.Assemblage{
 		Metadata: MetaTemplate(30, 0),

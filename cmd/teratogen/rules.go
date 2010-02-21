@@ -30,10 +30,6 @@ const (
 	Legendary
 )
 
-const (
-	FlagObstacle = "isObstacle"
-)
-
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
 	const outOfDepthFactor = 2.0
@@ -487,3 +483,5 @@ func makeSpawnDistribution(depth int) num.WeightedDist {
 	}
 	return num.MakeWeightedDist(weightFn, values)
 }
+
+func BlocksMovement(id entity.Id) bool { return IsCreature(id) }
