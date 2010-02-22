@@ -175,9 +175,7 @@ func (self *MapView) onMouseButton(button int) {
 			// currently keyboard-only dialog if there are many items.
 
 			// TODO: Support choosing which item to pick up when using mouse.
-			if SmartPlayerPickup(true) != entity.NilId {
-				game.SendPlayerInput(func() {})
-			}
+			SmartPlayerPickup(true)
 		}
 	case rightButton:
 		if !vec.Equals(geom.ZeroVec2I) {
@@ -284,9 +282,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.SendPlayerInput(func() {})
 		}
 	case ',':
-		if SmartPlayerPickup(false) != entity.NilId {
-			game.SendPlayerInput(func() {})
-		}
+		SmartPlayerPickup(false)
 	case 'i':
 		// Show inventory.
 		game.Msg("Carried:")

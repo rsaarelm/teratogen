@@ -481,7 +481,9 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 			return entity.NilId
 		}
 	}
-	game.TakeItem(game.PlayerId(), id)
-	game.AutoEquip(game.PlayerId(), id)
+	game.SendPlayerInput(func() {
+		game.TakeItem(game.PlayerId(), id)
+		game.AutoEquip(game.PlayerId(), id)
+	})
 	return id
 }
