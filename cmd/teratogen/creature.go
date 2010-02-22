@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"hyades/entity"
-	"hyades/gfx"
 	"hyades/num"
-	"math"
 )
 
 
@@ -97,15 +95,11 @@ func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 }
 
 func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
-	self.Wounds += (woundLevel + 1) / 2
-
-	sx, sy := CenterDrawPos(GetPos(id))
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		config.TileScale, 2e8, float64(config.TileScale)*20.0,
-		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
+	woundAmount := (woundLevel + 1) / 2
+	self.Wounds += woundAmount
 
 	if self.IsKilledByWounds() {
-		PlaySound("death")
+		Fx().Destroy(id)
 		if id == PlayerId() {
 			Msg("You die.\n")
 			var msg string
@@ -120,8 +114,7 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 		}
 		Destroy(id)
 	} else {
-		PlaySound("hit")
-
+		Fx().Damage(id, woundLevel)
 		Msg("%v %v.\n", GetCapName(id), self.WoundDescription())
 	}
 }

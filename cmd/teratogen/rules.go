@@ -233,7 +233,7 @@ func MovePlayerDir(dir int) {
 			// TODO: Different globe effects.
 			if GetCreature(PlayerId()).Wounds > 0 {
 				Msg("The globe bursts. You feel better.\n")
-				PlaySound("heal")
+				Fx().Heal(PlayerId(), 1)
 				GetCreature(PlayerId()).Wounds -= 1
 				// Deferring this until the iteration is over.
 				defer Destroy(id)
@@ -336,7 +336,7 @@ func UseItem(userId, itemId entity.Id) {
 			crit := GetCreature(userId)
 			if crit.Wounds > 0 {
 				Msg("You feel much better.\n")
-				PlaySound("heal")
+				Fx().Heal(userId, crit.Wounds)
 				crit.Wounds = 0
 				Destroy(itemId)
 			} else {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"exp/iterable"
+	"fmt"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -11,10 +12,14 @@ import (
 
 var gContext *Context
 
+var gEffects Effects
+
 // Context is the toplevel game content container
 type Context struct {
 	manager *entity.Manager
 }
+
+func InitEffects(fx Effects) { gEffects = fx }
 
 func NewContext() (result *Context) {
 	result = new(Context)
@@ -22,6 +27,8 @@ func NewContext() (result *Context) {
 	gContext = result
 	return
 }
+
+func Fx() Effects { return gEffects }
 
 func LoadContext(in io.Reader) (result *Context) {
 	result = NewContext()
@@ -150,3 +157,5 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 	pred := func(o interface{}) bool { return o != excludedId && IsCreature(o.(entity.Id)) }
 	return iterable.Filter(Entities(), pred)
 }
+
+func Msg(format string, a ...interface{}) { Fx().Print(fmt.Sprintf(format, a)) }

@@ -8,6 +8,7 @@ import (
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
+	"hyades/geom"
 	"hyades/gfx"
 	"hyades/gui"
 	"hyades/keyboard"
@@ -15,6 +16,7 @@ import (
 	"hyades/sdl"
 	"hyades/txt"
 	"image"
+	"math"
 	"sync"
 	"time"
 )
@@ -148,8 +150,6 @@ func DrawString(g gfx.Graphics, x, y int, format string, a ...interface{}) {
 }
 
 func GetMsg() *MsgOut { return ui.msg }
-
-func Msg(format string, a ...interface{}) { fmt.Fprintf(ui.msg, format, a) }
 
 func GameRunning() bool { return ui.running }
 
@@ -439,4 +439,33 @@ func ApplyItemMenu() (actionMade bool) {
 		Msg("Okay, then.\n")
 	}
 	return false
+}
+
+type SdlEffects struct{}
+
+func (self *SdlEffects) Print(str string) { fmt.Fprint(ui.msg, str) }
+
+func (self *SdlEffects) Shoot(shooterId entity.Id, target geom.Pt2I) {
+}
+
+func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
+	sx, sy := CenterDrawPos(GetPos(id))
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
+		config.TileScale, 2e8, float64(config.TileScale)*20.0,
+		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
+	PlaySound("hit")
+}
+
+func (self *SdlEffects) Heal(id entity.Id, amount int) {
+	PlaySound("heal")
+}
+
+func (self *SdlEffects) Destroy(id entity.Id) {
+	sx, sy := CenterDrawPos(GetPos(id))
+	const gibNum = 8
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
+		config.TileScale*2, 2e8, float64(config.TileScale)*20.0,
+		gfx.Red, gfx.Red, int(20.0*math.Log(gibNum)/math.Log(2.0)))
+
+	PlaySound("death")
 }

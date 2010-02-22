@@ -24,6 +24,7 @@ func main() {
 
 	InitUI()
 	InitMedia()
+	InitEffects(new(SdlEffects))
 
 	NewContext().InitGame()
 
