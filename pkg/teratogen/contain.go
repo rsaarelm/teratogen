@@ -1,4 +1,4 @@
-package main
+package teratogen
 
 import (
 	"exp/iterable"

@@ -1,4 +1,4 @@
-package main
+package teratogen
 
 import (
 	"hyades/entity"
@@ -21,4 +21,7 @@ type Effects interface {
 
 	// Destroy shows an entity being destroyed
 	Destroy(id entity.Id)
+
+	// Quit signals that the game is over.
+	Quit(message string)
 }

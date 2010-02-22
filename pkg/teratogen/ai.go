@@ -1,4 +1,4 @@
-package main
+package teratogen
 
 import (
 	"hyades/geom"
@@ -32,14 +32,6 @@ func SendPlayerInput(command func()) bool {
 
 var playerInputChan = make(chan func())
 
-func LogicLoop() {
-	for {
-		playerInput := <-playerInputChan
-		MarkMsgLinesSeen()
-
-		GetUISync()
-		playerInput()
-		RunAI()
-		ReleaseUISync()
-	}
-}
+// WaitPlayerInput is run in UI mode, it waits on the player input channel
+// until some input arrives. Then it returns the thunk containing that input.
+func WaitPlayerInput() (func()) { return <-playerInputChan }

@@ -1,14 +1,12 @@
-package main
+package teratogen
 
 import (
-	"exp/draw"
 	"exp/iterable"
 	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/gfx"
 	"hyades/num"
 	"math"
 	"rand"
@@ -170,10 +168,8 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 		damageFactor += GetItem(gun).WoundBonus
 	}
 
-	p1, p2 := draw.Pt(Tile2WorldPos(GetPos(attackerId))), draw.Pt(Tile2WorldPos(hitPos))
-	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+	Fx().Shoot(attackerId, hitPos)
 
-	// TODO: Sparks when hitting walls.
 	DamagePos(hitPos, damageFactor, attackerId)
 
 	DamageEquipment(attackerId, GunEquipSlot)
@@ -257,6 +253,21 @@ func SmartMovePlayer(dir int) {
 	StuffOnGroundMsg()
 }
 
+// Write a message about interesting stuff on the ground.
+func StuffOnGroundMsg() {
+	subjectId := PlayerId()
+	items := iterable.Data(TakeableItems(GetPos(subjectId)))
+	stairs := GetArea().GetTerrain(GetPos(subjectId)) == TerrainStairDown
+	if len(items) > 1 {
+		Msg("There are several items here.\n")
+	} else if len(items) == 1 {
+		Msg("There is %v here.\n", GetName(items[0].(entity.Id)))
+	}
+	if stairs {
+		Msg("There are stairs down here.\n")
+	}
+}
+
 func RunAI() {
 	enemyCount := 0
 	for o := range Creatures().Iter() {
@@ -269,9 +280,7 @@ func RunAI() {
 }
 
 func GameOver(reason string) {
-	MsgMore()
-	fmt.Printf("%v %v\n", GetCapName(PlayerId()), reason)
-	Quit()
+	Fx().Quit(fmt.Sprintf("%v %v\n", GetCapName(PlayerId()), reason))
 }
 
 // Return whether the entity moves around by itself and shouldn't be shown in
@@ -346,27 +355,6 @@ func UseItem(userId, itemId entity.Id) {
 			dbg.Die("Unknown use %v.", item.Use)
 		}
 	}
-}
-
-func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
-	itemIds := iterable.Data(TakeableItems(GetPos(PlayerId())))
-
-	if len(itemIds) == 0 {
-		Msg("Nothing to take here.\n")
-		return entity.NilId
-	}
-
-	id := itemIds[0].(entity.Id)
-	if len(itemIds) > 1 && !alwaysPickupFirst {
-		id = EntityChoiceDialog("Pick up which item?", itemIds)
-		if id == entity.NilId {
-			Msg("Okay, then.\n")
-			return entity.NilId
-		}
-	}
-	TakeItem(PlayerId(), id)
-	AutoEquip(PlayerId(), id)
-	return id
 }
 
 // Autoequip equips item on owner if it can be equpped in a slot that

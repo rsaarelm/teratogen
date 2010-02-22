@@ -18,6 +18,7 @@ import (
 	"image"
 	"math"
 	"sync"
+	game "teratogen"
 	"time"
 )
 
@@ -171,13 +172,6 @@ func GetKey() (result int) {
 	return
 }
 
-// Print --more-- and wait until the user presses space until proceeding.
-func MsgMore() {
-	Msg("--more--")
-	for GetKey() != ' ' {
-	}
-}
-
 func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
@@ -193,7 +187,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	defer g.ClearClip()
 
 	DrawString(g, area.Min.X, area.Min.Y,
-		"%v", txt.Capitalize(GetCreature(PlayerId()).WoundDescription()))
+		"%v", txt.Capitalize(game.GetCreature(game.PlayerId()).WoundDescription()))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
@@ -335,7 +329,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 func EntityChoiceDialog(prompt string, ids []interface{}) entity.Id {
 	names := make([]interface{}, len(ids))
 	for i, o := range ids {
-		names[i] = GetName(o.(entity.Id))
+		names[i] = game.GetName(o.(entity.Id))
 	}
 	idx, ok := MultiChoiceDialogA(prompt, names)
 	if ok {
@@ -345,15 +339,15 @@ func EntityChoiceDialog(prompt string, ids []interface{}) entity.Id {
 }
 
 func EquipMenu() {
-	subjectId := PlayerId()
-	slots := [...]EquipSlot{ArmorEquipSlot, MeleeEquipSlot, GunEquipSlot}
+	subjectId := game.PlayerId()
+	slots := [...]game.EquipSlot{game.ArmorEquipSlot, game.MeleeEquipSlot, game.GunEquipSlot}
 	names := [...]string{"body armor", "melee weapon", "gun"}
 	options := make([]interface{}, len(slots))
 	items := make([]interface{}, len(slots))
 	for i, prop := range slots {
-		if id, ok := GetEquipment(subjectId, prop); ok {
+		if id, ok := game.GetEquipment(subjectId, prop); ok {
 			items[i] = id
-			options[i] = fmt.Sprintf("%s: %v", names[i], GetName(id))
+			options[i] = fmt.Sprintf("%s: %v", names[i], game.GetName(id))
 		} else {
 			options[i] = fmt.Sprintf("%s: <nothing>", names[i])
 		}
@@ -361,19 +355,19 @@ func EquipMenu() {
 
 	choice, ok := MultiChoiceDialogA("Equip/unequip item", options)
 	if !ok {
-		Msg("Okay, then.\n")
+		game.Msg("Okay, then.\n")
 		return
 	}
 	if items[choice] != nil {
-		RemoveEquipment(subjectId, slots[choice])
-		Msg("Unequipped %v.\n", GetName(items[choice].(entity.Id)))
+		game.RemoveEquipment(subjectId, slots[choice])
+		game.Msg("Unequipped %v.\n", game.GetName(items[choice].(entity.Id)))
 	} else {
-		equippables := iterable.Data(iterable.Filter(Contents(subjectId),
-			func(o interface{}) bool { return CanEquipIn(slots[choice], o.(entity.Id)) }))
+		equippables := iterable.Data(iterable.Filter(game.Contents(subjectId),
+			func(o interface{}) bool { return game.CanEquipIn(slots[choice], o.(entity.Id)) }))
 		prompt := fmt.Sprintf("Equip %s", names[choice])
 		if id := EntityChoiceDialog(prompt, equippables); id != entity.NilId {
-			SetEquipment(subjectId, slots[choice], id)
-			Msg("Equipped %v.\n", GetName(id))
+			game.SetEquipment(subjectId, slots[choice], id)
+			game.Msg("Equipped %v.\n", game.GetName(id))
 		}
 	}
 }
@@ -384,59 +378,44 @@ func UiHelpLines() iterable.Iterable {
 	vec.Push("arrow keys: move, attack adjacent")
 	vec.Push("q: quit")
 
-	if HasContents(PlayerId()) {
+	if game.HasContents(game.PlayerId()) {
 		vec.Push("i: inventory")
 		vec.Push("d: drop item")
 	}
 
-	if HasUsableItems(PlayerId()) {
+	if game.HasUsableItems(game.PlayerId()) {
 		vec.Push("a: use item")
 	}
 
-	if IsCarryingGear(PlayerId()) {
+	if game.IsCarryingGear(game.PlayerId()) {
 		vec.Push("e: equip/remove gear")
 	}
 
-	if GunEquipped(PlayerId()) {
+	if game.GunEquipped(game.PlayerId()) {
 		vec.Push("f: fire gun")
 	}
 
-	if len(iterable.Data(TakeableItems(GetPos(PlayerId())))) > 0 {
+	if len(iterable.Data(game.TakeableItems(game.GetPos(game.PlayerId())))) > 0 {
 		vec.Push(",: pick up item")
 	}
-	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
+	if game.GetArea().GetTerrain(game.GetPos(game.PlayerId())) == game.TerrainStairDown {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
 }
 
-// Write a message about interesting stuff on the ground.
-func StuffOnGroundMsg() {
-	subjectId := PlayerId()
-	items := iterable.Data(TakeableItems(GetPos(subjectId)))
-	stairs := GetArea().GetTerrain(GetPos(subjectId)) == TerrainStairDown
-	if len(items) > 1 {
-		Msg("There are several items here.\n")
-	} else if len(items) == 1 {
-		Msg("There is %v here.\n", GetName(items[0].(entity.Id)))
-	}
-	if stairs {
-		Msg("There are stairs down here.\n")
-	}
-}
-
 func ApplyItemMenu() (actionMade bool) {
-	items := iterable.Data(iterable.Filter(Contents(PlayerId()),
-		EntityFilterFn(IsUsable)))
+	items := iterable.Data(iterable.Filter(game.Contents(game.PlayerId()),
+		game.EntityFilterFn(game.IsUsable)))
 	if len(items) == 0 {
-		Msg("You have no usable items.\n")
+		game.Msg("You have no usable items.\n")
 		return false
 	}
 	if id := EntityChoiceDialog("Use which item?", items); id != entity.NilId {
-		UseItem(PlayerId(), id)
+		game.UseItem(game.PlayerId(), id)
 		return true
 	} else {
-		Msg("Okay, then.\n")
+		game.Msg("Okay, then.\n")
 	}
 	return false
 }
@@ -445,11 +424,15 @@ type SdlEffects struct{}
 
 func (self *SdlEffects) Print(str string) { fmt.Fprint(ui.msg, str) }
 
-func (self *SdlEffects) Shoot(shooterId entity.Id, target geom.Pt2I) {
+func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
+	p1, p2 := draw.Pt(Tile2WorldPos(game.GetPos(shooterId))), draw.Pt(Tile2WorldPos(hitPos))
+	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+
+	// TODO: Sparks when hitting walls.
 }
 
 func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
-	sx, sy := CenterDrawPos(GetPos(id))
+	sx, sy := CenterDrawPos(game.GetPos(id))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
@@ -461,11 +444,44 @@ func (self *SdlEffects) Heal(id entity.Id, amount int) {
 }
 
 func (self *SdlEffects) Destroy(id entity.Id) {
-	sx, sy := CenterDrawPos(GetPos(id))
+	sx, sy := CenterDrawPos(game.GetPos(id))
 	const gibNum = 8
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
 		config.TileScale*2, 2e8, float64(config.TileScale)*20.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(gibNum)/math.Log(2.0)))
 
 	PlaySound("death")
+}
+
+func (self *SdlEffects) Quit(message string) {
+	MorePrompt()
+	fmt.Print(message)
+	Quit()
+}
+
+func MorePrompt() {
+	game.Msg("--more--")
+	for GetKey() != ' ' {
+	}
+}
+
+func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
+	itemIds := iterable.Data(game.TakeableItems(game.GetPos(game.PlayerId())))
+
+	if len(itemIds) == 0 {
+		game.Msg("Nothing to take here.\n")
+		return entity.NilId
+	}
+
+	id := itemIds[0].(entity.Id)
+	if len(itemIds) > 1 && !alwaysPickupFirst {
+		id = EntityChoiceDialog("Pick up which item?", itemIds)
+		if id == entity.NilId {
+			game.Msg("Okay, then.\n")
+			return entity.NilId
+		}
+	}
+	game.TakeItem(game.PlayerId(), id)
+	game.AutoEquip(game.PlayerId(), id)
+	return id
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hyades/num"
 	"os"
+	game "teratogen"
 )
 
 func main() {
@@ -24,10 +25,22 @@ func main() {
 
 	InitUI()
 	InitMedia()
-	InitEffects(new(SdlEffects))
 
-	NewContext().InitGame()
+	game.InitEffects(new(SdlEffects))
+	game.NewContext().InitGame()
 
 	go LogicLoop()
 	MainUILoop()
+}
+
+func LogicLoop() {
+	for {
+		playerInput := game.WaitPlayerInput()
+		MarkMsgLinesSeen()
+
+		GetUISync()
+		playerInput()
+		game.RunAI()
+		ReleaseUISync()
+	}
 }

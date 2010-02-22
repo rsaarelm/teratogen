@@ -2,26 +2,12 @@ include $(GOROOT)/src/Make.$(GOARCH)
 
 TARG=teratogen_base
 GOFILES=\
-	ai.go\
 	anim.go\
-	area.go\
 	config.go\
-	contain.go\
-	context.go\
-	creature.go\
-	effects.go\
-	factory.go\
-	globals.go\
-	item.go\
-	los.go\
-	mapgen.go\
 	main.go\
 	mapview.go\
 	media.go\
 	msg.go\
-	name.go\
-	position.go\
-	rules.go\
 	ui.go\
 
 include $(GOROOT)/src/Make.cmd

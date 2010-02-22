@@ -1,16 +1,17 @@
-package main
+package teratogen
 
 import (
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/gfx"
 	"rand"
 )
 
 const mapWidth = 40
 const mapHeight = 20
+
+func MapDims() (width, height int) { return mapWidth, mapHeight }
 
 const numTerrainCells = mapWidth * mapHeight
 
@@ -29,17 +30,6 @@ const (
 	TerrainDirtFront
 	TerrainDirt
 )
-
-var tileset1 = []string{
-	TerrainIndeterminate: "tiles:255",
-	TerrainWall: "tiles:2",
-	TerrainWallFront: "tiles:1",
-	TerrainFloor: "tiles:0",
-	TerrainDoor: "tiles:3",
-	TerrainStairDown: "tiles:4",
-	TerrainDirt: "tiles:6",
-	TerrainDirtFront: "tiles:5",
-}
 
 const AreaComponent = entity.ComponentFamily("area")
 
@@ -123,24 +113,6 @@ func (self *Area) MakeCaveMap() {
 		default:
 			dbg.Die("Bad data %v in generated cave map.", area[pt.X][pt.Y])
 		}
-	}
-}
-
-func drawTerrain(g gfx.Graphics) {
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if GetLos().Get(pt) == LosUnknown {
-			continue
-		}
-		idx := GetArea().GetTerrain(pt)
-		front := GetArea().GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
-		// XXX: Hack to get the front tile visuals
-		if idx == TerrainWall && front != TerrainWall && front != TerrainDoor {
-			idx = TerrainWallFront
-		}
-		if idx == TerrainDirt && front != TerrainDirt && front != TerrainDoor {
-			idx = TerrainDirtFront
-		}
-		Draw(g, tileset1[idx], pt.X, pt.Y)
 	}
 }
 
