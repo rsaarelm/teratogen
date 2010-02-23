@@ -69,8 +69,80 @@ func init() {
 			Scale: -1,
 			Density: 0},
 	}
+	a["belcher"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 2),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"belcher", "chars:3"},
+		// TODO: Ranged attack.
+		CreatureComponent: &CreatureTemplate{
+			Str: Poor,
+			Tough: Mediocre,
+			Melee: Mediocre,
+			Scale: 1,
+			Density: 0},
+	}
+	a["crawlingmass"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 4),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"crawling mass", "chars:7"},
+		// TODO: Slow, explode on death
+		CreatureComponent: &CreatureTemplate{
+			Str: Good,
+			Tough: Good,
+			Melee: Poor,
+			Scale: 2,
+			Density: 0},
+	}
+	a["cyclops"] = entity.Assemblage{
+		Metadata: MetaTemplate(300, 4),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"cyclops", "chars:6"},
+		// TODO: Psychic attack
+		CreatureComponent: &CreatureTemplate{
+			Str: Poor,
+			Tough: Good,
+			Melee: Poor,
+			Scale: 0,
+			Density: 0},
+	}
+	a["wendigo"] = entity.Assemblage{
+		Metadata: MetaTemplate(300, 6),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"wendigo", "chars:8"},
+		// TODO: Fast
+		CreatureComponent: &CreatureTemplate{
+			Str: Superb,
+			Tough: Fair,
+			Melee: Superb,
+			Scale: 2,
+			Density: 0},
+	}
+	a["spider"] = entity.Assemblage{
+		Metadata: MetaTemplate(400, 6),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"spider", "chars:10"},
+		// TODO: Poison attack
+		CreatureComponent: &CreatureTemplate{
+			Str: Fair,
+			Tough: Fair,
+			Melee: Great,
+			Scale: 1,
+			Density: 0},
+	}
+	a["killbot"] = entity.Assemblage{
+		Metadata: MetaTemplate(300, 8),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"killbot", "chars:11"},
+		// TODO: Shock attack, slow, electronic
+		CreatureComponent: &CreatureTemplate{
+			Str: Superb,
+			Tough: Great,
+			Melee: Good,
+			Scale: 0,
+			Density: 2},
+	}
 	a["ogre"] = entity.Assemblage{
-		Metadata: MetaTemplate(600, 5),
+		Metadata: MetaTemplate(200, 8),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"ogre", "chars:15"},
 		CreatureComponent: &CreatureTemplate{
@@ -81,7 +153,7 @@ func init() {
 			Density: 0},
 	}
 	a["boss1"] = entity.Assemblage{
-		Metadata: MetaTemplate(3000, 10),
+		Metadata: MetaTemplate(3000, 12),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"elder spawn", "chars:5"},
 		CreatureComponent: &CreatureTemplate{

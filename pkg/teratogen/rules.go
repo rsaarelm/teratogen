@@ -39,6 +39,14 @@ func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 		fscarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
 	}
 
+	const depthCap = 4
+	if depth > minDepth+depthCap {
+		// Also increase scarcity when we're out of the creature's depth, but
+		// only up to a cap.
+		outOfDepth := num.Imax(depth-minDepth*2, depthCap)
+		fscarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
+	}
+
 	result = 1.0 / fscarcity
 	// Make too scarce weights just plain zero.
 	if result < epsilon {
