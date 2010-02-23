@@ -24,7 +24,6 @@ NOTEST=\
 	hyades/fs\
 	hyades/gui\
 	hyades/keyboard\
-	hyades/num\
 	hyades/sdl\
 	hyades/sfx\
 	teratogen\

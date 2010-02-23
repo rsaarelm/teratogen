@@ -92,3 +92,13 @@ func Clamp(min, max, x float64) float64 {
 	}
 	return x
 }
+
+// InvSqrt approximates the inverse square root of x very quickly.
+func InvSqrt(x float64) float64 {
+	const sqrtMagic64 = 0x5FE6EC85E7DE30DA
+
+	// Initial guess.
+	tmp := math.Float64frombits(sqrtMagic64 - math.Float64bits(x)>>1)
+
+	return tmp * (1.5 - 0.5*x*tmp*tmp)
+}
