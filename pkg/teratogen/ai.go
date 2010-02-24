@@ -3,6 +3,7 @@ package teratogen
 import (
 	"hyades/geom"
 	"hyades/entity"
+	"hyades/num"
 )
 
 func DoAI(critId entity.Id) {
@@ -14,6 +15,22 @@ func DoAI(critId entity.Id) {
 	dirVec := GetPos(playerId).Minus(GetPos(critId))
 	dir8 := geom.Vec2IToDir8(dirVec)
 	moveVec := geom.Dir8ToVec(dir8)
+
+	crit := GetCreature(critId)
+
+	// Bile attack.
+	if crit.Traits&IntrinsicBile != 0 {
+		if CanSeeTo(GetPos(critId), GetPos(playerId)) && num.OneChanceIn(2) {
+			damageFactor := num.Imin(1, crit.Str)
+
+			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
+			Fx().Shoot(critId, hitPos)
+			Msg("%s vomits bile\n", GetCapName(critId))
+			DamagePos(hitPos, damageFactor, critId)
+
+			return
+		}
+	}
 
 	if GetPos(critId).Plus(moveVec).Equals(GetPos(playerId)) {
 		Attack(critId, playerId)

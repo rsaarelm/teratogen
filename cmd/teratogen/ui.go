@@ -459,6 +459,16 @@ func (self *SdlEffects) Quit(message string) {
 	Quit()
 }
 
+func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
+	sx, sy := CenterDrawPos(center)
+	const gibNum = 8
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
+		config.TileScale*4, 2e8, float64(radius*config.TileScale)*20.0,
+		gfx.White, gfx.Yellow, int(20.0*math.Log(gibNum)/math.Log(2.0)))
+
+	// TODO: Explosion sound
+}
+
 func MorePrompt() {
 	game.Msg("--more--")
 	for GetKey() != ' ' {

@@ -156,20 +156,23 @@ func Attack(attackerId, defenderId entity.Id) {
 	}
 }
 
-func Shoot(attackerId entity.Id, target geom.Pt2I) {
-	if !GunEquipped(attackerId) {
-		return
-	}
-
-	// TODO: Aiming precision etc.
-	origin := GetPos(attackerId)
-	var hitPos geom.Pt2I
+func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
 		if !IsOpen(hitPos) {
 			break
 		}
 	}
+	return
+}
+
+func Shoot(attackerId entity.Id, target geom.Pt2I) {
+	if !GunEquipped(attackerId) {
+		return
+	}
+
+	// TODO: Aiming precision etc.
+	hitPos := GetHitPos(GetPos(attackerId), target)
 
 	damageFactor := 0
 	if gun, ok := GetEquipment(attackerId, GunEquipSlot); ok {
@@ -454,3 +457,10 @@ func makeSpawnDistribution(depth int) num.WeightedDist {
 }
 
 func BlocksMovement(id entity.Id) bool { return IsCreature(id) }
+
+func Explode(pos geom.Pt2I, power int, cause entity.Id) {
+	Fx().Explode(pos, power, 2)
+	for pt := range geom.PtIter(pos.X-1, pos.Y-1, 3, 3) {
+		DamagePos(pt, power, cause)
+	}
+}

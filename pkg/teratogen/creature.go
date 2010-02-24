@@ -10,9 +10,34 @@ import (
 const CreatureComponent = entity.ComponentFamily("creature")
 
 
+// Creature intrinsic traits.
+const (
+	NoIntrinsic = 1 << iota
+	IntrinsicSlow
+	IntrinsicFast
+	IntrinsicBile
+	IntrinsicDeathsplode
+	IntrinsicPsychicBlast
+	IntrinsicConfuse
+	IntrinsicElectrocute
+	IntrinsicPoison
+)
+
+// Creature transient status traits.
+const (
+	NoStatus = 1 << iota
+	StatusSlow
+	StatusQuick
+	StatusConfused
+	StatusStunned
+	StatusPoisoned
+)
+
+
 type CreatureTemplate struct {
 	Str, Tough, Melee int
 	Scale, Density    int
+	Traits            int32
 }
 
 func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
@@ -26,7 +51,10 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		Melee: self.Melee,
 		Scale: self.Scale,
 		Density: self.Density,
-		Wounds: 0}
+		Traits: self.Traits,
+		Wounds: 0,
+		Statuses: 0,
+	}
 	manager.Handler(CreatureComponent).Add(guid, result)
 }
 
@@ -35,7 +63,9 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 type Creature struct {
 	Str, Tough, Melee int
 	Scale, Density    int
+	Traits            int32
 	Wounds            int
+	Statuses          int32
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -112,6 +142,13 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 		} else {
 			Msg("%v killed.\n", GetCapName(id))
 		}
+
+		// Deathsplosion.
+		if self.Traits&IntrinsicDeathsplode != 0 {
+			Msg("%v blows up!\n", GetCapName(id))
+			defer Explode(GetPos(id), 3+self.Scale, id)
+		}
+
 		Destroy(id)
 	} else {
 		Fx().Damage(id, woundLevel)
