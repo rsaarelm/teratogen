@@ -4,10 +4,10 @@ package sfx
 
 import (
 	"bytes"
+	"encoding/binary"
 	"hyades/dbg"
 	"io"
 	"os"
-	"unsafe"
 )
 
 type Sound interface {
@@ -22,30 +22,6 @@ type WaveFunc func(t float64) float64
 
 // WAV format reference used:
 // http://technology.niagarac.on.ca/courses/ctec1631/WavFileFormat.html
-
-// TODO: Move byte output stuff to its own library
-// Little-endian byte output
-func writeUint32(out io.Writer, val uint32) {
-	out.Write([]byte{
-		byte(val % 0x100),
-		byte((val >> 8) % 0x100),
-		byte((val >> 16) % 0x100),
-		byte((val >> 24) % 0x100),
-	})
-}
-
-func writeUint16(out io.Writer, val uint16) {
-	out.Write([]byte{
-		byte(val % 0x100),
-		byte((val >> 8) % 0x100),
-	})
-}
-
-func writeInt16(out io.Writer, val int16) {
-	writeUint16(out, *(*uint16)(unsafe.Pointer(&val)))
-}
-
-func writeInt8(out io.Writer, val int8) { out.Write([]byte{*(*byte)(unsafe.Pointer(&val))}) }
 
 type NumChannels uint16
 
@@ -86,9 +62,9 @@ func sampleMonoSound(out io.Writer, wave WaveFunc, durationSec float64, rate Sam
 	for t := float64(0.0); t < durationSec; t += timeStep {
 		switch sampleBytes {
 		case Bit8:
-			writeInt8(out, int8(wave(t)*0x7f))
+			binary.Write(out, binary.LittleEndian, int8(wave(t)*0x7f))
 		case Bit16:
-			writeInt16(out, int16(wave(t)*0x7fff))
+			binary.Write(out, binary.LittleEndian, int16(wave(t)*0x7fff))
 		default:
 			dbg.Die("Bad sample bytes %v", sampleBytes)
 		}
@@ -100,11 +76,11 @@ func sampleStereoSound(out io.Writer, wave1, wave2 WaveFunc, durationSec float64
 	for t := float64(0.0); t < durationSec; t += timeStep {
 		switch sampleBytes {
 		case Bit8:
-			writeInt8(out, int8(wave1(t)*0x7f))
-			writeInt8(out, int8(wave2(t)*0x7f))
+			binary.Write(out, binary.LittleEndian, int8(wave1(t)*0x7f))
+			binary.Write(out, binary.LittleEndian, int8(wave2(t)*0x7f))
 		case Bit16:
-			writeInt16(out, int16(wave1(t)*0x7fff))
-			writeInt16(out, int16(wave2(t)*0x7fff))
+			binary.Write(out, binary.LittleEndian, int16(wave1(t)*0x7fff))
+			binary.Write(out, binary.LittleEndian, int16(wave2(t)*0x7fff))
 		default:
 			dbg.Die("Bad sample bytes %v", sampleBytes)
 		}
@@ -118,26 +94,26 @@ func writeWavRiff(out io.Writer, dataLen int) {
 	io.WriteString(out, "RIFF")
 	// Write number of bytes to come. Length of data + headerLen - the 8
 	// bytes already written.
-	writeUint32(out, uint32(dataLen+extraLength))
+	binary.Write(out, binary.LittleEndian, uint32(dataLen+extraLength))
 	io.WriteString(out, "WAVE")
 }
 
 func writeWavFormat(out io.Writer, channels NumChannels, rate SampleRate, sampleBytes SampleBytes) {
 	io.WriteString(out, "fmt ")
 	// FORMAT chunk length
-	writeUint32(out, 16)
+	binary.Write(out, binary.LittleEndian, uint32(16))
 	// unknown
-	writeUint16(out, 1)
-	writeUint16(out, uint16(channels))
-	writeUint32(out, uint32(rate))
-	writeUint32(out, uint32(rate)*uint32(channels)*uint32(sampleBytes))
-	writeUint16(out, uint16(sampleBytes))
-	writeUint16(out, 8*uint16(sampleBytes))
+	binary.Write(out, binary.LittleEndian, uint16(1))
+	binary.Write(out, binary.LittleEndian, uint16(channels))
+	binary.Write(out, binary.LittleEndian, uint32(rate))
+	binary.Write(out, binary.LittleEndian, uint32(rate)*uint32(channels)*uint32(sampleBytes))
+	binary.Write(out, binary.LittleEndian, uint16(sampleBytes))
+	binary.Write(out, binary.LittleEndian, uint16(8*sampleBytes))
 }
 
 func writeWavData(out io.Writer, dataLen int) {
 	io.WriteString(out, "data")
-	writeUint32(out, uint32(dataLen))
+	binary.Write(out, binary.LittleEndian, uint32(dataLen))
 }
 
 func WriteWav(out io.Writer, channels NumChannels, rate SampleRate, sampleBytes SampleBytes, data []byte) {
@@ -152,7 +128,7 @@ func WriteWav16(out io.Writer, channels NumChannels, rate SampleRate, data []uin
 	writeWavFormat(out, channels, rate, Bit16)
 	writeWavData(out, len(data)*2)
 	for _, i := range data {
-		writeUint16(out, i)
+		binary.Write(out, binary.LittleEndian, i)
 	}
 }
 
