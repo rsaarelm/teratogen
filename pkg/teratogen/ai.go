@@ -21,7 +21,7 @@ func DoAI(critId entity.Id) {
 	// Bile attack.
 	if crit.Traits&IntrinsicBile != 0 {
 		if CanSeeTo(GetPos(critId), GetPos(playerId)) && num.OneChanceIn(2) {
-			damageFactor := num.Imin(1, crit.Str)
+			damageFactor := num.Imin(2, crit.Str)
 
 			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
 			Fx().Shoot(critId, hitPos)
