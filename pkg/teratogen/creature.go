@@ -31,6 +31,7 @@ const (
 	StatusConfused
 	StatusStunned
 	StatusPoisoned
+	StatusDead
 )
 
 
@@ -125,10 +126,18 @@ func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 }
 
 func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
+	if self.Statuses&StatusDead != 0 {
+		return
+	}
+
 	woundAmount := (woundLevel + 1) / 2
 	self.Wounds += woundAmount
 
 	if self.IsKilledByWounds() {
+		// Mark the critter as dead so whatever happens during it's death
+		// doesn't cause a new call to Damage.
+		self.Statuses |= StatusDead
+
 		Fx().Destroy(id)
 		if id == PlayerId() {
 			Msg("You die.\n")
@@ -146,7 +155,7 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 		// Deathsplosion.
 		if self.Traits&IntrinsicDeathsplode != 0 {
 			Msg("%v blows up!\n", GetCapName(id))
-			defer Explode(GetPos(id), 3+self.Scale, id)
+			Explode(GetPos(id), 3+self.Scale, id)
 		}
 
 		Destroy(id)
