@@ -64,13 +64,27 @@ func (self *Context) EnterLevel(depth int) {
 	GetManager().Handler(AreaComponent).Add(globals.AreaId, NewArea())
 	GetManager().Handler(LosComponent).Add(globals.AreaId, NewLos())
 
-	if num.WithProb(0.5) {
-		GetArea().MakeCaveMap()
-	} else {
+	endDepth := 8
+
+	switch {
+	case depth <= 4:
 		GetArea().MakeBSPMap()
+	case 5 <= depth && depth <= 8:
+		GetArea().MakeCaveMap()
+	default:
+		if num.WithProb(0.5) {
+			GetArea().MakeCaveMap()
+		} else {
+			GetArea().MakeBSPMap()
+		}
 	}
 
-	GetArea().SetTerrain(GetSpawnPos(), TerrainStairDown)
+	if depth == endDepth {
+		// End boss level. No stairs down. Has end boss.
+		SpawnRandomPos("boss1")
+	} else {
+		GetArea().SetTerrain(GetSpawnPos(), TerrainStairDown)
+	}
 
 	playerId := PlayerId()
 	PosComp(playerId).MoveAbs(GetSpawnPos())

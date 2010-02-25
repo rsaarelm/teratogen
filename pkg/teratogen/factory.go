@@ -157,7 +157,7 @@ func init() {
 			Traits: NoIntrinsic},
 	}
 	a["boss1"] = entity.Assemblage{
-		Metadata: MetaTemplate(3000, 12),
+		Metadata: MetaTemplate(-1, 0),
 		PosComponent: PosTemplate(),
 		NameComponent: NameTemplate{"elder spawn", "chars:5"},
 		CreatureComponent: &CreatureTemplate{
@@ -166,7 +166,7 @@ func init() {
 			Melee: Superb,
 			Scale: 5,
 			Density: 0,
-			Traits: NoIntrinsic},
+			Traits: IntrinsicEndboss},
 	}
 
 	a["globe"] = entity.Assemblage{

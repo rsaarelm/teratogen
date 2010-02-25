@@ -294,6 +294,8 @@ func GameOver(reason string) {
 	Fx().Quit(fmt.Sprintf("%v %v\n", GetCapName(PlayerId()), reason))
 }
 
+func WinGame(message string) { Fx().Quit(fmt.Sprintf("%s\n", message)) }
+
 // Return whether the entity moves around by itself and shouldn't be shown in
 // map memory.
 func IsMobile(id entity.Id) bool { return IsCreature(id) }

@@ -21,6 +21,7 @@ const (
 	IntrinsicConfuse
 	IntrinsicElectrocute
 	IntrinsicPoison
+	IntrinsicEndboss
 )
 
 // Creature transient status traits.
@@ -150,6 +151,11 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 			GameOver(msg)
 		} else {
 			Msg("%v killed.\n", GetCapName(id))
+		}
+
+		if self.Traits&IntrinsicEndboss != 0 {
+			// Killing the endboss.
+			WinGame("You win the game, hooray.")
 		}
 
 		// Deathsplosion.
