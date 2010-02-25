@@ -51,4 +51,4 @@ var playerInputChan = make(chan func())
 
 // WaitPlayerInput is run in UI mode, it waits on the player input channel
 // until some input arrives. Then it returns the thunk containing that input.
-func WaitPlayerInput() (func()) { return <-playerInputChan }
+func WaitPlayerInput() func() { return <-playerInputChan }

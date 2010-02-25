@@ -312,7 +312,7 @@ func NextLevel() { GetContext().EnterLevel(GetCurrentLevel()) }
 // EntityFilterFn takes a predicate function that works on entity.Ids and
 // converts it into a function that works on interface{} values that can be
 // used with the iterable API.
-func EntityFilterFn(entityPred func(entity.Id) bool) (func(interface{}) bool) {
+func EntityFilterFn(entityPred func(entity.Id) bool) func(interface{}) bool {
 	return func(o interface{}) bool { return entityPred(o.(entity.Id)) }
 }
 

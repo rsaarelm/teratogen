@@ -90,6 +90,6 @@ func blankCopyOfType(typ reflect.Type) reflect.Value {
 
 // BlankCopier returns a function that creates blank copies of the type of the
 // argument value.
-func BlankCopier(obj interface{}) (func() interface{}) {
+func BlankCopier(obj interface{}) func() interface{} {
 	return func() interface{} { return BlankCopy(obj) }
 }
