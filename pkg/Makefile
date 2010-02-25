@@ -26,7 +26,6 @@ NOTEST=\
 	hyades/keyboard\
 	hyades/sdl\
 	hyades/sfx\
-	teratogen\
 
 TEST=$(filter-out $(NOTEST),$(DIRS))
 
