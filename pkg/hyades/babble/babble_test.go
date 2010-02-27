@@ -3,7 +3,6 @@ package babble
 import (
 	"bytes"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -11,9 +10,7 @@ type testpair struct {
 	decoded, encoded []byte
 }
 
-func makePair(dec, enc string) testpair {
-	return testpair{strings.Bytes(dec), strings.Bytes(enc)}
-}
+func makePair(dec, enc string) testpair { return testpair{[]byte(dec), []byte(enc)} }
 
 var pairs = []testpair{
 	makePair("", "xexax"),
@@ -37,7 +34,7 @@ func TestEncode(t *testing.T) {
 
 func TestDecodeWithTrailingJunk(t *testing.T) {
 	for i, p := range pairs {
-		src := strings.Bytes(string(p.encoded) + "-trail-ingju-nkx")
+		src := []byte(string(p.encoded) + "-trail-ingju-nkx")
 		dst := make([]byte, MaxDecodedLen(len(src)))
 		n, err := Decode(dst, src)
 		dst = dst[0:n]
@@ -70,7 +67,7 @@ type corruptPair struct {
 }
 
 func makeCorrupt(enc string, err os.Error) corruptPair {
-	return corruptPair{strings.Bytes(enc), err}
+	return corruptPair{[]byte(enc), err}
 }
 
 var corrupts = []corruptPair{

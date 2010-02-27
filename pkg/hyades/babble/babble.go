@@ -5,14 +5,13 @@ package babble
 import (
 	"os"
 	"strconv"
-	"strings"
 )
 
 // The table of Babble vowels.
-var vow = strings.Bytes("aeiouy")
+var vow = []byte("aeiouy")
 
 // The table of Babble consonants.
-var con = strings.Bytes("bcdfghklmnprstvzx")
+var con = []byte("bcdfghklmnprstvzx")
 
 // updateChecksum calculates a new Babble checksum value based on the next two
 // bytes of input data.
@@ -320,7 +319,7 @@ func Decode(dst, src []byte) (n int, err os.Error) {
 // DecodeString decodes a babble string, returning the resulting byte array.
 func DecodeString(src string) (result []byte, err os.Error) {
 	result = make([]byte, MaxDecodedLen(len(src)))
-	n, err := Decode(result, strings.Bytes(src))
+	n, err := Decode(result, []byte(src))
 	if err != nil {
 		return
 	}

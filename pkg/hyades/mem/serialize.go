@@ -5,7 +5,6 @@ import (
 	"gob"
 	"hyades/dbg"
 	"io"
-	"strings"
 )
 
 type Serializable interface {
@@ -66,7 +65,7 @@ func WriteString(out io.Writer, str string) {
 	if len(str) == 0 {
 		return
 	}
-	_, err := out.Write(strings.Bytes(str))
+	_, err := out.Write([]byte(str))
 	dbg.AssertNoError(err)
 }
 
