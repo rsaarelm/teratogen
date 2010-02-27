@@ -18,8 +18,8 @@ import (
 
 var tileset1 = []string{
 	game.TerrainIndeterminate: "tiles:255",
-	game.TerrainWall: "tiles:2",
-	game.TerrainWallFront: "tiles:1",
+	game.TerrainWall: "tiles:8",
+	game.TerrainWallFront: "tiles:7",
 	game.TerrainFloor: "tiles:0",
 	game.TerrainDoor: "tiles:3",
 	game.TerrainStairDown: "tiles:4",
