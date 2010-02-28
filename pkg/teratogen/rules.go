@@ -220,7 +220,7 @@ func FudgeOpposed(ability, difficulty int) int {
 
 func MovePlayerDir(dir int) {
 	GetLos().ClearSight()
-	TryMove(PlayerId(), geom.Dir8ToVec(dir))
+	TryMove(PlayerId(), geom.Dir6ToVec(dir))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
@@ -252,7 +252,7 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
-	vec := geom.Dir8ToVec(dir)
+	vec := geom.Dir6ToVec(dir)
 	target := GetPos(PlayerId()).Plus(vec)
 
 	for o := range EnemiesAt(PlayerId(), target).Iter() {

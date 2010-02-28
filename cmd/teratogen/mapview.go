@@ -273,13 +273,13 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
 	case 'j', keyboard.K_DOWN, keyboard.K_KP2:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
+		game.SendPlayerInput(func() { game.SmartMovePlayer(3) })
 	case 'b', keyboard.K_END, keyboard.K_KP1:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
+		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
 		//	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
 		//		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
 	case 'y', keyboard.K_HOME, keyboard.K_KP7:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
+		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
 	case 'a':
 		if ApplyItemMenu() {
 			game.SendPlayerInput(func() {})
