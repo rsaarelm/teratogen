@@ -18,7 +18,7 @@ import (
 
 var tileset1 = []string{
 	game.TerrainIndeterminate: "tiles:255",
-	game.TerrainWall: "tiles:8",
+	game.TerrainWall: "tiles:7",
 	game.TerrainWallFront: "tiles:7",
 	game.TerrainFloor: "tiles:0",
 	game.TerrainDoor: "tiles:3",
@@ -366,14 +366,6 @@ func drawTerrain(g gfx.Graphics) {
 			continue
 		}
 		idx := game.GetArea().GetTerrain(pt)
-		front := game.GetArea().GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
-		// XXX: Hack to get the front tile visuals
-		if idx == game.TerrainWall && front != game.TerrainWall && front != game.TerrainDoor {
-			idx = game.TerrainWallFront
-		}
-		if idx == game.TerrainDirt && front != game.TerrainDirt && front != game.TerrainDoor {
-			idx = game.TerrainDirtFront
-		}
 		Draw(g, tileset1[idx], pt.X, pt.Y)
 	}
 }
