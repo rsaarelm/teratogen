@@ -4,6 +4,7 @@ import (
 	"container/vector"
 	"exp/draw"
 	"exp/iterable"
+	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -16,7 +17,7 @@ import (
 	"time"
 )
 
-var tileset1 = []string{
+var tileset = []string{
 	game.TerrainIndeterminate: "tiles:255",
 	game.TerrainWall: "tiles:7",
 	game.TerrainWallFront: "tiles:7",
@@ -359,6 +360,14 @@ func (self *MapView) MouseExited(event draw.Mouse) {
 	}
 }
 
+func isVisualWall(terrain game.TerrainType) bool {
+	switch terrain {
+	case game.TerrainDoor, game.TerrainWall, game.TerrainDirt:
+		return true
+	}
+	return false
+}
+
 func drawTerrain(g gfx.Graphics) {
 	mapWidth, mapHeight := game.MapDims()
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
@@ -366,6 +375,46 @@ func drawTerrain(g gfx.Graphics) {
 			continue
 		}
 		idx := game.GetArea().GetTerrain(pt)
-		Draw(g, tileset1[idx], pt.X, pt.Y)
+		tile := tileset[idx]
+		if isVisualWall(idx) && idx != game.TerrainDoor {
+			// XXX: Very ad hoc wall prettifier.
+			adjacent := [6]bool{}
+			for i := 0; i < 6; i++ {
+				if isVisualWall(game.GetArea().GetTerrain(pt.Plus(geom.Dir6ToVec(i)))) {
+					adjacent[i] = true
+				}
+			}
+			index := 16
+			if idx == game.TerrainDirt {
+				index = 20
+			}
+			offset := 3
+
+			switch {
+			case adjacent[5] && adjacent[1] && !adjacent[0]:
+				// Bottom corner
+				offset = 3
+			case adjacent[4] && adjacent[2] && !adjacent[3]:
+				// Top corner
+				offset = 3
+			case adjacent[1] && adjacent[4] && !adjacent[2]:
+				// Y-axis wall
+				offset = 1
+			case adjacent[1] && adjacent[4] && !adjacent[5]:
+				// Y-axis wall
+				offset = 1
+			case adjacent[2] && adjacent[5] && !adjacent[4]:
+				// X-axis wall
+				offset = 2
+			case adjacent[2] && adjacent[5] && !adjacent[1]:
+				// X-axis wall
+				offset = 2
+			case !adjacent[2] && adjacent[3] && !adjacent[4]:
+				// Diagonal axis wall.
+				offset = 0
+			}
+			tile = fmt.Sprintf("tiles:%d", index+offset)
+		}
+		Draw(g, tile, pt.X, pt.Y)
 	}
 }
