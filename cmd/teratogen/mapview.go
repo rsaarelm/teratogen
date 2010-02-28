@@ -61,11 +61,13 @@ func NewMapView() (result *MapView) {
 }
 
 func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
+	return TileW*pos.X + xDrawOffset, TileH*pos.Y + TileH/2*pos.X + yDrawOffset
 }
 
 func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
+	screenX, screenY = DrawPos(pos)
+	screenX, screenY = screenX+TileW/2, screenY+TileH/2
+	return
 }
 
 func Draw(g gfx.Graphics, spriteId string, x, y int) {
@@ -125,8 +127,8 @@ func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	self.timePoint += elapsed
 
 	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
-	g2.Center(area, game.GetPos(game.PlayerId()).X*TileW+TileW/2,
-		game.GetPos(game.PlayerId()).Y*TileH+TileH/2)
+	x, y := CenterDrawPos(game.GetPos(game.PlayerId()))
+	g2.Center(area, x, y)
 	DrawWorld(g2)
 	self.DrawAnims(g2, elapsed)
 }
@@ -136,10 +138,11 @@ func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
 }
 
 func Tile2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
-	return tilePos.X*TileW + TileW/2, tilePos.Y*TileH + TileH/2
+	return DrawPos(tilePos)
 }
 
 func World2TilePos(worldX, worldY int) geom.Pt2I {
+	// FIXME: Broken in hex map.
 	return geom.Pt2I{worldX / TileW, worldY / TileH}
 }
 
@@ -265,18 +268,18 @@ func (self *MapView) AsyncHandleKey(key int) {
 		game.SendPlayerInput(func() { game.SmartMovePlayer(0) })
 	case 'u', keyboard.K_PAGEUP, keyboard.K_KP9:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(1) })
-	case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
+		//	case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
+		//		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
 	case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(3) })
+		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
 	case 'j', keyboard.K_DOWN, keyboard.K_KP2:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
 	case 'b', keyboard.K_END, keyboard.K_KP1:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
-	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
+		//	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
+		//		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
 	case 'y', keyboard.K_HOME, keyboard.K_KP7:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(7) })
+		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
 	case 'a':
 		if ApplyItemMenu() {
 			game.SendPlayerInput(func() {})
