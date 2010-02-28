@@ -103,7 +103,7 @@ func (self *Area) MakeBSPMap() {
 }
 
 func (self *Area) MakeCaveMap() {
-	area := MakeCaveMap(mapWidth, mapHeight, 0.50)
+	area := MakeHexCaveMap(mapWidth, mapHeight, 0.50)
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		switch area[pt.X][pt.Y] {
 		case CaveFloor:
