@@ -30,17 +30,14 @@ func LineOfSight(isBlocked func(Vec2I) bool, outsideRadius func(Vec2I) bool) <-c
 }
 
 func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius func(Vec2I) bool, octant int, startSlope float64, endSlope float64, u int) {
-	if outsideRadius(Vec2I{u, 0}) {
-		return
-	}
-
 	if endSlope <= startSlope {
 		return
 	}
 
 	traversingObstacle := true
 
-	for v, ev := int(num.Round(float64(u)*startSlope)), int(math.Ceil(float64(u)*endSlope)); v <= ev; v++ {
+	sv, ev := int(num.Round(float64(u)*startSlope)), int(math.Ceil(float64(u)*endSlope))
+	for v := sv; v <= ev; v++ {
 		var pos Vec2I
 		switch octant {
 		case 0:
@@ -61,6 +58,10 @@ func processOctant(c chan<- Vec2I, isBlocked func(Vec2I) bool, outsideRadius fun
 			pos = Vec2I{-v, -u}
 		default:
 			log.Crashf("Bad octant %v", octant)
+		}
+
+		if v == sv && outsideRadius(pos) {
+			return
 		}
 
 		if isBlocked(pos) {
