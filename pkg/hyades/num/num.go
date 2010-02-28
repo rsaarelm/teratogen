@@ -67,7 +67,6 @@ func Isignum(x int) int {
 // Base-2 logarithm.
 func Log2(x float64) float64 { return math.Log(x) / math.Log(2.0) }
 
-
 // Fracf returns the fractional part of f.
 func Fracf(f float64) (frac float64) {
 	_, frac = math.Modf(f)

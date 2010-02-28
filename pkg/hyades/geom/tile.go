@@ -210,3 +210,15 @@ func HexDist(p1, p2 Pt2I) int {
 	}
 	return num.Iabs(dx) + num.Iabs(dy)
 }
+
+func Array2Hex(arrayPt Pt2I) (hexPt Pt2I) {
+	return Pt2I{
+		arrayPt.X - int(math.Floor(float64(arrayPt.Y)/2)),
+		arrayPt.X + int(math.Ceil(float64(arrayPt.Y)/2))}
+}
+
+func Hex2Array(hexPt Pt2I) (arrayPt Pt2I) {
+	return Pt2I{
+		int(math.Floor((float64(hexPt.X) + float64(hexPt.Y)) / 2)),
+		hexPt.Y - hexPt.X}
+}
