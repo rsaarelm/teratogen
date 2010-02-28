@@ -257,9 +257,25 @@ const (
 	CaveWall
 )
 
+func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) {
+	return makeCaveMap(width, height, floorPercent, false)
+}
+
+func MakeHexCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) {
+	return makeCaveMap(width, height, floorPercent, true)
+}
+
 // Cave generator by Ray Dillinger, Message-Id: <48d8aa27$0$33580$742ec2ed@news.sonic.net>
 // Adapted from the original C to Golang.
-func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) {
+func makeCaveMap(width, height int, floorPercent float64, hex bool) (result [][]CaveTile) {
+	maxAdjacent := 4
+	summarize := cavePointSummarize
+
+	if hex {
+		maxAdjacent = 6
+		summarize = cavePointSummarizeHex
+	}
+
 	const iterationsPerCell = 500
 	// const recarveProb = 0.01
 	// May cause unconnected caves if nonzero.
@@ -300,33 +316,7 @@ func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) 
 				ymax++
 			}
 
-			adjFloors := 0
-			if result[x-1][y] == CaveFloor {
-				adjFloors++
-			}
-			if result[x+1][y] == CaveFloor {
-				adjFloors++
-			}
-			if result[x][y-1] == CaveFloor {
-				adjFloors++
-			}
-			if result[x][y+1] == CaveFloor {
-				adjFloors++
-			}
-
-			adjWalls := 0
-			if result[x-1][y] == CaveWall {
-				adjWalls++
-			}
-			if result[x+1][y] == CaveWall {
-				adjWalls++
-			}
-			if result[x][y-1] == CaveWall {
-				adjWalls++
-			}
-			if result[x][y+1] == CaveWall {
-				adjWalls++
-			}
+			adjFloors, adjWalls := summarize(x, y, result)
 
 			if adjFloors > 0 {
 				if uncommittedCount+floorCount > width*height/2 &&
@@ -359,30 +349,96 @@ func MakeCaveMap(width, height int, floorPercent float64) (result [][]CaveTile) 
 
 	for x := 1; x < width-1; x++ {
 		for y := 1; y < height-1; y++ {
-			adjFloors := 0
-			if result[x-1][y] == CaveFloor {
-				adjFloors++
-			}
-			if result[x+1][y] == CaveFloor {
-				adjFloors++
-			}
-			if result[x][y-1] == CaveFloor {
-				adjFloors++
-			}
-			if result[x][y+1] == CaveFloor {
-				adjFloors++
-			}
+			adjFloors, _ := summarize(x, y, result)
 
 			if adjFloors > 0 && result[x][y] == CaveUnknown {
 				result[x][y] = CaveWall
 			}
-			if adjFloors == 4 {
+			if adjFloors == maxAdjacent {
 				result[x][y] = CaveFloor
 			}
 			if adjFloors == 0 {
 				result[x][y] = CaveWall
 			}
 		}
+	}
+
+	return
+}
+
+// cavePointSummarize counts the floors and walls adjacent to x, y when
+// using a rectilinear coordinate system. Can't handle x, y at the edges of
+// the cave array.
+func cavePointSummarize(x, y int, cave [][]CaveTile) (adjFloors, adjWalls int) {
+	if cave[x-1][y] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x+1][y] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x][y-1] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x][y+1] == CaveFloor {
+		adjFloors++
+	}
+
+	if cave[x-1][y] == CaveWall {
+		adjWalls++
+	}
+	if cave[x+1][y] == CaveWall {
+		adjWalls++
+	}
+	if cave[x][y-1] == CaveWall {
+		adjWalls++
+	}
+	if cave[x][y+1] == CaveWall {
+		adjWalls++
+	}
+
+	return
+}
+
+// cavePointSummarizeHex counts the floors and walls adjacent to x, y when
+// using a hex coordinate system. Can't handle x, y at the edges of
+// the cave array.
+func cavePointSummarizeHex(x, y int, cave [][]CaveTile) (adjFloors, adjWalls int) {
+	if cave[x-1][y] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x+1][y] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x][y-1] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x][y+1] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x-1][y+1] == CaveFloor {
+		adjFloors++
+	}
+	if cave[x+1][y-1] == CaveFloor {
+		adjFloors++
+	}
+
+	if cave[x-1][y] == CaveWall {
+		adjWalls++
+	}
+	if cave[x+1][y] == CaveWall {
+		adjWalls++
+	}
+	if cave[x][y-1] == CaveWall {
+		adjWalls++
+	}
+	if cave[x][y+1] == CaveWall {
+		adjWalls++
+	}
+	if cave[x-1][y+1] == CaveWall {
+		adjWalls++
+	}
+	if cave[x+1][y-1] == CaveWall {
+		adjWalls++
 	}
 
 	return
