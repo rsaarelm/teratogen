@@ -126,6 +126,28 @@ func Vec2IToDir4(vec Vec2I) int {
 	return ((Hexadecant(float64(vec.X), float64(vec.Y)) + 2) % 16) / 4
 }
 
+// Vec2IToDir6 converts a vector to a hex direction when the vector is from a
+// rectilinear coordinate system underlying the hex grid. Dual to Dir6ToVec.
+func Vec2IToDir6(vec Vec2I) int {
+	hexadecant := Hexadecant(float64(vec.X), float64(vec.Y))
+	switch hexadecant {
+	case 14, 15, 0:
+		return 0
+	case 1, 2:
+		return 1
+	case 3, 4, 5:
+		return 2
+	case 6, 7, 8:
+		return 3
+	case 9, 10:
+		return 4
+	case 11, 12, 13:
+		return 5
+	}
+	log.Crashf("Bad hexadecant %v", hexadecant)
+	return 0
+}
+
 func Dir8ToVec(dir int) (result Vec2I) {
 	switch dir {
 	case 0:
@@ -153,4 +175,25 @@ func PosAdjacent(p1, p2 Pt2I) bool {
 	diff := p1.Minus(p2)
 	x, y := num.Iabs(diff.X), num.Iabs(diff.Y)
 	return x < 2 && y < 2 && x+y > 0
+}
+
+// Dir6ToVec converts a hex direction to a vector when using a hex map system
+// where the hexes are superimposed on rectilinear coordinates.
+func Dir6ToVec(dir int) (result Vec2I) {
+	switch dir {
+	case 0:
+		return Vec2I{0, -1}
+	case 1:
+		return Vec2I{1, -1}
+	case 2:
+		return Vec2I{1, 0}
+	case 3:
+		return Vec2I{0, 1}
+	case 4:
+		return Vec2I{-1, 1}
+	case 5:
+		return Vec2I{-1, 0}
+	}
+	log.Crashf("Invalid dir %v", dir)
+	return
 }
