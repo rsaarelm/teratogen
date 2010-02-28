@@ -197,3 +197,16 @@ func Dir6ToVec(dir int) (result Vec2I) {
 	log.Crashf("Invalid dir %v", dir)
 	return
 }
+
+// http://www-cs-students.stanford.edu/~amitp/Articles/HexLOS.html
+
+// HexDist returns the hexagonal distance between two points.
+func HexDist(p1, p2 Pt2I) int {
+	dx := p2.X - p1.X
+	dy := p2.Y - p1.Y
+
+	if num.Isignum(dx) == num.Isignum(dy) {
+		return num.Imax(num.Iabs(dx), num.Iabs(dy))
+	}
+	return num.Iabs(dx) + num.Iabs(dy)
+}
