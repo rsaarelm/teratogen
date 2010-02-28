@@ -19,3 +19,26 @@ func TestArrayHex(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestHexDist(t *testing.T) {
+	distMatrix := [][]int{
+		[]int{4, 3, 2, 2, 2},
+		[]int{3, 2, 1, 1, 2},
+		[]int{2, 1, 0, 1, 2},
+		[]int{2, 1, 1, 2, 3},
+		[]int{2, 2, 2, 3, 4},
+	}
+	min := -len(distMatrix) / 2
+	max := len(distMatrix) / 2
+
+	for y := min; y <= max; y++ {
+		for x := min; x <= max; x++ {
+			pt := Vec2I{x, y}
+			expect := distMatrix[y-min][x-min]
+			dist := HexDist(Origin, Origin.Plus(pt))
+			if dist != expect {
+				t.Errorf("Dist to %v should be %v, was %v\n", pt, expect, dist)
+			}
+		}
+	}
+}
