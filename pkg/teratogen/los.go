@@ -72,7 +72,7 @@ func (self *Los) DoLos(center geom.Pt2I) {
 
 	outOfRadius := func(vec geom.Vec2I) bool { return int(vec.Abs()) > losRadius }
 
-	for pt := range geom.LineOfSight(blocks, outOfRadius) {
+	for pt := range geom.FieldOfView(geom.RectSectors, blocks, outOfRadius) {
 		self.MarkSeen(center.Plus(pt))
 	}
 }
