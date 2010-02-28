@@ -309,7 +309,7 @@ func PlayerEnterStairs() {
 	}
 }
 
-func NextLevel() { GetContext().EnterLevel(GetCurrentLevel()) }
+func NextLevel() { GetContext().EnterLevel(GetCurrentLevel() + 1) }
 
 // EntityFilterFn takes a predicate function that works on entity.Ids and
 // converts it into a function that works on interface{} values that can be
