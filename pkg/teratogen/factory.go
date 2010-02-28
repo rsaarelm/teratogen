@@ -219,4 +219,39 @@ func init() {
 		NameComponent: NameTemplate{"medkit", "items:7"},
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse},
 	}
+	a["monoblade"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 5),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"monoblade", "items:8"},
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: MeleeEquipSlot,
+			Durability: 20,
+			WoundBonus: 5,
+			DefenseBonus: 0,
+			Use: NoUse},
+	}
+	a["sledge"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 2),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"sledgehammer", "items:9"},
+		// TODO: Pushback flag
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: MeleeEquipSlot,
+			Durability: 40,
+			WoundBonus: 3,
+			DefenseBonus: 0,
+			Use: NoUse},
+	}
+	a["spingun"] = entity.Assemblage{
+		Metadata: MetaTemplate(200, 4),
+		PosComponent: PosTemplate(),
+		NameComponent: NameTemplate{"spinner gun", "items:10"},
+		// TODO: Rapid fire flag
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: GunEquipSlot,
+			Durability: 30,
+			WoundBonus: 2,
+			DefenseBonus: 0,
+			Use: NoUse},
+	}
 }
