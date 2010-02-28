@@ -65,25 +65,15 @@ func (self *Los) Get(pos geom.Pt2I) LosState {
 	return LosUnknown
 }
 
-func blocksSightTranformed(center geom.Pt2I, xV geom.Vec2I) bool {
-	hexPt := center.Plus(geom.Vec2I{xV.X, (xV.Y - xV.X) / 2})
-	return GetArea().BlocksSight(hexPt)
-}
-
-func untransform(xV geom.Vec2I) geom.Vec2I { return geom.Vec2I{xV.X, (xV.Y - xV.X) / 2} }
-
 func (self *Los) DoLos(center geom.Pt2I) {
 	const losRadius = 12
 
-	//	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }
-	blocks := func(vec geom.Vec2I) bool { return blocksSightTranformed(center, vec) }
+	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }
 
-	outOfRadius := func(vec geom.Vec2I) bool {
-		return geom.HexDist(center, center.Plus(untransform(vec))) > losRadius
-	}
+	outOfRadius := func(vec geom.Vec2I) bool { return geom.HexDist(center, center.Plus(vec)) > losRadius }
 
-	for vec := range geom.LineOfSight(blocks, outOfRadius) {
-		self.MarkSeen(center.Plus(untransform(vec)))
+	for vec := range geom.FieldOfView(geom.HexSectors, blocks, outOfRadius) {
+		self.MarkSeen(center.Plus(vec))
 	}
 }
 
