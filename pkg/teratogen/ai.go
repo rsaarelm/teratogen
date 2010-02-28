@@ -12,11 +12,15 @@ func DoAI(critId entity.Id) {
 		return
 	}
 
+	crit := GetCreature(critId)
+	if crit == nil {
+		// It's probably been killed mid-iteration.
+		return
+	}
+
 	dirVec := GetPos(playerId).Minus(GetPos(critId))
 	dir8 := geom.Vec2IToDir8(dirVec)
 	moveVec := geom.Dir8ToVec(dir8)
-
-	crit := GetCreature(critId)
 
 	// Bile attack.
 	if crit.Traits&IntrinsicBile != 0 {
