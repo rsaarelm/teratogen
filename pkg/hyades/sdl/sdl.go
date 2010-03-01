@@ -264,7 +264,7 @@ func (self *context) eventLoop() {
 				sym := int(c_sym)
 				mod := int(c_mod)
 				chr := int(c_chr) & 0xffff
-				isAscii := sym >= 32 && sym < 256
+				isAscii := (sym >= 32 && sym < 127) || (sym > 128 && sym < 256)
 
 				if isAscii && typ == C.SDL_KEYUP {
 					// No printable key when raising pressed keys. Good thing syms
