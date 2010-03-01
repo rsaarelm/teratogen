@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"once"
 	"os"
+	"time"
 )
 
 // Media server package
@@ -93,3 +94,17 @@ func InitMedia() {
 }
 
 func Media(name string) interface{} { return cache[name] }
+
+func SaveScreenshot() {
+	GetUISync()
+	screen := ui.context.SdlScreen()
+	filename := fmt.Sprintf("/tmp/sshot-%d.png", time.UTC().Seconds())
+	file, err := os.Open(filename, os.O_WRONLY|os.O_CREAT, 0666)
+
+	if err == nil {
+		png.Encode(file, screen)
+	}
+
+	file.Close()
+	ReleaseUISync()
+}
