@@ -343,8 +343,12 @@ func (self *MapView) AsyncHandleKey(key int) {
 			break
 		}
 		game.GetContext().Deserialize(loadFile)
+		loadFile.Close()
 		game.Msg("Game loaded.\n")
 		ReleaseUISync()
+	case keyboard.K_F12:
+		game.Msg("Saving screenshot.\n")
+		SaveScreenshot()
 	}
 }
 
