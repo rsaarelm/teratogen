@@ -265,21 +265,17 @@ func (self *MapView) AsyncHandleKey(key int) {
 		game.SendPlayerInput(func() {})
 	case 'q':
 		Quit()
-	case 'k', keyboard.K_UP, keyboard.K_KP8:
+	case 'i', keyboard.K_KP8, keyboard.K_HOME:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(0) })
-	case 'u', keyboard.K_PAGEUP, keyboard.K_KP9:
+	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9, keyboard.K_UP:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(1) })
-		//	case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
-		//		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
-	case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
+	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3, keyboard.K_RIGHT:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
-	case 'j', keyboard.K_DOWN, keyboard.K_KP2:
+	case 'k', keyboard.K_KP2, keyboard.K_END:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(3) })
-	case 'b', keyboard.K_END, keyboard.K_KP1:
+	case 'j', keyboard.K_DELETE, keyboard.K_KP1, keyboard.K_DOWN:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
-		//	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
-		//		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
-	case 'y', keyboard.K_HOME, keyboard.K_KP7:
+	case 'u', keyboard.K_INSERT, keyboard.K_KP7, keyboard.K_LEFT:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
 	case 'a':
 		if ApplyItemMenu() {
@@ -287,7 +283,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case ',':
 		SmartPlayerPickup(false)
-	case 'i':
+	case 't':
 		// Show inventory.
 		game.Msg("Carried:")
 		first := true
