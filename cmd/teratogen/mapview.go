@@ -143,8 +143,7 @@ func Tile2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
 }
 
 func World2TilePos(worldX, worldY int) geom.Pt2I {
-	// FIXME: Broken in hex map.
-	return geom.Pt2I{worldX / TileW, worldY / TileH}
+	return geom.Pt2I{worldX / TileW, worldY/TileH - (worldX/2)/TileW}
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
