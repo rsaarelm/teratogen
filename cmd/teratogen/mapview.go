@@ -388,41 +388,13 @@ func drawTerrain(g gfx.Graphics) {
 		idx := game.GetArea().GetTerrain(pt)
 		tile := tileset[idx]
 		if isVisualWall(idx) && idx != game.TerrainDoor {
-			// XXX: Very ad hoc wall prettifier.
-			adjacent := [6]bool{}
-			for i := 0; i < 6; i++ {
-				if isVisualWall(game.GetArea().GetTerrain(pt.Plus(geom.Dir6ToVec(i)))) {
-					adjacent[i] = true
-				}
-			}
+			mask := geom.HexNeighborMask(pt, func(p geom.Pt2I) bool { return isVisualWall(game.GetArea().GetTerrain(p)) })
+			offset := geom.HexWallType(mask)
+
+			// XXX: Magic tile numbers.
 			index := 16
 			if idx == game.TerrainDirt {
 				index = 20
-			}
-			offset := 3
-
-			switch {
-			case adjacent[5] && adjacent[1] && !adjacent[0]:
-				// Bottom corner
-				offset = 3
-			case adjacent[4] && adjacent[2] && !adjacent[3]:
-				// Top corner
-				offset = 3
-			case adjacent[1] && adjacent[4] && !adjacent[2]:
-				// Y-axis wall
-				offset = 1
-			case adjacent[1] && adjacent[4] && !adjacent[5]:
-				// Y-axis wall
-				offset = 1
-			case adjacent[2] && adjacent[5] && !adjacent[4]:
-				// X-axis wall
-				offset = 2
-			case adjacent[2] && adjacent[5] && !adjacent[1]:
-				// X-axis wall
-				offset = 2
-			case !adjacent[2] && adjacent[3] && !adjacent[4]:
-				// Diagonal axis wall.
-				offset = 0
 			}
 			tile = fmt.Sprintf("tiles:%d", index+offset)
 		}
