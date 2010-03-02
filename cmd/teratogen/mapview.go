@@ -151,6 +151,8 @@ func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (wo
 }
 
 func (self *MapView) onMouseButton(button int) {
+	const mapEdit = false
+
 	event := self.lastMouse
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
@@ -159,6 +161,11 @@ func (self *MapView) onMouseButton(button int) {
 	vec := tilePos.Minus(game.GetPos(game.PlayerId()))
 	switch button {
 	case leftButton:
+		if mapEdit {
+			game.GetArea().SetTerrain(tilePos, game.TerrainDirt)
+			return
+		}
+
 		// Move player in mouse direction.
 		if !vec.Equals(geom.ZeroVec2I) {
 			dir8 := geom.Vec2IToDir8(vec)
@@ -178,6 +185,11 @@ func (self *MapView) onMouseButton(button int) {
 			SmartPlayerPickup(true)
 		}
 	case rightButton:
+		if mapEdit {
+			game.GetArea().SetTerrain(tilePos, game.TerrainFloor)
+			return
+		}
+
 		if !vec.Equals(geom.ZeroVec2I) {
 			// If shift is pressed, right-click always shoots.
 			if self.shiftKeyState > 0 {
