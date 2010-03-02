@@ -180,6 +180,14 @@ func PosAdjacent(p1, p2 Pt2I) bool {
 
 // Dir6ToVec converts a hex direction to a vector when using a hex map system
 // where the hexes are superimposed on rectilinear coordinates.
+//
+// The dir6 values and the location coordinates:
+//
+//      0              (0, -1)
+//    5   1    (-1, 0)        (1, -1)
+//      .              (0,  0)
+//    4   2    (-1, 1)        (0,  1)
+//      3              (0,  1)
 func Dir6ToVec(dir int) (result Vec2I) {
 	switch dir {
 	case 0:
@@ -222,4 +230,61 @@ func Hex2Array(hexPt Pt2I) (arrayPt Pt2I) {
 	return Pt2I{
 		int(math.Floor((float64(hexPt.X) + float64(hexPt.Y)) / 2)),
 		hexPt.Y - hexPt.X}
+}
+
+// HexNeighborMask converts the neighbors of a hex at p clockwise starting
+// from p + (0, -1) into consecutive ascending bits in the result based on the
+// values of predFn.
+//
+// The bit locations and the location coordinates:
+//
+//      0              (0, -1)
+//    5   1    (-1, 0)        (1, -1)
+//      .              (0,  0)
+//    4   2    (-1, 1)        (0,  1)
+//      3              (0,  1)
+func HexNeighborMask(p Pt2I, predFn func(Pt2I) bool) (result int) {
+	for i := 0; i < 6; i++ {
+		if predFn(p.Plus(Dir6ToVec(i))) {
+			result |= (1 << byte(i))
+		}
+	}
+	return
+}
+
+// HexWallType returns the type of simple wall a hex tile should have based on
+// the bit mask of the occurrence of walls in its neighboring tiles. Result 0
+// means a cross block, result 1 a wall along X-axis (\), result 2 a wall along
+// the diagonal axis (/) and result 3 a wall along the Y-axis (|).
+func HexWallType(mask int) int {
+	const (
+		n = 1 << iota
+		ne
+		se
+		s
+		sw
+		nw
+	)
+
+	switch {
+	case mask&nw != 0 && mask&ne != 0 && mask&n == 0:
+		// Bottom corner
+		return 0
+	case mask&sw != 0 && mask&se != 0 && mask&s == 0:
+		// Top corner
+		return 0
+	case mask&se != 0 && mask&nw != 0 && (mask&ne == 0 || mask&sw == 0):
+		// X-axis wall
+		return 1
+	case mask&ne != 0 && mask&sw != 0 && (mask&se == 0 || mask&nw == 0):
+		// Diag wall
+		return 2
+	case mask&n != 0 && mask&s != 0 && mask&sw == 0 && mask&nw == 0:
+		// Y-axis wall
+		return 3
+	case mask&n != 0 && mask&s != 0 && mask&se == 0 && mask&ne == 0:
+		// Y-axis wall
+		return 3
+	}
+	return 0
 }
