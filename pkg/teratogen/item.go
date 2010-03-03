@@ -56,10 +56,10 @@ func (self *ItemTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTem
 func (self *ItemTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Item{
 		EquipmentSlot: self.EquipmentSlot,
-		Durability: self.Durability,
-		WoundBonus: self.WoundBonus,
-		DefenseBonus: self.DefenseBonus,
-		Use: self.Use}
+		Durability:    self.Durability,
+		WoundBonus:    self.WoundBonus,
+		DefenseBonus:  self.DefenseBonus,
+		Use:           self.Use}
 	manager.Handler(ItemComponent).Add(guid, result)
 }
 
