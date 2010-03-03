@@ -288,3 +288,11 @@ func HexWallType(mask int) int {
 	}
 	return 0
 }
+
+func HexToPlane(hexPt Pt2I) (x, y float64) {
+	return float64(hexPt.X), float64(hexPt.Y) + float64(hexPt.X)/2
+}
+
+func PlaneToHex(x, y float64) Pt2I {
+	return Pt2I{int(num.Round(x)), int(num.Round(y - num.Round(x)/2))}
+}

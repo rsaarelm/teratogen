@@ -81,7 +81,7 @@ func CanSeeTo(start, end geom.Pt2I) bool {
 	dist := 0
 	// TODO Customizable max sight range
 	sightRange := 18
-	for o := range iterable.Drop(geom.Line(start, end), 1).Iter() {
+	for o := range iterable.Drop(geom.HexLine(start, end), 1).Iter() {
 		if dist > sightRange {
 			return false
 		}

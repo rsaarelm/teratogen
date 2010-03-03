@@ -7,11 +7,10 @@ import (
 	"math"
 )
 
-// TraceRay iterates an unlimited number of consecutive Pt2I ray points
-// starting from orig and moving towards vector [dx, dy]. The absolute
-// magnitude of [dx, dy] is ignored, except if it is less than epsilon in
-// which case [dx, dy] becomes [1, 0] (similar to calling math.Atan2(0.0,
-// 0.0)).
+// Ray iterates an unlimited number of consecutive Pt2I ray points starting
+// from orig and moving towards vector [dx, dy]. The absolute magnitude of
+// [dx, dy] is ignored, except if it is less than epsilon in which case [dx,
+// dy] becomes [1, 0] (similar to calling math.Atan2(0.0, 0.0)).
 func Ray(orig Pt2I, dx, dy float64) iterable.Iterable {
 	const epsilon = 1e-10
 	if dx*dx+dy*dy < epsilon {
@@ -32,9 +31,51 @@ func Ray(orig Pt2I, dx, dy float64) iterable.Iterable {
 	})
 }
 
-// TraceLine iterates the consecutive Pt2I points along the line from p1 to p2
+func HexRay(orig Pt2I, dx, dy float64) iterable.Iterable {
+	const epsilon = 1e-10
+	if dx*dx+dy*dy < epsilon {
+		dx, dy = 1, 0
+	}
+
+	// Pick a scale such that the larger of dx, dy can be normalized to
+	// one-half unit length. (Hex rays need more precision than square grid
+	// rays.)
+	scale := num.Fmax(math.Fabs(dx), math.Fabs(dy)) * 2
+	dx /= scale
+	dy /= scale
+	prev := Pt2I{int(math.MinInt32), int(math.MinInt32)}
+
+	return alg.IterFunc(func(c chan<- interface{}) {
+		x, y := HexToPlane(orig)
+		for {
+			pt := PlaneToHex(x, y)
+			if !pt.Equals(prev) {
+				c <- pt
+				prev = pt
+			}
+			x += dx
+			y += dy
+		}
+	})
+}
+
+// Line iterates the consecutive Pt2I points along the line from p1 to p2.
 func Line(p1, p2 Pt2I) iterable.Iterable {
-	ray := Ray(p1, float64(p2.X-p1.X), float64(p2.Y-p1.Y))
-	nPoints := num.Imax(num.Iabs(p2.X-p1.X), num.Iabs(p2.Y-p1.Y)) + 1
+	vec := p2.Minus(p1)
+	ray := Ray(p1, float64(vec.X), float64(vec.Y))
+	nPoints := num.Imax(num.Iabs(vec.X), num.Iabs(vec.Y)) + 1
 	return iterable.Take(ray, nPoints)
+}
+
+func HexLine(p1, p2 Pt2I) iterable.Iterable {
+	vec := p2.Minus(p1)
+	dx, dy := HexToPlane(Pt2I{vec.X, vec.Y})
+	ray := HexRay(p1, dx, dy)
+	running := true
+	whilePred := func(o interface{}) (result bool) {
+		result = running
+		running = !o.(Pt2I).Equals(p2)
+		return
+	}
+	return iterable.TakeWhile(ray, whilePred)
 }

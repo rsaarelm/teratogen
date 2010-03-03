@@ -157,7 +157,7 @@ func Attack(attackerId, defenderId entity.Id) {
 }
 
 func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
-	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
+	for o := range iterable.Drop(geom.HexLine(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
 		if !IsOpen(hitPos) {
 			break
