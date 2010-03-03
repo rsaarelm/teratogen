@@ -48,13 +48,13 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
-		Str: self.Str,
-		Tough: self.Tough,
-		Melee: self.Melee,
-		Scale: self.Scale,
-		Density: self.Density,
-		Traits: self.Traits,
-		Wounds: 0,
+		Str:      self.Str,
+		Tough:    self.Tough,
+		Melee:    self.Melee,
+		Scale:    self.Scale,
+		Density:  self.Density,
+		Traits:   self.Traits,
+		Wounds:   0,
 		Statuses: 0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
