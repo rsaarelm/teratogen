@@ -387,7 +387,7 @@ func AutoEquip(ownerId, itemId entity.Id) {
 
 func EntityDist(id1, id2 entity.Id) float64 {
 	if HasPosComp(id1) && HasPosComp(id2) {
-		return GetPos(id1).Minus(GetPos(id2)).Abs()
+		return float64(geom.HexDist(GetPos(id1), GetPos(id2)))
 	}
 	return math.MaxFloat64
 }
