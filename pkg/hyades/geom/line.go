@@ -43,10 +43,13 @@ func HexRay(orig Pt2I, dx, dy float64) iterable.Iterable {
 	scale := num.Fmax(math.Fabs(dx), math.Fabs(dy)) * 2
 	dx /= scale
 	dy /= scale
-	prev := Pt2I{int(math.MinInt32), int(math.MinInt32)}
+	prev := orig
 
 	return alg.IterFunc(func(c chan<- interface{}) {
 		x, y := HexToPlane(orig)
+		// Send the starting point here as it'll otherwise be skipped in the
+		// Equals prev test.
+		c <- orig
 		for {
 			pt := PlaneToHex(x, y)
 			if !pt.Equals(prev) {
