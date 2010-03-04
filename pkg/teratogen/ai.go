@@ -23,8 +23,9 @@ func DoAI(critId entity.Id) {
 	moveVec := geom.Dir8ToVec(dir8)
 
 	// Bile attack.
+	const bileAttackRange = 5
 	if crit.Traits&IntrinsicBile != 0 {
-		if CanSeeTo(GetPos(critId), GetPos(playerId)) && num.OneChanceIn(2) {
+		if CanSeeTo(GetPos(critId), GetPos(playerId)) && EntityDist(critId, playerId) <= bileAttackRange && num.OneChanceIn(2) {
 			damageFactor := num.Imax(1, crit.Str+crit.Scale)
 
 			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
