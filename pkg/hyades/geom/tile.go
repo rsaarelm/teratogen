@@ -21,12 +21,26 @@ var RectSectors = FovSectors{
 }
 
 var HexSectors = FovSectors{
+	// XXX: Scanning the sectors twice, once in each direction, to get better
+	// sight behavior of adjacent walls.
+
 	func(u, v int) (int, int) { return v, -u },
+	func(u, v int) (int, int) { return u - v, -u },
+
 	func(u, v int) (int, int) { return u, v - u },
+	func(u, v int) (int, int) { return u, -v },
+
 	func(u, v int) (int, int) { return u - v, v },
+	func(u, v int) (int, int) { return v, u - v },
+
 	func(u, v int) (int, int) { return -v, u },
+	func(u, v int) (int, int) { return v - u, u },
+
 	func(u, v int) (int, int) { return -u, u - v },
+	func(u, v int) (int, int) { return -u, v },
+
 	func(u, v int) (int, int) { return v - u, -v },
+	func(u, v int) (int, int) { return -v, v - u },
 }
 
 // FieldOfView runs a recursive shadowcasting field of view algorithm. Always
