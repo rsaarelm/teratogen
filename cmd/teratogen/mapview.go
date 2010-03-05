@@ -276,18 +276,22 @@ func (self *MapView) AsyncHandleKey(key int) {
 		game.SendPlayerInput(func() {})
 	case 'q':
 		Quit()
-	case 'i', keyboard.K_KP8, keyboard.K_HOME:
+	case 'i', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(0) })
-	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9, keyboard.K_UP:
+	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(1) })
-	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3, keyboard.K_RIGHT:
+	case keyboard.K_RIGHT, keyboard.K_KP6:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
-	case 'k', keyboard.K_KP2, keyboard.K_END:
+	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(3) })
-	case 'j', keyboard.K_DELETE, keyboard.K_KP1, keyboard.K_DOWN:
+	case 'k', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
-	case 'u', keyboard.K_INSERT, keyboard.K_KP7, keyboard.K_LEFT:
+	case 'j', keyboard.K_DELETE, keyboard.K_KP1:
 		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
+	case keyboard.K_LEFT, keyboard.K_KP4:
+		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
+	case 'u', keyboard.K_INSERT, keyboard.K_KP7:
+		game.SendPlayerInput(func() { game.SmartMovePlayer(7) })
 	case 'a':
 		if ApplyItemMenu() {
 			game.SendPlayerInput(func() {})
