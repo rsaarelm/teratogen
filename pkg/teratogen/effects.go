@@ -28,6 +28,8 @@ type Effects interface {
 	// Show an explosion around center
 	Explode(center geom.Pt2I, power int, radius int)
 
-	// Wait for player input from UI.
-	GetPlayerInput() func()
+	// Wait for player input from UI. The return value func returns true if the
+	// action ends the player's move and false if the player can perform
+	// another move.
+	GetPlayerInput() func() bool
 }

@@ -169,13 +169,19 @@ func (self *MapView) onMouseButton(button int) {
 		// Move player in mouse direction.
 		if !vec.Equals(geom.ZeroVec2I) {
 			dir8 := geom.Vec2IToDir8(vec)
-			SendPlayerInput(func() { game.SmartMovePlayer(dir8) })
+			SendPlayerInput(func() bool {
+				game.SmartMovePlayer(dir8)
+				return true
+			})
 		} else {
 			// Clicking at player pos.
 
 			// If there are stairs here, clicking on player goes down.
 			if game.GetArea().GetTerrain(game.GetPos(game.PlayerId())) == game.TerrainStairDown {
-				SendPlayerInput(func() { game.PlayerEnterStairs() })
+				SendPlayerInput(func() bool {
+					game.PlayerEnterStairs()
+					return true
+				})
 			}
 
 			// Pick up the first item so that mousing isn't interrupted by a
@@ -193,13 +199,19 @@ func (self *MapView) onMouseButton(button int) {
 		if !vec.Equals(geom.ZeroVec2I) {
 			// If shift is pressed, right-click always shoots.
 			if self.shiftKeyState > 0 {
-				SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
+				SendPlayerInput(func() bool {
+					game.Shoot(game.PlayerId(), tilePos)
+					return true
+				})
 				return
 			}
 
 			// If there's an enemy, right-click shoots at it.
 			for _ = range game.EnemiesAt(game.PlayerId(), tilePos).Iter() {
-				SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
+				SendPlayerInput(func() bool {
+					game.Shoot(game.PlayerId(), tilePos)
+					return true
+				})
 				return
 			}
 		}
@@ -270,28 +282,52 @@ func (self *MapView) AsyncHandleKey(key int) {
 	switch key {
 	case '.':
 		// Idle.
-		SendPlayerInput(func() {})
+		SendPlayerInput(func() bool { return true })
 	case 'q':
 		Quit()
 	case 'k', keyboard.K_UP, keyboard.K_KP8:
-		SendPlayerInput(func() { game.SmartMovePlayer(0) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(0)
+			return true
+		})
 	case 'u', keyboard.K_PAGEUP, keyboard.K_KP9:
-		SendPlayerInput(func() { game.SmartMovePlayer(1) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(1)
+			return true
+		})
 	case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
-		SendPlayerInput(func() { game.SmartMovePlayer(2) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(2)
+			return true
+		})
 	case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
-		SendPlayerInput(func() { game.SmartMovePlayer(3) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(3)
+			return true
+		})
 	case 'j', keyboard.K_DOWN, keyboard.K_KP2:
-		SendPlayerInput(func() { game.SmartMovePlayer(4) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(4)
+			return true
+		})
 	case 'b', keyboard.K_END, keyboard.K_KP1:
-		SendPlayerInput(func() { game.SmartMovePlayer(5) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(5)
+			return true
+		})
 	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
-		SendPlayerInput(func() { game.SmartMovePlayer(6) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(6)
+			return true
+		})
 	case 'y', keyboard.K_HOME, keyboard.K_KP7:
-		SendPlayerInput(func() { game.SmartMovePlayer(7) })
+		SendPlayerInput(func() bool {
+			game.SmartMovePlayer(7)
+			return true
+		})
 	case 'a':
 		if ApplyItemMenu() {
-			SendPlayerInput(func() {})
+			SendPlayerInput(func() bool { return true })
 		}
 	case ',':
 		SmartPlayerPickup(false)
@@ -319,7 +355,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		if game.GunEquipped(game.PlayerId()) {
 			targetId := game.ClosestCreatureSeenBy(game.PlayerId())
 			if targetId != entity.NilId {
-				SendPlayerInput(func() { game.Shoot(game.PlayerId(), game.GetPos(targetId)) })
+				SendPlayerInput(func() bool { return game.Shoot(game.PlayerId(), game.GetPos(targetId)) })
 			} else {
 				game.Msg("You see nothing to shoot.\n")
 			}
@@ -332,7 +368,10 @@ func (self *MapView) AsyncHandleKey(key int) {
 			id := EntityChoiceDialog(
 				"Drop which item?", iterable.Data(game.Contents(game.PlayerId())))
 			if id != entity.NilId {
-				SendPlayerInput(func() { game.DropItem(game.PlayerId(), id) })
+				SendPlayerInput(func() bool {
+					game.DropItem(game.PlayerId(), id)
+					return true
+				})
 			} else {
 				game.Msg("Okay, then.\n")
 			}
@@ -340,7 +379,10 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.Msg("Nothing to drop.\n")
 		}
 	case '>':
-		SendPlayerInput(func() { game.PlayerEnterStairs() })
+		SendPlayerInput(func() bool {
+			game.PlayerEnterStairs()
+			return true
+		})
 	case 'S':
 		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
