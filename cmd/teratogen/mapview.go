@@ -139,7 +139,7 @@ func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
 }
 
 func Tile2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
-	return DrawPos(tilePos)
+	return CenterDrawPos(tilePos)
 }
 
 func World2TilePos(worldX, worldY int) geom.Pt2I {
