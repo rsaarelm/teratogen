@@ -40,9 +40,9 @@ const (
 
 
 type CreatureTemplate struct {
-	Str, Tough, Melee int
-	Scale             int
-	Traits            int32
+	Power, Skill int
+	Scale        int
+	Traits       int32
 }
 
 func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
@@ -51,9 +51,8 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
-		Str:      self.Str,
-		Tough:    self.Tough,
-		Melee:    self.Melee,
+		Power:    self.Power,
+		Skill:    self.Skill,
 		Scale:    self.Scale,
 		Traits:   self.Traits,
 		Wounds:   0,
@@ -65,11 +64,11 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 
 // Creature component. Stats etc.
 type Creature struct {
-	Str, Tough, Melee int
-	Scale             int
-	Traits            int32
-	Wounds            int
-	Statuses          int32
+	Power, Skill int
+	Scale        int
+	Traits       int32
+	Wounds       int
+	Statuses     int32
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -81,7 +80,18 @@ func GetCreature(id entity.Id) *Creature {
 
 func IsCreature(id entity.Id) bool { return GetCreature(id) != nil }
 
-func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Tough+3)*2+1) }
+func (self *Creature) Toughness() (result int) {
+	result = self.Power
+	if self.HasIntrinsic(IntrinsicTough) {
+		result += 2
+	}
+	if self.HasIntrinsic(IntrinsicFragile) {
+		result -= 2
+	}
+	return
+}
+
+func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Toughness()+3)*2+1) }
 
 func (self *Creature) WoundDescription() string {
 	maxWounds := self.MaxWounds()
@@ -119,7 +129,7 @@ func (self *Creature) HasStatus(status int32) bool {
 }
 
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
-	result = self.Str + self.Scale
+	result = self.Power + self.Scale
 	if self.HasIntrinsic(IntrinsicDense) {
 		result += 2
 	}
@@ -131,7 +141,7 @@ func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 }
 
 func (self *Creature) ArmorFactor(id entity.Id) (result int) {
-	result = self.Scale + self.Tough
+	result = self.Scale + self.Toughness()
 	if self.HasIntrinsic(IntrinsicDense) {
 		result += 2
 	}
