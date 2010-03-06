@@ -18,6 +18,8 @@ func WithProb(prob float64) bool { return rand.Float64() < prob }
 
 func OneChanceIn(num int) bool { return rand.Intn(num) == 0 }
 
+func ChancesIn(k, n int) bool { return rand.Intn(n) < k }
+
 // MakeRandState initializes the random number generator using the given value
 // and returns the RandState value which can be used to return the generator
 // to the same state.
