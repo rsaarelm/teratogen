@@ -455,3 +455,9 @@ func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 		DamagePos(pt, power, cause)
 	}
 }
+
+// Heartbeat runs status updates on active entities. Things such as temporary
+// effects wearing off or affecting an entity go here.
+func Heartbeat(id entity.Id) {
+	// TODO
+}

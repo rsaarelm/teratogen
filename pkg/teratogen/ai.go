@@ -45,15 +45,26 @@ func DoAI(critId entity.Id) {
 	}
 }
 
-func RunAI() {
-	enemyCount := 0
+// DoTurn is the entry point for running the game update loop.
+func DoTurn() {
+	if IsHeartbeatTurn(GetCurrentTurn()) {
+		Heartbeats()
+	}
+
+	if PlayerActsThisTurn() {
+		playerInput := Fx().GetPlayerInput()
+		playerInput()
+	}
+
 	for o := range Creatures().Iter() {
 		id := o.(entity.Id)
-		if id != PlayerId() {
-			enemyCount++
+		if id == PlayerId() || !EntityActsThisTurn(id) {
+			continue
 		}
 		DoAI(id)
 	}
+
+	NextTurn()
 }
 
 // ActsOnTurn returns whether an active entity can act on a given turn
@@ -106,12 +117,10 @@ func IsHeartbeatTurn(turnNum int64) bool {
 	return false
 }
 
+func PlayerActsThisTurn() bool { return EntityActsThisTurn(PlayerId()) }
 
-// PlayerCanMove returns whether the player moves this turn.
-func PlayerCanMove() bool { return EntityActsThisTurn(PlayerId()) }
-
-// Heartbeat runs status updates on active entities. Things such as temporary
-// effects wearing off or affecting an entity go here.
-func Heartbeat() {
-	// TODO
+func Heartbeats() {
+	for o := range Creatures().Iter() {
+		Heartbeat(o.(entity.Id))
+	}
 }
