@@ -205,7 +205,7 @@ func MeleeKnockbackAmount(attackerId, defenderId entity.Id) (numCells int) {
 }
 
 func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
-	for o := range iterable.Drop(geom.Line(origin, target), 1).Iter() {
+	for o := range iterable.Drop(geom.HexLine(origin, target), 1).Iter() {
 		hitPos = o.(geom.Pt2I)
 		if !IsOpen(hitPos) {
 			break
@@ -285,7 +285,7 @@ func FudgeOpposed(ability, difficulty int) int {
 
 func MovePlayerDir(dir int) {
 	GetLos().ClearSight()
-	TryMove(PlayerId(), geom.Dir8ToVec(dir))
+	TryMove(PlayerId(), geom.Dir6ToVec(dir))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
@@ -317,8 +317,49 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
-	vec := geom.Dir8ToVec(dir)
-	target := GetPos(PlayerId()).Plus(vec)
+	// Special 8-directional move, with the straight left/right alternating.
+	pos := GetPos(PlayerId())
+	altDir := -1
+
+	switch dir {
+	case 0:
+		dir = 0
+	case 1:
+		dir = 1
+	case 2:
+		if pos.X%2 == 0 {
+			dir = 2
+			altDir = 1
+		} else {
+			dir = 1
+			altDir = 2
+		}
+	case 3:
+		dir = 2
+	case 4:
+		dir = 3
+	case 5:
+		dir = 4
+	case 6:
+		if pos.X%2 == 0 {
+			dir = 4
+			altDir = 5
+		} else {
+			dir = 5
+			altDir = 4
+		}
+	case 7:
+		dir = 5
+	}
+
+	target := pos.Plus(geom.Dir6ToVec(dir))
+
+	if IsUnwalkable(target) && altDir != -1 {
+		// Alternating gait and the terrain in the target pos isn't good. Go for
+		// the alt pos then.
+		dir = altDir
+		target = pos.Plus(geom.Dir6ToVec(dir))
+	}
 
 	for o := range EnemiesAt(PlayerId(), target).Iter() {
 		Attack(PlayerId(), o.(entity.Id))
@@ -441,7 +482,7 @@ func AutoEquip(ownerId, itemId entity.Id) {
 
 func EntityDist(id1, id2 entity.Id) float64 {
 	if HasPosComp(id1) && HasPosComp(id2) {
-		return GetPos(id1).Minus(GetPos(id2)).Abs()
+		return float64(geom.HexDist(GetPos(id1), GetPos(id2)))
 	}
 	return math.MaxFloat64
 }

@@ -70,10 +70,10 @@ func (self *Los) DoLos(center geom.Pt2I) {
 
 	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }
 
-	outOfRadius := func(vec geom.Vec2I) bool { return int(vec.Abs()) > losRadius }
+	outOfRadius := func(vec geom.Vec2I) bool { return geom.HexDist(center, center.Plus(vec)) > losRadius }
 
-	for pt := range geom.FieldOfView(geom.RectSectors, blocks, outOfRadius) {
-		self.MarkSeen(center.Plus(pt))
+	for vec := range geom.FieldOfView(geom.HexSectors, blocks, outOfRadius) {
+		self.MarkSeen(center.Plus(vec))
 	}
 }
 
@@ -81,7 +81,7 @@ func CanSeeTo(start, end geom.Pt2I) bool {
 	dist := 0
 	// TODO Customizable max sight range
 	sightRange := 18
-	for o := range iterable.Drop(geom.Line(start, end), 1).Iter() {
+	for o := range iterable.Drop(geom.HexLine(start, end), 1).Iter() {
 		if dist > sightRange {
 			return false
 		}

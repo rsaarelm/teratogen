@@ -19,8 +19,8 @@ func DoAI(critId entity.Id) bool {
 	}
 
 	dirVec := GetPos(playerId).Minus(GetPos(critId))
-	dir8 := geom.Vec2IToDir8(dirVec)
-	moveVec := geom.Dir8ToVec(dir8)
+	dir6 := geom.Vec2IToDir6(dirVec)
+	moveVec := geom.Dir6ToVec(dir6)
 
 	// Bile attack.
 	const bileAttackRange = 5

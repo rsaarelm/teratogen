@@ -4,6 +4,7 @@ import (
 	"container/vector"
 	"exp/draw"
 	"exp/iterable"
+	"fmt"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -12,13 +13,14 @@ import (
 	"hyades/keyboard"
 	"hyades/num"
 	"os"
+	"rand"
 	game "teratogen"
 	"time"
 )
 
-var tileset1 = []string{
+var tileset = []string{
 	game.TerrainIndeterminate: "tiles:255",
-	game.TerrainWall:          "tiles:8",
+	game.TerrainWall:          "tiles:7",
 	game.TerrainWallFront:     "tiles:7",
 	game.TerrainFloor:         "tiles:0",
 	game.TerrainDoor:          "tiles:3",
@@ -61,11 +63,13 @@ func NewMapView() (result *MapView) {
 }
 
 func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset, TileH*pos.Y + yDrawOffset
+	return TileW*pos.X + xDrawOffset, TileH*pos.Y + TileH/2*pos.X + yDrawOffset
 }
 
 func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset + TileW/2, TileH*pos.Y + yDrawOffset + TileH/2
+	screenX, screenY = DrawPos(pos)
+	screenX, screenY = screenX+TileW/2, screenY+TileH/2
+	return
 }
 
 func Draw(g gfx.Graphics, spriteId string, x, y int) {
@@ -125,8 +129,8 @@ func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
 	self.timePoint += elapsed
 
 	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
-	g2.Center(area, game.GetPos(game.PlayerId()).X*TileW+TileW/2,
-		game.GetPos(game.PlayerId()).Y*TileH+TileH/2)
+	x, y := CenterDrawPos(game.GetPos(game.PlayerId()))
+	g2.Center(area, x, y)
 	DrawWorld(g2)
 	self.DrawAnims(g2, elapsed)
 }
@@ -135,19 +139,20 @@ func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
 	return alg.EmptyIter()
 }
 
-func Tile2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
-	return tilePos.X*TileW + TileW/2, tilePos.Y*TileH + TileH/2
+func Tile2WorldPos(tilePos geom.Pt2I) geom.Pt2I {
+	x, y := CenterDrawPos(tilePos)
+	return geom.Pt2I{x, y}
 }
 
-func World2TilePos(worldX, worldY int) geom.Pt2I {
-	return geom.Pt2I{worldX / TileW, worldY / TileH}
+func World2TilePos(worldPos geom.Pt2I) geom.Pt2I {
+	return geom.Pt2I{worldPos.X / TileW, worldPos.Y/TileH - (worldPos.X/2)/TileW}
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
-	worldX, worldY = Tile2WorldPos(game.GetPos(game.PlayerId()))
-	worldX += screenX - area.Min.X - area.Dx()/2
-	worldY += screenY - area.Min.Y - area.Dy()/2
-	return
+	worldPos := Tile2WorldPos(game.GetPos(game.PlayerId()))
+	worldPos.X += screenX - area.Min.X - area.Dx()/2
+	worldPos.Y += screenY - area.Min.Y - area.Dy()/2
+	return worldPos.X, worldPos.Y
 }
 
 func (self *MapView) onMouseButton(button int) {
@@ -157,7 +162,7 @@ func (self *MapView) onMouseButton(button int) {
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
-	tilePos := World2TilePos(wx, wy)
+	tilePos := World2TilePos(geom.Pt2I{wx, wy})
 	vec := tilePos.Minus(game.GetPos(game.PlayerId()))
 	switch button {
 	case leftButton:
@@ -285,42 +290,42 @@ func (self *MapView) AsyncHandleKey(key int) {
 		SendPlayerInput(func() bool { return true })
 	case 'q':
 		Quit()
-	case 'k', keyboard.K_UP, keyboard.K_KP8:
+	case 'i', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(0)
 			return true
 		})
-	case 'u', keyboard.K_PAGEUP, keyboard.K_KP9:
+	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(1)
 			return true
 		})
-	case 'l', keyboard.K_RIGHT, keyboard.K_KP6:
+	case keyboard.K_RIGHT, keyboard.K_KP6:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(2)
 			return true
 		})
-	case 'n', keyboard.K_PAGEDOWN, keyboard.K_KP3:
+	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(3)
 			return true
 		})
-	case 'j', keyboard.K_DOWN, keyboard.K_KP2:
+	case 'k', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(4)
 			return true
 		})
-	case 'b', keyboard.K_END, keyboard.K_KP1:
+	case 'j', keyboard.K_DELETE, keyboard.K_KP1:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(5)
 			return true
 		})
-	case 'h', keyboard.K_LEFT, keyboard.K_KP4:
+	case keyboard.K_LEFT, keyboard.K_KP4:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(6)
 			return true
 		})
-	case 'y', keyboard.K_HOME, keyboard.K_KP7:
+	case 'u', keyboard.K_INSERT, keyboard.K_KP7:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(7)
 			return true
@@ -331,7 +336,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		}
 	case ',':
 		SmartPlayerPickup(false)
-	case 'i':
+	case 't':
 		// Show inventory.
 		game.Msg("Carried:")
 		first := true
@@ -414,6 +419,14 @@ func (self *MapView) MouseExited(event draw.Mouse) {
 	}
 }
 
+func isVisualWall(terrain game.TerrainType) bool {
+	switch terrain {
+	case game.TerrainDoor, game.TerrainWall, game.TerrainDirt:
+		return true
+	}
+	return false
+}
+
 func drawTerrain(g gfx.Graphics) {
 	mapWidth, mapHeight := game.MapDims()
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
@@ -421,14 +434,28 @@ func drawTerrain(g gfx.Graphics) {
 			continue
 		}
 		idx := game.GetArea().GetTerrain(pt)
-		front := game.GetArea().GetTerrain(pt.Plus(geom.Vec2I{0, 1}))
-		// XXX: Hack to get the front tile visuals
-		if idx == game.TerrainWall && front != game.TerrainWall && front != game.TerrainDoor {
-			idx = game.TerrainWallFront
+		tile := tileset[idx]
+		if isVisualWall(idx) && idx != game.TerrainDoor {
+			mask := geom.HexNeighborMask(pt, func(p geom.Pt2I) bool { return isVisualWall(game.GetArea().GetTerrain(p)) })
+			offset := geom.HexWallType(mask)
+
+			// XXX: Magic tile numbers.
+			index := 16
+			if idx == game.TerrainDirt {
+				index = 20
+			}
+			tile = fmt.Sprintf("tiles:%d", index+offset)
 		}
-		if idx == game.TerrainDirt && front != game.TerrainDirt && front != game.TerrainDoor {
-			idx = game.TerrainDirtFront
-		}
-		Draw(g, tileset1[idx], pt.X, pt.Y)
+		Draw(g, tile, pt.X, pt.Y)
 	}
+}
+
+// InCellJitter return a vector that point's to a normal-distributed position
+// within a game tile centered on tile center.
+func InCellJitter() geom.Vec2I {
+	x, y := rand.NormFloat64()*float64(TileW)/4, rand.NormFloat64()*float64(TileH)/4
+	x, y = num.Clamp(
+		-float64(TileW)/2, float64(TileW)/2, x),
+		num.Clamp(-float64(TileH)/2, float64(TileH)/2, y)
+	return geom.Vec2I{int(x), int(y)}
 }
