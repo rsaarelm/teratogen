@@ -27,4 +27,7 @@ type Effects interface {
 
 	// Show an explosion around center
 	Explode(center geom.Pt2I, power int, radius int)
+
+	// Wait for player input from UI.
+	GetPlayerInput() func()
 }

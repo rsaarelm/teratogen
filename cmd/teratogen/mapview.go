@@ -174,13 +174,13 @@ func (self *MapView) onMouseButton(button int) {
 		// Move player in mouse direction.
 		if !vec.Equals(geom.ZeroVec2I) {
 			dir8 := geom.Vec2IToDir8(vec)
-			game.SendPlayerInput(func() { game.SmartMovePlayer(dir8) })
+			SendPlayerInput(func() { game.SmartMovePlayer(dir8) })
 		} else {
 			// Clicking at player pos.
 
 			// If there are stairs here, clicking on player goes down.
 			if game.GetArea().GetTerrain(game.GetPos(game.PlayerId())) == game.TerrainStairDown {
-				game.SendPlayerInput(func() { game.PlayerEnterStairs() })
+				SendPlayerInput(func() { game.PlayerEnterStairs() })
 			}
 
 			// Pick up the first item so that mousing isn't interrupted by a
@@ -198,13 +198,13 @@ func (self *MapView) onMouseButton(button int) {
 		if !vec.Equals(geom.ZeroVec2I) {
 			// If shift is pressed, right-click always shoots.
 			if self.shiftKeyState > 0 {
-				game.SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
+				SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
 				return
 			}
 
 			// If there's an enemy, right-click shoots at it.
 			for _ = range game.EnemiesAt(game.PlayerId(), tilePos).Iter() {
-				game.SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
+				SendPlayerInput(func() { game.Shoot(game.PlayerId(), tilePos) })
 				return
 			}
 		}
@@ -275,28 +275,28 @@ func (self *MapView) AsyncHandleKey(key int) {
 	switch key {
 	case '.':
 		// Idle.
-		game.SendPlayerInput(func() {})
+		SendPlayerInput(func() {})
 	case 'q':
 		Quit()
 	case 'i', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(0) })
+		SendPlayerInput(func() { game.SmartMovePlayer(0) })
 	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(1) })
+		SendPlayerInput(func() { game.SmartMovePlayer(1) })
 	case keyboard.K_RIGHT, keyboard.K_KP6:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(2) })
+		SendPlayerInput(func() { game.SmartMovePlayer(2) })
 	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(3) })
+		SendPlayerInput(func() { game.SmartMovePlayer(3) })
 	case 'k', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(4) })
+		SendPlayerInput(func() { game.SmartMovePlayer(4) })
 	case 'j', keyboard.K_DELETE, keyboard.K_KP1:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(5) })
+		SendPlayerInput(func() { game.SmartMovePlayer(5) })
 	case keyboard.K_LEFT, keyboard.K_KP4:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(6) })
+		SendPlayerInput(func() { game.SmartMovePlayer(6) })
 	case 'u', keyboard.K_INSERT, keyboard.K_KP7:
-		game.SendPlayerInput(func() { game.SmartMovePlayer(7) })
+		SendPlayerInput(func() { game.SmartMovePlayer(7) })
 	case 'a':
 		if ApplyItemMenu() {
-			game.SendPlayerInput(func() {})
+			SendPlayerInput(func() {})
 		}
 	case ',':
 		SmartPlayerPickup(false)
@@ -324,7 +324,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		if game.GunEquipped(game.PlayerId()) {
 			targetId := game.ClosestCreatureSeenBy(game.PlayerId())
 			if targetId != entity.NilId {
-				game.SendPlayerInput(func() { game.Shoot(game.PlayerId(), game.GetPos(targetId)) })
+				SendPlayerInput(func() { game.Shoot(game.PlayerId(), game.GetPos(targetId)) })
 			} else {
 				game.Msg("You see nothing to shoot.\n")
 			}
@@ -337,7 +337,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			id := EntityChoiceDialog(
 				"Drop which item?", iterable.Data(game.Contents(game.PlayerId())))
 			if id != entity.NilId {
-				game.SendPlayerInput(func() { game.DropItem(game.PlayerId(), id) })
+				SendPlayerInput(func() { game.DropItem(game.PlayerId(), id) })
 			} else {
 				game.Msg("Okay, then.\n")
 			}
@@ -345,7 +345,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.Msg("Nothing to drop.\n")
 		}
 	case '>':
-		game.SendPlayerInput(func() { game.PlayerEnterStairs() })
+		SendPlayerInput(func() { game.PlayerEnterStairs() })
 	case 'S':
 		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
