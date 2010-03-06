@@ -22,6 +22,9 @@ const (
 	IntrinsicElectrocute
 	IntrinsicPoison
 	IntrinsicEndboss
+	IntrinsicTough   // Creature is +2 tougher than it's power
+	IntrinsicFragile // Creature's toughness is -2 from it's power
+	IntrinsicDense   // Creature's mass is for scale +2 of creature's scale.
 )
 
 // Creature transient status traits.
@@ -107,8 +110,19 @@ func (self *Creature) WoundDescription() string {
 
 func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
+func (self *Creature) HasIntrinsic(intrinsic int32) bool {
+	return self.Traits&intrinsic != 0
+}
+
+func (self *Creature) HasStatus(status int32) bool {
+	return self.Statuses&status != 0
+}
+
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 	result = self.Str + self.Scale
+	if self.HasIntrinsic(IntrinsicDense) {
+		result += 2
+	}
 	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
 		// Melee weapon bonus
 		result += GetItem(o).WoundBonus
@@ -118,6 +132,9 @@ func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 
 func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 	result = self.Scale + self.Tough
+	if self.HasIntrinsic(IntrinsicDense) {
+		result += 2
+	}
 	if o, ok := GetEquipment(id, ArmorEquipSlot); ok {
 		// Body armor bonus.
 		result += GetItem(o).DefenseBonus

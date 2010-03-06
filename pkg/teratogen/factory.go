@@ -56,7 +56,7 @@ func init() {
 			Tough:  Poor,
 			Melee:  Fair,
 			Scale:  0,
-			Traits: NoIntrinsic},
+			Traits: IntrinsicFragile},
 	}
 	a["dogthing"] = entity.Assemblage{
 		Metadata:      MetaTemplate(150, 0),
@@ -78,7 +78,7 @@ func init() {
 			Tough:  Mediocre,
 			Melee:  Mediocre,
 			Scale:  1,
-			Traits: IntrinsicBile},
+			Traits: IntrinsicBile | IntrinsicTough},
 	}
 	a["crawlingmass"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
@@ -100,7 +100,7 @@ func init() {
 			Tough:  Good,
 			Melee:  Poor,
 			Scale:  0,
-			Traits: IntrinsicPsychicBlast | IntrinsicConfuse},
+			Traits: IntrinsicPsychicBlast | IntrinsicConfuse | IntrinsicTough},
 	}
 	a["wendigo"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 6),
@@ -111,7 +111,7 @@ func init() {
 			Tough:  Fair,
 			Melee:  Superb,
 			Scale:  2,
-			Traits: IntrinsicFast},
+			Traits: IntrinsicFast | IntrinsicFragile},
 	}
 	a["spider"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 6),
@@ -133,7 +133,7 @@ func init() {
 			Tough:  Great,
 			Melee:  Good,
 			Scale:  0,
-			Traits: IntrinsicElectrocute},
+			Traits: IntrinsicElectrocute | IntrinsicDense},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
