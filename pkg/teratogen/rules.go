@@ -188,7 +188,11 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	DamageEquipment(attackerId, GunEquipSlot)
 
 	if RapidFireGunEquipped(attackerId) {
-		return RapidFireEndsMove()
+		endsMove = RapidFireEndsMove()
+		if !endsMove {
+			Msg("You keep shooting.\n")
+		}
+		return
 	}
 
 	return true
@@ -456,12 +460,14 @@ func GunEquipped(id entity.Id) bool {
 }
 
 func RapidFireGunEquipped(id entity.Id) bool {
-	_, ok := GetEquipment(id, GunEquipSlot)
+	gunId, ok := GetEquipment(id, GunEquipSlot)
 	if !ok {
 		return false
 	}
 
-	// TODO: Check rapidfire trait from gun item.
+	if gun := GetItem(gunId); gun != nil {
+		return gun.HasTrait(ItemRapidFire)
+	}
 
 	return false
 }
