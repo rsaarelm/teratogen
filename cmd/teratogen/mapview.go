@@ -13,6 +13,7 @@ import (
 	"hyades/keyboard"
 	"hyades/num"
 	"os"
+	"rand"
 	game "teratogen"
 	"time"
 )
@@ -138,19 +139,20 @@ func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
 	return alg.EmptyIter()
 }
 
-func Tile2WorldPos(tilePos geom.Pt2I) (worldX, worldY int) {
-	return CenterDrawPos(tilePos)
+func Tile2WorldPos(tilePos geom.Pt2I) geom.Pt2I {
+	x, y := CenterDrawPos(tilePos)
+	return geom.Pt2I{x, y}
 }
 
-func World2TilePos(worldX, worldY int) geom.Pt2I {
-	return geom.Pt2I{worldX / TileW, worldY/TileH - (worldX/2)/TileW}
+func World2TilePos(worldPos geom.Pt2I) geom.Pt2I {
+	return geom.Pt2I{worldPos.X / TileW, worldPos.Y/TileH - (worldPos.X/2)/TileW}
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
-	worldX, worldY = Tile2WorldPos(game.GetPos(game.PlayerId()))
-	worldX += screenX - area.Min.X - area.Dx()/2
-	worldY += screenY - area.Min.Y - area.Dy()/2
-	return
+	worldPos := Tile2WorldPos(game.GetPos(game.PlayerId()))
+	worldPos.X += screenX - area.Min.X - area.Dx()/2
+	worldPos.Y += screenY - area.Min.Y - area.Dy()/2
+	return worldPos.X, worldPos.Y
 }
 
 func (self *MapView) onMouseButton(button int) {
@@ -160,7 +162,7 @@ func (self *MapView) onMouseButton(button int) {
 	area := self.lastArea
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
-	tilePos := World2TilePos(wx, wy)
+	tilePos := World2TilePos(geom.Pt2I{wx, wy})
 	vec := tilePos.Minus(game.GetPos(game.PlayerId()))
 	switch button {
 	case leftButton:
@@ -404,4 +406,14 @@ func drawTerrain(g gfx.Graphics) {
 		}
 		Draw(g, tile, pt.X, pt.Y)
 	}
+}
+
+// InCellJitter return a vector that point's to a normal-distributed position
+// within a game tile centered on tile center.
+func InCellJitter() geom.Vec2I {
+	x, y := rand.NormFloat64()*float64(TileW)/4, rand.NormFloat64()*float64(TileH)/4
+	x, y = num.Clamp(
+		-float64(TileW)/2, float64(TileW)/2, x),
+		num.Clamp(-float64(TileH)/2, float64(TileH)/2, y)
+	return geom.Vec2I{int(x), int(y)}
 }

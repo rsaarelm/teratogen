@@ -425,7 +425,9 @@ type SdlEffects struct{}
 func (self *SdlEffects) Print(str string) { fmt.Fprint(ui.msg, str) }
 
 func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
-	p1, p2 := draw.Pt(Tile2WorldPos(game.GetPos(shooterId))), draw.Pt(Tile2WorldPos(hitPos))
+	worldP1 := Tile2WorldPos(game.GetPos(shooterId))
+	worldP2 := Tile2WorldPos(hitPos).Plus(InCellJitter())
+	p1, p2 := draw.Pt(worldP1.X, worldP1.Y), draw.Pt(worldP2.X, worldP2.Y)
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
 
 	// TODO: Sparks when hitting walls.
