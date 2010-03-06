@@ -250,68 +250,7 @@ func (self *context) eventLoop() {
 			switch typ := eventType(&evt); typ {
 			case C.SDL_KEYDOWN, C.SDL_KEYUP:
 				keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(&evt)))
-
-				// Truncate unicode printable char to 16 bits,
-				// leave the rest of the bits for special
-				// modifiers.
-				//chr := int(keyEvt.keysym.unicode) & 0xffff
-				//sym := int(keyEvt.keysym.sym)
-				// Key modifiers.
-				//mod := int(keyEvt.keysym.mod)
-				// XXX: cgo bug workaround
-				var c_sym, c_mod, c_chr C.int
-				C.unpackKeyeventKludge(keyEvt, &c_sym, &c_mod, &c_chr)
-				sym := int(c_sym)
-				mod := int(c_mod)
-				chr := int(c_chr) & 0xffff
-				isAscii := (sym >= 32 && sym < 127) || (sym > 128 && sym < 256)
-
-				if isAscii && typ == C.SDL_KEYUP {
-					// No printable key when raising pressed keys. Good thing syms
-					// in the ascii range match printables.
-					chr = sym
-				}
-
-				if !isAscii {
-					// Nonprintable key.
-					chr = keyboard.Nonprintable | sym
-				}
-
-				// XXX: Shift flag is *not* set for printable
-				// keys, to maintain the convention that
-				// printable keys must provide printable char
-				// values.
-				if !isAscii && mod&C.KMOD_LSHIFT != 0 {
-					chr |= keyboard.LShift
-				}
-				if !isAscii && mod&C.KMOD_RSHIFT != 0 {
-					chr |= keyboard.RShift
-				}
-				if mod&C.KMOD_LCTRL != 0 {
-					chr |= keyboard.LCtrl
-				}
-				if mod&C.KMOD_RCTRL != 0 {
-					chr |= keyboard.RCtrl
-				}
-				if mod&C.KMOD_LALT != 0 {
-					chr |= keyboard.LAlt
-				}
-				if mod&C.KMOD_RALT != 0 {
-					chr |= keyboard.RAlt
-				}
-
-				// As per the Context interface, key up is
-				// represented by a negative key value.
-				if typ == C.SDL_KEYUP {
-					chr = -chr
-				}
-
-				// Non-blocking send.
-				if ok := self.kbd <- chr; !ok {
-					// Key buffer is full. Drop oldest key.
-					_, _ = <-self.kbd
-					_ = self.kbd <- chr
-				}
+				self.handleKeyEvent(keyEvt, typ == C.SDL_KEYUP)
 			case C.SDL_MOUSEMOTION:
 				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
 				// XXX: SDL mouse button state *should* map
@@ -350,6 +289,72 @@ func (self *context) eventLoop() {
 	}
 	C.SDL_Quit()
 	self.exitChan <- true
+}
+
+func (self *context) handleKeyEvent(keyEvt *C.SDL_KeyboardEvent, isKeyUp bool) {
+	// Truncate unicode printable char to 16 bits, leave the rest of the bits
+	// for special modifiers.
+
+	// XXX: Commented out the code how this should work if cgo didn't have the
+	// struct alignment bug.
+
+	//chr := int(keyEvt.keysym.unicode) & 0xffff
+	//sym := int(keyEvt.keysym.sym)
+	// Key modifiers.
+	//mod := int(keyEvt.keysym.mod)
+
+	// XXX: cgo bug workaround
+	var c_sym, c_mod, c_chr C.int
+	C.unpackKeyeventKludge(keyEvt, &c_sym, &c_mod, &c_chr)
+	sym := int(c_sym)
+	mod := int(c_mod)
+	chr := int(c_chr) & 0xffff
+	isAscii := (sym >= 32 && sym < 127) || (sym > 128 && sym < 256)
+
+	if isAscii && isKeyUp {
+		// We don't get printable key information from SDL when raising pressed
+		// keys. Good thing syms in the ascii range match printables.
+		chr = sym
+	}
+
+	if !isAscii {
+		// Nonprintable key.
+		chr = keyboard.Nonprintable | sym
+	}
+
+	// XXX: Shift flag is *not* set for printable keys, to maintain the
+	// convention that printable keys must provide printable char values.
+	if !isAscii && mod&C.KMOD_LSHIFT != 0 {
+		chr |= keyboard.LShift
+	}
+	if !isAscii && mod&C.KMOD_RSHIFT != 0 {
+		chr |= keyboard.RShift
+	}
+	if mod&C.KMOD_LCTRL != 0 {
+		chr |= keyboard.LCtrl
+	}
+	if mod&C.KMOD_RCTRL != 0 {
+		chr |= keyboard.RCtrl
+	}
+	if mod&C.KMOD_LALT != 0 {
+		chr |= keyboard.LAlt
+	}
+	if mod&C.KMOD_RALT != 0 {
+		chr |= keyboard.RAlt
+	}
+
+	// As per the Context interface convention, key up is represented by a
+	// negative key value.
+	if isKeyUp {
+		chr = -chr
+	}
+
+	// Non-blocking send.
+	if ok := self.kbd <- chr; !ok {
+		// Key buffer is full. Drop oldest key.
+		_, _ = <-self.kbd
+		_ = self.kbd <- chr
+	}
 }
 
 //////////////////////////////////////////////////////////////////
