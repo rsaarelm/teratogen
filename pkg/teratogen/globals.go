@@ -15,6 +15,7 @@ type Globals struct {
 	PlayerId     entity.Id
 	AreaId       entity.Id
 	CurrentLevel int32
+	CurrentTurn  int64
 }
 
 func (self *Globals) Serialize(out io.Writer) { mem.GobSerialize(out, self) }
@@ -37,3 +38,7 @@ func (self *Globals) EntityComponents() iterable.Iterable {
 }
 
 func GetCurrentLevel() int { return int(GetGlobals().CurrentLevel) }
+
+func GetCurrentTurn() int64 { return GetGlobals().CurrentTurn }
+
+func NextTurn() { GetGlobals().CurrentTurn++ }

@@ -320,17 +320,6 @@ func StuffOnGroundMsg() {
 	}
 }
 
-func RunAI() {
-	enemyCount := 0
-	for o := range Creatures().Iter() {
-		id := o.(entity.Id)
-		if id != PlayerId() {
-			enemyCount++
-		}
-		DoAI(id)
-	}
-}
-
 func GameOver(reason string) {
 	Fx().Quit(fmt.Sprintf("%v %v\n", GetCapName(PlayerId()), reason))
 }
