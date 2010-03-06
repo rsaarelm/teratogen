@@ -361,14 +361,14 @@ func EquipMenu() {
 	if items[choice] != nil {
 		game.RemoveEquipment(subjectId, slots[choice])
 		game.Msg("Unequipped %v.\n", game.GetName(items[choice].(entity.Id)))
-	} else {
-		equippables := iterable.Data(iterable.Filter(game.Contents(subjectId),
-			func(o interface{}) bool { return game.CanEquipIn(slots[choice], o.(entity.Id)) }))
-		prompt := fmt.Sprintf("Equip %s", names[choice])
-		if id := EntityChoiceDialog(prompt, equippables); id != entity.NilId {
-			game.SetEquipment(subjectId, slots[choice], id)
-			game.Msg("Equipped %v.\n", game.GetName(id))
-		}
+	}
+
+	equippables := iterable.Data(iterable.Filter(game.Contents(subjectId),
+		func(o interface{}) bool { return game.CanEquipIn(slots[choice], o.(entity.Id)) }))
+	prompt := fmt.Sprintf("Equip %s", names[choice])
+	if id := EntityChoiceDialog(prompt, equippables); id != entity.NilId {
+		game.SetEquipment(subjectId, slots[choice], id)
+		game.Msg("Equipped %v.\n", game.GetName(id))
 	}
 }
 
