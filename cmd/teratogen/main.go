@@ -38,12 +38,8 @@ var fx *SdlEffects
 
 func LogicLoop() {
 	for {
-		playerInput := fx.GetPlayerInput()
-		MarkMsgLinesSeen()
-
 		GetUISync()
-		playerInput()
-		game.RunAI()
+		game.DoTurn()
 		ReleaseUISync()
 	}
 }
