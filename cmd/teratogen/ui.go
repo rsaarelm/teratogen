@@ -469,6 +469,23 @@ func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
 	// TODO: Explosion sound
 }
 
+func (self *SdlEffects) GetPlayerInput() (result func()) {
+	ReleaseUISync()
+	result = <-playerInputChan
+	MarkMsgLinesSeen()
+	GetUISync()
+	return
+}
+
+func SendPlayerInput(command func()) bool {
+	// Don't block, if the channel isn't expecting input, just move on and
+	// return false.
+	ok := playerInputChan <- command
+	return ok
+}
+
+var playerInputChan = make(chan func())
+
 func MorePrompt() {
 	game.Msg("--more--")
 	for GetKey() != ' ' {
@@ -491,7 +508,7 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 			return entity.NilId
 		}
 	}
-	game.SendPlayerInput(func() {
+	SendPlayerInput(func() {
 		game.TakeItem(game.PlayerId(), id)
 		game.AutoEquip(game.PlayerId(), id)
 	})

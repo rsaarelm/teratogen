@@ -26,16 +26,19 @@ func main() {
 	InitUI()
 	InitMedia()
 
-	game.InitEffects(new(SdlEffects))
+	fx = new(SdlEffects)
+	game.InitEffects(fx)
 	game.NewContext().InitGame()
 
 	go LogicLoop()
 	MainUILoop()
 }
 
+var fx *SdlEffects
+
 func LogicLoop() {
 	for {
-		playerInput := game.WaitPlayerInput()
+		playerInput := fx.GetPlayerInput()
 		MarkMsgLinesSeen()
 
 		GetUISync()
