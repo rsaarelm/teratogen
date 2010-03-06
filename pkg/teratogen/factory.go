@@ -156,7 +156,7 @@ func init() {
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"plant pot", "items:3"},
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse},
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse, NoItemTrait},
 	}
 	a["pistol"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
@@ -167,7 +167,8 @@ func init() {
 			Durability:    12,
 			WoundBonus:    1,
 			DefenseBonus:  0,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        NoItemTrait},
 	}
 	a["machete"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
@@ -178,7 +179,8 @@ func init() {
 			Durability:    20,
 			WoundBonus:    2,
 			DefenseBonus:  0,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        NoItemTrait},
 	}
 	a["kevlar"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
@@ -189,13 +191,14 @@ func init() {
 			Durability:    20,
 			WoundBonus:    0,
 			DefenseBonus:  1,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        NoItemTrait},
 	}
 	a["medkit"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"medkit", "items:7"},
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse},
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse, NoItemTrait},
 	}
 	a["monoblade"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 5),
@@ -206,30 +209,31 @@ func init() {
 			Durability:    20,
 			WoundBonus:    5,
 			DefenseBonus:  0,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        NoItemTrait},
 	}
 	a["sledge"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 2),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"sledgehammer", "items:9"},
-		// TODO: Pushback flag
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: MeleeEquipSlot,
 			Durability:    40,
 			WoundBonus:    3,
 			DefenseBonus:  0,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        ItemKnockBack},
 	}
 	a["spingun"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"spinner gun", "items:10"},
-		// TODO: Rapid fire flag
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: GunEquipSlot,
 			Durability:    30,
 			WoundBonus:    2,
 			DefenseBonus:  0,
-			Use:           NoUse},
+			Use:           NoUse,
+			Traits:        ItemRapidFire},
 	}
 }

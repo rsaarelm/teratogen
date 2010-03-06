@@ -31,6 +31,12 @@ const (
 	MedkitUse
 )
 
+const (
+	NoItemTrait = 1 << iota
+	ItemRapidFire
+	ItemKnockBack
+)
+
 
 func (self EquipSlot) Relation() *entity.Relation {
 	switch self {
@@ -59,7 +65,8 @@ func (self *ItemTemplate) MakeComponent(manager *entity.Manager, guid entity.Id)
 		Durability:    self.Durability,
 		WoundBonus:    self.WoundBonus,
 		DefenseBonus:  self.DefenseBonus,
-		Use:           self.Use}
+		Use:           self.Use,
+		Traits:        self.Traits}
 	manager.Handler(ItemComponent).Add(guid, result)
 }
 
@@ -70,6 +77,7 @@ type Item struct {
 	WoundBonus    int
 	DefenseBonus  int
 	Use           ItemUse
+	Traits        int32
 }
 
 func GetItem(id entity.Id) *Item {
@@ -80,6 +88,8 @@ func GetItem(id entity.Id) *Item {
 }
 
 func IsItem(id entity.Id) bool { return GetItem(id) != nil }
+
+func (self *Item) HasTrait(trait int32) bool { return self.Traits&trait != 0 }
 
 func GetEquipment(creature entity.Id, slot EquipSlot) (guid entity.Id, found bool) {
 	if rel := slot.Relation(); rel != nil {
