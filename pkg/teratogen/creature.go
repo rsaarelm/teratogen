@@ -129,10 +129,7 @@ func (self *Creature) HasStatus(status int32) bool {
 }
 
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
-	result = self.Power + self.Scale
-	if self.HasIntrinsic(IntrinsicDense) {
-		result += 2
-	}
+	result = self.Power + self.MassFactor()
 	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
 		// Melee weapon bonus
 		result += GetItem(o).WoundBonus
@@ -140,11 +137,16 @@ func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 	return
 }
 
-func (self *Creature) ArmorFactor(id entity.Id) (result int) {
-	result = self.Scale + self.Toughness()
+func (self *Creature) MassFactor() (mass int) {
+	mass = self.Scale
 	if self.HasIntrinsic(IntrinsicDense) {
-		result += 2
+		mass += 2
 	}
+	return
+}
+
+func (self *Creature) ArmorFactor(id entity.Id) (result int) {
+	result = self.MassFactor() + self.Toughness()
 	if o, ok := GetEquipment(id, ArmorEquipSlot); ok {
 		// Body armor bonus.
 		result += GetItem(o).DefenseBonus

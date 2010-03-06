@@ -34,8 +34,11 @@ const (
 const (
 	NoItemTrait = 1 << iota
 	ItemRapidFire
-	ItemKnockBack
+	ItemKnockback
 )
+
+// How big is the knockback effect.
+const ItemKnockbackStrength = 3
 
 
 func (self EquipSlot) Relation() *entity.Relation {
