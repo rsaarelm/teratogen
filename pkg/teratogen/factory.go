@@ -222,7 +222,7 @@ func init() {
 			WoundBonus:    3,
 			DefenseBonus:  0,
 			Use:           NoUse,
-			Traits:        ItemKnockBack},
+			Traits:        ItemKnockback},
 	}
 	a["spingun"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),

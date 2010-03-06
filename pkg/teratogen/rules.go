@@ -143,6 +143,11 @@ func Attack(attackerId, defenderId entity.Id) {
 		woundLevel := attCrit.MeleeWoundLevelAgainst(
 			attackerId, defenderId, hitDegree)
 
+		knockback := MeleeKnockbackAmount(attackerId, defenderId)
+		if knockback > 0 {
+			Knockback(defenderId, attackerId, GetPos(defenderId).Minus(GetPos(attackerId)), knockback)
+		}
+
 		DamageEquipment(attackerId, MeleeEquipSlot)
 		DamageEquipment(defenderId, ArmorEquipSlot)
 
@@ -154,6 +159,49 @@ func Attack(attackerId, defenderId entity.Id) {
 	} else {
 		Msg("%v missed.\n", GetCapName(attackerId))
 	}
+}
+
+func Knockback(id, causerId entity.Id, dir geom.Vec2I, amount int) {
+	for i := 0; i < amount; i++ {
+		if !TryMove(id, dir) {
+			// Bumped into something, hurt for the amount of movement still left.
+
+			// XXX: If bumped into another creature, should hurt that creature
+			// too.
+			hurtAmount := amount - i
+			if crit := GetCreature(id); crit != nil {
+				crit.Damage(id, hurtAmount, causerId)
+			}
+			return
+		}
+	}
+}
+
+// MeleeKnockbackAmount returns the number of cells attacker's melee attack
+// knocks defender back. Returns 0 if there is no knockback.
+func MeleeKnockbackAmount(attackerId, defenderId entity.Id) (numCells int) {
+	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
+
+	massDifficulty := defCrit.MassFactor() - attCrit.MassFactor() + 3
+
+	if wepId, ok := GetEquipment(attackerId, MeleeEquipSlot); ok {
+		item := GetItem(wepId)
+		if item != nil && item.HasTrait(ItemKnockback) {
+			massDifficulty -= ItemKnockbackStrength
+		}
+	}
+
+	// Attacker needs to keep doing harder and harder strength checks to get
+	// more pushback.
+	for {
+		if FudgeDice()+attCrit.Power >= massDifficulty {
+			numCells++
+			massDifficulty++
+		} else {
+			break
+		}
+	}
+	return
 }
 
 func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
