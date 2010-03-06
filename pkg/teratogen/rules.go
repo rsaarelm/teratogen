@@ -166,9 +166,11 @@ func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 	return
 }
 
-func Shoot(attackerId entity.Id, target geom.Pt2I) {
+// Shoot makes entity attackerId shoot at target position. Returns whether the
+// shooting ends the entity's move.
+func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	if !GunEquipped(attackerId) {
-		return
+		return true
 	}
 
 	// TODO: Aiming precision etc.
@@ -184,7 +186,18 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) {
 	DamagePos(hitPos, damageFactor, attackerId)
 
 	DamageEquipment(attackerId, GunEquipSlot)
+
+	if RapidFireGunEquipped(attackerId) {
+		return RapidFireEndsMove()
+	}
+
+	return true
 }
+
+// RapidFireEndsTurn returns true when a creature shooting with a rapid-fire
+// weapon should have it's move ended and false if the creature should be
+// allowed to perform another action on its move.
+func RapidFireEndsMove() bool { return num.ChancesIn(1, 3) }
 
 func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
 	if itemId, ok := GetEquipment(ownerId, slot); ok {
@@ -440,6 +453,17 @@ func ClosestCreatureSeenBy(id entity.Id) entity.Id {
 func GunEquipped(id entity.Id) bool {
 	_, ok := GetEquipment(id, GunEquipSlot)
 	return ok
+}
+
+func RapidFireGunEquipped(id entity.Id) bool {
+	_, ok := GetEquipment(id, GunEquipSlot)
+	if !ok {
+		return false
+	}
+
+	// TODO: Check rapidfire trait from gun item.
+
+	return false
 }
 
 const spawnsPerLevel = 32

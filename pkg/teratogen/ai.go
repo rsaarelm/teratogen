@@ -6,16 +6,16 @@ import (
 	"hyades/num"
 )
 
-func DoAI(critId entity.Id) {
+func DoAI(critId entity.Id) bool {
 	playerId := PlayerId()
 	if critId == playerId {
-		return
+		return true
 	}
 
 	crit := GetCreature(critId)
 	if crit == nil {
 		// It's probably been killed mid-iteration.
-		return
+		return true
 	}
 
 	dirVec := GetPos(playerId).Minus(GetPos(critId))
@@ -33,7 +33,7 @@ func DoAI(critId entity.Id) {
 			Msg("%s vomits bile\n", GetCapName(critId))
 			DamagePos(hitPos, damageFactor, critId)
 
-			return
+			return true
 		}
 	}
 
@@ -43,6 +43,7 @@ func DoAI(critId entity.Id) {
 		// TODO: Going around obstacles.
 		TryMove(critId, moveVec)
 	}
+	return true
 }
 
 // DoTurn is the entry point for running the game update loop.
@@ -52,8 +53,13 @@ func DoTurn() {
 	}
 
 	if PlayerActsThisTurn() {
-		playerInput := Fx().GetPlayerInput()
-		playerInput()
+		for {
+			playerInput := Fx().GetPlayerInput()
+			endPlayerMove := playerInput()
+			if endPlayerMove {
+				break
+			}
+		}
 	}
 
 	for o := range Creatures().Iter() {
@@ -61,7 +67,12 @@ func DoTurn() {
 		if id == PlayerId() || !EntityActsThisTurn(id) {
 			continue
 		}
-		DoAI(id)
+		for {
+			endCreatureMove := DoAI(id)
+			if endCreatureMove {
+				break
+			}
+		}
 	}
 
 	NextTurn()
