@@ -38,7 +38,7 @@ const (
 
 type CreatureTemplate struct {
 	Str, Tough, Melee int
-	Scale, Density    int
+	Scale             int
 	Traits            int32
 }
 
@@ -52,7 +52,6 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		Tough:    self.Tough,
 		Melee:    self.Melee,
 		Scale:    self.Scale,
-		Density:  self.Density,
 		Traits:   self.Traits,
 		Wounds:   0,
 		Statuses: 0,
@@ -64,7 +63,7 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 // Creature component. Stats etc.
 type Creature struct {
 	Str, Tough, Melee int
-	Scale, Density    int
+	Scale             int
 	Traits            int32
 	Wounds            int
 	Statuses          int32
@@ -109,7 +108,7 @@ func (self *Creature) WoundDescription() string {
 func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
-	result = self.Str + self.Scale + self.Density
+	result = self.Str + self.Scale
 	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
 		// Melee weapon bonus
 		result += GetItem(o).WoundBonus
@@ -118,7 +117,7 @@ func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 }
 
 func (self *Creature) ArmorFactor(id entity.Id) (result int) {
-	result = self.Scale + self.Density + self.Tough
+	result = self.Scale + self.Tough
 	if o, ok := GetEquipment(id, ArmorEquipSlot); ok {
 		// Body armor bonus.
 		result += GetItem(o).DefenseBonus
