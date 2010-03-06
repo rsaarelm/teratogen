@@ -134,7 +134,7 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 func Attack(attackerId, defenderId entity.Id) {
 	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
 
-	doesHit, hitDegree := IsMeleeHit(attCrit.Melee, defCrit.Melee,
+	doesHit, hitDegree := IsMeleeHit(attCrit.Skill, defCrit.Skill,
 		defCrit.Scale-attCrit.Scale)
 
 	if doesHit {

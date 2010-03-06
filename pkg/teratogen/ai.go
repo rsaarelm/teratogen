@@ -26,7 +26,7 @@ func DoAI(critId entity.Id) {
 	const bileAttackRange = 5
 	if crit.Traits&IntrinsicBile != 0 {
 		if CanSeeTo(GetPos(critId), GetPos(playerId)) && EntityDist(critId, playerId) <= bileAttackRange && num.OneChanceIn(2) {
-			damageFactor := num.Imax(1, crit.Str+crit.Scale)
+			damageFactor := num.Imax(1, crit.Power+crit.Scale)
 
 			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
 			Fx().Shoot(critId, hitPos)

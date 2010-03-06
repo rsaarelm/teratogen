@@ -41,9 +41,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"protagonist", "chars:0"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Great,
-			Tough:  Good,
-			Melee:  Good,
+			Power:  Great,
+			Skill:  Good,
 			Scale:  0,
 			Traits: NoIntrinsic},
 	}
@@ -52,9 +51,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"zombie", "chars:1"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Fair,
-			Tough:  Poor,
-			Melee:  Fair,
+			Power:  Fair,
+			Skill:  Fair,
 			Scale:  0,
 			Traits: IntrinsicFragile},
 	}
@@ -63,9 +61,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"dog-thing", "chars:2"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Fair,
-			Tough:  Fair,
-			Melee:  Good,
+			Power:  Fair,
+			Skill:  Good,
 			Scale:  -1,
 			Traits: NoIntrinsic},
 	}
@@ -74,9 +71,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"belcher", "chars:3"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Poor,
-			Tough:  Mediocre,
-			Melee:  Mediocre,
+			Power:  Poor,
+			Skill:  Mediocre,
 			Scale:  1,
 			Traits: IntrinsicBile | IntrinsicTough},
 	}
@@ -85,9 +81,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"crawling mass", "chars:7"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Good,
-			Tough:  Good,
-			Melee:  Poor,
+			Power:  Good,
+			Skill:  Poor,
 			Scale:  2,
 			Traits: IntrinsicSlow | IntrinsicDeathsplode},
 	}
@@ -96,9 +91,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"cyclops", "chars:6"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Poor,
-			Tough:  Good,
-			Melee:  Poor,
+			Power:  Poor,
+			Skill:  Poor,
 			Scale:  0,
 			Traits: IntrinsicPsychicBlast | IntrinsicConfuse | IntrinsicTough},
 	}
@@ -107,9 +101,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"wendigo", "chars:8"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Superb,
-			Tough:  Fair,
-			Melee:  Superb,
+			Power:  Superb,
+			Skill:  Superb,
 			Scale:  2,
 			Traits: IntrinsicFast | IntrinsicFragile},
 	}
@@ -118,9 +111,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"spider", "chars:10"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Fair,
-			Tough:  Fair,
-			Melee:  Great,
+			Power:  Fair,
+			Skill:  Great,
 			Scale:  1,
 			Traits: IntrinsicPoison},
 	}
@@ -129,20 +121,18 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"killbot", "chars:11"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Superb,
-			Tough:  Great,
-			Melee:  Good,
+			Power:  Superb,
+			Skill:  Good,
 			Scale:  0,
-			Traits: IntrinsicElectrocute | IntrinsicDense},
+			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"ogre", "chars:15"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Great,
-			Tough:  Great,
-			Melee:  Fair,
+			Power:  Great,
+			Skill:  Fair,
 			Scale:  3,
 			Traits: NoIntrinsic},
 	}
@@ -151,9 +141,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"elder spawn", "chars:5"},
 		CreatureComponent: &CreatureTemplate{
-			Str:    Legendary,
-			Tough:  Legendary,
-			Melee:  Superb,
+			Power:  Legendary,
+			Skill:  Superb,
 			Scale:  5,
 			Traits: IntrinsicEndboss},
 	}
