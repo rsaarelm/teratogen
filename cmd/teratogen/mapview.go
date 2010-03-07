@@ -18,15 +18,16 @@ import (
 	"time"
 )
 
-var tileset = []string{
-	game.TerrainIndeterminate: "tiles:255",
-	game.TerrainWall:          "tiles:7",
-	game.TerrainWallFront:     "tiles:7",
-	game.TerrainFloor:         "tiles:0",
-	game.TerrainDoor:          "tiles:3",
-	game.TerrainStairDown:     "tiles:4",
-	game.TerrainDirt:          "tiles:6",
-	game.TerrainDirtFront:     "tiles:5",
+var tileset = []int{
+	game.TerrainIndeterminate: 255,
+	game.TerrainFloor:         0,
+	game.TerrainDoor:          3,
+	game.TerrainStairDown:     4,
+	game.TerrainWall:          16,
+	game.TerrainDirt:          20,
+	game.TerrainBrickWall:     24,
+	game.TerrainRockWall:      28,
+	game.TerrainBioWall:       32,
 }
 
 
@@ -434,18 +435,16 @@ func drawTerrain(g gfx.Graphics) {
 			continue
 		}
 		idx := game.GetArea().GetTerrain(pt)
-		tile := tileset[idx]
+		tileIdx := tileset[idx]
 		if isVisualWall(idx) && idx != game.TerrainDoor {
 			mask := geom.HexNeighborMask(pt, func(p geom.Pt2I) bool { return isVisualWall(game.GetArea().GetTerrain(p)) })
 			offset := geom.HexWallType(mask)
 
-			// XXX: Magic tile numbers.
-			index := 16
-			if idx == game.TerrainDirt {
-				index = 20
-			}
-			tile = fmt.Sprintf("tiles:%d", index+offset)
+			tileIdx += offset
 		}
+
+		// XXX: Get indexable tilesets, so won't need these string kludges.
+		tile := fmt.Sprintf("tiles:%d", tileIdx)
 		Draw(g, tile, pt.X, pt.Y)
 	}
 }

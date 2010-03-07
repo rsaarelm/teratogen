@@ -22,13 +22,14 @@ const (
 	// Used for terrain generation algorithms, set map to indeterminate
 	// initially.
 	TerrainIndeterminate TerrainType = iota
-	TerrainWallFront
-	TerrainWall
 	TerrainFloor
 	TerrainDoor
 	TerrainStairDown
-	TerrainDirtFront
+	TerrainWall
+	TerrainBrickWall
 	TerrainDirt
+	TerrainRockWall
+	TerrainBioWall
 )
 
 const AreaComponent = entity.ComponentFamily("area")
