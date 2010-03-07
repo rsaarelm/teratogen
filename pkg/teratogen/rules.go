@@ -319,6 +319,7 @@ func MovePlayerDir(dir int) {
 func SmartMovePlayer(dir int) {
 	// Special 8-directional move, with the straight left/right alternating.
 	pos := GetPos(PlayerId())
+	column := pos.X - pos.Y
 	altDir := -1
 
 	switch dir {
@@ -327,7 +328,7 @@ func SmartMovePlayer(dir int) {
 	case 1:
 		dir = 1
 	case 2:
-		if pos.X%2 == 0 {
+		if column%2 == 0 {
 			dir = 2
 			altDir = 1
 		} else {
@@ -341,7 +342,7 @@ func SmartMovePlayer(dir int) {
 	case 5:
 		dir = 4
 	case 6:
-		if pos.X%2 == 0 {
+		if column%2 == 0 {
 			dir = 4
 			altDir = 5
 		} else {
