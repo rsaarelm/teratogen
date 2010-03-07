@@ -2,7 +2,6 @@ package teratogen
 
 import (
 	"exp/iterable"
-	"fmt"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -171,5 +170,3 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 	pred := func(o interface{}) bool { return o != excludedId && IsCreature(o.(entity.Id)) }
 	return iterable.Filter(Entities(), pred)
 }
-
-func Msg(format string, a ...interface{}) { Fx().Print(fmt.Sprintf(format, a)) }
