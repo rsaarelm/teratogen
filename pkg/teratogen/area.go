@@ -5,6 +5,7 @@ import (
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
+	"hyades/num"
 	"rand"
 )
 
@@ -150,6 +151,27 @@ func (self *Area) MakeCellarMap() {
 
 	for nTries := 256; nTries > 0 && corrDug+roomDug < needTotalDug; nTries-- {
 		roomDug += DigRoom((*roomDiggable)(self), 0, 0, mapWidth, mapHeight, 12, 12)
+	}
+
+	self.placeCorridorDoors(0.80)
+}
+
+func (self *Area) placeCorridorDoors(prob float64) {
+	dbg.Assert(num.IsProb(prob), "Bad corridor door prob %v", prob)
+
+	for pos := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		if self.GetTerrain(pos) == TerrainCorridor {
+			opensToRoom := false
+			for i := 0; i < 6; i++ {
+				if self.GetTerrain(pos.Plus(geom.Dir6ToVec(i))) == TerrainFloor {
+					opensToRoom = true
+					break
+				}
+			}
+			if opensToRoom && num.WithProb(prob) {
+				self.SetTerrain(pos, TerrainDoor)
+			}
+		}
 	}
 }
 
