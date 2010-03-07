@@ -97,25 +97,26 @@ func TestHexLine(t *testing.T) {
 		0, 1,
 		0, 2)
 
-	testHexLine(t, Pt2I{0, 0}, Pt2I{2, -2},
+	testHexLine(t, Pt2I{0, 0}, Pt2I{2, 2},
 		0, 0,
-		1, -1,
-		2, -2)
+		1, 1,
+		2, 2)
 
-	testHexLine(t, Pt2I{0, 0}, Pt2I{1, 1},
+	testHexLine(t, Pt2I{0, 0}, Pt2I{1, -1},
 		0, 0,
-		0, 1,
-		1, 1)
+		1, 0,
+		1, -1)
 
 	testHexLine(t, Pt2I{20, 20}, Pt2I{22, 18},
 		20, 20,
+		21, 20,
 		21, 19,
+		22, 19,
 		22, 18)
 
 	testHexLine(t, Pt2I{6, 8}, Pt2I{3, 7},
 		6, 8,
 		5, 8,
-		5, 7,
 		4, 7,
 		3, 7)
 }

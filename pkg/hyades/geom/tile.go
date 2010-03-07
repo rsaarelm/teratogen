@@ -197,23 +197,23 @@ func PosAdjacent(p1, p2 Pt2I) bool {
 //
 // The dir6 values and the location coordinates:
 //
-//      0              (0, -1)
-//    5   1    (-1, 0)        (1, -1)
-//      .              (0,  0)
-//    4   2    (-1, 1)        (0,  1)
-//      3              (0,  1)
+//      0              (-1, -1)
+//    5   1    (-1, 0)          (0, -1)
+//      .              ( 0,  0)
+//    4   2    ( 0, 1)          (1,  0)
+//      3              ( 1,  1)
 func Dir6ToVec(dir int) (result Vec2I) {
 	switch dir {
 	case 0:
-		return Vec2I{0, -1}
+		return Vec2I{-1, -1}
 	case 1:
-		return Vec2I{1, -1}
+		return Vec2I{0, -1}
 	case 2:
 		return Vec2I{1, 0}
 	case 3:
-		return Vec2I{0, 1}
+		return Vec2I{1, 1}
 	case 4:
-		return Vec2I{-1, 1}
+		return Vec2I{0, 1}
 	case 5:
 		return Vec2I{-1, 0}
 	}
@@ -228,22 +228,10 @@ func HexDist(p1, p2 Pt2I) int {
 	dx := p2.X - p1.X
 	dy := p2.Y - p1.Y
 
-	if num.Isignum(dx) != num.Isignum(dy) {
+	if num.Isignum(dx) == num.Isignum(dy) {
 		return num.Imax(num.Iabs(dx), num.Iabs(dy))
 	}
 	return num.Iabs(dx) + num.Iabs(dy)
-}
-
-func Array2Hex(arrayPt Pt2I) (hexPt Pt2I) {
-	return Pt2I{
-		arrayPt.X - int(math.Floor(float64(arrayPt.Y)/2)),
-		arrayPt.X + int(math.Ceil(float64(arrayPt.Y)/2))}
-}
-
-func Hex2Array(hexPt Pt2I) (arrayPt Pt2I) {
-	return Pt2I{
-		int(math.Floor((float64(hexPt.X) + float64(hexPt.Y)) / 2)),
-		hexPt.Y - hexPt.X}
 }
 
 // HexNeighborMask converts the neighbors of a hex at p clockwise starting
@@ -252,11 +240,12 @@ func Hex2Array(hexPt Pt2I) (arrayPt Pt2I) {
 //
 // The bit locations and the location coordinates:
 //
-//      0              (0, -1)
-//    5   1    (-1, 0)        (1, -1)
-//      .              (0,  0)
-//    4   2    (-1, 1)        (0,  1)
-//      3              (0,  1)
+//      0              (-1, -1)
+//    5   1    (-1, 0)          (0, -1)
+//      .              ( 0,  0)
+//    4   2    ( 0, 1)          (1,  0)
+//      3              ( 1,  1)
+
 func HexNeighborMask(p Pt2I, predFn func(Pt2I) bool) (result int) {
 	for i := 0; i < 6; i++ {
 		if predFn(p.Plus(Dir6ToVec(i))) {
@@ -304,9 +293,9 @@ func HexWallType(mask int) int {
 }
 
 func HexToPlane(hexPt Pt2I) (x, y float64) {
-	return float64(hexPt.X), float64(hexPt.Y) + float64(hexPt.X)/2
+	return float64(hexPt.X) - float64(hexPt.Y), float64(hexPt.Y)/2 + float64(hexPt.X)/2
 }
 
 func PlaneToHex(x, y float64) Pt2I {
-	return Pt2I{int(num.Round(x)), int(num.Round(y - num.Round(x)/2))}
+	return Pt2I{int(num.Round(x/2 + y)), int(num.Round(y - x/2))}
 }

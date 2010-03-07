@@ -64,7 +64,7 @@ func NewMapView() (result *MapView) {
 }
 
 func DrawPos(pos geom.Pt2I) (screenX, screenY int) {
-	return TileW*pos.X + xDrawOffset, TileH*pos.Y + TileH/2*pos.X + yDrawOffset
+	return TileW*pos.X - TileW*pos.Y + xDrawOffset, TileH/2*pos.Y + TileH/2*pos.X + yDrawOffset
 }
 
 func CenterDrawPos(pos geom.Pt2I) (screenX, screenY int) {
@@ -146,7 +146,9 @@ func Tile2WorldPos(tilePos geom.Pt2I) geom.Pt2I {
 }
 
 func World2TilePos(worldPos geom.Pt2I) geom.Pt2I {
-	return geom.Pt2I{worldPos.X / TileW, worldPos.Y/TileH - (worldPos.X/2)/TileW}
+	return geom.Pt2I{
+		worldPos.X/(2*TileW) + worldPos.Y/TileH,
+		worldPos.Y/TileH + worldPos.X/(2*TileW)}
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {

@@ -8,7 +8,7 @@ import (
 	"rand"
 )
 
-const mapWidth = 60
+const mapWidth = 40
 const mapHeight = 20
 
 func MapDims() (width, height int) { return mapWidth, mapHeight }
@@ -83,25 +83,22 @@ func (self *Area) SetTerrain(pos geom.Pt2I, t TerrainType) {
 }
 
 func (self *Area) MakeBSPMap() {
-	area := MakeBspMap(1, 1, mapWidth-2-mapHeight, mapHeight-2)
+	area := MakeBspMap(1, 1, mapWidth-2, mapHeight-2)
 	graph := alg.NewSparseMatrixGraph()
 	area.FindConnectingWalls(graph)
 	doors := DoorLocations(graph)
 
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		x, y := pt.X, pt.Y
-		bX, bY := x+y-mapHeight, y
-		if area.RoomAtPoint(bX, bY) != nil {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
+		if area.RoomAtPoint(pt.X, pt.Y) != nil {
+			self.SetTerrain(pt, TerrainFloor)
 		} else {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainWall)
+			self.SetTerrain(pt, TerrainWall)
 		}
 	}
 
 	for pt := range doors.Iter() {
 		pt := pt.(geom.Pt2I)
-		x, y := pt.X-pt.Y+mapHeight, pt.Y
-		self.SetTerrain(geom.Pt2I{x, y}, TerrainDoor)
+		self.SetTerrain(pt, TerrainDoor)
 	}
 }
 
@@ -152,7 +149,7 @@ func (self *Area) MakeCellarMap() {
 	roomDug := 0
 
 	for corrDug+roomDug < needTotalDug {
-		roomDug += DigRoom((*skewArea)(self), 0, 0, mapWidth, mapHeight, 12, 12)
+		roomDug += DigRoom(self, 0, 0, mapWidth, mapHeight, 12, 12)
 	}
 }
 
