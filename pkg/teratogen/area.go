@@ -23,11 +23,13 @@ const (
 	// initially.
 	TerrainIndeterminate TerrainType = iota
 	TerrainFloor
-	TerrainDoor
 	TerrainStairDown
+	// Tiles after this are visual walls.
+	TerrainDoor
+	// Tiles after this are actual walls.
 	TerrainWall
 	TerrainBrickWall
-	TerrainDirt
+	TerrainDirtWall
 	TerrainRockWall
 	TerrainBioWall
 )
@@ -45,8 +47,8 @@ func NewArea() (result *Area) {
 }
 
 func IsObstacleTerrain(terrain TerrainType) bool {
-	switch terrain {
-	case TerrainWall, TerrainDirt:
+	switch {
+	case terrain >= TerrainWall:
 		return true
 	}
 	return false
@@ -103,6 +105,30 @@ func (self *Area) MakeBSPMap() {
 	}
 }
 
+func (self *Area) MakeCellarMap() {
+	// TODO: Rooms and corridors gen.
+	area := MakeBspMap(1, 1, mapWidth-2-mapHeight, mapHeight-2)
+	graph := alg.NewSparseMatrixGraph()
+	area.FindConnectingWalls(graph)
+	doors := DoorLocations(graph)
+
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		x, y := pt.X, pt.Y
+		bX, bY := x+y-mapHeight, y
+		if area.RoomAtPoint(bX, bY) != nil {
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
+		} else {
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainBrickWall)
+		}
+	}
+
+	for pt := range doors.Iter() {
+		pt := pt.(geom.Pt2I)
+		x, y := pt.X-pt.Y+mapHeight, pt.Y
+		self.SetTerrain(geom.Pt2I{x, y}, TerrainDoor)
+	}
+}
+
 func (self *Area) MakeCaveMap() {
 	area := MakeHexCaveMap(mapWidth, mapHeight, 0.50)
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
@@ -110,14 +136,55 @@ func (self *Area) MakeCaveMap() {
 		case CaveFloor:
 			self.SetTerrain(pt, TerrainFloor)
 		case CaveWall:
-			self.SetTerrain(pt, TerrainDirt)
+			self.SetTerrain(pt, TerrainDirtWall)
 		case CaveUnknown:
-			self.SetTerrain(pt, TerrainDirt)
+			self.SetTerrain(pt, TerrainDirtWall)
 		default:
 			dbg.Die("Bad data %v in generated cave map.", area[pt.X][pt.Y])
 		}
 	}
 }
+
+func (self *Area) MakeRuinsMap() {
+	// TODO: Open area and buildings gen.
+	area := MakeBspMap(1, 1, mapWidth-2-mapHeight, mapHeight-2)
+	graph := alg.NewSparseMatrixGraph()
+	area.FindConnectingWalls(graph)
+	doors := DoorLocations(graph)
+
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		x, y := pt.X, pt.Y
+		bX, bY := x+y-mapHeight, y
+		if area.RoomAtPoint(bX, bY) != nil {
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
+		} else {
+			self.SetTerrain(geom.Pt2I{x, y}, TerrainRockWall)
+		}
+	}
+
+	for pt := range doors.Iter() {
+		pt := pt.(geom.Pt2I)
+		x, y := pt.X-pt.Y+mapHeight, pt.Y
+		self.SetTerrain(geom.Pt2I{x, y}, TerrainDoor)
+	}
+}
+
+func (self *Area) MakeVisceraMap() {
+	area := MakeHexCaveMap(mapWidth, mapHeight, 0.50)
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		switch area[pt.X][pt.Y] {
+		case CaveFloor:
+			self.SetTerrain(pt, TerrainFloor)
+		case CaveWall:
+			self.SetTerrain(pt, TerrainBioWall)
+		case CaveUnknown:
+			self.SetTerrain(pt, TerrainBioWall)
+		default:
+			dbg.Die("Bad data %v in generated cave map.", area[pt.X][pt.Y])
+		}
+	}
+}
+
 
 // IsUnwalkable returns whether the terrain in pos can't be walked into.
 func IsUnwalkable(pos geom.Pt2I) bool { return IsObstacleTerrain(GetArea().GetTerrain(pos)) }

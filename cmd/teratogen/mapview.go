@@ -24,7 +24,7 @@ var tileset = []int{
 	game.TerrainDoor:          3,
 	game.TerrainStairDown:     4,
 	game.TerrainWall:          16,
-	game.TerrainDirt:          20,
+	game.TerrainDirtWall:      20,
 	game.TerrainBrickWall:     24,
 	game.TerrainRockWall:      28,
 	game.TerrainBioWall:       32,
@@ -168,7 +168,7 @@ func (self *MapView) onMouseButton(button int) {
 	switch button {
 	case leftButton:
 		if mapEdit {
-			game.GetArea().SetTerrain(tilePos, game.TerrainDirt)
+			game.GetArea().SetTerrain(tilePos, game.TerrainDirtWall)
 			return
 		}
 
@@ -421,11 +421,7 @@ func (self *MapView) MouseExited(event draw.Mouse) {
 }
 
 func isVisualWall(terrain game.TerrainType) bool {
-	switch terrain {
-	case game.TerrainDoor, game.TerrainWall, game.TerrainDirt:
-		return true
-	}
-	return false
+	return terrain >= game.TerrainDoor
 }
 
 func drawTerrain(g gfx.Graphics) {

@@ -63,13 +63,19 @@ func (self *Context) EnterLevel(depth int) {
 	GetManager().Handler(AreaComponent).Add(globals.AreaId, NewArea())
 	GetManager().Handler(LosComponent).Add(globals.AreaId, NewLos())
 
-	endDepth := 8
+	endDepth := 20
 
 	switch {
 	case depth <= 4:
 		GetArea().MakeBSPMap()
-	case 5 <= depth && depth <= 8:
+	case depth <= 8:
+		GetArea().MakeCellarMap()
+	case depth <= 12:
 		GetArea().MakeCaveMap()
+	case depth <= 16:
+		GetArea().MakeRuinsMap()
+	case depth <= 20:
+		GetArea().MakeVisceraMap()
 	default:
 		if num.WithProb(0.5) {
 			GetArea().MakeCaveMap()
