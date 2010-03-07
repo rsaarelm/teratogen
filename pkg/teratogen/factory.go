@@ -41,7 +41,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"protagonist", "chars:0", PronounIt, false},
 		CreatureComponent: &CreatureTemplate{
-			Power:  Great,
+			Power:  Good,
 			Skill:  Good,
 			Scale:  0,
 			Traits: NoIntrinsic},
