@@ -14,11 +14,20 @@ func RandomFromIterable(iter iterable.Iterable) interface{} {
 	return seq[rand.Intn(len(seq))]
 }
 
+// IsProb return whether prob is valid to be used as a probability value, that
+// is, whether it's between 0 and 1. Exact 0 and exact 1 are accepted as
+// probability values.
+func IsProb(prob float64) bool { return 0.0 <= prob && prob <= 1.0 }
+
 func WithProb(prob float64) bool { return rand.Float64() < prob }
 
 func OneChanceIn(num int) bool { return rand.Intn(num) == 0 }
 
 func ChancesIn(k, n int) bool { return rand.Intn(n) < k }
+
+func RandomChoice(a ...interface{}) interface{} {
+	return a[rand.Intn(len(a))]
+}
 
 // MakeRandState initializes the random number generator using the given value
 // and returns the RandState value which can be used to return the generator
