@@ -147,8 +147,8 @@ func Tile2WorldPos(tilePos geom.Pt2I) geom.Pt2I {
 
 func World2TilePos(worldPos geom.Pt2I) geom.Pt2I {
 	return geom.Pt2I{
-		worldPos.X/(2*TileW) + worldPos.Y/TileH,
-		worldPos.Y/TileH + worldPos.X/(2*TileW)}
+		(worldPos.X/2 + worldPos.Y) / TileW,
+		(worldPos.Y - worldPos.X/2) / TileH}
 }
 
 func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
