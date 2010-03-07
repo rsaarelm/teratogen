@@ -23,6 +23,7 @@ var tileset = []int{
 	game.TerrainFloor:         0,
 	game.TerrainDoor:          3,
 	game.TerrainStairDown:     4,
+	game.TerrainCorridor:      13,
 	game.TerrainWall:          16,
 	game.TerrainDirtWall:      20,
 	game.TerrainBrickWall:     24,

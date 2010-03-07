@@ -24,6 +24,7 @@ const (
 	TerrainIndeterminate TerrainType = iota
 	TerrainFloor
 	TerrainStairDown
+	TerrainCorridor
 	// Tiles after this are visual walls.
 	TerrainDoor
 	// Tiles after this are actual walls.
@@ -102,32 +103,31 @@ func (self *Area) MakeBSPMap() {
 	}
 }
 
-func (self *Area) CanDig(pos geom.Pt2I) bool {
+type corridorDiggable Area
+
+type roomDiggable Area
+
+func (self *corridorDiggable) CanDig(pos geom.Pt2I) bool {
 	return pos.X > 1 && pos.Y > 1 && pos.X < mapWidth-1 && pos.Y < mapHeight-1
 }
 
-func (self *Area) IsDug(pos geom.Pt2I) bool { return self.GetTerrain(pos) == TerrainFloor }
-
-func (self *Area) Dig(pos geom.Pt2I) { self.SetTerrain(pos, TerrainFloor) }
-
-type skewArea Area
-
-func (self *skewArea) CanDig(pos geom.Pt2I) bool {
-	// Skew the pos so the fake-iso geometry looks orthogonal to the other end.
-	pos = geom.Pt2I{pos.X - pos.Y, pos.Y}
+func (self *roomDiggable) CanDig(pos geom.Pt2I) bool {
 	return pos.X > 1 && pos.Y > 1 && pos.X < mapWidth-1 && pos.Y < mapHeight-1
 }
 
-func (self *skewArea) IsDug(pos geom.Pt2I) bool {
-	pos = geom.Pt2I{pos.X - pos.Y, pos.Y}
-	return (*Area)(self).GetTerrain(pos) == TerrainFloor
+func (self *corridorDiggable) IsDug(pos geom.Pt2I) bool {
+	return (*Area)(self).GetTerrain(pos) == TerrainCorridor || (*Area)(self).GetTerrain(pos) == TerrainFloor
 }
 
-func (self *skewArea) Dig(pos geom.Pt2I) {
-	pos = geom.Pt2I{pos.X - pos.Y, pos.Y}
-	(*Area)(self).SetTerrain(pos, TerrainFloor)
+func (self *roomDiggable) IsDug(pos geom.Pt2I) bool {
+	return (*Area)(self).GetTerrain(pos) == TerrainCorridor || (*Area)(self).GetTerrain(pos) == TerrainFloor
 }
 
+func (self *corridorDiggable) Dig(pos geom.Pt2I) {
+	(*Area)(self).SetTerrain(pos, TerrainCorridor)
+}
+
+func (self *roomDiggable) Dig(pos geom.Pt2I) { (*Area)(self).SetTerrain(pos, TerrainFloor) }
 
 func (self *Area) MakeCellarMap() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
@@ -143,13 +143,13 @@ func (self *Area) MakeCellarMap() {
 		if !ok {
 			pos = geom.Pt2I{mapWidth / 2, mapHeight / 2}
 		}
-		corrDug += DigTunnels(pos, self, 0.1, 0.05, 0.01)
+		corrDug += DigTunnels(pos, (*corridorDiggable)(self), 0.1, 0.05, 0.01)
 	}
 
 	roomDug := 0
 
 	for corrDug+roomDug < needTotalDug {
-		roomDug += DigRoom(self, 0, 0, mapWidth, mapHeight, 12, 12)
+		roomDug += DigRoom((*roomDiggable)(self), 0, 0, mapWidth, mapHeight, 12, 12)
 	}
 }
 
