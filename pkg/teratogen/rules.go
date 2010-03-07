@@ -138,7 +138,7 @@ func Attack(attackerId, defenderId entity.Id) {
 		defCrit.Scale-attCrit.Scale)
 
 	if doesHit {
-		Msg("%v hits. ", GetCapName(attackerId))
+		EMsg("{sub.Thename} hit{sub.s} {obj.thename}.\n", attackerId, defenderId)
 		// XXX: Assuming melee attack.
 		woundLevel := attCrit.MeleeWoundLevelAgainst(
 			attackerId, defenderId, hitDegree)
@@ -154,10 +154,10 @@ func Attack(attackerId, defenderId entity.Id) {
 		if woundLevel > 0 {
 			defCrit.Damage(defenderId, woundLevel, attackerId)
 		} else {
-			Msg("%v undamaged.\n", GetCapName(defenderId))
+			EMsg("{sub.Thename} {sub.is} unhurt.\n", defenderId, attackerId)
 		}
 	} else {
-		Msg("%v missed.\n", GetCapName(attackerId))
+		EMsg("{sub.Thename} missed {obj.thename}.\n", attackerId, defenderId)
 	}
 }
 
@@ -238,7 +238,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	if RapidFireGunEquipped(attackerId) {
 		endsMove = RapidFireEndsMove()
 		if !endsMove {
-			Msg("You keep shooting.\n")
+			EMsg("{sub.Thename} keep{sub.s} shooting.\n", attackerId, entity.NilId)
 		}
 		return
 	}
@@ -256,9 +256,9 @@ func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
 		item := GetItem(itemId)
 		if num.OneChanceIn(item.Durability) {
 			if slot == GunEquipSlot {
-				Msg("The %s's %s is out of ammo.\n", GetName(ownerId), GetName(itemId))
+				EMsg("{sub.Thename's} {obj.name} is out of ammo.\n", ownerId, itemId)
 			} else {
-				Msg("The %s's %s breaks.\n", GetName(ownerId), GetName(itemId))
+				EMsg("{sub.Thename's} {obj.name} breaks.\n", ownerId, itemId)
 			}
 			Destroy(itemId)
 		}
@@ -301,10 +301,10 @@ func MovePlayerDir(dir int) {
 		}
 		// TODO: Replace the kludgy special case recognition with a trigger
 		// component that gets run when the entity is stepped on.
-		if GetName(id) == "health globe" {
+		if GetName(id) == "globe" {
 			// TODO: Different globe effects.
 			if GetCreature(PlayerId()).Wounds > 0 {
-				Msg("The globe bursts. You feel better.\n")
+				EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
 				Fx().Heal(PlayerId(), 1)
 				GetCreature(PlayerId()).Wounds -= 1
 				// Deferring this until the iteration is over.
@@ -385,9 +385,7 @@ func StuffOnGroundMsg() {
 	}
 }
 
-func GameOver(reason string) {
-	Fx().Quit(fmt.Sprintf("%v %v\n", GetCapName(PlayerId()), reason))
-}
+func GameOver(reason string) { Fx().Quit(fmt.Sprintf("You were %v\n", reason)) }
 
 func WinGame(message string) { Fx().Quit(fmt.Sprintf("%s\n", message)) }
 
@@ -417,12 +415,12 @@ func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
 
 func TakeItem(takerId, itemId entity.Id) {
 	SetParent(itemId, takerId)
-	Msg("%v takes %v.\n", GetCapName(takerId), GetName(itemId))
+	EMsg("{sub.Thename} take{sub.s} {obj.thename}.\n", takerId, itemId)
 }
 
 func DropItem(dropperId, itemId entity.Id) {
 	SetParent(itemId, entity.NilId)
-	Msg("%v drops %v.\n", GetCapName(dropperId), GetName(itemId))
+	EMsg("{sub.Thename} drop{sub.s} {obj.thename}.\n", dropperId, itemId)
 }
 
 func TakeableItems(pos geom.Pt2I) iterable.Iterable {
@@ -477,7 +475,7 @@ func AutoEquip(ownerId, itemId entity.Id) {
 		return
 	}
 	SetEquipment(ownerId, slot, itemId)
-	Msg("Equipped %v.\n", GetName(itemId))
+	EMsg("{sub.Thename} equip{sub.s} {obj.thename}.\n", ownerId, itemId)
 }
 
 func EntityDist(id1, id2 entity.Id) float64 {

@@ -150,7 +150,7 @@ func init() {
 	a["globe"] = entity.Assemblage{
 		Metadata:      MetaTemplate(30, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"health globe", "items:1", PronounIt, false},
+		NameComponent: NameTemplate{"globe", "items:1", PronounIt, false},
 	}
 	a["plantpot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),

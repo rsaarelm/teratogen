@@ -92,11 +92,23 @@ func Msg(format string, a ...interface{}) { Fx().Print(fmt.Sprintf(format, a)) }
 //   thename: The name of the entity with a definite article, unless it's a proper name
 //   aname: The name of the entity with an indefinite article, unless it's a proper name
 //   name's: The possessive form of the entity's name
+//   thename's: The possessive form of the entity's name with definite article
+//   aname's: The possessive form of the entity's name with indefinite article
 //   s: Trailing 's' for verbs ("The goblin hitS") for others, empty for second person.
 //   pronoun: The pronoun used to refer to the entity. 'You' for second person.
 //   pronoun's: Possessive form of the pronoun.
 //   self: Reflective pronoun for the entity.
-
+//   is: 'is' for others, 'are' for second person.
+//
+// In addition the value
+//
+//   you
+//
+// evaluates to true for second person and false for others. Use it like this:
+//
+//   "{sub.Thename} {.section sub.you}miss (SECOND PERSON){.or}misses (OTHER){.end} {obj.thename}..."
+//
+// Although for the common are/is case, there's the ".is" shorthand.
 func EMsg(format string, subjectId, objectId entity.Id, a ...interface{}) {
 	str := fmt.Sprintf(format, a)
 	str = FormatMessage(str, subjectId, objectId)
@@ -104,21 +116,8 @@ func EMsg(format string, subjectId, objectId entity.Id, a ...interface{}) {
 }
 
 func FormatMessage(fmtStr string, subjectId, objectId entity.Id) string {
-	subjectName, objectName := GetNameComp(subjectId), GetNameComp(objectId)
-
-	var subjectWords, objectWords map[string]string
-
-	if subjectId == PlayerId() {
-		subjectWords = YouTemplateWords()
-	} else {
-		subjectWords = subjectName.TemplateWords()
-	}
-
-	if objectId == PlayerId() {
-		objectWords = YouTemplateWords()
-	} else {
-		objectWords = objectName.TemplateWords()
-	}
+	subjectWords := entityTemplateWorlds(subjectId)
+	objectWords := entityTemplateWorlds(objectId)
 
 	mp := map[string]interface{}{"sub": subjectWords, "obj": objectWords}
 
@@ -131,21 +130,43 @@ func FormatMessage(fmtStr string, subjectId, objectId entity.Id) string {
 	return buffer.String()
 }
 
+func entityTemplateWorlds(id entity.Id) map[string]string {
+	if id == PlayerId() {
+		return YouTemplateWords()
+	}
+
+	name := GetNameComp(id)
+	if name == nil {
+		return make(map[string]string)
+	}
+
+	return name.TemplateWords()
+}
+
+
 // GetCapName returns the capitalized name of an entity.
 func GetCapName(id entity.Id) string { return txt.Capitalize(GetName(id)) }
 
 func (self *Name) TemplateWords() (result map[string]string) {
 	result = make(map[string]string)
 	result["name"] = self.Name
+	result["you"] = "" // Empty string acts as 'false', use in conditionals.
 	if self.IsProperName {
 		result["thename"] = self.Name
 		result["aname"] = self.Name
+		result["thename's"] = self.Name + "'s"
+		result["aname's"] = self.Name + "'s"
 	} else {
 		result["thename"] = "the " + self.Name
 		result["aname"] = "a " + self.Name
+		result["thename's"] = "the " + self.Name + "'s"
+		result["aname's"] = "a " + self.Name + "'s"
 	}
 
+	result["is"] = "is"
+
 	result["name's"] = self.Name + "'s"
+
 	result["s"] = "s"
 	switch self.Pronoun {
 	case PronounHe:
@@ -173,16 +194,19 @@ func (self *Name) TemplateWords() (result map[string]string) {
 
 func YouTemplateWords() (result map[string]string) {
 	result = map[string]string{
-		"you": "1", // Set to defined, use this as a conditional.
+		"you": "1", // Acts as 'true', use in conditionals.
 
 		"name":      "you",
 		"thename":   "you",
 		"aname":     "you",
 		"name's":    "your",
+		"thename's": "your",
+		"aname's":   "your",
 		"s":         "",
 		"pronoun":   "you",
 		"pronoun's": "your",
 		"self":      "yourself",
+		"is":        "are",
 	}
 
 	addCapitalizedFields(result)

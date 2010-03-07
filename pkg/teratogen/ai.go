@@ -30,7 +30,7 @@ func DoAI(critId entity.Id) bool {
 
 			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
 			Fx().Shoot(critId, hitPos)
-			Msg("%s vomits bile\n", GetCapName(critId))
+			EMsg("{sub.Thename} vomit{sub.s} bile.\n", critId, entity.NilId)
 			DamagePos(hitPos, damageFactor, critId)
 
 			return true

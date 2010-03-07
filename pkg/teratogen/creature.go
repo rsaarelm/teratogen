@@ -1,7 +1,6 @@
 package teratogen
 
 import (
-	"fmt"
 	"hyades/entity"
 	"hyades/num"
 )
@@ -168,17 +167,16 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 		self.Statuses |= StatusDead
 
 		Fx().Destroy(id)
+		EMsg("{sub.Thename} {sub.is} killed.\n", id, causerId)
+
 		if id == PlayerId() {
-			Msg("You die.\n")
 			var msg string
 			if causerId != entity.NilId {
-				msg = fmt.Sprintf("killed by %v.", GetName(causerId))
+				msg = FormatMessage("killed by {sub.aname}.", causerId, entity.NilId)
 			} else {
 				msg = "killed."
 			}
 			GameOver(msg)
-		} else {
-			Msg("%v killed.\n", GetCapName(id))
 		}
 
 		if self.Traits&IntrinsicEndboss != 0 {
@@ -188,14 +186,14 @@ func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
 
 		// Deathsplosion.
 		if self.Traits&IntrinsicDeathsplode != 0 {
-			Msg("%v blows up!\n", GetCapName(id))
+			EMsg("{sub.Thename} blow{sub.s} up!\n", id, causerId)
 			Explode(GetPos(id), 3+self.Scale, id)
 		}
 
 		Destroy(id)
 	} else {
 		Fx().Damage(id, woundLevel)
-		Msg("%v %v.\n", GetCapName(id), self.WoundDescription())
+		EMsg("{sub.Name} {sub.is} %v.\n", id, causerId, self.WoundDescription())
 	}
 }
 
