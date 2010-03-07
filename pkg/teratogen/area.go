@@ -138,7 +138,7 @@ func (self *Area) MakeCellarMap() {
 	const needCorrDug = 200
 	const needTotalDug = 600
 
-	for corrDug < needCorrDug {
+	for nTries := 256; nTries > 0 && corrDug < needCorrDug; nTries-- {
 		pos, ok := GetSpawnPos()
 		if !ok {
 			pos = geom.Pt2I{mapWidth / 2, mapHeight / 2}
@@ -148,7 +148,7 @@ func (self *Area) MakeCellarMap() {
 
 	roomDug := 0
 
-	for corrDug+roomDug < needTotalDug {
+	for nTries := 256; nTries > 0 && corrDug+roomDug < needTotalDug; nTries-- {
 		roomDug += DigRoom((*roomDiggable)(self), 0, 0, mapWidth, mapHeight, 12, 12)
 	}
 }
