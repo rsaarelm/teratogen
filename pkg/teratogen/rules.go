@@ -532,7 +532,12 @@ func SpawnAt(name string, pos geom.Pt2I) (result entity.Id) {
 	return
 }
 
-func SpawnRandomPos(name string) entity.Id { return SpawnAt(name, GetSpawnPos()) }
+func SpawnRandomPos(name string) entity.Id {
+	if pos, ok := GetSpawnPos(); ok {
+		return SpawnAt(name, pos)
+	}
+	return entity.NilId
+}
 
 func clearNonplayerEntities() {
 	// Bring over player object and player's inventory.

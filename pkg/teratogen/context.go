@@ -2,6 +2,7 @@ package teratogen
 
 import (
 	"exp/iterable"
+	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -88,11 +89,19 @@ func (self *Context) EnterLevel(depth int) {
 		// End boss level. No stairs down. Has end boss.
 		SpawnRandomPos("boss1")
 	} else {
-		GetArea().SetTerrain(GetSpawnPos(), TerrainStairDown)
+		if pos, ok := GetSpawnPos(); ok {
+			GetArea().SetTerrain(pos, TerrainStairDown)
+		} else {
+			dbg.Die("Couldn't place stairs down.")
+		}
 	}
 
 	playerId := PlayerId()
-	PosComp(playerId).MoveAbs(GetSpawnPos())
+	if pos, ok := GetSpawnPos(); ok {
+		SetPos(playerId, pos)
+	} else {
+		dbg.Die("Couldn't place player.")
+	}
 	GetLos().DoLos(GetPos(playerId))
 
 	spawns := makeSpawnDistribution(depth)

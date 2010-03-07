@@ -443,3 +443,175 @@ func cavePointSummarizeHex(x, y int, cave [][]CaveTile) (adjFloors, adjWalls int
 
 	return
 }
+
+type Diggable interface {
+	CanDig(pos geom.Pt2I) bool
+	Dig(pos geom.Pt2I)
+	IsDug(pos geom.Pt2I) bool
+}
+
+// DigTunnels digs tunnels into a diggable area starting from the given start
+// position. Tunnels branch with branchProb and are cut off with endProb.
+// Digging also ends when tunnels can't be carved any more. Returns the number
+// of cells dug.
+func DigTunnels(startPos geom.Pt2I, area Diggable, turnProb, branchProb, endProb float64) (numDug int) {
+	dbg.Assert(num.IsProb(branchProb), "Bad branchProb %v", branchProb)
+	dbg.Assert(num.IsProb(endProb), "Bad endProb %v", endProb)
+	dbg.Assert(num.IsProb(turnProb), "Bad turnProb %v", turnProb)
+
+	if !area.CanDig(startPos) {
+		return 0
+	}
+
+	area.Dig(startPos)
+
+	dir := randomDir6()
+	pos := startPos
+
+	for !num.WithProb(endProb) {
+		if !canDigTo(area, pos, dir) || num.WithProb(turnProb) {
+			// Turn to random direction, try again.
+			dir = num.RandomChoice((dir+1)%6, (dir+2)%6, (dir+4)%6, (dir+5)%6).(int)
+			continue
+		}
+		vec := geom.Dir6ToVec(dir)
+		pos = pos.Plus(vec)
+		dbg.Assert(area.CanDig(pos), "canDigTo returned undiggable pos.")
+		area.Dig(pos)
+		numDug++
+		if num.WithProb(branchProb) {
+			numDug += DigTunnels(pos, area, turnProb, branchProb, endProb)
+		}
+	}
+	return
+}
+
+// DigRoom tries to find a good room site and dig the room in the given rectangle.
+func DigRoom(area Diggable, xmin, ymin, xmax, ymax int, maxW, maxH int) (nDug int) {
+	const nTries = 32
+	for i := 0; i < nTries; i++ {
+		w := 4 + rand.Intn(maxW-1)
+		h := 4 + rand.Intn(maxH-1)
+		x := xmin + rand.Intn(xmax-xmin-w)
+		y := ymin + rand.Intn(ymax-ymin-h)
+		if GoodRoomPos(area, geom.Pt2I{x, y}, geom.Pt2I{x + w, y + h}) {
+			for y2 := y + 1; y2 < y+h-1; y2++ {
+				for x2 := x + 1; x2 < x+w-1; x2++ {
+					area.Dig(geom.Pt2I{x2, y2})
+					nDug++
+				}
+			}
+			return
+		}
+	}
+	return
+}
+
+// GoodRoomPos returns whether the given points in the diggable define a room
+// whose corners are intact and which has at least one corridor going in it.
+func GoodRoomPos(area Diggable, p1, p2 geom.Pt2I) bool {
+	p3 := geom.Pt2I{p1.X, p2.Y}
+	p4 := geom.Pt2I{p2.X, p1.Y}
+	if area.IsDug(p1) || area.IsDug(p2) || area.IsDug(p3) || area.IsDug(p4) {
+		// Broken corner, not ok
+		return false
+	}
+
+	corridorsIn := 0
+
+	prevWall1, prevWall2 := false, false
+
+	// Check the walls for corridor connections.
+	for y := num.Imin(p1.Y, p2.Y); y < num.Imax(p1.Y, p2.Y); y++ {
+		if area.IsDug(geom.Pt2I{p1.X, y}) {
+			if prevWall1 {
+				// More than 1 corridor gap.
+				return false
+			}
+			prevWall1 = true
+			corridorsIn++
+		} else {
+			prevWall1 = false
+		}
+
+		if area.IsDug(geom.Pt2I{p2.X, y}) {
+			if prevWall2 {
+				// More than 1 corridor gap.
+				return false
+			}
+			prevWall2 = true
+			corridorsIn++
+		} else {
+			prevWall2 = false
+		}
+	}
+
+	prevWall1, prevWall2 = false, false
+
+	for x := num.Imin(p1.X, p2.X); x < num.Imax(p1.X, p2.X); x++ {
+		if area.IsDug(geom.Pt2I{x, p1.Y}) {
+			if prevWall1 {
+				// More than 1 corridor gap.
+				return false
+			}
+			prevWall1 = true
+			corridorsIn++
+		} else {
+			prevWall1 = false
+		}
+
+		if area.IsDug(geom.Pt2I{x, p2.Y}) {
+			if prevWall2 {
+				// More than 1 corridor gap.
+				return false
+			}
+			prevWall2 = true
+			corridorsIn++
+		} else {
+			prevWall2 = false
+		}
+	}
+
+	for x := num.Imin(p1.X, p2.X) + 1; x < num.Imax(p1.X, p2.X)-1; x++ {
+		for y := num.Imin(p1.Y, p2.Y) + 1; y < num.Imax(p1.Y, p2.Y)-1; y++ {
+			pt := geom.Pt2I{x, y}
+			if !area.CanDig(pt) {
+				// Undiggable stuff within room
+				return false
+			}
+		}
+	}
+
+	if corridorsIn == 0 {
+		// Room not connected to the rest of the map.
+		return false
+	}
+
+	return true
+}
+
+func randomDir6() int { return rand.Intn(6) }
+
+func canDigTo(area Diggable, pos geom.Pt2I, dir6 int) bool {
+	vec := geom.Dir6ToVec(dir6)
+	if !area.CanDig(pos.Plus(vec)) {
+		// Target cell isn't diggable.
+		return false
+	}
+
+	if area.IsDug(pos.Plus(vec)) {
+		// It's already dug.
+		return false
+	}
+
+	sideVec1 := geom.Dir6ToVec((dir6 + 1) % 6)
+	sideVec2 := geom.Dir6ToVec((dir6 + 5) % 6)
+	if area.IsDug(pos.Plus(sideVec1)) || area.IsDug(pos.Plus(vec).Plus(sideVec1)) ||
+		area.IsDug(pos.Plus(sideVec2)) || area.IsDug(pos.Plus(vec).Plus(sideVec2)) {
+		// Digging to target cell would break diagonally into an open area,
+		// that's ugly. (Breaking head-on into an open area is ok, though.)
+		return false
+	}
+
+	return true
+}
