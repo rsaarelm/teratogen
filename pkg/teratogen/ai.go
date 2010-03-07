@@ -52,6 +52,8 @@ func DoTurn() {
 		Heartbeats()
 	}
 
+	levelNum := GetCurrentLevel()
+
 	if PlayerActsThisTurn() {
 		for {
 			playerInput := Fx().GetPlayerInput()
@@ -60,6 +62,13 @@ func DoTurn() {
 				break
 			}
 		}
+	}
+
+	if GetCurrentLevel() != levelNum {
+		// XXX: Hack: If the player entered a new level, skip the rest of the
+		// turn, don't let the creatures on the next level act before the
+		// player.
+		return
 	}
 
 	for o := range Creatures().Iter() {
