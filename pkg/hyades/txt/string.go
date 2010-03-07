@@ -22,7 +22,12 @@ func PadString(str string, minLength int) (result string) {
 	return
 }
 
-func Capitalize(str string) (result string) { return strings.ToUpper(str[0:1]) + str[1:] }
+func Capitalize(str string) (result string) {
+	if len(str) == 0 {
+		return ""
+	}
+	return strings.ToUpper(str[0:1]) + str[1:]
+}
 
 // EditDistance returns the edit or Levenshtein distance between two strings.
 // The edit distance is the minimum number of additions, deletions or changes
