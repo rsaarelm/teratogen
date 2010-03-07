@@ -503,8 +503,8 @@ func DigRoom(area Diggable, xmin, ymin, xmax, ymax int, maxW, maxH int) (nDug in
 		x := xmin + rand.Intn(xmax-xmin-w)
 		y := ymin + rand.Intn(ymax-ymin-h)
 		if GoodRoomPos(area, geom.Pt2I{x, y}, geom.Pt2I{x + w, y + h}) {
-			for y2 := y + 1; y2 < y+h-1; y2++ {
-				for x2 := x + 1; x2 < x+w-1; x2++ {
+			for y2 := y + 1; y2 < y+h; y2++ {
+				for x2 := x + 1; x2 < x+w; x2++ {
 					area.Dig(geom.Pt2I{x2, y2})
 					nDug++
 				}
@@ -580,8 +580,8 @@ func GoodRoomPos(area Diggable, p1, p2 geom.Pt2I) bool {
 		}
 	}
 
-	for x := num.Imin(p1.X, p2.X) + 1; x < num.Imax(p1.X, p2.X)-1; x++ {
-		for y := num.Imin(p1.Y, p2.Y) + 1; y < num.Imax(p1.Y, p2.Y)-1; y++ {
+	for x := num.Imin(p1.X, p2.X) + 1; x < num.Imax(p1.X, p2.X); x++ {
+		for y := num.Imin(p1.Y, p2.Y) + 1; y < num.Imax(p1.Y, p2.Y); y++ {
 			pt := geom.Pt2I{x, y}
 			if !area.CanDig(pt) {
 				// Undiggable stuff within room
