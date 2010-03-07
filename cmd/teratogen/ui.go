@@ -25,9 +25,8 @@ import (
 const redrawIntervalNs = 30e6
 const capFps = true
 
-// 16:10 aspect ratio
-const baseScreenWidth = 768
-const baseScreenHeight = 480
+const baseScreenWidth = 800
+const baseScreenHeight = 600
 
 var screenWidth = baseScreenWidth * 2
 var screenHeight = baseScreenHeight * 2
