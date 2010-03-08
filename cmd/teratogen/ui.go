@@ -427,7 +427,7 @@ func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
 	worldP1 := Tile2WorldPos(game.GetPos(shooterId))
 	worldP2 := Tile2WorldPos(hitPos).Plus(InCellJitter())
 	p1, p2 := draw.Pt(worldP1.X, worldP1.Y), draw.Pt(worldP2.X, worldP2.Y)
-	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, config.Scale*config.TileScale)
+	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
 
 	// TODO: Sparks when hitting walls.
 }
@@ -435,7 +435,7 @@ func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
 func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		config.TileScale, 2e8, float64(config.TileScale)*20.0,
+		VisualScale(), 2e8, float64(VisualScale())*10.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 	PlaySound("hit")
 }
@@ -448,7 +448,7 @@ func (self *SdlEffects) Destroy(id entity.Id) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
 	const gibNum = 8
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		config.TileScale*2, 2e8, float64(config.TileScale)*20.0,
+		VisualScale(), 2e8, float64(VisualScale())*10.0,
 		gfx.Red, gfx.Red, int(20.0*math.Log(gibNum)/math.Log(2.0)))
 
 	PlaySound("death")
@@ -464,7 +464,7 @@ func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
 	sx, sy := CenterDrawPos(center)
 	const gibNum = 8
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		config.TileScale*4, 2e8, float64(radius*config.TileScale)*20.0,
+		VisualScale(), 2e8, float64(radius*VisualScale())*10.0,
 		gfx.White, gfx.Yellow, int(20.0*math.Log(gibNum)/math.Log(2.0)))
 
 	// TODO: Explosion sound
@@ -516,3 +516,5 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 	})
 	return id
 }
+
+func VisualScale() int { return config.TileScale * config.Scale }

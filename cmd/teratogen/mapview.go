@@ -111,9 +111,32 @@ func drawEntities(g gfx.Graphics) {
 		// TODO: Draw static (item) entities from map memory.
 		if mapped {
 			if seen || !game.IsMobile(id) {
-				Draw(g, game.GetIconId(id), pos.X, pos.Y)
+				armorId, _ := game.GetEquipment(id, game.ArmorEquipSlot)
+				Draw(g, GearedIcon(game.GetIconId(id), armorId), pos.X, pos.Y)
 			}
 		}
+	}
+}
+
+
+func drawTerrain(g gfx.Graphics) {
+	mapWidth, mapHeight := game.MapDims()
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		if game.GetLos().Get(pt) == game.LosUnknown {
+			continue
+		}
+		idx := game.GetArea().GetTerrain(pt)
+		tileIdx := tileset[idx]
+		if isVisualWall(idx) && idx != game.TerrainDoor {
+			mask := geom.HexNeighborMask(pt, func(p geom.Pt2I) bool { return isVisualWall(game.GetArea().GetTerrain(p)) })
+			offset := geom.HexWallType(mask)
+
+			tileIdx += offset
+		}
+
+		// XXX: Get indexable tilesets, so won't need these string kludges.
+		tile := fmt.Sprintf("tiles:%d", tileIdx)
+		Draw(g, tile, pt.X, pt.Y)
 	}
 }
 
@@ -427,27 +450,6 @@ func isVisualWall(terrain game.TerrainType) bool {
 	return terrain >= game.TerrainDoor
 }
 
-func drawTerrain(g gfx.Graphics) {
-	mapWidth, mapHeight := game.MapDims()
-	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if game.GetLos().Get(pt) == game.LosUnknown {
-			continue
-		}
-		idx := game.GetArea().GetTerrain(pt)
-		tileIdx := tileset[idx]
-		if isVisualWall(idx) && idx != game.TerrainDoor {
-			mask := geom.HexNeighborMask(pt, func(p geom.Pt2I) bool { return isVisualWall(game.GetArea().GetTerrain(p)) })
-			offset := geom.HexWallType(mask)
-
-			tileIdx += offset
-		}
-
-		// XXX: Get indexable tilesets, so won't need these string kludges.
-		tile := fmt.Sprintf("tiles:%d", tileIdx)
-		Draw(g, tile, pt.X, pt.Y)
-	}
-}
-
 // InCellJitter return a vector that point's to a normal-distributed position
 // within a game tile centered on tile center.
 func InCellJitter() geom.Vec2I {
@@ -456,4 +458,21 @@ func InCellJitter() geom.Vec2I {
 		-float64(TileW)/2, float64(TileW)/2, x),
 		num.Clamp(-float64(TileH)/2, float64(TileH)/2, y)
 	return geom.Vec2I{int(x), int(y)}
+}
+
+// GearedIcon may change the icon of a character based on it's gear.
+func GearedIcon(icon string, armor entity.Id) string {
+	if icon == "chars:16" {
+		// Player icon
+		switch game.GetName(armor) {
+		case "kevlar armor":
+			return "chars:17"
+		case "riot armor":
+			return "chars:18"
+		case "hard suit":
+			return "chars:19"
+		}
+	}
+
+	return icon
 }

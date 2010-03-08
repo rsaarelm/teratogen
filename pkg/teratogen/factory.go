@@ -39,7 +39,7 @@ func init() {
 	a["protagonist"] = entity.Assemblage{
 		Metadata:      MetaTemplate(-1, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"protagonist", "chars:0", PronounIt, false},
+		NameComponent: NameTemplate{"protagonist", "chars:16", PronounIt, false},
 		CreatureComponent: &CreatureTemplate{
 			Power:  Good,
 			Skill:  Good,
@@ -183,7 +183,7 @@ func init() {
 			Traits:        NoItemTrait},
 	}
 	a["kevlar"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 0),
+		Metadata:      MetaTemplate(400, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate{"kevlar armor", "items:6", PronounIt, false},
 		ItemComponent: &ItemTemplate{
@@ -193,6 +193,30 @@ func init() {
 			DefenseBonus:  1,
 			Use:           NoUse,
 			Traits:        NoItemTrait},
+	}
+	a["riot"] = entity.Assemblage{
+		Metadata:      MetaTemplate(400, 3),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate{"riot armor", "items:13", PronounIt, false},
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: ArmorEquipSlot,
+			Durability:    20,
+			WoundBonus:    0,
+			DefenseBonus:  3,
+			Use:           NoUse,
+			Traits:        NoItemTrait},
+	}
+	a["hardsuit"] = entity.Assemblage{
+		Metadata:      MetaTemplate(600, 8),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate{"hard suit", "items:14", PronounIt, false},
+		ItemComponent: &ItemTemplate{
+			EquipmentSlot: ArmorEquipSlot,
+			Durability:    40,
+			WoundBonus:    0,
+			DefenseBonus:  7,
+			Use:           NoUse,
+			Traits:        ItemHardsuit},
 	}
 	a["medkit"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),

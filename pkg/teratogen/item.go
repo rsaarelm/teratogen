@@ -35,6 +35,8 @@ const (
 	NoItemTrait = 1 << iota
 	ItemRapidFire
 	ItemKnockback
+	// TODO: Hard suit effect: Power up character strength and resilience when worn.
+	ItemHardsuit
 )
 
 // How big is the knockback effect.
