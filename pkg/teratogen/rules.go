@@ -122,7 +122,7 @@ func EnemiesAt(id entity.Id, pos geom.Pt2I) iterable.Iterable {
 }
 
 // The scaleDifference is defender scale - attacker scale.
-func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
+func RollMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
 	// Hitting requires a minimal absolute success based on the scale of
 	// the target and defeating the target's defense ability.
 	threshold := MinToHit(scaleDifference)
@@ -137,30 +137,17 @@ func IsMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree i
 func Attack(attackerId, defenderId entity.Id) {
 	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
 
-	doesHit, hitDegree := IsMeleeHit(attCrit.Skill, defCrit.Skill,
+	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defCrit.Skill,
 		defCrit.Scale-attCrit.Scale)
 
 	if doesHit {
 		EMsg("{sub.Thename} hit{sub.s} {obj.thename}.\n", attackerId, defenderId)
 		// XXX: Assuming melee attack.
-		woundLevel := attCrit.MeleeWoundLevelAgainst(
-			attackerId, defenderId, hitDegree)
-
-		knockback := MeleeKnockbackAmount(attackerId, defenderId)
-		if knockback > 0 {
-			Knockback(defenderId, attackerId, geom.Vec2IToDir6(GetPos(defenderId).Minus(GetPos(attackerId))), knockback)
-		}
+		defCrit.Damage(defenderId, attCrit.MeleeDamageData(attackerId), hitDegree,
+			GetPos(attackerId), attackerId)
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
 		DamageEquipment(defenderId, ArmorEquipSlot)
-
-		if woundLevel > 0 {
-			defCrit.Wound(defenderId, woundLevel, attackerId)
-		} else {
-			EMsg("{sub.Thename} {sub.is} unhurt.\n", defenderId, attackerId)
-		}
-	} else {
-		EMsg("{sub.Thename} missed {obj.thename}.\n", attackerId, defenderId)
 	}
 }
 
@@ -173,39 +160,23 @@ func Knockback(id, causerId entity.Id, dir6 int, amount int) {
 			// too.
 			hurtAmount := amount - i
 			if crit := GetCreature(id); crit != nil {
-				crit.Wound(id, hurtAmount, causerId)
+				crit.Damage(id, &DamageData{BaseMagnitude: hurtAmount, Type: BluntDamage},
+					0, GetPos(id), causerId)
 			}
 			return
 		}
 	}
 }
 
-// MeleeKnockbackAmount returns the number of cells attacker's melee attack
-// knocks defender back. Returns 0 if there is no knockback.
-func MeleeKnockbackAmount(attackerId, defenderId entity.Id) (numCells int) {
-	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
-
-	power := attCrit.Power
-
-	if wepId, ok := GetEquipment(attackerId, MeleeEquipSlot); ok {
-		item := GetItem(wepId)
-		if item != nil && item.HasTrait(ItemKnockback) {
-			power += ItemKnockbackStrength
-		}
-	}
-
-	return RollKnockback(power, defCrit.MassFactor())
-}
-
 func RollKnockback(attackerPower, defenderMass int) (numCells int) {
-	difficulty := defenderMass + 3 - attackerPower
+	difficulty := defenderMass + 3
 
 	// Attacker needs to keep doing harder and harder strength checks to get
 	// more pushback.
 	for {
 		if FudgeDice()+attackerPower >= difficulty {
 			numCells++
-			difficulty++
+			difficulty += 2
 		} else {
 			break
 		}
@@ -233,14 +204,16 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	// TODO: Aiming precision etc.
 	hitPos := GetHitPos(GetPos(attackerId), target)
 
-	damageFactor := 0
+	damage := &DamageData{Type: PiercingDamage}
 	if gun, ok := GetEquipment(attackerId, GunEquipSlot); ok {
-		damageFactor += GetItem(gun).WoundBonus
+		damage.BaseMagnitude += GetItem(gun).WoundBonus
 	}
+
+	hitDegree := FudgeDice() + GetCreature(attackerId).Skill
 
 	Fx().Shoot(attackerId, hitPos)
 
-	DamagePos(hitPos, damageFactor, attackerId)
+	DamagePos(hitPos, GetPos(attackerId), damage, hitDegree, attackerId)
 
 	DamageEquipment(attackerId, GunEquipSlot)
 
@@ -274,10 +247,10 @@ func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
 	}
 }
 
-func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
+func DamagePos(pos, sourcePos geom.Pt2I, damage *DamageData, hitDegree int, causerId entity.Id) {
 	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
 		id := o.(entity.Id)
-		GetCreature(id).Wound(id, woundLevel, causerId)
+		GetCreature(id).Damage(id, damage, hitDegree, sourcePos, causerId)
 	}
 }
 
@@ -584,7 +557,7 @@ func BlocksMovement(id entity.Id) bool { return IsCreature(id) }
 func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 	Fx().Explode(pos, power, 2)
 	for pt := range geom.PtIter(pos.X-1, pos.Y-1, 3, 3) {
-		DamagePos(pt, power, cause)
+		DamagePos(pt, pos, &DamageData{BaseMagnitude: power, Type: BluntDamage}, 0, cause)
 	}
 }
 

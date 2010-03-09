@@ -53,10 +53,10 @@ const (
 	// Piercing damage doesn't knockback, but can do criticals.
 	PiercingDamage
 
-	// Possible future damage types.
-	//ElectricDamage
-	//FireDamage
-	//ColdDamage
+	ElectricDamage
+	FireDamage
+	ColdDamage
+	AcidDamage
 )
 
 type DamageData struct {
@@ -243,16 +243,36 @@ func (self *Creature) MeleeWoundLevelAgainst(id, targetId entity.Id, hitDegree i
 	return
 }
 
+func (self *Creature) MeleeDamageData(selfId entity.Id) (result *DamageData) {
+	result = new(DamageData)
+
+	result.BaseMagnitude = self.Power + self.MassFactor()
+	result.Type = BluntDamage
+
+	if o, ok := GetEquipment(selfId, MeleeEquipSlot); ok {
+		item := GetItem(o)
+		// Melee weapon bonus
+		result.BaseMagnitude += item.WoundBonus
+
+		if item.HasTrait(ItemKnockback) {
+			result.KnockbackBonus += ItemKnockbackStrength
+		}
+	}
+
+	return
+}
+
 // Deal damage to a creature. BaseDamage is the basic strength of the attack,
 // hitDegree is the skill value (0 being neutral, larger being better) with
 // which the attack was made. A skilled attack has a small chance of causing a
 // wound even if the baseDamage would not otherwise harm the creature.
-func (self *Creature) Damage(selfId entity.Id, data DamageData, hitDegree int, sourcePos geom.Pt2I, causerId entity.Id) {
+func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree int, sourcePos geom.Pt2I, causerId entity.Id) {
 	damageFactor := data.BaseMagnitude + hitDegree
 	armorFactor := self.ArmorFactor(selfId)
 
 	woundLevel := damageFactor - armorFactor
 
+	isDirectionalDamage := !sourcePos.Equals(GetPos(selfId))
 	damageDir := geom.Vec2IToDir6(GetPos(selfId).Minus(sourcePos))
 
 	if woundLevel < 1 {
@@ -267,7 +287,7 @@ func (self *Creature) Damage(selfId entity.Id, data DamageData, hitDegree int, s
 		}
 	}
 
-	if data.Type == BluntDamage {
+	if data.Type == BluntDamage && isDirectionalDamage {
 		// Possibility of knockback.
 		knockbackAmount := RollKnockback(data.BaseMagnitude+data.KnockbackBonus, self.MassFactor())
 		if knockbackAmount > 0 {
@@ -275,5 +295,9 @@ func (self *Creature) Damage(selfId entity.Id, data DamageData, hitDegree int, s
 		}
 	}
 
-	self.Wound(selfId, woundLevel, causerId)
+	if woundLevel > 0 {
+		self.Wound(selfId, woundLevel, causerId)
+	} else {
+		EMsg("{sub.Thename} {sub.is} unhurt.\n", selfId, entity.NilId)
+	}
 }
