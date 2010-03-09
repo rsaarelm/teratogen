@@ -152,7 +152,7 @@ func Attack(attackerId, defenderId entity.Id) {
 		DamageEquipment(defenderId, ArmorEquipSlot)
 
 		if woundLevel > 0 {
-			defCrit.Damage(defenderId, woundLevel, attackerId)
+			defCrit.Wound(defenderId, woundLevel, attackerId)
 		} else {
 			EMsg("{sub.Thename} {sub.is} unhurt.\n", defenderId, attackerId)
 		}
@@ -170,7 +170,7 @@ func Knockback(id, causerId entity.Id, dir geom.Vec2I, amount int) {
 			// too.
 			hurtAmount := amount - i
 			if crit := GetCreature(id); crit != nil {
-				crit.Damage(id, hurtAmount, causerId)
+				crit.Wound(id, hurtAmount, causerId)
 			}
 			return
 		}
@@ -268,7 +268,7 @@ func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
 func DamagePos(pos geom.Pt2I, woundLevel int, causerId entity.Id) {
 	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
 		id := o.(entity.Id)
-		GetCreature(id).Damage(id, woundLevel, causerId)
+		GetCreature(id).Wound(id, woundLevel, causerId)
 	}
 }
 

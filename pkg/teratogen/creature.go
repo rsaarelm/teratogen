@@ -153,7 +153,7 @@ func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 	return
 }
 
-func (self *Creature) Damage(id entity.Id, woundLevel int, causerId entity.Id) {
+func (self *Creature) Wound(id entity.Id, woundLevel int, causerId entity.Id) {
 	if self.Statuses&StatusDead != 0 {
 		return
 	}
