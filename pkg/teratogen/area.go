@@ -193,26 +193,29 @@ func (self *Area) MakeCaveMap() {
 
 func (self *Area) MakeRuinsMap() {
 	// TODO: Open area and buildings gen.
-	area := MakeBspMap(1, 1, mapWidth-2-mapHeight, mapHeight-2)
-	graph := alg.NewSparseMatrixGraph()
-	area.FindConnectingWalls(graph)
-	doors := DoorLocations(graph)
-
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		x, y := pt.X, pt.Y
-		bX, bY := x+y-mapHeight, y
-		if area.RoomAtPoint(bX, bY) != nil {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainFloor)
-		} else {
-			self.SetTerrain(geom.Pt2I{x, y}, TerrainRockWall)
-		}
+		self.SetTerrain(pt, TerrainRockWall)
 	}
 
-	for pt := range doors.Iter() {
-		pt := pt.(geom.Pt2I)
-		x, y := pt.X-pt.Y+mapHeight, pt.Y
-		self.SetTerrain(geom.Pt2I{x, y}, TerrainDoor)
+	corrDug := 0
+	const needCorrDug = 200
+	const needTotalDug = 600
+
+	for nTries := 256; nTries > 0 && corrDug < needCorrDug; nTries-- {
+		pos, ok := GetSpawnPos()
+		if !ok {
+			pos = geom.Pt2I{mapWidth / 2, mapHeight / 2}
+		}
+		corrDug += DigTunnels(pos, (*corridorDiggable)(self), 0.1, 0.05, 0.01)
 	}
+
+	roomDug := 0
+
+	for nTries := 256; nTries > 0 && corrDug+roomDug < needTotalDug; nTries-- {
+		roomDug += DigRoom((*roomDiggable)(self), 0, 0, mapWidth, mapHeight, 12, 12)
+	}
+
+	self.placeCorridorDoors(0.80)
 }
 
 func (self *Area) MakeVisceraMap() {
