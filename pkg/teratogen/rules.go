@@ -55,6 +55,9 @@ func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	return
 }
 
+// Log2Modifier returns the discrete base-2 logarithm class a number belongs
+// to. Used for skill values. 0 for 0, signum(x) * floor(log_2(abs(x))) for
+// other numbers.
 func Log2Modifier(x int) int {
 	absMod := int(num.Round(num.Log2(math.Fabs(float64(x))+2) - 1))
 	return num.Isignum(x) * absMod
@@ -145,7 +148,7 @@ func Attack(attackerId, defenderId entity.Id) {
 
 		knockback := MeleeKnockbackAmount(attackerId, defenderId)
 		if knockback > 0 {
-			Knockback(defenderId, attackerId, GetPos(defenderId).Minus(GetPos(attackerId)), knockback)
+			Knockback(defenderId, attackerId, geom.Vec2IToDir6(GetPos(defenderId).Minus(GetPos(attackerId))), knockback)
 		}
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
@@ -161,9 +164,9 @@ func Attack(attackerId, defenderId entity.Id) {
 	}
 }
 
-func Knockback(id, causerId entity.Id, dir geom.Vec2I, amount int) {
+func Knockback(id, causerId entity.Id, dir6 int, amount int) {
 	for i := 0; i < amount; i++ {
-		if !TryMove(id, dir) {
+		if !TryMove(id, geom.Dir6ToVec(dir6)) {
 			// Bumped into something, hurt for the amount of movement still left.
 
 			// XXX: If bumped into another creature, should hurt that creature
@@ -182,21 +185,27 @@ func Knockback(id, causerId entity.Id, dir geom.Vec2I, amount int) {
 func MeleeKnockbackAmount(attackerId, defenderId entity.Id) (numCells int) {
 	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
 
-	massDifficulty := defCrit.MassFactor() - attCrit.MassFactor() + 3
+	power := attCrit.Power
 
 	if wepId, ok := GetEquipment(attackerId, MeleeEquipSlot); ok {
 		item := GetItem(wepId)
 		if item != nil && item.HasTrait(ItemKnockback) {
-			massDifficulty -= ItemKnockbackStrength
+			power += ItemKnockbackStrength
 		}
 	}
+
+	return RollKnockback(power, defCrit.MassFactor())
+}
+
+func RollKnockback(attackerPower, defenderMass int) (numCells int) {
+	difficulty := defenderMass + 3 - attackerPower
 
 	// Attacker needs to keep doing harder and harder strength checks to get
 	// more pushback.
 	for {
-		if FudgeDice()+attCrit.Power >= massDifficulty {
+		if FudgeDice()+attackerPower >= difficulty {
 			numCells++
-			massDifficulty++
+			difficulty++
 		} else {
 			break
 		}

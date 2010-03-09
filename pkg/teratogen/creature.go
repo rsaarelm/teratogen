@@ -2,6 +2,7 @@ package teratogen
 
 import (
 	"hyades/entity"
+	"hyades/geom"
 	"hyades/num"
 )
 
@@ -42,6 +43,29 @@ type CreatureTemplate struct {
 	Power, Skill int
 	Scale        int
 	Traits       int32
+}
+
+type DamageType int
+
+const (
+	// Blunt damage does knockback
+	BluntDamage = DamageType(iota)
+	// Piercing damage doesn't knockback, but can do criticals.
+	PiercingDamage
+
+	// Possible future damage types.
+	//ElectricDamage
+	//FireDamage
+	//ColdDamage
+)
+
+type DamageData struct {
+	// The base magnitude of damage.
+	BaseMagnitude int
+	// How skillfully the damage was targeted.
+	Type DamageType
+	// Is there extra knockback involved?
+	KnockbackBonus int
 }
 
 func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
@@ -217,4 +241,39 @@ func (self *Creature) MeleeWoundLevelAgainst(id, targetId entity.Id, hitDegree i
 		}
 	}
 	return
+}
+
+// Deal damage to a creature. BaseDamage is the basic strength of the attack,
+// hitDegree is the skill value (0 being neutral, larger being better) with
+// which the attack was made. A skilled attack has a small chance of causing a
+// wound even if the baseDamage would not otherwise harm the creature.
+func (self *Creature) Damage(selfId entity.Id, data DamageData, hitDegree int, sourcePos geom.Pt2I, causerId entity.Id) {
+	damageFactor := data.BaseMagnitude + hitDegree
+	armorFactor := self.ArmorFactor(selfId)
+
+	woundLevel := damageFactor - armorFactor
+
+	damageDir := geom.Vec2IToDir6(GetPos(selfId).Minus(sourcePos))
+
+	if woundLevel < 1 {
+		// If wounding by normal means didn't work, there's still a chance to
+		// score a wound if hitDegree was exceptionally good. Hit degree must
+		// beat the base-2 logarithm of the negative wound level's magnitude.
+		magnitude := num.Iabs(woundLevel)
+		if hitDegree > Log2Modifier(magnitude) && num.OneChanceIn(1+magnitude) {
+			woundLevel = 1
+		} else {
+			woundLevel = 0
+		}
+	}
+
+	if data.Type == BluntDamage {
+		// Possibility of knockback.
+		knockbackAmount := RollKnockback(data.BaseMagnitude+data.KnockbackBonus, self.MassFactor())
+		if knockbackAmount > 0 {
+			Knockback(selfId, causerId, damageDir, knockbackAmount)
+		}
+	}
+
+	self.Wound(selfId, woundLevel, causerId)
 }
