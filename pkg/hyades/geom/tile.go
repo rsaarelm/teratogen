@@ -146,17 +146,17 @@ func Vec2IToDir4(vec Vec2I) int {
 func Vec2IToDir6(vec Vec2I) int {
 	hexadecant := Hexadecant(float64(vec.X), float64(vec.Y))
 	switch hexadecant {
-	case 14, 15, 0:
+	case 14, 15:
 		return 0
-	case 1, 2:
+	case 0, 1, 2, 3:
 		return 1
-	case 3, 4, 5:
+	case 4, 5:
 		return 2
-	case 6, 7, 8:
+	case 6, 7:
 		return 3
-	case 9, 10:
+	case 8, 9, 10, 11:
 		return 4
-	case 11, 12, 13:
+	case 12, 13:
 		return 5
 	}
 	log.Crashf("Bad hexadecant %v", hexadecant)
