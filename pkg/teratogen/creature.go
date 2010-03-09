@@ -300,4 +300,7 @@ func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree int, 
 	} else {
 		EMsg("{sub.Thename} {sub.is} unhurt.\n", selfId, entity.NilId)
 	}
+
+	// XXX: Damage amount not accounted in armor damage.
+	DamageEquipment(selfId, ArmorEquipSlot)
 }

@@ -147,7 +147,6 @@ func Attack(attackerId, defenderId entity.Id) {
 			GetPos(attackerId), attackerId)
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
-		DamageEquipment(defenderId, ArmorEquipSlot)
 	}
 }
 
