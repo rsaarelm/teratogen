@@ -565,3 +565,21 @@ func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 func Heartbeat(id entity.Id) {
 	// TODO
 }
+
+// ScaleToVolume converts a scale value into a corresponding volume in liters.
+// This is the main interpretation for scale.
+func ScaleToVolume(scale int) (liters float64) {
+	return math.Pow(2.0, float64(scale+6))
+}
+
+// ScaleToMass converts a scale and a density value (density 0 for water /
+// living things) into a corresponding kilogram mass.
+func ScaleToMass(scale, density int) (kg float64) {
+	return ScaleToVolume(scale + density)
+}
+
+// ScaleToHeight converts a scale to the average upright height of a humanoid
+// of that scale.
+func ScaleToHeight(scale int) (meters float64) {
+	return math.Pow(math.Pow(2.0, float64(scale+2)), 1.0/3.0)
+}
