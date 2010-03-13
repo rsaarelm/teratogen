@@ -1,7 +1,10 @@
 package teratogen
 
 import (
+	"exp/iterable"
+	"hyades/dbg"
 	"hyades/entity"
+	"hyades/geom"
 )
 
 
@@ -132,4 +135,89 @@ func RemoveEquipped(itemId entity.Id) {
 func CanEquipIn(slot EquipSlot, itemId entity.Id) bool {
 	item := GetItem(itemId)
 	return slot != NoEquipSlot && item != nil && slot == item.EquipmentSlot
+}
+
+func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
+
+func TakeItem(takerId, itemId entity.Id) {
+	SetParent(itemId, takerId)
+	EMsg("{sub.Thename} take{sub.s} {obj.thename}.\n", takerId, itemId)
+}
+
+func DropItem(dropperId, itemId entity.Id) {
+	SetParent(itemId, entity.NilId)
+	EMsg("{sub.Thename} drop{sub.s} {obj.thename}.\n", dropperId, itemId)
+}
+
+func TakeableItems(pos geom.Pt2I) iterable.Iterable {
+	return iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsTakeableItem))
+}
+
+func IsEquippableItem(id entity.Id) bool {
+	item := GetItem(id)
+	return item != nil && item.EquipmentSlot != NoEquipSlot
+}
+
+func IsCarryingGear(id entity.Id) bool {
+	return iterable.Any(Contents(id), EntityFilterFn(IsEquippableItem))
+}
+
+func IsUsable(id entity.Id) bool { return IsItem(id) && GetItem(id).Use != NoUse }
+
+func HasUsableItems(id entity.Id) bool {
+	return iterable.Any(Contents(id), EntityFilterFn(IsUsable))
+}
+
+func UseItem(userId, itemId entity.Id) {
+	if item := GetItem(itemId); item != nil {
+		switch item.Use {
+		case NoUse:
+			Msg("Nothing happens.\n")
+		case MedkitUse:
+			crit := GetCreature(userId)
+			if crit.Wounds > 0 {
+				Msg("You feel much better.\n")
+				Fx().Heal(userId, crit.Wounds)
+				crit.Wounds = 0
+				Destroy(itemId)
+			} else {
+				Msg("You feel fine already.\n")
+			}
+		default:
+			dbg.Die("Unknown use %v.", item.Use)
+		}
+	}
+}
+
+// Autoequip equips item on owner if it can be equpped in a slot that
+// currently has nothing.
+func AutoEquip(ownerId, itemId entity.Id) {
+	slot := GetItem(itemId).EquipmentSlot
+	if slot == NoEquipSlot {
+		return
+	}
+	if _, ok := GetEquipment(ownerId, slot); ok {
+		// Already got something equipped.
+		return
+	}
+	SetEquipment(ownerId, slot, itemId)
+	EMsg("{sub.Thename} equip{sub.s} {obj.thename}.\n", ownerId, itemId)
+}
+
+func GunEquipped(id entity.Id) bool {
+	_, ok := GetEquipment(id, GunEquipSlot)
+	return ok
+}
+
+func RapidFireGunEquipped(id entity.Id) bool {
+	gunId, ok := GetEquipment(id, GunEquipSlot)
+	if !ok {
+		return false
+	}
+
+	if gun := GetItem(gunId); gun != nil {
+		return gun.HasTrait(ItemRapidFire)
+	}
+
+	return false
 }

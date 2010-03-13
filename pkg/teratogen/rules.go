@@ -3,8 +3,6 @@ package teratogen
 import (
 	"exp/iterable"
 	"fmt"
-	"hyades/alg"
-	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -94,164 +92,6 @@ func LevelDescription(level int) string {
 	panic("Switch fallthrough in LevelDescription")
 }
 
-// Return whether an entity considers another entity an enemy.
-func IsEnemyOf(id, possibleEnemyId entity.Id) bool {
-	if id == possibleEnemyId {
-		return false
-	}
-
-	if id == entity.NilId || possibleEnemyId == entity.NilId {
-		return false
-	}
-
-	// XXX: Currently player is the enemy of every other creature. This should
-	// be replaced with a more general faction system.
-	if IsCreature(id) && IsCreature(possibleEnemyId) &&
-		(id == PlayerId() || possibleEnemyId == PlayerId()) {
-		return true
-	}
-
-	return false
-}
-
-// EnemiesAt iterates the enemies of ent at pos.
-func EnemiesAt(id entity.Id, pos geom.Pt2I) iterable.Iterable {
-	filter := func(o interface{}) bool { return IsEnemyOf(id, o.(entity.Id)) }
-
-	return iterable.Filter(EntitiesAt(pos), filter)
-}
-
-// The scaleDifference is defender scale - attacker scale.
-func RollMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
-	// Hitting requires a minimal absolute success based on the scale of
-	// the target and defeating the target's defense ability.
-	threshold := MinToHit(scaleDifference)
-	hitRoll := FudgeDice() + toHit
-	defenseRoll := FudgeDice() + defense
-
-	degree = hitRoll - defenseRoll
-	success = hitRoll >= threshold && degree > 0
-	return
-}
-
-func Attack(attackerId, defenderId entity.Id) {
-	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
-
-	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defCrit.Skill,
-		defCrit.Scale-attCrit.Scale)
-
-	if doesHit {
-		EMsg("{sub.Thename} hit{sub.s} {obj.thename}.\n", attackerId, defenderId)
-		// XXX: Assuming melee attack.
-		defCrit.Damage(defenderId, attCrit.MeleeDamageData(attackerId), hitDegree,
-			GetPos(attackerId), attackerId)
-
-		DamageEquipment(attackerId, MeleeEquipSlot)
-	}
-}
-
-func Knockback(id, causerId entity.Id, dir6 int, amount int) {
-	for i := 0; i < amount; i++ {
-		if !TryMove(id, geom.Dir6ToVec(dir6)) {
-			// Bumped into something, hurt for the amount of movement still left.
-
-			// XXX: If bumped into another creature, should hurt that creature
-			// too.
-			hurtAmount := amount - i
-			if crit := GetCreature(id); crit != nil {
-				crit.Damage(id, &DamageData{BaseMagnitude: hurtAmount, Type: BluntDamage},
-					0, GetPos(id), causerId)
-			}
-			return
-		}
-	}
-}
-
-func RollKnockback(attackerPower, defenderMass int) (numCells int) {
-	difficulty := defenderMass + 3
-
-	// Attacker needs to keep doing harder and harder strength checks to get
-	// more pushback.
-	for {
-		if FudgeDice()+attackerPower >= difficulty {
-			numCells++
-			difficulty += 2
-		} else {
-			break
-		}
-	}
-	return
-}
-
-func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
-	for o := range iterable.Drop(geom.HexLine(origin, target), 1).Iter() {
-		hitPos = o.(geom.Pt2I)
-		if !IsOpen(hitPos) {
-			break
-		}
-	}
-	return
-}
-
-// Shoot makes entity attackerId shoot at target position. Returns whether the
-// shooting ends the entity's move.
-func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
-	if !GunEquipped(attackerId) {
-		return true
-	}
-
-	// TODO: Aiming precision etc.
-	hitPos := GetHitPos(GetPos(attackerId), target)
-
-	damage := &DamageData{Type: PiercingDamage}
-	if gun, ok := GetEquipment(attackerId, GunEquipSlot); ok {
-		damage.BaseMagnitude += GetItem(gun).WoundBonus
-	}
-
-	hitDegree := FudgeDice() + GetCreature(attackerId).Skill
-
-	Fx().Shoot(attackerId, hitPos)
-
-	DamagePos(hitPos, GetPos(attackerId), damage, hitDegree, attackerId)
-
-	DamageEquipment(attackerId, GunEquipSlot)
-
-	if RapidFireGunEquipped(attackerId) {
-		endsMove = RapidFireEndsMove()
-		if !endsMove {
-			EMsg("{sub.Thename} keep{sub.s} shooting.\n", attackerId, entity.NilId)
-		}
-		return
-	}
-
-	return true
-}
-
-// RapidFireEndsTurn returns true when a creature shooting with a rapid-fire
-// weapon should have it's move ended and false if the creature should be
-// allowed to perform another action on its move.
-func RapidFireEndsMove() bool { return num.ChancesIn(1, 3) }
-
-func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
-	if itemId, ok := GetEquipment(ownerId, slot); ok {
-		item := GetItem(itemId)
-		if num.OneChanceIn(item.Durability) {
-			if slot == GunEquipSlot {
-				EMsg("{sub.Thename's} {obj.name} is out of ammo.\n", ownerId, itemId)
-			} else {
-				EMsg("{sub.Thename's} {obj.name} breaks.\n", ownerId, itemId)
-			}
-			Destroy(itemId)
-		}
-	}
-}
-
-func DamagePos(pos, sourcePos geom.Pt2I, damage *DamageData, hitDegree int, causerId entity.Id) {
-	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
-		id := o.(entity.Id)
-		GetCreature(id).Damage(id, damage, hitDegree, sourcePos, causerId)
-	}
-}
 
 func FudgeDice() (result int) {
 	for i := 0; i < 4; i++ {
@@ -393,73 +233,7 @@ func EntityFilterFn(entityPred func(entity.Id) bool) func(interface{}) bool {
 	return func(o interface{}) bool { return entityPred(o.(entity.Id)) }
 }
 
-func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
-
-func TakeItem(takerId, itemId entity.Id) {
-	SetParent(itemId, takerId)
-	EMsg("{sub.Thename} take{sub.s} {obj.thename}.\n", takerId, itemId)
-}
-
-func DropItem(dropperId, itemId entity.Id) {
-	SetParent(itemId, entity.NilId)
-	EMsg("{sub.Thename} drop{sub.s} {obj.thename}.\n", dropperId, itemId)
-}
-
-func TakeableItems(pos geom.Pt2I) iterable.Iterable {
-	return iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsTakeableItem))
-}
-
-func IsEquippableItem(id entity.Id) bool {
-	item := GetItem(id)
-	return item != nil && item.EquipmentSlot != NoEquipSlot
-}
-
-func IsCarryingGear(id entity.Id) bool {
-	return iterable.Any(Contents(id), EntityFilterFn(IsEquippableItem))
-}
-
-func IsUsable(id entity.Id) bool { return IsItem(id) && GetItem(id).Use != NoUse }
-
-func HasUsableItems(id entity.Id) bool {
-	return iterable.Any(Contents(id), EntityFilterFn(IsUsable))
-}
-
-func UseItem(userId, itemId entity.Id) {
-	if item := GetItem(itemId); item != nil {
-		switch item.Use {
-		case NoUse:
-			Msg("Nothing happens.\n")
-		case MedkitUse:
-			crit := GetCreature(userId)
-			if crit.Wounds > 0 {
-				Msg("You feel much better.\n")
-				Fx().Heal(userId, crit.Wounds)
-				crit.Wounds = 0
-				Destroy(itemId)
-			} else {
-				Msg("You feel fine already.\n")
-			}
-		default:
-			dbg.Die("Unknown use %v.", item.Use)
-		}
-	}
-}
-
-// Autoequip equips item on owner if it can be equpped in a slot that
-// currently has nothing.
-func AutoEquip(ownerId, itemId entity.Id) {
-	slot := GetItem(itemId).EquipmentSlot
-	if slot == NoEquipSlot {
-		return
-	}
-	if _, ok := GetEquipment(ownerId, slot); ok {
-		// Already got something equipped.
-		return
-	}
-	SetEquipment(ownerId, slot, itemId)
-	EMsg("{sub.Thename} equip{sub.s} {obj.thename}.\n", ownerId, itemId)
-}
-
+// EntityDist returns the distance between two entities.
 func EntityDist(id1, id2 entity.Id) float64 {
 	if HasPosComp(id1) && HasPosComp(id2) {
 		return float64(geom.HexDist(GetPos(id1), GetPos(id2)))
@@ -467,41 +241,7 @@ func EntityDist(id1, id2 entity.Id) float64 {
 	return math.MaxFloat64
 }
 
-func CreaturesSeenBy(o interface{}) iterable.Iterable {
-	id := o.(entity.Id)
-	pred := func(o interface{}) bool { return CanSeeTo(GetPos(id), GetPos(o.(entity.Id))) }
-	return iterable.Filter(OtherCreatures(o), pred)
-}
-
-func ClosestCreatureSeenBy(id entity.Id) entity.Id {
-	distFromSelf := func(idOther interface{}) float64 { return EntityDist(idOther.(entity.Id), id) }
-	ret, ok := alg.IterMin(CreaturesSeenBy(id), distFromSelf)
-	if !ok {
-		return entity.NilId
-	}
-	return ret.(entity.Id)
-}
-
-func GunEquipped(id entity.Id) bool {
-	_, ok := GetEquipment(id, GunEquipSlot)
-	return ok
-}
-
-func RapidFireGunEquipped(id entity.Id) bool {
-	gunId, ok := GetEquipment(id, GunEquipSlot)
-	if !ok {
-		return false
-	}
-
-	if gun := GetItem(gunId); gun != nil {
-		return gun.HasTrait(ItemRapidFire)
-	}
-
-	return false
-}
-
 const spawnsPerLevel = 32
-
 
 func Spawn(name string) entity.Id {
 	id := assemblages[name].MakeEntity(GetManager())
@@ -558,12 +298,6 @@ func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 	for pt := range geom.PtIter(pos.X-1, pos.Y-1, 3, 3) {
 		DamagePos(pt, pos, &DamageData{BaseMagnitude: power, Type: BluntDamage}, 0, cause)
 	}
-}
-
-// Heartbeat runs status updates on active entities. Things such as temporary
-// effects wearing off or affecting an entity go here.
-func Heartbeat(id entity.Id) {
-	// TODO
 }
 
 // ScaleToVolume converts a scale value into a corresponding volume in liters.

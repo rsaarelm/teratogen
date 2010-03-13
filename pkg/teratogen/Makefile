@@ -4,6 +4,7 @@ TARG=teratogen
 GOFILES=\
 	ai.go\
 	area.go\
+	combat.go\
 	contain.go\
 	context.go\
 	creature.go\

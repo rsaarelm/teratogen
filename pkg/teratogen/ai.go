@@ -1,6 +1,8 @@
 package teratogen
 
 import (
+	"exp/iterable"
+	"hyades/alg"
 	"hyades/geom"
 	"hyades/entity"
 	"hyades/num"
@@ -144,4 +146,52 @@ func Heartbeats() {
 	for o := range Creatures().Iter() {
 		Heartbeat(o.(entity.Id))
 	}
+}
+
+// Heartbeat runs status updates on active entities. Things such as temporary
+// effects wearing off or affecting an entity go here.
+func Heartbeat(id entity.Id) {
+	// TODO
+}
+
+// Return whether an entity considers another entity an enemy.
+func IsEnemyOf(id, possibleEnemyId entity.Id) bool {
+	if id == possibleEnemyId {
+		return false
+	}
+
+	if id == entity.NilId || possibleEnemyId == entity.NilId {
+		return false
+	}
+
+	// XXX: Currently player is the enemy of every other creature. This should
+	// be replaced with a more general faction system.
+	if IsCreature(id) && IsCreature(possibleEnemyId) &&
+		(id == PlayerId() || possibleEnemyId == PlayerId()) {
+		return true
+	}
+
+	return false
+}
+
+// EnemiesAt iterates the enemies of ent at pos.
+func EnemiesAt(id entity.Id, pos geom.Pt2I) iterable.Iterable {
+	filter := func(o interface{}) bool { return IsEnemyOf(id, o.(entity.Id)) }
+
+	return iterable.Filter(EntitiesAt(pos), filter)
+}
+
+func CreaturesSeenBy(o interface{}) iterable.Iterable {
+	id := o.(entity.Id)
+	pred := func(o interface{}) bool { return CanSeeTo(GetPos(id), GetPos(o.(entity.Id))) }
+	return iterable.Filter(OtherCreatures(o), pred)
+}
+
+func ClosestCreatureSeenBy(id entity.Id) entity.Id {
+	distFromSelf := func(idOther interface{}) float64 { return EntityDist(idOther.(entity.Id), id) }
+	ret, ok := alg.IterMin(CreaturesSeenBy(id), distFromSelf)
+	if !ok {
+		return entity.NilId
+	}
+	return ret.(entity.Id)
 }
