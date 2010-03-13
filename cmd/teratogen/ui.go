@@ -26,7 +26,7 @@ const redrawIntervalNs = 30e6
 const capFps = true
 
 const baseScreenWidth = 640
-const baseScreenHeight = 480
+const baseScreenHeight = 400
 
 var screenWidth = baseScreenWidth * 2
 var screenHeight = baseScreenHeight * 2
