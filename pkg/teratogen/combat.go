@@ -33,6 +33,9 @@ func Attack(attackerId, defenderId entity.Id) {
 			GetPos(attackerId), attackerId)
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
+	} else {
+		EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n",
+			attackerId, defenderId)
 	}
 }
 
