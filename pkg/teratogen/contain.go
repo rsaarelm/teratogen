@@ -75,3 +75,5 @@ func HasContents(id entity.Id) bool {
 	_, ok := GetContain().GetRhs(id)
 	return ok
 }
+
+func CountContents(id entity.Id) int { return GetContain().CountRhs(id) }

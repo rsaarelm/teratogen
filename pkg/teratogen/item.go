@@ -139,9 +139,19 @@ func CanEquipIn(slot EquipSlot, itemId entity.Id) bool {
 
 func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
 
-func TakeItem(takerId, itemId entity.Id) {
-	SetParent(itemId, takerId)
-	EMsg("{sub.Thename} take{sub.s} {obj.thename}.\n", takerId, itemId)
+func CarryLimit(id entity.Id) int { return 8 }
+
+func TakeItem(takerId, itemId entity.Id) bool {
+	numCarrying := CountContents(takerId)
+	if numCarrying < CarryLimit(takerId) {
+		SetParent(itemId, takerId)
+		EMsg("{sub.Thename} take{sub.s} {obj.thename}.\n", takerId, itemId)
+		return true
+	} else {
+		EMsg("{sub.Thename} can't carry any more items.\n", takerId, itemId)
+	}
+
+	return false
 }
 
 func DropItem(dropperId, itemId entity.Id) {

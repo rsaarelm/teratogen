@@ -510,8 +510,9 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 		}
 	}
 	SendPlayerInput(func() bool {
-		game.TakeItem(game.PlayerId(), id)
-		game.AutoEquip(game.PlayerId(), id)
+		if game.TakeItem(game.PlayerId(), id) {
+			game.AutoEquip(game.PlayerId(), id)
+		}
 		return true
 	})
 	return id
