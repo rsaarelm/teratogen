@@ -9,8 +9,8 @@ import (
 	"rand"
 )
 
-const mapWidth = 40
-const mapHeight = 20
+const mapWidth = 32
+const mapHeight = 32
 
 func MapDims() (width, height int) { return mapWidth, mapHeight }
 
