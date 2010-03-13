@@ -3,9 +3,12 @@ package sdl
 /*
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <SDL_ttf.h>
 
-// A struct to help cgo get a handle on the opaque Mix_Music type.
-typedef struct music { Mix_Music *music; } music;
+// Structs to help cgo handle some opaque SDL types.
+
+typedef struct music { Mix_Music *music; } musicWrap;
+typedef struct font { void *buf; TTF_Font *font; } fontWrap;
 
 // XXX: Workaround to nested struct misalignment with cgo.
 void unpackKeyeventKludge(SDL_KeyboardEvent* event, int* keysym, int* mod, int* unicode) {
@@ -18,6 +21,7 @@ import "C"
 
 import (
 	"exp/draw"
+	"fmt"
 	"hyades/dbg"
 	"hyades/keyboard"
 	"hyades/sfx"
@@ -30,6 +34,12 @@ import (
 const bitsPerPixel = 32
 
 const keyBufferSize = 16
+
+func withCString(str string, effect func(*C.char)) {
+	cs := C.CString(str)
+	effect(cs)
+	C.free(unsafe.Pointer(cs))
+}
 
 //////////////////////////////////////////////////////////////////
 // SDL Context object
@@ -66,6 +76,13 @@ type Context interface {
 	// KeyRepeatOff makes a single keypress emit only a single keyboard
 	// event no matter how long the key is held down.
 	KeyRepeatOff()
+
+	// LoadFont loads a font from TTF data.
+	LoadFont(fontData []byte, pointSize int) (result Font, err os.Error)
+
+	// Free frees the SDL resource the given value points to. If the value
+	// doesn't point to a resource, does nothing.
+	Free(handle interface{})
 }
 
 type Surface interface {
@@ -87,6 +104,14 @@ type Surface interface {
 	// Blit draws an image on the surface. It is much more efficient if
 	// the image is a SDL surface.
 	Blit(img image.Image, x, y int)
+}
+
+type Font interface {
+	Render(text string, color image.Color) (result image.Image, err os.Error)
+
+	StringWidth(text string) int
+
+	Height() int
 }
 
 type context struct {
@@ -133,6 +158,8 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	if config.Audio {
 		initAudio()
 	}
+
+	initTTF()
 
 	ctx := new(context)
 	result = ctx
@@ -220,7 +247,7 @@ func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error)
 	}
 
 	cs := C.CString(filename)
-	music := &C.music{C.Mix_LoadMUS(cs)}
+	music := &C.musicWrap{C.Mix_LoadMUS(cs)}
 	C.free(unsafe.Pointer(cs))
 
 	if music.music == nil {
@@ -357,6 +384,21 @@ func (self *context) handleKeyEvent(keyEvt *C.SDL_KeyboardEvent, isKeyUp bool) {
 	}
 }
 
+func (self *context) Free(handle interface{}) {
+	switch handle := handle.(type) {
+	case (*C.SDL_Surface):
+		C.SDL_FreeSurface(handle)
+	case (*C.fontWrap):
+		handle.Free()
+	case (*C.musicWrap):
+		C.Mix_FreeMusic(handle.music)
+	case (*C.Mix_Chunk):
+		C.Mix_FreeChunk(handle)
+	default:
+		fmt.Printf("Tried to free unknown resource type %v.\n", handle)
+	}
+}
+
 //////////////////////////////////////////////////////////////////
 // Helper functions
 //////////////////////////////////////////////////////////////////
@@ -474,6 +516,11 @@ func (self *C.SDL_Surface) GetClip() draw.Rectangle {
 		int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
 }
 
+func sdlColor(color image.Color) C.SDL_Color {
+	r, g, b, _ := color.RGBA()
+	return C.SDL_Color{C.Uint8(r >> 24), C.Uint8(g >> 24), C.Uint8(b >> 24), 0}
+}
+
 //////////////////////////////////////////////////////////////////
 // Audio
 //////////////////////////////////////////////////////////////////
@@ -511,4 +558,72 @@ func (self *C.Mix_Chunk) Free() {
 	}
 }
 
-func (self *C.music) Play() { C.Mix_PlayMusic(self.music, -1) }
+func (self *C.musicWrap) Play() { C.Mix_PlayMusic(self.music, -1) }
+
+//////////////////////////////////////////////////////////////////
+// TTF
+//////////////////////////////////////////////////////////////////
+
+func initTTF() {
+	ok := C.TTF_Init()
+
+	if ok != 0 {
+		panic("TTF error: " + getError())
+	}
+}
+
+func (self *context) LoadFont(fontData []byte, pointSize int) (result Font, err os.Error) {
+	// XXX: Can't use the straight Go data since garbage collection would mess TTF.
+	buf := C.malloc(C.size_t(len(fontData)))
+	C.memcpy(buf, unsafe.Pointer(&fontData[0]), C.size_t(len(fontData)))
+	rw := C.SDL_RWFromMem(buf, C.int(len(fontData)))
+	//	rw := C.makeMemRwop(unsafe.Pointer(&fontData[0]), C.int(len(fontData)))
+
+	if rw == nil {
+		err = os.NewError(getError())
+		C.free(buf)
+		return
+	}
+
+	font := C.TTF_OpenFontRW(rw, 0, C.int(pointSize))
+
+	if font == nil {
+		err = os.NewError(getError())
+		C.free(buf)
+		return
+	}
+
+	// XXX: We need to hang on to the buf as well, since TTF fonts seem to stop
+	// working properly if their RWops source data goes away.
+	wrap := &C.fontWrap{buf, font}
+
+	return wrap, err
+}
+
+func (self *C.fontWrap) Render(text string, color image.Color) (result image.Image, err os.Error) {
+	var surface *C.SDL_Surface
+	cs := C.CString(text)
+	surface = C.TTF_RenderText_Solid(self.font, cs, sdlColor(color))
+	C.free(unsafe.Pointer(cs))
+
+	if surface == nil {
+		err = os.NewError(getError())
+		return
+	}
+	return surface, err
+}
+
+func (self *C.fontWrap) StringWidth(text string) int {
+	var w C.int
+	cs := C.CString(text)
+	C.TTF_SizeText(self.font, cs, &w, nil)
+	C.free(unsafe.Pointer(cs))
+	return int(w)
+}
+
+func (self *C.fontWrap) Height() int { return int(C.TTF_FontHeight(self.font)) }
+
+func (self *C.fontWrap) Free() {
+	C.free(self.buf)
+	C.TTF_CloseFont(self.font)
+}

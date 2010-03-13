@@ -2,7 +2,7 @@ include $(GOROOT)/src/Make.$(GOARCH)
 
 CGO_CFLAGS = $(shell sdl-config --cflags)
 
-CGO_LDFLAGS = $(shell sdl-config --libs) -lSDL_mixer
+CGO_LDFLAGS = $(shell sdl-config --libs) -lSDL_mixer -lSDL_ttf -lSDL_gfx
 
 TARG=hyades/sdl
 

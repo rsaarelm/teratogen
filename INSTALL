@@ -1,8 +1,8 @@
 Building
 --------
 
-- Make sure the dev packages of SDL and SDL_mixer are installed. You need to
-  have have sdl-config in your path.
+- Make sure the dev packages of SDL, SDL_ttf, SDL_gfx and SDL_mixer are
+  installed. You need to have have sdl-config in your path.
 
 - Install the Go language development environment from
   <http://golang.org/doc/install.html>. Make sure you set $GOROOT, $GOOS and
