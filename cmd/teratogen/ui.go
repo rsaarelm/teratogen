@@ -25,8 +25,8 @@ import (
 const redrawIntervalNs = 30e6
 const capFps = true
 
-const baseScreenWidth = 800
-const baseScreenHeight = 600
+const baseScreenWidth = 640
+const baseScreenHeight = 480
 
 var screenWidth = baseScreenWidth * 2
 var screenHeight = baseScreenHeight * 2
@@ -116,7 +116,7 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
-	cols, rows := 480/TileW-1, 320/TileH-1
+	cols, rows := VisualScale()*200/TileW-1, VisualScale()*160/TileH-1
 	return alg.IterFunc(func(c chan<- interface{}) {
 		c <- &gui.Window{self.mapView, draw.Rect(0, 0, TileW*cols, TileH*rows)}
 		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
@@ -378,7 +378,7 @@ func UiHelpLines() iterable.Iterable {
 	vec.Push("q: quit")
 
 	if game.HasContents(game.PlayerId()) {
-		vec.Push("i: inventory")
+		vec.Push("t: inventory")
 		vec.Push("d: drop item")
 	}
 
