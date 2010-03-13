@@ -187,6 +187,24 @@ func (self *Relation) GetLhs(rhs Id) (lhs Id, found bool) {
 	return
 }
 
+// CountRhs returns the number of right-hand values in relation with the given
+// left-hand value.
+func (self *Relation) CountRhs(lhs Id) int {
+	if m, ok := self.lhsIndex[lhs]; ok {
+		return len(m)
+	}
+	return 0
+}
+
+// CountLhs returns the number of left-hand values in relation with the given
+// right-hand value.
+func (self *Relation) CountLhs(rhs Id) int {
+	if m, ok := self.rhsIndex[rhs]; ok {
+		return len(m)
+	}
+	return 0
+}
+
 // IterPairs iterates through all the pairs in the relation. It yields Pair
 // structs.
 func (self *Relation) IterPairs() iterable.Iterable {
