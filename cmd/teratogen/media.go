@@ -71,13 +71,20 @@ func makeSounds() {
 	snd, err = sfx.MonoWaveToSound(ui.context, deathWave, 1.0)
 	dbg.AssertNoError(err)
 	cache["death"] = snd
-
 }
 
 func PlaySound(name string) {
 	if config.Sound {
 		cache[name].(sfx.Sound).Play()
 	}
+}
+
+func loadFonts() {
+	fontfile, err := Load("media/04square_bold.ttf")
+	dbg.AssertNoError(err)
+
+	ui.font, err = ui.context.LoadFont(fontfile, 8*config.Scale)
+	dbg.AssertNoError(err)
 }
 
 func InitMedia() {
@@ -91,6 +98,8 @@ func InitMedia() {
 	if config.Sound {
 		makeSounds()
 	}
+
+	loadFonts()
 }
 
 func Media(name string) interface{} { return cache[name] }

@@ -53,6 +53,7 @@ type UI struct {
 
 	gfx.Anims
 	context sdl.Context
+	font    sdl.Font
 	msg     *MsgOut
 	running bool
 
@@ -143,10 +144,17 @@ func DrawChar(g gfx.Graphics, char int, x, y int) {
 
 // TODO: Support color
 func DrawString(g gfx.Graphics, x, y int, format string, a ...interface{}) {
-	for _, char := range fmt.Sprintf(format, a) {
-		DrawChar(g, char, x, y)
-		x += FontW
+	txt := fmt.Sprintf(format, a)
+	if txt == "" {
+		return
 	}
+	line, err := ui.font.Render(txt, gfx.GreenYellow)
+	if err != nil {
+		fmt.Printf("[%v], %v\n", txt, err)
+		return
+	}
+	g.Blit(line, x, y)
+	ui.context.Free(line)
 }
 
 func GetMsg() *MsgOut { return ui.msg }
