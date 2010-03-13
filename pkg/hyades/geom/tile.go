@@ -258,7 +258,7 @@ func HexNeighborMask(p Pt2I, predFn func(Pt2I) bool) (result int) {
 // HexWallType returns the type of simple wall a hex tile should have based on
 // the bit mask of the occurrence of walls in its neighboring tiles. Result 0
 // means a cross block, result 1 a wall along X-axis (\), result 2 a wall along
-// the diagonal axis (/) and result 3 a wall along the Y-axis (|).
+// the Y-axis (/) and result 3 a wall along the axis diagonal (|).
 func HexWallType(mask int) int {
 	const (
 		n = 1 << iota
@@ -280,13 +280,13 @@ func HexWallType(mask int) int {
 		// X-axis wall
 		return 1
 	case mask&ne != 0 && mask&sw != 0 && (mask&se == 0 || mask&nw == 0):
-		// Diag wall
+		// Y-axis wall
 		return 2
 	case mask&n != 0 && mask&s != 0 && mask&sw == 0 && mask&nw == 0:
-		// Y-axis wall
+		// Axis-diagonal wall
 		return 3
 	case mask&n != 0 && mask&s != 0 && mask&se == 0 && mask&ne == 0:
-		// Y-axis wall
+		// Axis-diagonal wall
 		return 3
 	}
 	return 0
