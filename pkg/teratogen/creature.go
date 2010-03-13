@@ -298,7 +298,7 @@ func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree int, 
 	if woundLevel > 0 {
 		self.Wound(selfId, woundLevel, causerId)
 	} else {
-		EMsg("{sub.Thename} {sub.is} unhurt.\n", selfId, entity.NilId)
+		EMsg("{sub.Thename} shrug{sub.s} off the damage.\n", selfId, entity.NilId)
 	}
 
 	// XXX: Damage amount not accounted in armor damage.
