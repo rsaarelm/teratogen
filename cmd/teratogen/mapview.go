@@ -352,6 +352,8 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.SmartMovePlayer(6)
 			return true
 		})
+	case keyboard.K_RETURN, keyboard.K_KP5:
+		SmartLocalPlayerAction()
 	case 'u', keyboard.K_INSERT, keyboard.K_KP7:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(7)
@@ -475,4 +477,25 @@ func GearedIcon(icon string, armor entity.Id) string {
 	}
 
 	return icon
+}
+
+// SmartLocalPlayerAction looks for an obvious action to do at the local
+// position. If there are items to pick up, it offers to pick them up. If
+// there are stairs, it goes down stairs. Return whether an action was
+// performed.
+func SmartLocalPlayerAction() {
+	if game.NumPlayerTakeableItems() > 0 {
+		item := SmartPlayerPickup(false)
+		if item != entity.NilId {
+			return
+		}
+	}
+	if game.PlayerAtStairs() {
+		SendPlayerInput(func() bool {
+			game.PlayerEnterStairs()
+			return true
+		})
+		return
+	}
+	game.Msg("Nothing to do here.\n")
 }

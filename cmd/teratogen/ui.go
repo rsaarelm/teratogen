@@ -402,10 +402,10 @@ func UiHelpLines() iterable.Iterable {
 		vec.Push("f: fire gun")
 	}
 
-	if len(iterable.Data(game.TakeableItems(game.GetPos(game.PlayerId())))) > 0 {
+	if game.NumPlayerTakeableItems() > 0 {
 		vec.Push(",: pick up item")
 	}
-	if game.GetArea().GetTerrain(game.GetPos(game.PlayerId())) == game.TerrainStairDown {
+	if game.PlayerAtStairs() {
 		vec.Push(">: go down the stairs")
 	}
 	return vec

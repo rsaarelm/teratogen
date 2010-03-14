@@ -215,8 +215,16 @@ func WinGame(message string) { Fx().Quit(fmt.Sprintf("%s\n", message)) }
 // map memory.
 func IsMobile(id entity.Id) bool { return IsCreature(id) }
 
+func NumPlayerTakeableItems() int {
+	return len(iterable.Data(TakeableItems(GetPos(PlayerId()))))
+}
+
+func PlayerAtStairs() bool {
+	return GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown
+}
+
 func PlayerEnterStairs() {
-	if GetArea().GetTerrain(GetPos(PlayerId())) == TerrainStairDown {
+	if PlayerAtStairs() {
 		Msg("Going down...\n")
 		NextLevel()
 	} else {
