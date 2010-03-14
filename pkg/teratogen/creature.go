@@ -23,10 +23,11 @@ const (
 	IntrinsicElectrocute
 	IntrinsicPoison
 	IntrinsicEndboss
-	IntrinsicTough   // Creature is +2 tougher than it's power
-	IntrinsicFragile // Creature's toughness is -2 from it's power
-	IntrinsicDense   // Creature's mass is for scale +2 of creature's scale.
-	IntrinsicNoBlood
+	IntrinsicTough    // Creature is +2 tougher than it's power
+	IntrinsicFragile  // Creature's toughness is -2 from it's power
+	IntrinsicDense    // Creature's mass is for scale +2 of creature's scale
+	IntrinsicUnliving // Creature is not a living thing
+	IntrinsicEsper    // Creature can sense unseen living things
 )
 
 // Creature transient status traits.
@@ -77,12 +78,13 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
-		Power:    self.Power,
-		Skill:    self.Skill,
-		Scale:    self.Scale,
-		Traits:   self.Traits,
-		Wounds:   0,
-		Statuses: 0,
+		Power:     self.Power,
+		Skill:     self.Skill,
+		Scale:     self.Scale,
+		Traits:    self.Traits,
+		Wounds:    0,
+		Statuses:  0,
+		Mutations: 0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
 }
@@ -95,6 +97,7 @@ type Creature struct {
 	Traits       int32
 	Wounds       int
 	Statuses     int32
+	Mutations    int
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -203,7 +206,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		EMsg("{sub.Thename} {sub.is} killed.\n", selfId, causerId)
 
 		// Splatter blood.
-		if !self.HasIntrinsic(IntrinsicNoBlood) {
+		if !self.HasIntrinsic(IntrinsicUnliving) {
 			bloodNum := rand.Intn(3 + self.Scale)
 			if bloodNum >= 2 {
 				SplatterBlood(GetPos(selfId), LargeBloodSplatter)
@@ -215,9 +218,9 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		if selfId == PlayerId() {
 			var msg string
 			if causerId != entity.NilId {
-				msg = FormatMessage("killed by {sub.aname}.", causerId, entity.NilId)
+				msg = FormatMessage("were killed by {sub.aname}.", causerId, entity.NilId)
 			} else {
-				msg = "killed."
+				msg = "died."
 			}
 			GameOver(msg)
 		}
@@ -225,6 +228,10 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		if self.Traits&IntrinsicEndboss != 0 {
 			// Killing the endboss.
 			WinGame("You win the game, hooray.")
+		}
+
+		if causerId == PlayerId() {
+			OnPlayerKill(selfId)
 		}
 
 		// Deathsplosion.

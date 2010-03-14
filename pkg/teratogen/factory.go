@@ -124,7 +124,7 @@ func init() {
 			Power:  Superb,
 			Skill:  Good,
 			Scale:  0,
-			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile | IntrinsicNoBlood},
+			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile | IntrinsicUnliving},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),

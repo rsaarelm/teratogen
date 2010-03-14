@@ -25,6 +25,9 @@ type Effects interface {
 	// Quit signals that the game is over.
 	Quit(message string)
 
+	// MorePrompt tells the player to pay attention to something important.
+	MorePrompt()
+
 	// Show an explosion around center
 	Explode(center geom.Pt2I, power int, radius int)
 

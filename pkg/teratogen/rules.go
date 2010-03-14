@@ -126,7 +126,10 @@ func MovePlayerDir(dir int) {
 		if GetName(id) == "globe" {
 			// TODO: Different globe effects.
 			if GetCreature(PlayerId()).Wounds > 0 {
-				EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
+				mutationMsg := FormatMessage("{obj.Thename} bursts. {sub.Thename} feel{sub.s} strange.\n", PlayerId(), id)
+				if !PlayerMutationRoll(1, mutationMsg) {
+					EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
+				}
 				Fx().Heal(PlayerId(), 1)
 				GetCreature(PlayerId()).Wounds -= 1
 				// Deferring this until the iteration is over.
@@ -208,7 +211,7 @@ func StuffOnGroundMsg() {
 	}
 }
 
-func GameOver(reason string) { Fx().Quit(fmt.Sprintf("You were %v\n", reason)) }
+func GameOver(reason string) { Fx().Quit(fmt.Sprintf("You %v\n", reason)) }
 
 func WinGame(message string) { Fx().Quit(fmt.Sprintf("%s\n", message)) }
 
@@ -383,4 +386,46 @@ func SplatterBlood(pos geom.Pt2I, amount BloodSplatter) {
 	}
 
 	SpawnAt(id, pos)
+}
+
+func PlayerIsEsper() bool { return GetCreature(PlayerId()).HasIntrinsic(IntrinsicEsper) }
+
+func CanEsperSense(id entity.Id) bool {
+	if crit := GetCreature(id); crit != nil {
+		return !crit.HasIntrinsic(IntrinsicUnliving)
+	}
+	return false
+}
+
+func CreaturePowerLevel(id entity.Id) int {
+	if crit := GetCreature(id); crit != nil {
+		// TODO: Increase power from intrinsincs.
+		return num.Imax(1, crit.Power+crit.Scale)
+	}
+	return 0
+}
+
+func OnPlayerKill(killedId entity.Id) {
+	const mutationResistance = 10
+
+	power := CreaturePowerLevel(killedId)
+	dist := EntityDist(killedId, PlayerId())
+	if dist < 2.0 {
+		// More effect from close combat kills.
+		power *= 2
+	}
+
+	PlayerMutationRoll(power, "The kill affects you.\n")
+}
+
+func PlayerMutationRoll(power int, msg string) bool {
+	mutationResistance := 10 + GetCreature(PlayerId()).Mutations
+
+	if rand.Intn(mutationResistance+power) >= mutationResistance {
+		Msg(msg)
+		Fx().MorePrompt()
+		Mutate(PlayerId())
+		return true
+	}
+	return false
 }

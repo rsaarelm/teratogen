@@ -118,7 +118,7 @@ func Destroy(id entity.Id) {
 	if id == PlayerId() {
 		if /*GameRunning() */ false {
 			// Ensure gameover if player is destroyed by unknown means.
-			GameOver("was wiped out of existence.")
+			GameOver("were wiped out of existence.")
 		}
 		// XXX: The system can't currently handle the player entity being
 		// removed.

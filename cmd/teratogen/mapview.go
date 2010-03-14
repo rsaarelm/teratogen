@@ -108,16 +108,17 @@ func drawEntities(g gfx.Graphics) {
 		pos := game.GetPos(id)
 		seen := game.GetLos().Get(pos) == game.LosSeen
 		mapped := seen || game.GetLos().Get(pos) == game.LosMapped
+		esp := game.PlayerIsEsper() && game.CanEsperSense(id)
 		// TODO: Draw static (item) entities from map memory.
-		if mapped {
-			if seen || !game.IsMobile(id) {
+		if esp || mapped {
+			if esp || seen || !game.IsMobile(id) {
 				armorId, _ := game.GetEquipment(id, game.ArmorEquipSlot)
 				Draw(g, GearedIcon(game.GetIconId(id), armorId), pos.X, pos.Y)
+				continue
 			}
 		}
 	}
 }
-
 
 func drawTerrain(g gfx.Graphics) {
 	mapWidth, mapHeight := game.MapDims()

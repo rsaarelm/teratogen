@@ -195,6 +195,8 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 
 	DrawString(g, area.Min.X, area.Min.Y,
 		"%v", txt.Capitalize(game.GetCreature(game.PlayerId()).WoundDescription()))
+	DrawString(g, area.Min.X, area.Min.Y+FontH,
+		"%v", txt.Capitalize(game.MutationStatus(game.PlayerId())))
 
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
@@ -468,6 +470,8 @@ func (self *SdlEffects) Quit(message string) {
 	Quit()
 }
 
+func (self *SdlEffects) MorePrompt() { MorePrompt() }
+
 func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
 	sx, sy := CenterDrawPos(center)
 	const gibNum = 8
@@ -496,9 +500,11 @@ func SendPlayerInput(command (func() bool)) bool {
 var playerInputChan = make(chan (func() bool))
 
 func MorePrompt() {
-	game.Msg("--more--")
+	game.Msg("--more--\n")
 	for GetKey() != ' ' {
 	}
+
+	MarkMsgLinesSeen()
 }
 
 func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {

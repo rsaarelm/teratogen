@@ -99,6 +99,7 @@ func Msg(format string, a ...interface{}) { Fx().Print(fmt.Sprintf(format, a)) }
 //   pronoun's: Possessive form of the pronoun.
 //   self: Reflective pronoun for the entity.
 //   is: 'is' for others, 'are' for second person.
+//   accusative: Accusative case pronoun you, him, her, it
 //
 // In addition the value
 //
@@ -173,18 +174,22 @@ func (self *Name) TemplateWords() (result map[string]string) {
 		result["pronoun"] = "he"
 		result["pronoun's"] = "his"
 		result["self"] = "himself"
+		result["accusative"] = "him"
 	case PronounShe:
 		result["pronoun"] = "she"
 		result["pronoun's"] = "her"
 		result["self"] = "herself"
+		result["accusative"] = "her"
 	case PronounThey:
 		result["pronoun"] = "they"
 		result["pronoun's"] = "their"
 		result["self"] = "themself"
+		result["accusative"] = "them"
 	default:
 		result["pronoun"] = "it"
 		result["pronoun's"] = "its"
 		result["self"] = "itself"
+		result["accusative"] = "it"
 	}
 
 	addCapitalizedFields(result)
@@ -196,17 +201,18 @@ func YouTemplateWords() (result map[string]string) {
 	result = map[string]string{
 		"you": "1", // Acts as 'true', use in conditionals.
 
-		"name":      "you",
-		"thename":   "you",
-		"aname":     "you",
-		"name's":    "your",
-		"thename's": "your",
-		"aname's":   "your",
-		"s":         "",
-		"pronoun":   "you",
-		"pronoun's": "your",
-		"self":      "yourself",
-		"is":        "are",
+		"name":       "you",
+		"thename":    "you",
+		"aname":      "you",
+		"name's":     "your",
+		"thename's":  "your",
+		"aname's":    "your",
+		"s":          "",
+		"pronoun":    "you",
+		"pronoun's":  "your",
+		"self":       "yourself",
+		"is":         "are",
+		"accusative": "you",
 	}
 
 	addCapitalizedFields(result)

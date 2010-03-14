@@ -29,6 +29,10 @@ func RandomChoice(a ...interface{}) interface{} {
 	return a[rand.Intn(len(a))]
 }
 
+func RandomChoiceA(a []interface{}) interface{} {
+	return a[rand.Intn(len(a))]
+}
+
 // MakeRandState initializes the random number generator using the given value
 // and returns the RandState value which can be used to return the generator
 // to the same state.

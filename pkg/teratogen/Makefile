@@ -15,6 +15,7 @@ GOFILES=\
 	item.go\
 	los.go\
 	mapgen.go\
+	mutation.go\
 	name.go\
 	position.go\
 	rules.go\
