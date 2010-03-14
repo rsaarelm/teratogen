@@ -236,7 +236,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		Destroy(selfId)
 	} else {
 		Fx().Damage(selfId, woundLevel)
-		EMsg("{sub.Name} {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
+		EMsg("{sub.Thename} {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
 	}
 }
 
