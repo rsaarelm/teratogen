@@ -4,6 +4,7 @@ package sdl
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
+#include <SDL_rotozoom.h>
 
 // Structs to help cgo handle some opaque SDL types.
 
@@ -104,6 +105,10 @@ type Surface interface {
 	// Blit draws an image on the surface. It is much more efficient if
 	// the image is a SDL surface.
 	Blit(img image.Image, x, y int)
+
+	// Zoom scales the given surface by horizontal sx and vertical sy into a
+	// new surface.
+	Zoom(sx, sy float64) Surface
 }
 
 type Font interface {
@@ -514,6 +519,10 @@ func (self *C.SDL_Surface) GetClip() draw.Rectangle {
 	C.SDL_GetClipRect(self, &sdlRect)
 	return draw.Rect(int(sdlRect.x), int(sdlRect.y),
 		int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
+}
+
+func (self *C.SDL_Surface) Zoom(sx, sy float64) Surface {
+	return C.zoomSurface(self, C.double(sx), C.double(sy), 0)
 }
 
 func sdlColor(color image.Color) C.SDL_Color {
