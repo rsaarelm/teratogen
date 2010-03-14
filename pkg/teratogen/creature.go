@@ -4,6 +4,7 @@ import (
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
+	"rand"
 )
 
 
@@ -25,6 +26,7 @@ const (
 	IntrinsicTough   // Creature is +2 tougher than it's power
 	IntrinsicFragile // Creature's toughness is -2 from it's power
 	IntrinsicDense   // Creature's mass is for scale +2 of creature's scale.
+	IntrinsicNoBlood
 )
 
 // Creature transient status traits.
@@ -36,6 +38,7 @@ const (
 	StatusStunned
 	StatusPoisoned
 	StatusDead
+	StatusBloodTrail
 )
 
 
@@ -151,6 +154,12 @@ func (self *Creature) HasStatus(status int32) bool {
 	return self.Statuses&status != 0
 }
 
+func (self *Creature) AddStatus(status int32) { self.Statuses |= status }
+
+func (self *Creature) RemoveStatus(status int32) {
+	self.Statuses &^= status
+}
+
 func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
 	result = self.Power + self.MassFactor()
 	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
@@ -177,7 +186,7 @@ func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 	return
 }
 
-func (self *Creature) Wound(id entity.Id, woundLevel int, causerId entity.Id) {
+func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id) {
 	if self.Statuses&StatusDead != 0 {
 		return
 	}
@@ -190,10 +199,20 @@ func (self *Creature) Wound(id entity.Id, woundLevel int, causerId entity.Id) {
 		// doesn't cause a new call to Damage.
 		self.Statuses |= StatusDead
 
-		Fx().Destroy(id)
-		EMsg("{sub.Thename} {sub.is} killed.\n", id, causerId)
+		Fx().Destroy(selfId)
+		EMsg("{sub.Thename} {sub.is} killed.\n", selfId, causerId)
 
-		if id == PlayerId() {
+		// Splatter blood.
+		if !self.HasIntrinsic(IntrinsicNoBlood) {
+			bloodNum := rand.Intn(3 + self.Scale)
+			if bloodNum >= 2 {
+				SplatterBlood(GetPos(selfId), LargeBloodSplatter)
+			} else {
+				SplatterBlood(GetPos(selfId), SmallBloodSplatter)
+			}
+		}
+
+		if selfId == PlayerId() {
 			var msg string
 			if causerId != entity.NilId {
 				msg = FormatMessage("killed by {sub.aname}.", causerId, entity.NilId)
@@ -210,14 +229,14 @@ func (self *Creature) Wound(id entity.Id, woundLevel int, causerId entity.Id) {
 
 		// Deathsplosion.
 		if self.Traits&IntrinsicDeathsplode != 0 {
-			EMsg("{sub.Thename} blow{sub.s} up!\n", id, causerId)
-			Explode(GetPos(id), 3+self.Scale, id)
+			EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
+			Explode(GetPos(selfId), 3+self.Scale, selfId)
 		}
 
-		Destroy(id)
+		Destroy(selfId)
 	} else {
-		Fx().Damage(id, woundLevel)
-		EMsg("{sub.Name} {sub.is} %v.\n", id, causerId, self.WoundDescription())
+		Fx().Damage(selfId, woundLevel)
+		EMsg("{sub.Name} {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
 	}
 }
 

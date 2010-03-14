@@ -140,8 +140,20 @@ func drawTerrain(g gfx.Graphics) {
 	}
 }
 
+func entityDrawOrder(i interface{}) int {
+	id := i.(entity.Id)
+	if game.IsDecal(id) {
+		return -1
+	}
+	if game.IsCreature(id) {
+		return 1
+	}
+
+	return 0
+}
+
 func entityEarlierInDrawOrder(i, j interface{}) bool {
-	return !game.IsCreature(i.(entity.Id)) && game.IsCreature(j.(entity.Id))
+	return entityDrawOrder(i) < entityDrawOrder(j)
 }
 
 func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }

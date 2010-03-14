@@ -3,6 +3,7 @@ package teratogen
 import (
 	"exp/iterable"
 	"fmt"
+	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
@@ -324,4 +325,62 @@ func ScaleToMass(scale, density int) (kg float64) {
 // of that scale.
 func ScaleToHeight(scale int) (meters float64) {
 	return math.Pow(math.Pow(2.0, float64(scale+2)), 1.0/3.0)
+}
+
+type BloodSplatter int
+
+const (
+	NoBlood = BloodSplatter(iota)
+	BloodTrail
+	SmallBloodSplatter
+	LargeBloodSplatter
+)
+
+func BloodSplatterAt(pos geom.Pt2I) BloodSplatter {
+	for o := range EntitiesAt(pos).Iter() {
+		id := o.(entity.Id)
+		switch GetName(id) {
+		case "bloody trail":
+			return BloodTrail
+		case "blood splatter":
+			return SmallBloodSplatter
+		case "blood pool":
+			return LargeBloodSplatter
+		}
+	}
+	return NoBlood
+}
+
+func ClearBloodAt(pos geom.Pt2I) {
+	for o := range EntitiesAt(pos).Iter() {
+		id := o.(entity.Id)
+		switch GetName(id) {
+		case "bloody trail", "blood splatter", "blood pool":
+			defer Destroy(id)
+		}
+	}
+}
+
+func SplatterBlood(pos geom.Pt2I, amount BloodSplatter) {
+	existing := BloodSplatterAt(pos)
+	// If it's already bloodier than we'll want to make it.
+	if int(existing) >= int(amount) {
+		return
+	}
+
+	ClearBloodAt(pos)
+
+	var id string
+	switch amount {
+	case BloodTrail:
+		id = "blood_trail"
+	case SmallBloodSplatter:
+		id = "blood_small"
+	case LargeBloodSplatter:
+		id = "blood_large"
+	default:
+		dbg.Warn("Unknown blood spec %v", amount)
+	}
+
+	SpawnAt(id, pos)
 }

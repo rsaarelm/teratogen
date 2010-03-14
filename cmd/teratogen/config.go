@@ -23,7 +23,7 @@ type Config struct {
 	ArchiveFile string
 }
 
-func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 1, 2, fs.SelfExe()} }
+func DefaultConfig() *Config { return &Config{false, false, "qwerty", "", 2, 2, fs.SelfExe()} }
 
 var config *Config
 

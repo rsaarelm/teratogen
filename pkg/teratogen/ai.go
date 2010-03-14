@@ -150,8 +150,26 @@ func Heartbeats() {
 
 // Heartbeat runs status updates on active entities. Things such as temporary
 // effects wearing off or affecting an entity go here.
-func Heartbeat(id entity.Id) {
-	// TODO
+func Heartbeat(id entity.Id) { bloodtrailHeartbeat(id) }
+
+func bloodtrailHeartbeat(id entity.Id) {
+	crit := GetCreature(id)
+	if crit == nil {
+		return
+	}
+
+	standingIn := BloodSplatterAt(GetPos(id))
+	if standingIn == LargeBloodSplatter {
+		// Creatures start tracking blood when they walk through pools of blood.
+		crit.AddStatus(StatusBloodTrail)
+	} else {
+		if crit.HasStatus(StatusBloodTrail) {
+			SplatterBlood(GetPos(id), BloodTrail)
+			if num.OneChanceIn(3) {
+				crit.RemoveStatus(StatusBloodTrail)
+			}
+		}
+	}
 }
 
 // Return whether an entity considers another entity an enemy.

@@ -8,6 +8,7 @@ GOFILES=\
 	contain.go\
 	context.go\
 	creature.go\
+	decal.go\
 	effects.go\
 	factory.go\
 	globals.go\

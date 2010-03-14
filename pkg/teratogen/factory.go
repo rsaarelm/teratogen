@@ -124,7 +124,7 @@ func init() {
 			Power:  Superb,
 			Skill:  Good,
 			Scale:  0,
-			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile},
+			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile | IntrinsicNoBlood},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
@@ -147,11 +147,32 @@ func init() {
 			Traits: IntrinsicEndboss},
 	}
 
-	a["globe"] = entity.Assemblage{
-		Metadata:      MetaTemplate(30, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"globe", "items:1", PronounIt, false},
+	a["blood_small"] = entity.Assemblage{
+		Metadata:       MetaTemplate(-1, 0),
+		PosComponent:   PosTemplate(),
+		NameComponent:  NameTemplate{"blood splatter", "items:16", PronounIt, false},
+		DecalComponent: DecalTemplate(0),
 	}
+	a["blood_large"] = entity.Assemblage{
+		Metadata:       MetaTemplate(-1, 0),
+		PosComponent:   PosTemplate(),
+		NameComponent:  NameTemplate{"blood pool", "items:15", PronounIt, false},
+		DecalComponent: DecalTemplate(0),
+	}
+	a["blood_trail"] = entity.Assemblage{
+		Metadata:       MetaTemplate(-1, 0),
+		PosComponent:   PosTemplate(),
+		NameComponent:  NameTemplate{"bloody trail", "items:17", PronounIt, false},
+		DecalComponent: DecalTemplate(0),
+	}
+
+	a["globe"] = entity.Assemblage{
+		Metadata:       MetaTemplate(30, 0),
+		PosComponent:   PosTemplate(),
+		NameComponent:  NameTemplate{"globe", "items:1", PronounIt, false},
+		DecalComponent: DecalTemplate(0),
+	}
+
 	a["plantpot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
