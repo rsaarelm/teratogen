@@ -117,7 +117,7 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
-	cols, rows := VisualScale()*200/TileW-1, VisualScale()*160/TileH-1
+	cols, rows := VisualScale()*200/TileW-1, VisualScale()*120/TileH-1
 	return alg.IterFunc(func(c chan<- interface{}) {
 		c <- &gui.Window{self.mapView, draw.Rect(0, 0, TileW*cols, TileH*rows)}
 		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
@@ -261,7 +261,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 	// TODO: More structured positioning.
 	numVisible := 10
 	xOff := 0
-	yOff := TileH * 21
+	yOff := TileH * 16
 	lineH := FontH
 	MarkMsgLinesSeen()
 	pos := 0
