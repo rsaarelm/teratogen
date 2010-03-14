@@ -220,7 +220,11 @@ func (self *context) Convert(img image.Image) Surface {
 		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask,
 		amask)
 
-	draw.Draw(surf, draw.Rect(0, 0, width, height), img, draw.Pt(0, 0))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			surf.Set(x, y, img.At(x, y))
+		}
+	}
 	return surf
 }
 
