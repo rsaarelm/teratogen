@@ -9,7 +9,7 @@ package sdl
 // Structs to help cgo handle some opaque SDL types.
 
 typedef struct music { Mix_Music *music; } musicWrap;
-typedef struct font { void *buf; TTF_Font *font; } fontWrap;
+typedef struct font { TTF_Font *font; } fontWrap;
 
 // XXX: Workaround to nested struct misalignment with cgo.
 void unpackKeyeventKludge(SDL_KeyboardEvent* event, int* keysym, int* mod, int* unicode) {
@@ -397,7 +397,7 @@ func (self *context) Free(handle interface{}) {
 	switch handle := handle.(type) {
 	case (*C.SDL_Surface):
 		C.SDL_FreeSurface(handle)
-	case (*C.fontWrap):
+	case (*ttfFont):
 		handle.Free()
 	case (*C.musicWrap):
 		C.Mix_FreeMusic(handle.music)
@@ -577,6 +577,11 @@ func (self *C.musicWrap) Play() { C.Mix_PlayMusic(self.music, -1) }
 // TTF
 //////////////////////////////////////////////////////////////////
 
+type ttfFont struct {
+	wrap C.fontWrap
+	data []byte
+}
+
 func initTTF() {
 	ok := C.TTF_Init()
 
@@ -586,37 +591,35 @@ func initTTF() {
 }
 
 func (self *context) LoadFont(fontData []byte, pointSize int) (result Font, err os.Error) {
-	// XXX: Can't use the straight Go data since garbage collection would mess TTF.
-	buf := C.malloc(C.size_t(len(fontData)))
-	C.memcpy(buf, unsafe.Pointer(&fontData[0]), C.size_t(len(fontData)))
-	rw := C.SDL_RWFromMem(buf, C.int(len(fontData)))
-	//	rw := C.makeMemRwop(unsafe.Pointer(&fontData[0]), C.int(len(fontData)))
+	// XXX: Apparently RWops TTF will fail if the underlying data buffer gets
+	// garbage collected. So we'll need to hold on to the fontData buffer in
+	// the Font structure.
+
+	// XXX: Should copy fontData to a local array so that the caller can't
+	// change it later since we need to keep it around.
+	rw := C.SDL_RWFromMem(unsafe.Pointer(&fontData[0]), C.int(len(fontData)))
 
 	if rw == nil {
 		err = os.NewError(getError())
-		C.free(buf)
 		return
 	}
 
-	font := C.TTF_OpenFontRW(rw, 0, C.int(pointSize))
+	font := C.TTF_OpenFontRW(rw, 1, C.int(pointSize))
 
 	if font == nil {
 		err = os.NewError(getError())
-		C.free(buf)
 		return
 	}
 
-	// XXX: We need to hang on to the buf as well, since TTF fonts seem to stop
-	// working properly if their RWops source data goes away.
-	wrap := &C.fontWrap{buf, font}
+	result = &ttfFont{C.fontWrap{font}, fontData}
 
-	return wrap, err
+	return
 }
 
-func (self *C.fontWrap) Render(text string, color image.Color) (result image.Image, err os.Error) {
+func (self *ttfFont) Render(text string, color image.Color) (result image.Image, err os.Error) {
 	var surface *C.SDL_Surface
 	cs := C.CString(text)
-	surface = C.TTF_RenderText_Solid(self.font, cs, sdlColor(color))
+	surface = C.TTF_RenderText_Solid(self.wrap.font, cs, sdlColor(color))
 	C.free(unsafe.Pointer(cs))
 
 	if surface == nil {
@@ -626,17 +629,14 @@ func (self *C.fontWrap) Render(text string, color image.Color) (result image.Ima
 	return surface, err
 }
 
-func (self *C.fontWrap) StringWidth(text string) int {
+func (self *ttfFont) StringWidth(text string) int {
 	var w C.int
 	cs := C.CString(text)
-	C.TTF_SizeText(self.font, cs, &w, nil)
+	C.TTF_SizeText(self.wrap.font, cs, &w, nil)
 	C.free(unsafe.Pointer(cs))
 	return int(w)
 }
 
-func (self *C.fontWrap) Height() int { return int(C.TTF_FontHeight(self.font)) }
+func (self *ttfFont) Height() int { return int(C.TTF_FontHeight(self.wrap.font)) }
 
-func (self *C.fontWrap) Free() {
-	C.free(self.buf)
-	C.TTF_CloseFont(self.font)
-}
+func (self *ttfFont) Free() { C.TTF_CloseFont(self.wrap.font) }
