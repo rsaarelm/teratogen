@@ -109,6 +109,8 @@ func MovePlayerDir(dir int) {
 	GetLos().ClearSight()
 	TryMove(PlayerId(), geom.Dir6ToVec(dir))
 
+	GetLos().DoLos(GetPos(PlayerId()))
+
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.
 
@@ -137,8 +139,6 @@ func MovePlayerDir(dir int) {
 			}
 		}
 	}
-
-	GetLos().DoLos(GetPos(PlayerId()))
 }
 
 func SmartMovePlayer(dir int) {
@@ -400,7 +400,7 @@ func CanEsperSense(id entity.Id) bool {
 func CreaturePowerLevel(id entity.Id) int {
 	if crit := GetCreature(id); crit != nil {
 		// TODO: Increase power from intrinsincs.
-		return num.Imax(1, crit.Power+crit.Scale)
+		return crit.Power + crit.Scale
 	}
 	return 0
 }
@@ -419,9 +419,9 @@ func OnPlayerKill(killedId entity.Id) {
 }
 
 func PlayerMutationRoll(power int, msg string) bool {
-	mutationResistance := 10 + GetCreature(PlayerId()).Mutations
+	mutationResistance := 4 + GetCreature(PlayerId()).Mutations/2
 
-	if rand.Intn(mutationResistance+power) >= mutationResistance {
+	if FudgeOpposed(power, mutationResistance) >= 0 {
 		Msg(msg)
 		Fx().MorePrompt()
 		Mutate(PlayerId())
