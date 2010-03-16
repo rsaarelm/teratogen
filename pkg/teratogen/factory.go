@@ -44,7 +44,7 @@ func init() {
 			Power:  Good,
 			Skill:  Good,
 			Scale:  0,
-			Traits: NoIntrinsic},
+			Traits: IntrinsicMartialArtist},
 	}
 	a["zombie"] = entity.Assemblage{
 		Metadata:      MetaTemplate(100, 0),

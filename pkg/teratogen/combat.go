@@ -22,8 +22,13 @@ func RollMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree
 
 func Attack(attackerId, defenderId entity.Id) {
 	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
+	defense := 0
+	if defCrit.HasIntrinsic(IntrinsicMartialArtist) {
+		defense = defCrit.Skill
+	}
 
-	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defCrit.Skill,
+	// Currently enemy skill doesn't affect defense. Scale difference does.
+	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defense,
 		defCrit.Scale-attCrit.Scale)
 
 	if doesHit {

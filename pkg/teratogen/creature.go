@@ -23,11 +23,12 @@ const (
 	IntrinsicElectrocute
 	IntrinsicPoison
 	IntrinsicEndboss
-	IntrinsicTough    // Creature is +2 tougher than it's power
-	IntrinsicFragile  // Creature's toughness is -2 from it's power
-	IntrinsicDense    // Creature's mass is for scale +2 of creature's scale
-	IntrinsicUnliving // Creature is not a living thing
-	IntrinsicEsper    // Creature can sense unseen living things
+	IntrinsicTough         // Creature is +2 tougher than it's power
+	IntrinsicFragile       // Creature's toughness is -2 from it's power
+	IntrinsicDense         // Creature's mass is for scale +2 of creature's scale
+	IntrinsicUnliving      // Creature is not a living thing
+	IntrinsicEsper         // Creature can sense unseen living things
+	IntrinsicMartialArtist // Creature can use it's skill to dodge attacks.
 )
 
 // Creature transient status traits.
