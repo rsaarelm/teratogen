@@ -76,7 +76,7 @@ func PlaySound(name string) {
 }
 
 func loadFonts() {
-	fontfile, err := Load("media/04square_bold.ttf")
+	fontfile, err := Load("media/04round_bold.ttf")
 	dbg.AssertNoError(err)
 
 	ui.font, err = ui.context.LoadFont(fontfile, 8*config.Scale)
