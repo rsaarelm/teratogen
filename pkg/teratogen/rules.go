@@ -400,7 +400,7 @@ func CanEsperSense(id entity.Id) bool {
 func CreaturePowerLevel(id entity.Id) int {
 	if crit := GetCreature(id); crit != nil {
 		// TODO: Increase power from intrinsincs.
-		return crit.Power + crit.Scale
+		return num.Imax(1, crit.Power+crit.Scale)
 	}
 	return 0
 }
@@ -423,7 +423,7 @@ func PlayerMutationRoll(power int, msg string) bool {
 
 	// Cap too big mutation chances. Always have a reasonably low chance of
 	// doing a mutation.
-	power = num.Imax(power, mutationResistance-2)
+	power = num.Imin(power, mutationResistance-2)
 
 	if FudgeOpposed(power, mutationResistance) >= 0 {
 		Msg(msg)
