@@ -20,6 +20,9 @@ func Mutate(id entity.Id) {
 	mutation(id)
 	crit.Mutations++
 
+	// Heal the creature while at it.
+	crit.Wounds = 0
+
 	if crit.Mutations >= terminalMutationCount {
 		EMsg("{sub.Thename} mutate{sub.s} further!\n", id, entity.NilId)
 		terminalMutation(id)
