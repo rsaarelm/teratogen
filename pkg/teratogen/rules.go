@@ -68,7 +68,7 @@ func MinToHit(scaleDiff int) int { return Poor - Log2Modifier(scaleDiff) }
 func LevelDescription(level int) string {
 	switch {
 	case level < -4:
-		return fmt.Sprintf("abysmal %d", -(level + 3))
+		return fmt.Sprintf("abysmal -%d", -(level + 4))
 	case level == -4:
 		return "abysmal"
 	case level == -3:
@@ -88,7 +88,7 @@ func LevelDescription(level int) string {
 	case level == 4:
 		return "legendary"
 	case level > 4:
-		return fmt.Sprintf("legendary %d", level-3)
+		return fmt.Sprintf("legendary +%d", level-4)
 	}
 	panic("Switch fallthrough in LevelDescription")
 }
@@ -314,20 +314,20 @@ func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 
 // ScaleToVolume converts a scale value into a corresponding volume in liters.
 // This is the main interpretation for scale.
-func ScaleToVolume(scale int) (liters float64) {
-	return math.Pow(2.0, float64(scale+6))
+func ScaleToVolume(scale float64) (liters float64) {
+	return math.Pow(2.0, scale+6)
 }
 
 // ScaleToMass converts a scale and a density value (density 0 for water /
 // living things) into a corresponding kilogram mass.
-func ScaleToMass(scale, density int) (kg float64) {
+func ScaleToMass(scale, density float64) (kg float64) {
 	return ScaleToVolume(scale + density)
 }
 
 // ScaleToHeight converts a scale to the average upright height of a humanoid
-// of that scale.
-func ScaleToHeight(scale int) (meters float64) {
-	return math.Pow(math.Pow(2.0, float64(scale+2)), 1.0/3.0)
+// of that scale in meters.
+func ScaleToHeight(scale float64) (meters float64) {
+	return math.Pow(math.Pow(2.0, scale+2), 1.0/3.0)
 }
 
 type BloodSplatter int
