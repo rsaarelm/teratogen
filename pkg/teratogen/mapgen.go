@@ -415,10 +415,10 @@ func cavePointSummarizeHex(x, y int, cave [][]CaveTile) (adjFloors, adjWalls int
 	if cave[x][y+1] == CaveFloor {
 		adjFloors++
 	}
-	if cave[x-1][y+1] == CaveFloor {
+	if cave[x+1][y+1] == CaveFloor {
 		adjFloors++
 	}
-	if cave[x+1][y-1] == CaveFloor {
+	if cave[x-1][y-1] == CaveFloor {
 		adjFloors++
 	}
 
@@ -434,10 +434,10 @@ func cavePointSummarizeHex(x, y int, cave [][]CaveTile) (adjFloors, adjWalls int
 	if cave[x][y+1] == CaveWall {
 		adjWalls++
 	}
-	if cave[x-1][y+1] == CaveWall {
+	if cave[x+1][y+1] == CaveWall {
 		adjWalls++
 	}
-	if cave[x+1][y-1] == CaveWall {
+	if cave[x-1][y-1] == CaveWall {
 		adjWalls++
 	}
 
