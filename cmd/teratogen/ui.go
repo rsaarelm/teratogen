@@ -324,7 +324,7 @@ func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bo
 			if choice < maxOpt {
 				return choice + pos, true
 			}
-		case key == keyboard.K_ESCAPE:
+		case key == keyboard.K_ESCAPE || isActionKey(key):
 			// Return index -1 along with not-ok if the user
 			// aborts, so that buggy calling code that tries to
 			// use the return value despite getting not-ok will
@@ -384,7 +384,8 @@ func EquipMenu() {
 func UiHelpLines() iterable.Iterable {
 	vec := new(vector.Vector)
 	vec.Push("esc: exit menu")
-	vec.Push("arrow keys: move, attack adjacent")
+	vec.Push("arrow keys, uiojkl: move, attack adjacent")
+	vec.Push("Return, keypad 5: action key")
 	vec.Push("q: quit")
 
 	if game.HasContents(game.PlayerId()) {
@@ -411,6 +412,10 @@ func UiHelpLines() iterable.Iterable {
 		vec.Push(">: go down the stairs")
 	}
 	return vec
+}
+
+func isActionKey(keysym int) bool {
+	return keysym == keyboard.K_RETURN || keysym == keyboard.K_KP5
 }
 
 func ApplyItemMenu() (actionMade bool) {
@@ -501,7 +506,7 @@ var playerInputChan = make(chan (func() bool))
 
 func MorePrompt() {
 	game.Msg("--more--\n")
-	for GetKey() != ' ' {
+	for key := GetKey(); !isActionKey(key) && key != ' '; key = GetKey() {
 	}
 
 	MarkMsgLinesSeen()

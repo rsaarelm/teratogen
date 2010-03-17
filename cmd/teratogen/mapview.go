@@ -510,5 +510,6 @@ func SmartLocalPlayerAction() {
 		})
 		return
 	}
-	game.Msg("Nothing to do here.\n")
+	// Default is to idle.
+	SendPlayerInput(func() bool { return true })
 }
