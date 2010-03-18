@@ -39,7 +39,7 @@ func init() {
 	a["protagonist"] = entity.Assemblage{
 		Metadata:      MetaTemplate(-1, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"protagonist", "chars:16", PronounIt, false},
+		NameComponent: NameTemplate("protagonist", "chars:16", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Good,
 			Skill:  Good,
@@ -49,7 +49,7 @@ func init() {
 	a["zombie"] = entity.Assemblage{
 		Metadata:      MetaTemplate(100, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"zombie", "chars:1", PronounIt, false},
+		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Fair,
 			Skill:  Fair,
@@ -59,7 +59,7 @@ func init() {
 	a["dogthing"] = entity.Assemblage{
 		Metadata:      MetaTemplate(150, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"dog-thing", "chars:2", PronounIt, false},
+		NameComponent: NameTemplate("dog-thing", "chars:2", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Fair,
 			Skill:  Good,
@@ -69,7 +69,7 @@ func init() {
 	a["belcher"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 2),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"belcher", "chars:3", PronounIt, false},
+		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Poor,
 			Skill:  Mediocre,
@@ -79,7 +79,7 @@ func init() {
 	a["crawlingmass"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"crawling mass", "chars:7", PronounIt, false},
+		NameComponent: NameTemplate("crawling mass", "chars:7", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Good,
 			Skill:  Poor,
@@ -89,7 +89,7 @@ func init() {
 	a["cyclops"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 4),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"cyclops", "chars:6", PronounIt, false},
+		NameComponent: NameTemplate("cyclops", "chars:6", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Poor,
 			Skill:  Poor,
@@ -99,7 +99,7 @@ func init() {
 	a["wendigo"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 6),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"wendigo", "chars:8", PronounIt, false},
+		NameComponent: NameTemplate("wendigo", "chars:8", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Superb,
 			Skill:  Superb,
@@ -109,7 +109,7 @@ func init() {
 	a["spider"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 6),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"spider", "chars:10", PronounIt, false},
+		NameComponent: NameTemplate("spider", "chars:10", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Fair,
 			Skill:  Great,
@@ -119,7 +119,7 @@ func init() {
 	a["killbot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 8),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"killbot", "chars:11", PronounIt, false},
+		NameComponent: NameTemplate("killbot", "chars:11", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Superb,
 			Skill:  Good,
@@ -129,7 +129,7 @@ func init() {
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"ogre", "chars:15", PronounIt, false},
+		NameComponent: NameTemplate("ogre", "chars:15", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Great,
 			Skill:  Fair,
@@ -139,7 +139,7 @@ func init() {
 	a["boss1"] = entity.Assemblage{
 		Metadata:      MetaTemplate(-1, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"elder spawn", "chars:5", PronounIt, false},
+		NameComponent: NameTemplate("elder spawn", "chars:5", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Power:  Legendary,
 			Skill:  Superb,
@@ -150,39 +150,39 @@ func init() {
 	a["blood_small"] = entity.Assemblage{
 		Metadata:       MetaTemplate(-1, 0),
 		PosComponent:   PosTemplate(),
-		NameComponent:  NameTemplate{"blood splatter", "items:16", PronounIt, false},
+		NameComponent:  NameTemplate("blood splatter", "items:16", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 	a["blood_large"] = entity.Assemblage{
 		Metadata:       MetaTemplate(-1, 0),
 		PosComponent:   PosTemplate(),
-		NameComponent:  NameTemplate{"blood pool", "items:15", PronounIt, false},
+		NameComponent:  NameTemplate("blood pool", "items:15", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 	a["blood_trail"] = entity.Assemblage{
 		Metadata:       MetaTemplate(-1, 0),
 		PosComponent:   PosTemplate(),
-		NameComponent:  NameTemplate{"bloody trail", "items:17", PronounIt, false},
+		NameComponent:  NameTemplate("bloody trail", "items:17", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 
 	a["globe"] = entity.Assemblage{
 		Metadata:       MetaTemplate(30, 0),
 		PosComponent:   PosTemplate(),
-		NameComponent:  NameTemplate{"globe", "items:1", PronounIt, false},
+		NameComponent:  NameTemplate("globe", "items:1", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 
 	a["plantpot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"plant pot", "items:3", PronounIt, false},
+		NameComponent: NameTemplate("plant pot", "items:3", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse, NoItemTrait},
 	}
 	a["pistol"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"pistol", "items:4", PronounIt, false},
+		NameComponent: NameTemplate("pistol", "items:4", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: GunEquipSlot,
 			Durability:    12,
@@ -194,7 +194,7 @@ func init() {
 	a["machete"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"machete", "items:5", PronounIt, false},
+		NameComponent: NameTemplate("machete", "items:5", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: MeleeEquipSlot,
 			Durability:    20,
@@ -206,7 +206,7 @@ func init() {
 	a["kevlar"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"kevlar armor", "items:6", PronounIt, false},
+		NameComponent: NameTemplate("kevlar armor", "items:6", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    20,
@@ -218,7 +218,7 @@ func init() {
 	a["riot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 3),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"riot armor", "items:13", PronounIt, false},
+		NameComponent: NameTemplate("riot armor", "items:13", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    20,
@@ -230,7 +230,7 @@ func init() {
 	a["hardsuit"] = entity.Assemblage{
 		Metadata:      MetaTemplate(600, 8),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"hard suit", "items:14", PronounIt, false},
+		NameComponent: NameTemplate("hard suit", "items:14", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    40,
@@ -242,19 +242,19 @@ func init() {
 	a["medkit"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"medkit", "items:7", PronounIt, false},
+		NameComponent: NameTemplate("medkit", "items:7", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse, NoItemTrait},
 	}
 	a["stabilizer"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"genetic stabilizer", "items:18", PronounIt, false},
+		NameComponent: NameTemplate("genetic stabilizer", "items:18", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, StabilizerUse, NoItemTrait},
 	}
 	a["monoblade"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 5),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"monoblade", "items:8", PronounIt, false},
+		NameComponent: NameTemplate("monoblade", "items:8", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: MeleeEquipSlot,
 			Durability:    20,
@@ -266,7 +266,7 @@ func init() {
 	a["sledge"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 2),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"sledgehammer", "items:9", PronounIt, false},
+		NameComponent: NameTemplate("sledgehammer", "items:9", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: MeleeEquipSlot,
 			Durability:    40,
@@ -278,7 +278,7 @@ func init() {
 	a["spingun"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate{"spinner gun", "items:10", PronounIt, false},
+		NameComponent: NameTemplate("spinner gun", "items:10", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: GunEquipSlot,
 			Durability:    30,

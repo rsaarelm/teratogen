@@ -1,5 +1,11 @@
 package entity
 
+import (
+	"hyades/dbg"
+	"hyades/mem"
+	"reflect"
+)
+
 // A ComponentTemplate is an object that creates components for new entities.
 type ComponentTemplate interface {
 	// Derive returns a new ComponentTemplate that is the self template
@@ -12,6 +18,61 @@ type ComponentTemplate interface {
 	// it to the given entity.
 	MakeComponent(manager *Manager, guid Id)
 }
+
+// DefaultTemplate is a convenience type for specifying contentless templates.
+type DefaultTemplate struct {
+	component reflect.Type
+	family    ComponentFamily
+	values    map[string]interface{}
+}
+
+// NewDefaultTemplate makes a default template using a value of the component
+// type (may be nil, as long as it's cast to the correct type), and a map of
+// default values (may be nil).
+func NewDefaultTemplate(componentRef interface{}, family ComponentFamily, values map[string]interface{}) (result *DefaultTemplate) {
+	result = new(DefaultTemplate)
+	result.component = reflect.Typeof(componentRef)
+	result.family = family
+	result.values = make(map[string]interface{})
+	if values != nil {
+		for k, v := range values {
+			result.values[k] = v
+		}
+	}
+
+	return result
+}
+
+func (self *DefaultTemplate) Derive(child ComponentTemplate) ComponentTemplate {
+	childDefault := child.(*DefaultTemplate)
+	dbg.Assert(childDefault.component == self.component,
+		"Trying to derive DefaultComponent for a different type.")
+	dbg.Assert(childDefault.family == self.family,
+		"Trying to derive DefaultComponent for a different component family.")
+
+	result := new(DefaultTemplate)
+	result.component = self.component
+	result.family = self.family
+	result.values = make(map[string]interface{})
+	for k, v := range self.values {
+		result.values[k] = v
+	}
+	for k, v := range childDefault.values {
+		result.values[k] = v
+	}
+
+	return result
+}
+
+func (self *DefaultTemplate) MakeComponent(manager *Manager, guid Id) {
+	componentVal := mem.BlankCopyOfType(self.component)
+
+	err := mem.AssignFields(componentVal, self.values)
+	dbg.AssertNoError(err)
+
+	manager.Handler(self.family).Add(guid, componentVal.Interface())
+}
+
 
 // An assemblage is a collection of component templates. They specify entity
 // templates templates.

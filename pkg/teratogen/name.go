@@ -11,15 +11,13 @@ import (
 
 const NameComponent = entity.ComponentFamily("name")
 
-
-type NameTemplate Name
-
-func (self NameTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
-	return c
-}
-
-func (self NameTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
-	manager.Handler(NameComponent).Add(guid, &Name{self.Name, self.IconId, self.Pronoun, self.IsProperName})
+func NameTemplate(name string, iconId string, pronoun PronounType, isProperName bool) *entity.DefaultTemplate {
+	return entity.NewDefaultTemplate((*Name)(nil), NameComponent, map[string]interface{}{
+		"Name":         name,
+		"IconId":       iconId,
+		"Pronoun":      pronoun,
+		"IsProperName": isProperName,
+	})
 }
 
 

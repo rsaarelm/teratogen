@@ -43,7 +43,7 @@ func (self *BlankObjectFactory) Register(example interface{}) {
 func (self *BlankObjectFactory) Make(name string) interface{} {
 	typ, ok := self.typenames[name]
 	dbg.Assert(ok, "Unknown typename %v", name)
-	return blankCopyOfType(typ).Interface()
+	return BlankCopyOfType(typ).Interface()
 }
 
 // Save an object's typename and the object itself to outstream. Use gob
@@ -72,16 +72,16 @@ func (self *BlankObjectFactory) GobLoad(in io.Reader) interface{} {
 
 // Make a null object of the same type as the parameter.
 func BlankCopy(obj interface{}) interface{} {
-	return blankCopyOfType(reflect.Typeof(obj)).Interface()
+	return BlankCopyOfType(reflect.Typeof(obj)).Interface()
 }
 
-func blankCopyOfType(typ reflect.Type) reflect.Value {
+func BlankCopyOfType(typ reflect.Type) reflect.Value {
 	ptr, isPointer := typ.(*reflect.PtrType)
 	if isPointer {
 		// If the value is a pointer, make a new pointer value that
 		// points to a new empty inner value.
 		result := reflect.MakeZero(ptr).(*reflect.PtrValue)
-		result.PointTo(blankCopyOfType(ptr.Elem()))
+		result.PointTo(BlankCopyOfType(ptr.Elem()))
 		return result
 	}
 	// Otherwise just copy the value straight up.
