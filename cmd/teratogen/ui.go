@@ -142,19 +142,24 @@ func DrawChar(g gfx.Graphics, char int, x, y int) {
 	DrawSprite(g, fmt.Sprintf("font:%d", char), x, y)
 }
 
-// TODO: Support color
-func DrawString(g gfx.Graphics, x, y int, format string, a ...interface{}) {
+var defaultTextColor = gfx.GreenYellow
+
+func DrawColorString(g gfx.Graphics, x, y int, col image.Color, format string, a ...interface{}) {
 	txt := fmt.Sprintf(format, a)
 	if txt == "" {
 		return
 	}
-	line, err := ui.font.Render(txt, gfx.GreenYellow)
+	line, err := ui.font.Render(txt, col)
 	if err != nil {
 		fmt.Printf("[%v], %v\n", txt, err)
 		return
 	}
 	g.Blit(line, x, y)
 	ui.context.Free(line)
+}
+
+func DrawString(g gfx.Graphics, x, y int, format string, a ...interface{}) {
+	DrawColorString(g, x, y, defaultTextColor, format, a)
 }
 
 func GetMsg() *MsgOut { return ui.msg }
@@ -189,6 +194,19 @@ func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
 	}
 }
 
+func statusLineColor() image.Color {
+	playerCrit := game.GetCreature(game.PlayerId())
+	switch {
+	case playerCrit.IsSeriouslyHurt():
+		return gfx.OrangeRed
+	case playerCrit.IsHurt():
+		return gfx.Orange
+	case playerCrit.HasStatus(game.StatusMutationShield):
+		return gfx.LightBlue
+	}
+	return defaultTextColor
+}
+
 func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
@@ -201,7 +219,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	if mutations != "" {
 		healthStatus += ", " + mutations
 	}
-	DrawString(g, area.Min.X, area.Min.Y, "%v", txt.Capitalize(healthStatus))
+	DrawColorString(g, area.Min.X, area.Min.Y, statusLineColor(), "%v", txt.Capitalize(healthStatus))
 
 	// Add this arbitrary number in [-0.5, 0.5] to player scale when generating
 	// the unit value, so that the resulting number won't be an obvious power

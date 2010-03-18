@@ -125,6 +125,16 @@ func (self *Creature) Toughness() (result int) {
 
 func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Toughness()+3)*2+1) }
 
+// IsHurt returns whether the creature has enough wounds to warrant some
+// attention.
+func (self *Creature) IsHurt() bool {
+	return self.Wounds > 0 && self.MaxWounds()-self.Wounds < 6
+}
+
+func (self *Creature) IsSeriouslyHurt() bool {
+	return self.Wounds > 0 && self.MaxWounds()-self.Wounds < 3
+}
+
 func (self *Creature) WoundDescription() string {
 	maxWounds := self.MaxWounds()
 	switch {
