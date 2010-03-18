@@ -23,12 +23,13 @@ const (
 	IntrinsicElectrocute
 	IntrinsicPoison
 	IntrinsicEndboss
-	IntrinsicTough         // Creature is +2 tougher than it's power
-	IntrinsicFragile       // Creature's toughness is -2 from it's power
-	IntrinsicDense         // Creature's mass is for scale +2 of creature's scale
-	IntrinsicUnliving      // Creature is not a living thing
-	IntrinsicEsper         // Creature can sense unseen living things
+	IntrinsicTough         // Creature is +2 tougher than it's power.
+	IntrinsicFragile       // Creature's toughness is -2 from it's power.
+	IntrinsicDense         // Creature's mass is for scale +2 of creature's scale.
+	IntrinsicUnliving      // Creature is not a living thing.
+	IntrinsicEsper         // Creature can sense unseen living things.
 	IntrinsicMartialArtist // Creature can use it's skill to dodge attacks.
+	IntrinsicChaosSpawn    // Creature is a thing of chaos that can't be mutated any further.
 )
 
 // Creature transient status traits.
@@ -41,6 +42,7 @@ const (
 	StatusPoisoned
 	StatusDead
 	StatusBloodTrail
+	StatusMutationShield // Prevents next mutation to creature.
 )
 
 
@@ -149,6 +151,10 @@ func (self *Creature) WoundDescription() string {
 }
 
 func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
+
+func (self *Creature) AddIntrinsic(intrinsic int32) {
+	self.Traits |= intrinsic
+}
 
 func (self *Creature) HasIntrinsic(intrinsic int32) bool {
 	return self.Traits&intrinsic != 0

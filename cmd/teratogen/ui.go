@@ -440,7 +440,10 @@ func ApplyItemMenu() (actionMade bool) {
 		return false
 	}
 	if id := EntityChoiceDialog("Use which item?", items); id != entity.NilId {
-		game.UseItem(game.PlayerId(), id)
+		SendPlayerInput(func() bool {
+			game.UseItem(game.PlayerId(), id)
+			return true
+		})
 		return true
 	} else {
 		game.Msg("Okay, then.\n")

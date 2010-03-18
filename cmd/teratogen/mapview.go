@@ -373,9 +373,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			return true
 		})
 	case 'a':
-		if ApplyItemMenu() {
-			SendPlayerInput(func() bool { return true })
-		}
+		ApplyItemMenu()
 	case ',':
 		SmartPlayerPickup(false)
 	case 't':

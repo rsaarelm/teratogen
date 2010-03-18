@@ -9,8 +9,18 @@ import (
 
 func Mutate(id entity.Id) {
 	crit := GetCreature(id)
-	if crit.Mutations >= terminalMutationCount {
-		// Full chaos, can't mutate further.
+	if !canMutate(id) {
+		return
+	}
+
+	if crit.HasStatus(StatusMutationShield) {
+		EMsg("{sub.Thename} remain{sub.s} unchanged.\n", id, entity.NilId)
+		if num.OneChanceIn(2) {
+			crit.RemoveStatus(StatusMutationShield)
+			if id == PlayerId() {
+				Msg("You feel less stable.\n")
+			}
+		}
 		return
 	}
 
@@ -29,11 +39,24 @@ func Mutate(id entity.Id) {
 	}
 }
 
+func canMutate(id entity.Id) bool {
+	// Chaos creatures won't mutate, others do.
+	return !GetCreature(id).HasIntrinsic(IntrinsicChaosSpawn)
+}
+
 func terminalMutation(id entity.Id) {
 	name := GetNameComp(id)
 	name.IconId = "chars:20"
 	name.Pronoun = PronounIt
 	name.Name = "abomination"
+
+	crit := GetCreature(id)
+	crit.AddIntrinsic(IntrinsicChaosSpawn)
+
+	// Scramble base stats.
+	crit.Scale += FudgeDice()
+	crit.Power += FudgeDice()
+	crit.Skill += FudgeDice()
 
 	if id == PlayerId() {
 		GameOver("became one with the Tau wave.")
@@ -117,7 +140,7 @@ func getsEsperMutation(id entity.Id) bool {
 
 func esperMutation(id entity.Id) {
 	EMsg("{sub.Thename} sense{sub.s} minds surrounding {sub.accusative}.\n", id, entity.NilId)
-	GetCreature(id).Traits |= IntrinsicEsper
+	GetCreature(id).AddIntrinsic(IntrinsicEsper)
 }
 
 func getsToughMutation(id entity.Id) bool {
@@ -126,5 +149,5 @@ func getsToughMutation(id entity.Id) bool {
 
 func toughMutation(id entity.Id) {
 	EMsg("{sub.Thename's} skin hardens into scales.\n", id, entity.NilId)
-	GetCreature(id).Traits |= IntrinsicTough
+	GetCreature(id).AddIntrinsic(IntrinsicTough)
 }

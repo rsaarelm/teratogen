@@ -32,6 +32,7 @@ type ItemUse int
 const (
 	NoUse ItemUse = iota
 	MedkitUse
+	StabilizerUse
 )
 
 const (
@@ -186,13 +187,22 @@ func UseItem(userId, itemId entity.Id) {
 		case MedkitUse:
 			crit := GetCreature(userId)
 			if crit.Wounds > 0 {
-				Msg("You feel much better.\n")
+				EMsg("{sub.Thename} feel{sub.s} much better.\n", userId, itemId)
 				Fx().Heal(userId, crit.Wounds)
 				crit.Wounds = 0
 				Destroy(itemId)
 			} else {
-				Msg("You feel fine already.\n")
+				EMsg("{sub.Thename} feel{sub.s} fine already.\n", userId, itemId)
 			}
+		case StabilizerUse:
+			crit := GetCreature(userId)
+			if !crit.HasStatus(StatusMutationShield) {
+				EMsg("{sub.Thename} feel{sub.s} stable.\n", userId, itemId)
+			} else {
+				EMsg("{sub.Thename} inject{sub.s} the liquid.\n", userId, itemId)
+			}
+			crit.AddStatus(StatusMutationShield)
+			Destroy(itemId)
 		default:
 			dbg.Die("Unknown use %v.", item.Use)
 		}
