@@ -114,13 +114,13 @@ func AssignFields(obj reflect.Value, values map[string]interface{}) os.Error {
 	for k, v := range values {
 		field := fields.FieldByName(k)
 		if field == nil {
-			return os.NewError(fmt.Sprintf("AssignFields: Field '%s' not in struct.", field))
+			return os.NewError(fmt.Sprintf("AssignFields: Field '%s' not in struct.", k))
 		}
 		val := reflect.NewValue(v)
 		if field.Type() != val.Type() {
 			return os.NewError(fmt.Sprintf(
 				"AssignFields: Type mismatch for '%s', %v in data for %v in struct.",
-				field, val.Type(), field.Type()))
+				k, val.Type(), field.Type()))
 		}
 		field.SetValue(reflect.NewValue(v))
 	}
