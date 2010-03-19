@@ -26,7 +26,7 @@ func DoAI(critId entity.Id) bool {
 
 	// Bile attack.
 	const bileAttackRange = 5
-	if crit.Traits&IntrinsicBile != 0 {
+	if crit.Intrinsics&IntrinsicBile != 0 {
 		if CanSeeTo(GetPos(critId), GetPos(playerId)) && EntityDist(critId, playerId) <= bileAttackRange && num.OneChanceIn(2) {
 			damageFactor := crit.Power + crit.Scale
 
@@ -122,8 +122,8 @@ func EntityActsThisTurn(id entity.Id) bool {
 	}
 
 	turn := GetCurrentTurn()
-	isSlow := crit.Traits&IntrinsicSlow != 0
-	isFast := crit.Traits&IntrinsicFast != 0
+	isSlow := crit.Intrinsics&IntrinsicSlow != 0
+	isFast := crit.Intrinsics&IntrinsicFast != 0
 	isQuick := crit.Statuses&StatusQuick != 0
 
 	return ActsOnTurn(turn, isSlow, isFast, isQuick)

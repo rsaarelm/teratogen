@@ -41,110 +41,110 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("protagonist", "chars:16", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Good,
-			Skill:  Good,
-			Scale:  0,
-			Traits: IntrinsicMartialArtist},
+			Power:      Good,
+			Skill:      Good,
+			Scale:      0,
+			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["zombie"] = entity.Assemblage{
 		Metadata:      MetaTemplate(100, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Fair,
-			Skill:  Fair,
-			Scale:  0,
-			Traits: IntrinsicFragile},
+			Power:      Fair,
+			Skill:      Fair,
+			Scale:      0,
+			Intrinsics: IntrinsicFragile},
 	}
 	a["dogthing"] = entity.Assemblage{
 		Metadata:      MetaTemplate(150, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("dog-thing", "chars:2", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Fair,
-			Skill:  Good,
-			Scale:  -1,
-			Traits: NoIntrinsic},
+			Power:      Fair,
+			Skill:      Good,
+			Scale:      -1,
+			Intrinsics: NoIntrinsic},
 	}
 	a["belcher"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 2),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Poor,
-			Skill:  Mediocre,
-			Scale:  1,
-			Traits: IntrinsicBile | IntrinsicTough},
+			Power:      Poor,
+			Skill:      Mediocre,
+			Scale:      1,
+			Intrinsics: IntrinsicBile | IntrinsicTough},
 	}
 	a["crawlingmass"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("crawling mass", "chars:7", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Good,
-			Skill:  Poor,
-			Scale:  2,
-			Traits: IntrinsicSlow | IntrinsicDeathsplode},
+			Power:      Good,
+			Skill:      Poor,
+			Scale:      2,
+			Intrinsics: IntrinsicSlow | IntrinsicDeathsplode},
 	}
 	a["cyclops"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 4),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("cyclops", "chars:6", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Poor,
-			Skill:  Poor,
-			Scale:  0,
-			Traits: IntrinsicPsychicBlast | IntrinsicConfuse | IntrinsicTough},
+			Power:      Poor,
+			Skill:      Poor,
+			Scale:      0,
+			Intrinsics: IntrinsicPsychicBlast | IntrinsicConfuse | IntrinsicTough},
 	}
 	a["wendigo"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 6),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("wendigo", "chars:8", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Superb,
-			Skill:  Superb,
-			Scale:  2,
-			Traits: IntrinsicFast | IntrinsicFragile},
+			Power:      Superb,
+			Skill:      Superb,
+			Scale:      2,
+			Intrinsics: IntrinsicFast | IntrinsicFragile},
 	}
 	a["spider"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 6),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("spider", "chars:10", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Fair,
-			Skill:  Great,
-			Scale:  1,
-			Traits: IntrinsicPoison},
+			Power:      Fair,
+			Skill:      Great,
+			Scale:      1,
+			Intrinsics: IntrinsicPoison},
 	}
 	a["killbot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 8),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("killbot", "chars:11", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Superb,
-			Skill:  Good,
-			Scale:  0,
-			Traits: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile | IntrinsicUnliving},
+			Power:      Superb,
+			Skill:      Good,
+			Scale:      0,
+			Intrinsics: IntrinsicElectrocute | IntrinsicDense | IntrinsicFragile | IntrinsicUnliving},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("ogre", "chars:15", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Great,
-			Skill:  Fair,
-			Scale:  3,
-			Traits: NoIntrinsic},
+			Power:      Great,
+			Skill:      Fair,
+			Scale:      3,
+			Intrinsics: NoIntrinsic},
 	}
 	a["boss1"] = entity.Assemblage{
 		Metadata:      MetaTemplate(-1, 0),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("elder spawn", "chars:5", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Power:  Legendary,
-			Skill:  Superb,
-			Scale:  5,
-			Traits: IntrinsicEndboss},
+			Power:      Legendary,
+			Skill:      Superb,
+			Scale:      5,
+			Intrinsics: IntrinsicEndboss},
 	}
 
 	a["blood_small"] = entity.Assemblage{

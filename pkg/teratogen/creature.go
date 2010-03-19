@@ -49,7 +49,7 @@ const (
 type CreatureTemplate struct {
 	Power, Skill int
 	Scale        int
-	Traits       int32
+	Intrinsics   int32
 }
 
 type DamageType int
@@ -81,13 +81,13 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
-		Power:     self.Power,
-		Skill:     self.Skill,
-		Scale:     self.Scale,
-		Traits:    self.Traits,
-		Wounds:    0,
-		Statuses:  0,
-		Mutations: 0,
+		Power:      self.Power,
+		Skill:      self.Skill,
+		Scale:      self.Scale,
+		Intrinsics: self.Intrinsics,
+		Wounds:     0,
+		Statuses:   0,
+		Mutations:  0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
 }
@@ -97,7 +97,7 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 type Creature struct {
 	Power, Skill int
 	Scale        int
-	Traits       int32
+	Intrinsics   int32
 	Wounds       int
 	Statuses     int32
 	Mutations    int
@@ -163,11 +163,11 @@ func (self *Creature) WoundDescription() string {
 func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
 
 func (self *Creature) AddIntrinsic(intrinsic int32) {
-	self.Traits |= intrinsic
+	self.Intrinsics |= intrinsic
 }
 
 func (self *Creature) HasIntrinsic(intrinsic int32) bool {
-	return self.Traits&intrinsic != 0
+	return self.Intrinsics&intrinsic != 0
 }
 
 func (self *Creature) HasStatus(status int32) bool {
@@ -242,7 +242,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 			GameOver(msg)
 		}
 
-		if self.Traits&IntrinsicEndboss != 0 {
+		if self.Intrinsics&IntrinsicEndboss != 0 {
 			// Killing the endboss.
 			WinGame("You win the game, hooray.")
 		}
@@ -252,7 +252,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		}
 
 		// Deathsplosion.
-		if self.Traits&IntrinsicDeathsplode != 0 {
+		if self.Intrinsics&IntrinsicDeathsplode != 0 {
 			EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
 			Explode(GetPos(selfId), 3+self.Scale, selfId)
 		}
