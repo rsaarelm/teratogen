@@ -419,7 +419,7 @@ func OnPlayerKill(killedId entity.Id) {
 }
 
 func PlayerMutationRoll(power int, msg string) bool {
-	mutationResistance := 4 + GetCreature(PlayerId()).Mutations/2
+	mutationResistance := 4 + GetMutations(PlayerId()).MutationLevel()/2
 
 	// Cap too big mutation chances. Always have a reasonably low chance of
 	// doing a mutation.

@@ -101,3 +101,12 @@ func InvSqrt(x float64) float64 {
 
 	return tmp * (1.5 - 0.5*x*tmp*tmp)
 }
+
+func NumberOfSetBitsU64(x uint64) (result int) {
+	for i := uint64(0); i < 64; i++ {
+		if x&(1<<i) != 0 {
+			result++
+		}
+	}
+	return
+}

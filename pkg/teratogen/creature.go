@@ -87,7 +87,6 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		Intrinsics: self.Intrinsics,
 		Wounds:     0,
 		Statuses:   0,
-		Mutations:  0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
 }
@@ -100,7 +99,6 @@ type Creature struct {
 	Intrinsics   int32
 	Wounds       int
 	Statuses     int32
-	Mutations    int
 }
 
 func GetCreature(id entity.Id) *Creature {

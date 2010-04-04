@@ -38,6 +38,29 @@ type mutation struct {
 	prereqs uint64
 }
 
+func (self *mutation) CanApplyTo(id entity.Id) bool {
+	mutations := GetMutations(id)
+	if mutations == nil {
+		return false
+	}
+	level := mutations.MutationLevel()
+
+	if self.minLevel > level {
+		// Level too low.
+		return false
+	}
+	if mutations.mutations&self.prereqs != self.prereqs {
+		// Unmatched prerequisites.
+		return false
+	}
+	if self.predicate != nil && !self.predicate(id) {
+		// Special predicate didn't match.
+		return false
+	}
+
+	return true
+}
+
 var mutations = map[uint64]*mutation{
 	MutationStr1:  &mutation{powerMutation, 0, nil, 0},
 	MutationStr2:  &mutation{powerMutation, 0, nil, MutationStr1},
@@ -57,17 +80,21 @@ func GetMutations(id entity.Id) *Mutations {
 	return nil
 }
 
+func (self *Mutations) MutationLevel() int {
+	return num.NumberOfSetBitsU64(self.mutations)
+}
+
+func (self *Mutations) HasMutation(mutation uint64) bool {
+	return self.mutations&mutation != 0
+}
+
+func (self *Mutations) SetMutation(mutation uint64) {
+	self.mutations |= mutation
+}
+
 func Mutate(id entity.Id) {
 	crit := GetCreature(id)
 	if !canMutate(id) {
-		return
-	}
-
-	mutations := GetMutations(id)
-
-	// Creatures without a mutations component just go terminal straight away.
-	if mutations == nil {
-		terminalMutation(id)
 		return
 	}
 
@@ -82,16 +109,31 @@ func Mutate(id entity.Id) {
 		return
 	}
 
-	mutation := num.RandomChoiceA(iterable.Data(availableMutations(id))).(func(entity.Id))
+	mutations := GetMutations(id)
+
+	// Creatures without a mutations component just go terminal straight away.
+	if mutations == nil {
+		terminalMutation(id)
+		return
+	}
+
+	available := iterable.Data(availableMutations(id))
+
+	if len(available) == 0 {
+		// No available mutations.
+		EMsg("{sub.Thename} looks unstable for a moment.\n", id, entity.NilId)
+		return
+	}
+
+	mut := num.RandomChoiceA(available).(*mutation)
 
 	EMsg("{sub.Thename} mutate{sub.s}.\n", id, entity.NilId)
-	mutation(id)
-	crit.Mutations++
+	mut.apply(id)
 
 	// Heal the creature while at it.
 	crit.Wounds = 0
 
-	if crit.Mutations >= terminalMutationCount {
+	if mutations.MutationLevel() >= terminalMutationCount {
 		EMsg("{sub.Thename} mutate{sub.s} further!\n", id, entity.NilId)
 		terminalMutation(id)
 	}
@@ -124,8 +166,8 @@ func terminalMutation(id entity.Id) {
 const terminalMutationCount = 10
 
 func MutationStatus(id entity.Id) string {
-	if crit := GetCreature(id); crit != nil {
-		return mutationStatusString(crit.Mutations)
+	if mut := GetMutations(id); mut != nil {
+		return mutationStatusString(mut.MutationLevel())
 	}
 	return ""
 }
@@ -159,33 +201,19 @@ func mutationStatusString(numMutations int) string {
 func availableMutations(id entity.Id) iterable.Iterable {
 	vec := new(vector.Vector)
 
-	if getsGrowMutation(id) {
-		vec.Push(growMutation)
-	}
-
-	if getsPowerMutation(id) {
-		vec.Push(powerMutation)
-	}
-
-	if getsEsperMutation(id) {
-		vec.Push(esperMutation)
-	}
-
-	if getsToughMutation(id) {
-		vec.Push(toughMutation)
+	for _, m := range mutations {
+		if m.CanApplyTo(id) {
+			vec.Push(m)
+		}
 	}
 
 	return vec
 }
 
-func getsGrowMutation(id entity.Id) bool { return true }
-
 func growMutation(id entity.Id) {
 	EMsg("{sub.Thename} grow{sub.s} larger.\n", id, entity.NilId)
 	GetCreature(id).Scale++
 }
-
-func getsPowerMutation(id entity.Id) bool { return true }
 
 func powerMutation(id entity.Id) {
 	EMsg("{sub.Thename} grow{sub.s} stronger.\n", id, entity.NilId)
