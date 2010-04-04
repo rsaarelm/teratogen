@@ -37,9 +37,10 @@ func init() {
 	assemblages = make(map[string]entity.Assemblage)
 	a := assemblages
 	a["protagonist"] = entity.Assemblage{
-		Metadata:      MetaTemplate(-1, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("protagonist", "chars:16", PronounIt, false),
+		Metadata:           MetaTemplate(-1, 0),
+		PosComponent:       PosTemplate(),
+		NameComponent:      NameTemplate("protagonist", "chars:16", PronounIt, false),
+		MutationsComponent: entity.NewDefaultTemplate((*Mutations)(nil), MutationsComponent, nil),
 		CreatureComponent: &CreatureTemplate{
 			Power:      Good,
 			Skill:      Good,

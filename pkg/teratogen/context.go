@@ -146,6 +146,7 @@ func makeManager() (result *entity.Manager) {
 	result.SetHandler(CreatureComponent, entity.NewContainer(new(Creature)))
 	result.SetHandler(ItemComponent, entity.NewContainer(new(Item)))
 	result.SetHandler(DecalComponent, entity.NewContainer(new(Decal)))
+	result.SetHandler(MutationsComponent, entity.NewContainer(new(Mutations)))
 
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
 	result.SetHandler(MeleeEquipComponent, entity.NewRelation(entity.OneToOne))

@@ -7,9 +7,67 @@ import (
 	"hyades/num"
 )
 
+const MutationsComponent = entity.ComponentFamily("mutations")
+
+type Mutations struct {
+	mutations uint64
+}
+
+const (
+	MutationStr1 = 1 << iota
+	MutationStr2
+	MutationStr3
+	MutationGrow1
+	MutationGrow2
+	MutationGrow3
+	MutationEsp
+	MutationTough
+)
+
+type mutation struct {
+	apply func(id entity.Id)
+
+	// Number of existing mutations before this one can be viable.
+	minLevel int
+
+	// Extra predicate for whether the entity can get the mutation. May be nil.
+	predicate func(id entity.Id) bool
+
+	// Bit vector of all the mutations that must be present before this one can
+	// be viable.
+	prereqs uint64
+}
+
+var mutations = map[uint64]*mutation{
+	MutationStr1:  &mutation{powerMutation, 0, nil, 0},
+	MutationStr2:  &mutation{powerMutation, 0, nil, MutationStr1},
+	MutationStr3:  &mutation{powerMutation, 0, nil, MutationStr2},
+	MutationGrow1: &mutation{growMutation, 0, nil, 0},
+	MutationGrow2: &mutation{growMutation, 0, nil, MutationGrow1},
+	MutationGrow3: &mutation{growMutation, 0, nil, MutationGrow2},
+	MutationEsp:   &mutation{esperMutation, 0, getsEsperMutation, 0},
+	MutationTough: &mutation{toughMutation, 0, getsToughMutation, 0},
+	// TODO more
+}
+
+func GetMutations(id entity.Id) *Mutations {
+	if result := GetManager().Handler(MutationsComponent).Get(id); result != nil {
+		return result.(*Mutations)
+	}
+	return nil
+}
+
 func Mutate(id entity.Id) {
 	crit := GetCreature(id)
 	if !canMutate(id) {
+		return
+	}
+
+	mutations := GetMutations(id)
+
+	// Creatures without a mutations component just go terminal straight away.
+	if mutations == nil {
+		terminalMutation(id)
 		return
 	}
 
