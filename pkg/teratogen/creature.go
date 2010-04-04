@@ -13,8 +13,8 @@ const CreatureComponent = entity.ComponentFamily("creature")
 
 // Creature intrinsic traits.
 const (
-	NoIntrinsic = 1 << iota
-	IntrinsicSlow
+	NoIntrinsic   = 0
+	IntrinsicSlow = 1 << iota
 	IntrinsicFast
 	IntrinsicBile
 	IntrinsicDeathsplode
@@ -34,8 +34,8 @@ const (
 
 // Creature transient status traits.
 const (
-	NoStatus = 1 << iota
-	StatusSlow
+	NoStatus   = 0
+	StatusSlow = 1 << iota
 	StatusQuick
 	StatusConfused
 	StatusStunned
