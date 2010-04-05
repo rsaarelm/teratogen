@@ -31,6 +31,11 @@ func Attack(attackerId, defenderId entity.Id) {
 	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defense,
 		defCrit.Scale-attCrit.Scale)
 
+	if doesHit && defCrit.HasIntrinsic(IntrinsicShimmer) && num.OneChanceIn(5) {
+		EMsg("{sub.Thename} phase{sub.s} out of {obj.thename's} reach.\n", defenderId, attackerId)
+		return
+	}
+
 	if doesHit {
 		EMsg("{sub.Thename} hit{sub.s} {obj.thename}.\n", attackerId, defenderId)
 		// XXX: Assuming melee attack.
@@ -38,6 +43,18 @@ func Attack(attackerId, defenderId entity.Id) {
 			GetPos(attackerId), attackerId)
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
+
+		if IsAlive(defenderId) && attCrit.HasIntrinsic(IntrinsicHorns) && num.OneChanceIn(2) {
+			EMsg("{sub.Thename} headbutt{sub.s} {obj.thename}.\n", attackerId, defenderId)
+			defCrit.Damage(defenderId, &DamageData{2 + attCrit.MassFactor(), PiercingDamage, 0},
+				hitDegree, GetPos(attackerId), attackerId)
+		}
+
+		if IsAlive(defenderId) && attCrit.HasIntrinsic(IntrinsicHooves) && num.OneChanceIn(2) {
+			EMsg("{sub.Thename} kick{sub.s} {obj.thename}.\n", attackerId, defenderId)
+			defCrit.Damage(defenderId, &DamageData{2 + attCrit.MassFactor(), BluntDamage, 0},
+				hitDegree, GetPos(attackerId), attackerId)
+		}
 	} else {
 		EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n",
 			attackerId, defenderId)

@@ -30,6 +30,9 @@ const (
 	IntrinsicEsper         // Creature can sense unseen living things.
 	IntrinsicMartialArtist // Creature can use it's skill to dodge attacks.
 	IntrinsicChaosSpawn    // Creature is a thing of chaos that can't be mutated any further.
+	IntrinsicHorns         // 50 % chance for a bonus +2 piercing melee attack
+	IntrinsicHooves        // 50 % chance for a bonus +2 blunt melee attack
+	IntrinsicShimmer       // 20 % chance to evade incoming attacks
 )
 
 // Creature transient status traits.

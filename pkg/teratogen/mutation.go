@@ -22,6 +22,9 @@ const (
 	MutationGrow3
 	MutationEsp
 	MutationTough
+	MutationShimmer
+	MutationHooves
+	MutationHorns
 )
 
 type mutation struct {
@@ -80,14 +83,17 @@ func (self *mutation) CanApplyTo(id entity.Id) bool {
 }
 
 var mutations = map[uint64]*mutation{
-	MutationStr1:  &mutation{MutationStr1, powerMutation, 0, nil, 0},
-	MutationStr2:  &mutation{MutationStr2, powerMutation, 0, nil, MutationStr1},
-	MutationStr3:  &mutation{MutationStr3, powerMutation, 0, nil, MutationStr2},
-	MutationGrow1: &mutation{MutationGrow1, growMutation, 0, nil, 0},
-	MutationGrow2: &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
-	MutationGrow3: &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
-	MutationEsp:   &mutation{MutationEsp, esperMutation, 0, getsEsperMutation, 0},
-	MutationTough: &mutation{MutationTough, toughMutation, 0, getsToughMutation, 0},
+	MutationStr1:    &mutation{MutationStr1, powerMutation, 0, nil, 0},
+	MutationStr2:    &mutation{MutationStr2, powerMutation, 0, nil, MutationStr1},
+	MutationStr3:    &mutation{MutationStr3, powerMutation, 0, nil, MutationStr2},
+	MutationGrow1:   &mutation{MutationGrow1, growMutation, 0, nil, 0},
+	MutationGrow2:   &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
+	MutationGrow3:   &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
+	MutationEsp:     &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
+	MutationTough:   &mutation{MutationTough, toughMutation, 0, hasIntrinsicFilter(IntrinsicTough), 0},
+	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 0, hasIntrinsicFilter(IntrinsicShimmer), 0},
+	MutationHorns:   &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
+	MutationHooves:  &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
 	// TODO more
 }
 
@@ -238,8 +244,10 @@ func powerMutation(id entity.Id) {
 	GetCreature(id).Power++
 }
 
-func getsEsperMutation(id entity.Id) bool {
-	return !GetCreature(id).HasIntrinsic(IntrinsicEsper)
+func hasIntrinsicFilter(intrinsic int32) func(id entity.Id) bool {
+	return func(id entity.Id) bool {
+		return !GetCreature(id).HasIntrinsic(intrinsic)
+	}
 }
 
 func esperMutation(id entity.Id) {
@@ -247,11 +255,22 @@ func esperMutation(id entity.Id) {
 	GetCreature(id).AddIntrinsic(IntrinsicEsper)
 }
 
-func getsToughMutation(id entity.Id) bool {
-	return !GetCreature(id).HasIntrinsic(IntrinsicTough)
-}
-
 func toughMutation(id entity.Id) {
 	EMsg("{sub.Thename's} skin hardens into scales.\n", id, entity.NilId)
 	GetCreature(id).AddIntrinsic(IntrinsicTough)
+}
+
+func shimmerMutation(id entity.Id) {
+	EMsg("{sub.Thename} begins to shimmer in and out of reality.\n", id, entity.NilId)
+	GetCreature(id).AddIntrinsic(IntrinsicShimmer)
+}
+
+func hornsMutation(id entity.Id) {
+	EMsg("Horns grow into {sub.thename's} head.\n", id, entity.NilId)
+	GetCreature(id).AddIntrinsic(IntrinsicHorns)
+}
+
+func hoovesMutation(id entity.Id) {
+	EMsg("{sub.Thename's} feet deform into cloven hooves.\n", id, entity.NilId)
+	GetCreature(id).AddIntrinsic(IntrinsicHooves)
 }

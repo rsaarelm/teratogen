@@ -433,3 +433,15 @@ func PlayerMutationRoll(power int, msg string) bool {
 	}
 	return false
 }
+
+func IsAlive(id entity.Id) bool {
+	if !GetManager().HasEntity(id) {
+		return false
+	}
+	if crit := GetCreature(id); crit != nil {
+		if crit.Statuses&StatusDead != 0 {
+			return false
+		}
+	}
+	return true
+}
