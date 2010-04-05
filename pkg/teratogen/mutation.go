@@ -25,6 +25,7 @@ const (
 	MutationShimmer
 	MutationHooves
 	MutationHorns
+	MutationFast
 )
 
 type mutation struct {
@@ -90,10 +91,11 @@ var mutations = map[uint64]*mutation{
 	MutationGrow2:   &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
 	MutationGrow3:   &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
 	MutationEsp:     &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
-	MutationTough:   &mutation{MutationTough, toughMutation, 0, hasIntrinsicFilter(IntrinsicTough), 0},
-	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 0, hasIntrinsicFilter(IntrinsicShimmer), 0},
+	MutationTough:   &mutation{MutationTough, toughMutation, 2, hasIntrinsicFilter(IntrinsicTough), 0},
+	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 4, hasIntrinsicFilter(IntrinsicShimmer), 0},
 	MutationHorns:   &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
 	MutationHooves:  &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
+	MutationFast:    &mutation{MutationFast, fastMutation, 6, hasIntrinsicFilter(IntrinsicFast), 0},
 	// TODO more
 }
 
@@ -273,4 +275,9 @@ func hornsMutation(id entity.Id) {
 func hoovesMutation(id entity.Id) {
 	EMsg("{sub.Thename's} feet deform into cloven hooves.\n", id, entity.NilId)
 	GetCreature(id).AddIntrinsic(IntrinsicHooves)
+}
+
+func fastMutation(id entity.Id) {
+	EMsg("{sub.Thename} {sub.is} suddenly moving faster.\n", id, entity.NilId)
+	GetCreature(id).AddIntrinsic(IntrinsicFast)
 }
