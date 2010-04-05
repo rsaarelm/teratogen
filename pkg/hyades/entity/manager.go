@@ -70,6 +70,11 @@ func (self *Manager) Entities() iterable.Iterable {
 	})
 }
 
+func (self *Manager) HasEntity(id Id) (result bool) {
+	_, result = self.liveEntities[id]
+	return
+}
+
 // Serialize stores the entity state of the manager into a stream.
 func (self *Manager) Serialize(out io.Writer) {
 	mem.WriteFixed(out, self.nextGuid)
