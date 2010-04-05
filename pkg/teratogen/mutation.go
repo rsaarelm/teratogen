@@ -25,6 +25,8 @@ const (
 )
 
 type mutation struct {
+	flag uint64
+
 	apply func(id entity.Id)
 
 	// Number of existing mutations before this one can be viable.
@@ -38,12 +40,28 @@ type mutation struct {
 	prereqs uint64
 }
 
+func (self *mutation) Apply(id entity.Id) {
+	mutations := GetMutations(id)
+	if mutations == nil {
+		return
+	}
+
+	mutations.mutations |= self.flag
+
+	self.apply(id)
+}
+
 func (self *mutation) CanApplyTo(id entity.Id) bool {
 	mutations := GetMutations(id)
 	if mutations == nil {
 		return false
 	}
 	level := mutations.MutationLevel()
+
+	if mutations.mutations&self.flag != 0 {
+		// This mutation is already present.
+		return false
+	}
 
 	if self.minLevel > level {
 		// Level too low.
@@ -62,14 +80,14 @@ func (self *mutation) CanApplyTo(id entity.Id) bool {
 }
 
 var mutations = map[uint64]*mutation{
-	MutationStr1:  &mutation{powerMutation, 0, nil, 0},
-	MutationStr2:  &mutation{powerMutation, 0, nil, MutationStr1},
-	MutationStr3:  &mutation{powerMutation, 0, nil, MutationStr2},
-	MutationGrow1: &mutation{growMutation, 0, nil, 0},
-	MutationGrow2: &mutation{growMutation, 0, nil, MutationGrow1},
-	MutationGrow3: &mutation{growMutation, 0, nil, MutationGrow2},
-	MutationEsp:   &mutation{esperMutation, 0, getsEsperMutation, 0},
-	MutationTough: &mutation{toughMutation, 0, getsToughMutation, 0},
+	MutationStr1:  &mutation{MutationStr1, powerMutation, 0, nil, 0},
+	MutationStr2:  &mutation{MutationStr2, powerMutation, 0, nil, MutationStr1},
+	MutationStr3:  &mutation{MutationStr3, powerMutation, 0, nil, MutationStr2},
+	MutationGrow1: &mutation{MutationGrow1, growMutation, 0, nil, 0},
+	MutationGrow2: &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
+	MutationGrow3: &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
+	MutationEsp:   &mutation{MutationEsp, esperMutation, 0, getsEsperMutation, 0},
+	MutationTough: &mutation{MutationTough, toughMutation, 0, getsToughMutation, 0},
 	// TODO more
 }
 
@@ -121,14 +139,14 @@ func Mutate(id entity.Id) {
 
 	if len(available) == 0 {
 		// No available mutations.
-		EMsg("{sub.Thename} looks unstable for a moment.\n", id, entity.NilId)
+		EMsg("{sub.Thename} feel{sub.s} unstable for a moment.\n", id, entity.NilId)
 		return
 	}
 
 	mut := num.RandomChoiceA(available).(*mutation)
 
 	EMsg("{sub.Thename} mutate{sub.s}.\n", id, entity.NilId)
-	mut.apply(id)
+	mut.Apply(id)
 
 	// Heal the creature while at it.
 	crit.Wounds = 0
