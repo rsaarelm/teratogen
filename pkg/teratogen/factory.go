@@ -47,8 +47,28 @@ func init() {
 			Scale:      0,
 			Intrinsics: IntrinsicMartialArtist},
 	}
-	a["zombie"] = entity.Assemblage{
+	a["infectedHuman"] = entity.Assemblage{
 		Metadata:      MetaTemplate(100, 0),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("infected human", "chars:13", PronounHe, false),
+		CreatureComponent: &CreatureTemplate{
+			Power:      Mediocre,
+			Skill:      Mediocre,
+			Scale:      0,
+			Intrinsics: IntrinsicMartialArtist},
+	}
+	a["infectedGuard"] = entity.Assemblage{
+		Metadata:      MetaTemplate(100, 0),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("infected guard", "chars:12", PronounHe, false),
+		CreatureComponent: &CreatureTemplate{
+			Power:      Fair,
+			Skill:      Mediocre,
+			Scale:      0,
+			Intrinsics: IntrinsicMartialArtist},
+	}
+	a["zombie"] = entity.Assemblage{
+		Metadata:      MetaTemplate(100, 3),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -68,7 +88,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["belcher"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 2),
+		Metadata:      MetaTemplate(200, 4),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -116,6 +136,16 @@ func init() {
 			Skill:      Great,
 			Scale:      1,
 			Intrinsics: IntrinsicPoison},
+	}
+	a["infectedSolder"] = entity.Assemblage{
+		Metadata:      MetaTemplate(100, 8),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("infected soldier", "chars:14", PronounHe, false),
+		CreatureComponent: &CreatureTemplate{
+			Power:      Good,
+			Skill:      Good,
+			Scale:      0,
+			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["killbot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 8),
