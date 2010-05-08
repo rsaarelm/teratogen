@@ -105,3 +105,9 @@ func (self RectI) Y() int { return self.Pos.Y }
 func (self RectI) Width() int { return self.Dim.X }
 
 func (self RectI) Height() int { return self.Dim.Y }
+
+// CenterRect gives the X, Y offset for rectangle inner such that the centers
+// of rectangles inner and outer match when outer has offset (0, 0).
+func CenterRects(innerW, innerH int, outerW, outerH int) (innerX, innerY int) {
+	return (outerW - innerW) / 2, (outerH - innerH) / 2
+}

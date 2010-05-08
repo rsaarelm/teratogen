@@ -24,6 +24,7 @@ import (
 	"exp/draw"
 	"fmt"
 	"hyades/dbg"
+	"hyades/geom"
 	"hyades/keyboard"
 	"hyades/sfx"
 	"image"
@@ -122,7 +123,8 @@ type Font interface {
 type context struct {
 	config Config
 
-	screen *C.SDL_Surface
+	canvas           *C.SDL_Surface
+	windowW, windowH int
 
 	kbd    chan int
 	mouse  chan draw.Mouse
@@ -135,17 +137,28 @@ type context struct {
 type Config struct {
 	Width      int
 	Height     int
+	PixelScale int
 	Title      string
 	Fullscreen bool
 	Audio      bool
 }
 
+const maxPixelScale = 32
+
 // NewWindow initializes SDL and returns a new SDL context.
 func NewWindow(config Config) (result Context, err os.Error) {
+	if config.PixelScale < 1 {
+		config.PixelScale = 1
+	}
+	if config.PixelScale > maxPixelScale {
+		config.PixelScale = maxPixelScale
+	}
+
 	initFlags := int64(C.SDL_INIT_VIDEO)
 	if config.Audio {
 		initFlags |= C.SDL_INIT_AUDIO
 	}
+	// XXX: SDL_RESIZABLE flag seems to cause this to segfault on XMonad.
 	screenFlags := int64(C.SDL_DOUBLEBUF)
 	if config.Fullscreen {
 		screenFlags |= C.SDL_FULLSCREEN
@@ -154,7 +167,7 @@ func NewWindow(config Config) (result Context, err os.Error) {
 		err = os.NewError(getError())
 		return
 	}
-	screen := C.SDL_SetVideoMode(C.int(config.Width), C.int(config.Height), bitsPerPixel, C.Uint32(screenFlags))
+	screen := C.SDL_SetVideoMode(C.int(config.Width*config.PixelScale), C.int(config.Height*config.PixelScale), bitsPerPixel, C.Uint32(screenFlags))
 	if screen == nil {
 		err = os.NewError(getError())
 		return
@@ -169,7 +182,8 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	ctx := new(context)
 	result = ctx
 	ctx.config = config
-	ctx.screen = screen
+	ctx.canvas = ctx.createSurface(config.Width, config.Height)
+	ctx.windowW, ctx.windowH = screen.Width(), screen.Height()
 	ctx.kbd = make(chan int, keyBufferSize)
 	ctx.mouse = make(chan draw.Mouse, 1)
 	ctx.resize = make(chan bool, 1)
@@ -181,11 +195,20 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	return
 }
 
-func (self *context) Screen() draw.Image { return self.screen }
+func (self *context) Screen() draw.Image { return self.canvas }
 
-func (self *context) SdlScreen() Surface { return self.screen }
+func (self *context) SdlScreen() Surface { return self.canvas }
 
-func (self *context) FlushImage() { C.SDL_Flip(self.screen) }
+func (self *context) FlushImage() {
+	x, y := geom.CenterRects(
+		self.config.Width*self.config.PixelScale,
+		self.config.Height*self.config.PixelScale,
+		self.windowW, self.windowH)
+	zoomCanvas := self.canvas.Zoom(float64(self.config.PixelScale), float64(self.config.PixelScale))
+	self.videoSurface().Blit(zoomCanvas, x, y)
+	self.Free(zoomCanvas)
+	C.SDL_Flip(self.videoSurface())
+}
 
 func (self *context) KeyboardChan() <-chan int {
 	return self.kbd
@@ -206,9 +229,11 @@ func (self *context) Close() {
 	_ = <-self.exitChan
 }
 
-func (self *context) Convert(img image.Image) Surface {
-	width, height := img.Width(), img.Height()
+func (self *context) videoSurface() *C.SDL_Surface {
+	return C.SDL_GetVideoSurface()
+}
 
+func (self *context) createSurface(width, height int) *C.SDL_Surface {
 	var rmask, gmask, bmask, amask C.Uint32
 	if C.SDL_BYTEORDER == C.SDL_BIG_ENDIAN {
 		rmask, gmask, bmask, amask = 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
@@ -216,9 +241,15 @@ func (self *context) Convert(img image.Image) Surface {
 		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 	}
 
-	surf := C.SDL_CreateRGBSurface(0, C.int(width), C.int(height),
-		C.int(self.screen.format.BitsPerPixel), rmask, gmask, bmask,
+	return C.SDL_CreateRGBSurface(0, C.int(width), C.int(height),
+		C.int(self.videoSurface().format.BitsPerPixel), rmask, gmask, bmask,
 		amask)
+}
+
+func (self *context) Convert(img image.Image) Surface {
+	width, height := img.Width(), img.Height()
+
+	surf := self.createSurface(width, height)
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
@@ -314,6 +345,8 @@ func (self *context) eventLoop() {
 				}
 				_ = self.mouse <- mouse
 			case C.SDL_VIDEORESIZE:
+				resizeEvt := ((*C.SDL_ResizeEvent)(unsafe.Pointer(&evt)))
+				self.windowW, self.windowH = int(resizeEvt.w), int(resizeEvt.h)
 				_ = self.resize <- true
 			case C.SDL_QUIT:
 				_ = self.quit <- true
