@@ -79,7 +79,7 @@ func loadFonts() {
 	fontfile, err := Load("media/04round_bold.ttf")
 	dbg.AssertNoError(err)
 
-	ui.font, err = ui.context.LoadFont(fontfile, 8*config.Scale)
+	ui.font, err = ui.context.LoadFont(fontfile, 8)
 	dbg.AssertNoError(err)
 }
 
@@ -87,10 +87,10 @@ func InitMedia() {
 	fmt.Printf("Initializing media... ")
 	defer fmt.Printf("Done.\n")
 	once.Do(initArchive)
-	makeTiles("font", "media/font.png", FontW, FontH, config.Scale)
-	makeTiles("chars", "media/chars.png", TileW, TileH, config.Scale*config.TileScale)
-	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.Scale*config.TileScale)
-	makeTiles("items", "media/items.png", TileW, TileH, config.Scale*config.TileScale)
+	makeTiles("font", "media/font.png", FontW, FontH, 1)
+	makeTiles("chars", "media/chars.png", TileW, TileH, config.TileScale)
+	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.TileScale)
+	makeTiles("items", "media/items.png", TileW, TileH, config.TileScale)
 	if config.Sound {
 		makeSounds()
 	}

@@ -291,7 +291,7 @@ func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) boo
 	}
 
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), wx, wy,
-		config.Scale, 1e8, float64(config.Scale)*20.0,
+		1, 1e8, float64(config.Scale)*20.0,
 		gfx.White, gfx.Cyan, 6)
 
 	return true

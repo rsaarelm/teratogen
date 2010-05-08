@@ -65,14 +65,14 @@ func ParseConfig() {
 		usage()
 	}
 
-	screenWidth = config.Scale * baseScreenWidth
-	screenHeight = config.Scale * baseScreenHeight
+	screenWidth = baseScreenWidth
+	screenHeight = baseScreenHeight
 
-	FontW = config.Scale * baseFontW
-	FontH = config.Scale * baseFontH
+	FontW = baseFontW
+	FontH = baseFontH
 
-	TileW = baseTileW * config.Scale * config.TileScale
-	TileH = baseTileH * config.Scale * config.TileScale
+	TileW = baseTileW * config.TileScale
+	TileH = baseTileH * config.TileScale
 }
 
 func RandStateToBabble(state num.RandState) string {

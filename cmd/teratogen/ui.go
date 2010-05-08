@@ -79,9 +79,12 @@ func newUI() (result *UI) {
 	result.KeyHandlerStack.Init()
 	result.InitAnims()
 	context, err := sdl.NewWindow(sdl.Config{
-		Width: screenWidth, Height: screenHeight,
-		Title: "Teratogen", Fullscreen: config.Fullscreen,
-		Audio: config.Sound,
+		Width:      screenWidth,
+		Height:     screenHeight,
+		PixelScale: config.Scale,
+		Title:      "Teratogen",
+		Fullscreen: config.Fullscreen,
+		Audio:      config.Sound,
 	})
 
 	dbg.AssertNoError(err)
@@ -572,4 +575,4 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 	return id
 }
 
-func VisualScale() int { return config.TileScale * config.Scale }
+func VisualScale() int { return config.TileScale }

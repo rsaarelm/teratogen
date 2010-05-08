@@ -31,7 +31,7 @@ func TestAnim2(anim *gfx.Anim) {
 	for t < 2e9 {
 		g, dt := anim.StartDraw()
 		t += dt
-		gfx.ThickLine(g, draw.Pt(0, 0), draw.Pt(1000, 1000), gfx.Teal, config.Scale*2)
+		gfx.ThickLine(g, draw.Pt(0, 0), draw.Pt(1000, 1000), gfx.Teal, 2)
 		anim.StopDraw()
 	}
 }
