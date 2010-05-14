@@ -114,7 +114,7 @@ func UnpackGz(fileData []byte) (data []byte, err os.Error) {
 	sites := magicSites(fileData, gzMagic)
 
 	for _, n := range sites {
-		inf, e1 := gzip.NewInflater(bytes.NewBuffer(fileData[n:]))
+		inf, e1 := gzip.NewReader(bytes.NewBuffer(fileData[n:]))
 		if e1 != nil {
 			continue
 		} // It wasn't really gzip data.
