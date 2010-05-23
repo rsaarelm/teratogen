@@ -1,6 +1,7 @@
 package teratogen
 
 import (
+	"exp/iterable"
 	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
@@ -58,6 +59,10 @@ func IsObstacleTerrain(terrain TerrainType) bool {
 
 func (self *Area) InArea(pos geom.Pt2I) bool {
 	return pos.X >= 0 && pos.Y >= 0 && pos.X < mapWidth && pos.Y < mapHeight
+}
+
+func (self *Area) AtEdge(pos geom.Pt2I) bool {
+	return geom.IsAtEdge(0, 0, mapWidth, mapHeight, pos)
 }
 
 func (self *Area) BlocksSight(pos geom.Pt2I) bool {
@@ -192,30 +197,69 @@ func (self *Area) MakeCaveMap() {
 }
 
 func (self *Area) MakeRuinsMap() {
-	// TODO: Open area and buildings gen.
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		self.SetTerrain(pt, TerrainRockWall)
-	}
-
-	corrDug := 0
-	const needCorrDug = 200
-	const needTotalDug = 600
-
-	for nTries := 256; nTries > 0 && corrDug < needCorrDug; nTries-- {
-		pos, ok := GetSpawnPos()
-		if !ok {
-			pos = geom.Pt2I{mapWidth / 2, mapHeight / 2}
+		if self.AtEdge(pt) {
+			self.SetTerrain(pt, TerrainRockWall)
+		} else {
+			self.SetTerrain(pt, TerrainFloor)
 		}
-		corrDug += DigTunnels(pos, (*corridorDiggable)(self), 0.1, 0.05, 0.01)
 	}
 
-	roomDug := 0
+	area := (mapWidth - 2) * (mapHeight - 2)
+	areaToLeave := int(area / 8)
 
-	for nTries := 256; nTries > 0 && corrDug+roomDug < needTotalDug; nTries-- {
-		roomDug += DigRoom((*roomDiggable)(self), 0, 0, mapWidth, mapHeight, 12, 12)
+	// TODO: Add some walls at the edges, make it a bit more decayed-lookieng.
+
+	for {
+		buildingArea, ok := self.placeRuinBuilding()
+		if !ok {
+			break
+		}
+		area -= buildingArea
+		if area <= areaToLeave {
+			break
+		}
 	}
+}
 
-	self.placeCorridorDoors(0.80)
+func (self *Area) placeRuinBuilding() (area int, success bool) {
+	for nTries := 0; nTries < 32; nTries++ {
+		w, h := rand.Intn(8)+3, rand.Intn(8)+3
+		x0, y0 := rand.Intn(mapWidth-2-w)+2, rand.Intn(mapHeight-2-h)
+		isSolid := num.OneChanceIn(5)
+		edgeClear := iterable.All(geom.EdgeIter(x0-1, y0-1, w+2, h+2),
+			func(o interface{}) bool { return self.GetTerrain(o.(geom.Pt2I)) == TerrainFloor })
+		// Check the inside edge too.
+		edgeClear = edgeClear && iterable.All(geom.EdgeIter(x0+1, y0+1, w-2, h-2),
+			func(o interface{}) bool { return self.GetTerrain(o.(geom.Pt2I)) == TerrainFloor })
+		if edgeClear {
+			success = true
+			area = w * h
+			for pt := range geom.PtIter(x0, y0, w, h) {
+				if geom.IsAtEdge(x0, y0, w, h, pt) {
+					self.SetTerrain(pt, TerrainRockWall)
+				} else if isSolid {
+					self.SetTerrain(pt, TerrainRockWall)
+				}
+			}
+
+			if !isSolid {
+				// Carve at least one doorway
+				doorway := TerrainCorridor
+				if num.OneChanceIn(3) {
+					doorway = TerrainDoor
+				}
+				points := iterable.Data(iterable.Filter(
+					geom.EdgeIter(x0, y0, w, h),
+					func(o interface{}) bool { return !geom.IsCorner(x0, y0, w, h, o.(geom.Pt2I)) }))
+				for i, j := 0, rand.Intn(3)+1; i < j; i++ {
+					self.SetTerrain(num.RandomChoiceA(points).(geom.Pt2I), doorway)
+				}
+			}
+			return
+		}
+	}
+	return
 }
 
 func (self *Area) MakeVisceraMap() {
