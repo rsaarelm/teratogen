@@ -40,7 +40,8 @@ func main() {
 
 	sfxTest(context)
 
-Outer: for {
+Outer:
+	for {
 		context.SdlScreen().FillRect(draw.Rect(0, 0, 320, 240), image.RGBAColor{0, 0, 96, 255})
 		context.SdlScreen().Blit(sprite, 128, 32)
 		context.FlushImage()

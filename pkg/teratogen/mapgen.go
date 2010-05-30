@@ -468,7 +468,8 @@ func DigTunnels(startPos geom.Pt2I, area Diggable, turnProb, branchProb, endProb
 	dir := randomDir6()
 	pos := startPos
 
-digLoop: for !num.WithProb(endProb) {
+digLoop:
+	for !num.WithProb(endProb) {
 		if !canDigTo(area, pos, dir) || num.WithProb(turnProb) {
 			// Turn to random direction, try again.
 			dirs := []int{(dir + 1) % 6, (dir + 2) % 6, (dir + 4) % 6, (dir + 5) % 6}
