@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"hyades/dbg"
 	"hyades/geom"
+	"hyades/gfx"
 	"hyades/keyboard"
 	"hyades/sfx"
 	"image"
@@ -500,7 +501,10 @@ func (self *C.SDL_Surface) FillRect(rect draw.Rectangle, c image.Color) {
 func (self *C.SDL_Surface) mapRGBA(c image.Color) uint32 {
 	r32, g32, b32, a32 := c.RGBA()
 	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
-	r, g, b, a := byte(r32>>24), byte(g32>>24), byte(b32>>24), byte(a32>>24)
+	r, g, b, a := byte(r32>>(gfx.GoRGBADepth-8)),
+		byte(g32>>(gfx.GoRGBADepth-8)),
+		byte(b32>>(gfx.GoRGBADepth-8)),
+		byte(a32>>(gfx.GoRGBADepth-8))
 
 	return uint32(C.SDL_MapRGBA(self.format,
 		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
@@ -564,7 +568,11 @@ func (self *C.SDL_Surface) Zoom(sx, sy float64) Surface {
 
 func sdlColor(color image.Color) C.SDL_Color {
 	r, g, b, _ := color.RGBA()
-	return C.SDL_Color{C.Uint8(r >> 24), C.Uint8(g >> 24), C.Uint8(b >> 24), 0}
+	return C.SDL_Color{
+		C.Uint8(r >> (gfx.GoRGBADepth - 8)),
+		C.Uint8(g >> (gfx.GoRGBADepth - 8)),
+		C.Uint8(b >> (gfx.GoRGBADepth - 8)),
+		0}
 }
 
 //////////////////////////////////////////////////////////////////

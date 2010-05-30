@@ -10,15 +10,18 @@ import (
 	"regexp"
 )
 
+// Bit depth of color components returned by RGBA method in Go Images.
+const GoRGBADepth = 16
+
 func StringRGB(col image.Color) string {
 	if col == nil {
 		return "<nil>"
 	}
 	r, g, b, _ := col.RGBA()
 	return fmt.Sprintf("#%02x%02x%02x",
-		byte(r>>24),
-		byte(g>>24),
-		byte(b>>24))
+		byte(r>>(GoRGBADepth-8)),
+		byte(g>>(GoRGBADepth-8)),
+		byte(b>>(GoRGBADepth-8)))
 }
 
 func StringRGBA(col image.Color) string {
@@ -27,10 +30,10 @@ func StringRGBA(col image.Color) string {
 	}
 	r, g, b, a := col.RGBA()
 	return fmt.Sprintf("#%02x%02x%02x%02x",
-		byte(r>>24),
-		byte(g>>24),
-		byte(b>>24),
-		byte(a>>24))
+		byte(r>>(GoRGBADepth-8)),
+		byte(g>>(GoRGBADepth-8)),
+		byte(b>>(GoRGBADepth-8)),
+		byte(a>>(GoRGBADepth-8)))
 }
 
 func ColorArray(c image.Color) (result [4]uint32) {
@@ -39,7 +42,11 @@ func ColorArray(c image.Color) (result [4]uint32) {
 }
 
 func ArrayColor(a [4]uint32) image.Color {
-	return image.RGBAColor{uint8(a[0] >> 24), uint8(a[1] >> 24), uint8(a[2] >> 24), uint8(a[3] >> 24)}
+	return image.RGBAColor{
+		uint8(a[0] >> (GoRGBADepth - 8)),
+		uint8(a[1] >> (GoRGBADepth - 8)),
+		uint8(a[2] >> (GoRGBADepth - 8)),
+		uint8(a[3] >> (GoRGBADepth - 8))}
 }
 
 func LerpColor(c1, c2 image.Color, x float64) image.Color {
