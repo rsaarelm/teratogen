@@ -135,7 +135,7 @@ func (self *Relation) HasPair(lhs, rhs Id) bool {
 
 // IterRhs iterates all right-hand side values for the given left-hand side.
 func (self *Relation) IterRhs(lhs Id) iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		if rhsMap, ok := self.lhsIndex[lhs]; ok {
 			for rhs, _ := range rhsMap {
 				c <- rhs
@@ -147,7 +147,7 @@ func (self *Relation) IterRhs(lhs Id) iterable.Iterable {
 
 // IterLhs iterates all left-hand side values for the given right-hand side.
 func (self *Relation) IterLhs(rhs Id) iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		if lhsMap, ok := self.rhsIndex[rhs]; ok {
 			for lhs, _ := range lhsMap {
 				c <- lhs
@@ -208,7 +208,7 @@ func (self *Relation) CountLhs(rhs Id) int {
 // IterPairs iterates through all the pairs in the relation. It yields Pair
 // structs.
 func (self *Relation) IterPairs() iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		for lhs, lhsMap := range self.lhsIndex {
 			for rhs, _ := range lhsMap {
 				c <- Pair{lhs, rhs}

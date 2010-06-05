@@ -2,7 +2,6 @@ package geom
 
 import (
 	"exp/iterable"
-	"hyades/alg"
 	"hyades/num"
 	"math"
 )
@@ -21,7 +20,7 @@ func Ray(orig Pt2I, dx, dy float64) iterable.Iterable {
 	scale := num.Fmax(math.Fabs(dx), math.Fabs(dy))
 	dx /= scale
 	dy /= scale
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		x, y := float64(orig.X), float64(orig.Y)
 		for {
 			c <- Pt2I{int(num.Round(x)), int(num.Round(y))}
@@ -45,7 +44,7 @@ func HexRay(orig Pt2I, dx, dy float64) iterable.Iterable {
 	dy /= scale
 	prev := orig
 
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		x, y := HexToPlane(orig)
 		// Send the starting point here as it'll otherwise be skipped in the
 		// Equals prev test.

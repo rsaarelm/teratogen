@@ -5,7 +5,6 @@ package entity
 import (
 	"exp/iterable"
 	"io"
-	"hyades/alg"
 	"hyades/dbg"
 	"hyades/mem"
 )
@@ -62,7 +61,7 @@ func (self *Manager) RemoveEntity(entity Id) {
 // if it has been created by BuildEntity and has not yet been removed with
 // RemoveEntity.
 func (self *Manager) Entities() iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		for entity, _ := range self.liveEntities {
 			c <- entity
 		}

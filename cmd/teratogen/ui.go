@@ -121,7 +121,7 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
 	cols, rows := VisualScale()*200/TileW-1, VisualScale()*120/TileH-1
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		c <- &gui.Window{self.mapView, draw.Rect(0, 0, TileW*cols, TileH*rows)}
 		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
 			draw.Rect(0, TileH*(rows+1), screenWidth, screenHeight)}

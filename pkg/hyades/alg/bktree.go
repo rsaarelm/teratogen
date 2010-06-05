@@ -43,7 +43,7 @@ func (self *BkTree) queryIter(c chan<- interface{}, maxDist int, metric BkMetric
 // given value. The metric function given must be the same which was used to
 // build the tree.
 func (self *BkTree) Query(maxDist int, metric BkMetric, value interface{}) iterable.Iterable {
-	return IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		self.queryIter(c, maxDist, metric, value)
 		close(c)
 	})

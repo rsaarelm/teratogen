@@ -69,7 +69,7 @@ func iterInPoint(pos draw.Point, area draw.Rectangle, node Widget, c chan<- inte
 // WidgetsContaining returns widgets whose areas contain pos ordered from the
 // topmost to bottommost in draw order.
 func WidgetsContaining(pos draw.Point, area draw.Rectangle, root Widget) iterable.Iterable {
-	return alg.ReverseIter(alg.IterFunc(func(c chan<- interface{}) {
+	return alg.ReverseIter(iterable.Func(func(c chan<- interface{}) {
 		iterInPoint(pos, area, root, c)
 		close(c)
 	}))

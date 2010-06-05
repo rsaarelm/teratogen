@@ -2,7 +2,6 @@ package teratogen
 
 import (
 	"exp/iterable"
-	"hyades/alg"
 	"hyades/entity"
 )
 
@@ -60,7 +59,7 @@ func Contents(id entity.Id) iterable.Iterable { return GetContain().IterRhs(id) 
 // RecursiveContents iterates through all children and grandchildren of the
 // entity.
 func RecursiveContents(id entity.Id) iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		for o := range Contents(id).Iter() {
 			c <- o
 			for q := range RecursiveContents(o.(entity.Id)).Iter() {

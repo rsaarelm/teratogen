@@ -2,7 +2,6 @@ package entity
 
 import (
 	"exp/iterable"
-	"hyades/alg"
 	"hyades/mem"
 	"io"
 )
@@ -54,7 +53,7 @@ func (self *Container) Deserialize(in io.Reader) {
 }
 
 func (self *Container) EntityComponents() iterable.Iterable {
-	return alg.IterFunc(func(c chan<- interface{}) {
+	return iterable.Func(func(c chan<- interface{}) {
 		for id, comp := range self.components {
 			c <- &IdComponent{id, comp}
 		}
