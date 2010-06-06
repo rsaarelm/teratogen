@@ -207,6 +207,9 @@ func (self *context) FlushImage() {
 		self.config.Height*self.config.PixelScale,
 		self.windowW, self.windowH)
 	zoomCanvas := self.canvas.Zoom(float64(self.config.PixelScale), float64(self.config.PixelScale))
+	// Turn off alpha flags so that alpha components in the canvas won't cause
+	// partial drawing to the screen.
+	C.SDL_SetAlpha(zoomCanvas.(*C.SDL_Surface), 0, 255)
 	self.videoSurface().Blit(zoomCanvas, x, y)
 	self.Free(zoomCanvas)
 	C.SDL_Flip(self.videoSurface())
@@ -498,7 +501,7 @@ func (self *C.SDL_Surface) FillRect(rect draw.Rectangle, c image.Color) {
 		// Alpha-blended rectangle.
 		C.boxRGBA(self,
 			C.Sint16(rect.Min.X), C.Sint16(rect.Min.Y),
-			C.Sint16(rect.Max.X), C.Sint16(rect.Max.Y),
+			C.Sint16(rect.Max.X)-1, C.Sint16(rect.Max.Y)-1,
 			C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a))
 	} else {
 		// Efficient FillRect rectangle if opaque alpha.

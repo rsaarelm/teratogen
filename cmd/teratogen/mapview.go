@@ -12,6 +12,7 @@ import (
 	"hyades/gfx"
 	"hyades/keyboard"
 	"hyades/num"
+	"image"
 	"os"
 	"rand"
 	game "teratogen"
@@ -79,9 +80,17 @@ func Draw(g gfx.Graphics, spriteId string, x, y int) {
 	DrawSprite(g, spriteId, sx, sy)
 }
 
+func DrawShadow(g gfx.Graphics, darkness uint8, x, y int) {
+	sx, sy := DrawPos(geom.Pt2I{x, y})
+	g.FillRect(
+		draw.Rect(sx, sy, sx+TileW, sy+TileH),
+		image.RGBAColor{0, 0, 0, darkness})
+}
+
 func DrawWorld(g gfx.Graphics) {
 	drawTerrain(g)
 	drawEntities(g)
+	drawShadows(g)
 }
 
 func drawEntities(g gfx.Graphics) {
@@ -138,6 +147,17 @@ func drawTerrain(g gfx.Graphics) {
 		// XXX: Get indexable tilesets, so won't need these string kludges.
 		tile := fmt.Sprintf("tiles:%d", tileIdx)
 		Draw(g, tile, pt.X, pt.Y)
+	}
+}
+
+func drawShadows(g gfx.Graphics) {
+	mapWidth, mapHeight := game.MapDims()
+	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
+		if game.GetLos().Get(pt) == game.LosUnknown {
+			continue
+		}
+		dist := geom.HexDist(game.GetPos(game.PlayerId()), pt)
+		DrawShadow(g, uint8(num.Clamp(0, 255, float64(dist*12))), pt.X, pt.Y)
 	}
 }
 
