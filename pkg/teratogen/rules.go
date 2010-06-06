@@ -94,6 +94,42 @@ func LevelDescription(level int) string {
 }
 
 
+// ContestRoll makes a random opposition check against the given skill rating
+// (larger values make easier contests, skill 0 means 50 % probability) and
+// returns the degree of success or failure. The result is a number between
+// -1.0 and 1.0 inclusive. Positive values are successes, negative values are
+// failures, and the absolute value is the degree of success. Values of
+// exactly -1.0 or 1.0 can be treated as critical failures and successes.
+func ContestRoll(skill int) (result float64) {
+	// Standard deviation of 8 makes a unit of difficulty give around 5 % difference
+	const sd = 8.0
+	// Critical threshold 1.75 gives around 4 % chances to both critical
+	// success and failure.
+	const critThres = 1.75
+
+	result = rand.NormFloat64()*sd + float64(skill)
+	result /= sd * critThres
+	result = num.Clamp(-1.0, 1.0, result)
+	return
+}
+
+// NormRoll gives a normal-distributed integer value around zero which is at
+// least -max and at most max. It cuts off the normal distribution at sd=1.75
+// and takes a linear sample from the result.
+func NormRoll(max int) int {
+	const cutoffSd = 1.75
+
+	if max < 0 {
+		return 0
+	}
+
+	n := max*2 + 1
+	x := (rand.NormFloat64() + cutoffSd) / (cutoffSd * 2)
+	x = num.Clamp(0.0, 0.999, x)
+	return int(x*float64(n)) - max
+}
+
+
 func FudgeDice() (result int) {
 	for i := 0; i < 4; i++ {
 		result += -1 + rand.Intn(3)
