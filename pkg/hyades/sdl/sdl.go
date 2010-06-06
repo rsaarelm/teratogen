@@ -5,6 +5,7 @@ package sdl
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <SDL_rotozoom.h>
+#include <SDL_gfxPrimitives.h>
 
 // Structs to help cgo handle some opaque SDL types.
 
@@ -492,19 +493,25 @@ func (self *C.SDL_Surface) Set(x, y int, c image.Color) {
 }
 
 func (self *C.SDL_Surface) FillRect(rect draw.Rectangle, c image.Color) {
-	sdlRect := convertRect(rect)
-	C.SDL_FillRect(self,
-		&sdlRect,
-		C.Uint32(self.mapRGBA(c)))
+	r, g, b, a := gfx.RGBA8Bit(c)
+	if a < 255 {
+		// Alpha-blended rectangle.
+		C.boxRGBA(self,
+			C.Sint16(rect.Min.X), C.Sint16(rect.Min.Y),
+			C.Sint16(rect.Max.X), C.Sint16(rect.Max.Y),
+			C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a))
+	} else {
+		// Efficient FillRect rectangle if opaque alpha.
+		sdlRect := convertRect(rect)
+		C.SDL_FillRect(self,
+			&sdlRect,
+			C.Uint32(self.mapRGBA(c)))
+	}
 }
 
 func (self *C.SDL_Surface) mapRGBA(c image.Color) uint32 {
-	r32, g32, b32, a32 := c.RGBA()
 	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
-	r, g, b, a := byte(r32>>(gfx.GoRGBADepth-8)),
-		byte(g32>>(gfx.GoRGBADepth-8)),
-		byte(b32>>(gfx.GoRGBADepth-8)),
-		byte(a32>>(gfx.GoRGBADepth-8))
+	r, g, b, a := gfx.RGBA8Bit(c)
 
 	return uint32(C.SDL_MapRGBA(self.format,
 		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
@@ -566,13 +573,9 @@ func (self *C.SDL_Surface) Zoom(sx, sy float64) Surface {
 	return C.zoomSurface(self, C.double(sx), C.double(sy), 0)
 }
 
-func sdlColor(color image.Color) C.SDL_Color {
-	r, g, b, _ := color.RGBA()
-	return C.SDL_Color{
-		C.Uint8(r >> (gfx.GoRGBADepth - 8)),
-		C.Uint8(g >> (gfx.GoRGBADepth - 8)),
-		C.Uint8(b >> (gfx.GoRGBADepth - 8)),
-		0}
+func sdlColor(col image.Color) C.SDL_Color {
+	r, g, b, _ := gfx.RGBA8Bit(col)
+	return C.SDL_Color{C.Uint8(r), C.Uint8(g), C.Uint8(b), 0}
 }
 
 //////////////////////////////////////////////////////////////////

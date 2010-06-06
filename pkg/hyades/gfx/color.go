@@ -13,27 +13,29 @@ import (
 // Bit depth of color components returned by RGBA method in Go Images.
 const GoRGBADepth = 16
 
+// RGBA8Bit returns the components of a color value compressed to 8 bits.
+func RGBA8Bit(col image.Color) (r8, g8, b8, a8 uint8) {
+	r, g, b, a := col.RGBA()
+	return byte(r >> (GoRGBADepth - 8)),
+		byte(g >> (GoRGBADepth - 8)),
+		byte(b >> (GoRGBADepth - 8)),
+		byte(a >> (GoRGBADepth - 8))
+}
+
 func StringRGB(col image.Color) string {
 	if col == nil {
 		return "<nil>"
 	}
-	r, g, b, _ := col.RGBA()
-	return fmt.Sprintf("#%02x%02x%02x",
-		byte(r>>(GoRGBADepth-8)),
-		byte(g>>(GoRGBADepth-8)),
-		byte(b>>(GoRGBADepth-8)))
+	r, g, b, _ := RGBA8Bit(col)
+	return fmt.Sprintf("#%02x%02x%02x", r, g, b)
 }
 
 func StringRGBA(col image.Color) string {
 	if col == nil {
 		return "<nil>"
 	}
-	r, g, b, a := col.RGBA()
-	return fmt.Sprintf("#%02x%02x%02x%02x",
-		byte(r>>(GoRGBADepth-8)),
-		byte(g>>(GoRGBADepth-8)),
-		byte(b>>(GoRGBADepth-8)),
-		byte(a>>(GoRGBADepth-8)))
+	r, g, b, a := RGBA8Bit(col)
+	return fmt.Sprintf("#%02x%02x%02x%02x", r, g, b, a)
 }
 
 func ColorArray(c image.Color) (result [4]uint32) {
