@@ -180,9 +180,9 @@ func terminalMutation(id entity.Id) {
 	crit.AddIntrinsic(IntrinsicChaosSpawn)
 
 	// Scramble base stats.
-	crit.Scale += FudgeDice()
-	crit.Power += FudgeDice()
-	crit.Skill += FudgeDice()
+	crit.Scale += NormRoll(4)
+	crit.Power += NormRoll(4)
+	crit.Skill += NormRoll(4)
 
 	if id == PlayerId() {
 		GameOver("became one with the Tau wave.")

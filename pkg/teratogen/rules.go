@@ -129,18 +129,6 @@ func NormRoll(max int) int {
 	return int(x*float64(n)) - max
 }
 
-
-func FudgeDice() (result int) {
-	for i := 0; i < 4; i++ {
-		result += -1 + rand.Intn(3)
-	}
-	return
-}
-
-func FudgeOpposed(ability, difficulty int) int {
-	return (FudgeDice() + ability) - (FudgeDice() + difficulty)
-}
-
 func MovePlayerDir(dir int) {
 	GetLos().ClearSight()
 	TryMove(PlayerId(), geom.Dir6ToVec(dir))
@@ -461,7 +449,7 @@ func PlayerMutationRoll(power int, msg string) bool {
 	// doing a mutation.
 	power = num.Imin(power, mutationResistance-2)
 
-	if FudgeOpposed(power, mutationResistance) >= 0 {
+	if ContestRoll(power-mutationResistance) >= 0 {
 		Msg(msg)
 		Fx().MorePrompt()
 		Mutate(PlayerId())

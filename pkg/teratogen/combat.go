@@ -12,8 +12,8 @@ func RollMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree
 	// Hitting requires a minimal absolute success based on the scale of
 	// the target and defeating the target's defense ability.
 	threshold := MinToHit(scaleDifference)
-	hitRoll := FudgeDice() + toHit
-	defenseRoll := FudgeDice() + defense
+	hitRoll := NormRoll(4) + toHit
+	defenseRoll := NormRoll(4) + defense
 
 	degree = hitRoll - defenseRoll
 	success = hitRoll >= threshold && degree > 0
@@ -84,7 +84,7 @@ func RollKnockback(attackerPower, defenderMass int) (numCells int) {
 	// Attacker needs to keep doing harder and harder strength checks to get
 	// more pushback.
 	for {
-		if FudgeDice()+attackerPower >= difficulty {
+		if NormRoll(4)+attackerPower >= difficulty {
 			numCells++
 			difficulty += 2
 		} else {
@@ -119,7 +119,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 		damage.BaseMagnitude += GetItem(gun).WoundBonus
 	}
 
-	hitDegree := FudgeDice() + GetCreature(attackerId).Skill
+	hitDegree := NormRoll(4) + GetCreature(attackerId).Skill
 
 	Fx().Shoot(attackerId, hitPos)
 
