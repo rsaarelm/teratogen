@@ -47,3 +47,27 @@ func TestEditDistance(t *testing.T) {
 	editTest(t, "foo", "fxx", 2)
 	editTest(t, "foo", "gya", 3)
 }
+
+func TestIndefiniteArticle(t *testing.T) {
+	data := map[string]string{
+		"aardvark":    "an",
+		"behelit":     "a",
+		"ettin":       "an",
+		"hero":        "a",
+		"illithid":    "an",
+		"owlbear":     "an",
+		"qwghlmian":   "a",
+		"ukulele":     "a",
+		"ultramarine": "an",
+		"undead":      "an",
+		"xorn":        "a",
+		"zebranky":    "a",
+	}
+
+	for noun, expected := range data {
+		article := GuessIndefiniteArticle(noun)
+		if article != expected {
+			t.Errorf("Got '%s %s', expected '%s %s'", article, noun, expected, noun)
+		}
+	}
+}

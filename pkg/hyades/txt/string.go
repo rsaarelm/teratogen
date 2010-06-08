@@ -2,6 +2,7 @@ package txt
 
 import (
 	"hyades/num"
+	"regexp"
 	"strings"
 )
 
@@ -56,4 +57,16 @@ func EditDistance(str1, str2 string) int {
 		}
 	}
 	return d[len(str1)][len(str2)]
+}
+
+var indefiniteArticleRegexp = regexp.MustCompile("^([aeio]|un|ul)")
+
+// GuessIndefiniteArticle guesses whether a noun should get "a" or "an" as its
+// indefinite article. It returns the article as an uncapitalized string.
+func GuessIndefiniteArticle(noun string) string {
+	noun = strings.ToLower(noun)
+	if indefiniteArticleRegexp.MatchString(noun) {
+		return "an"
+	}
+	return "a"
 }

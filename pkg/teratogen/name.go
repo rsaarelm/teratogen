@@ -150,6 +150,9 @@ func (self *Name) TemplateWords() (result map[string]string) {
 	result = make(map[string]string)
 	result["name"] = self.Name
 	result["you"] = "" // Empty string acts as 'false', use in conditionals.
+
+	aArticle := txt.GuessIndefiniteArticle(self.Name)
+
 	if self.IsProperName {
 		result["thename"] = self.Name
 		result["aname"] = self.Name
@@ -157,9 +160,9 @@ func (self *Name) TemplateWords() (result map[string]string) {
 		result["aname's"] = self.Name + "'s"
 	} else {
 		result["thename"] = "the " + self.Name
-		result["aname"] = "a " + self.Name
+		result["aname"] = aArticle + " " + self.Name
 		result["thename's"] = "the " + self.Name + "'s"
-		result["aname's"] = "a " + self.Name + "'s"
+		result["aname's"] = aArticle + " " + self.Name + "'s"
 	}
 
 	result["is"] = "is"
