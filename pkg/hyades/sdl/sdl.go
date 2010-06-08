@@ -330,7 +330,9 @@ func (self *context) eventLoop() {
 				// sloppy to just plug it in without a
 				// converter...
 				mouse := draw.Mouse{int(motEvt.state),
-					draw.Pt(int(motEvt.x), int(motEvt.y)),
+					draw.Pt(
+						int(motEvt.x)/self.config.PixelScale,
+						int(motEvt.y)/self.config.PixelScale),
 					time.Nanoseconds(),
 				}
 				// Non-blocking send
@@ -345,7 +347,9 @@ func (self *context) eventLoop() {
 					buttons += wheelDownBit
 				}
 				mouse := draw.Mouse{buttons,
-					draw.Pt(int(btnEvt.x), int(btnEvt.y)),
+					draw.Pt(
+						int(btnEvt.x)/self.config.PixelScale,
+						int(btnEvt.y)/self.config.PixelScale),
 					time.Nanoseconds(),
 				}
 				_ = self.mouse <- mouse
