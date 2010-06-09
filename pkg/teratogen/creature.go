@@ -1,9 +1,11 @@
 package teratogen
 
 import (
+	"fmt"
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/num"
+	"math"
 	"rand"
 )
 
@@ -88,7 +90,7 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		Skill:      self.Skill,
 		Scale:      self.Scale,
 		Intrinsics: self.Intrinsics,
-		Wounds:     0,
+		Health:     1.0,
 		Statuses:   0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
@@ -100,7 +102,7 @@ type Creature struct {
 	Power, Skill int
 	Scale        int
 	Intrinsics   int32
-	Wounds       int
+	Health       float64
 	Statuses     int32
 }
 
@@ -124,44 +126,25 @@ func (self *Creature) Toughness() (result int) {
 	return
 }
 
-func (self *Creature) MaxWounds() int { return num.Imax(1, (self.Toughness()+3)*2+1) }
+func (self *Creature) Heal(amount float64) {
+	self.Health = math.Fmin(1.0, self.Health+amount)
+}
 
 // IsHurt returns whether the creature has enough wounds to warrant some
 // attention.
 func (self *Creature) IsHurt() bool {
-	return self.Wounds > 0 && self.MaxWounds()-self.Wounds < 6
+	return self.Health <= 0.75
 }
 
 func (self *Creature) IsSeriouslyHurt() bool {
-	return self.Wounds > 0 && self.MaxWounds()-self.Wounds < 3
+	return self.Health <= 0.25
 }
 
 func (self *Creature) WoundDescription() string {
-	maxWounds := self.MaxWounds()
-	switch {
-	// Statuses where the creature is seriously hurt.
-	case maxWounds-self.Wounds < 2:
-		return "near death"
-	case maxWounds-self.Wounds < 4:
-		return "badly hurt"
-	case maxWounds-self.Wounds < 6:
-		return "hurt"
-	// Now describing grazed statuses, which there can be more if the
-	// creature is very tough and takes a long time to get to Hurt.
-	case self.Wounds < 1:
-		return "unhurt"
-	case self.Wounds < 3:
-		return "grazed"
-	case self.Wounds < 5:
-		return "bruised"
-	case self.Wounds < 7:
-		return "battered"
-	}
-	// Lots of wounds, but still not really Hurt.
-	return "mangled"
+	return fmt.Sprintf("%d health", int(self.Health*100))
 }
 
-func (self *Creature) IsKilledByWounds() bool { return self.Wounds > self.MaxWounds() }
+func (self *Creature) IsKilledByWounds() bool { return self.Health < 0.0 }
 
 func (self *Creature) AddIntrinsic(intrinsic int32) {
 	self.Intrinsics |= intrinsic
@@ -212,8 +195,9 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		return
 	}
 
-	woundAmount := (woundLevel + 1) / 2
-	self.Wounds += woundAmount
+	// TODO: Replace woundLevel with a damage system designed for the new
+	// health system.
+	self.Health -= float64(woundLevel) / 10.0
 
 	if self.IsKilledByWounds() {
 		// Mark the critter as dead so whatever happens during it's death
@@ -261,7 +245,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		Destroy(selfId)
 	} else {
 		Fx().Damage(selfId, woundLevel)
-		EMsg("{sub.Thename} {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
+		EMsg("{sub.Thename} is at {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
 	}
 }
 

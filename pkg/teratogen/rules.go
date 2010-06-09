@@ -151,13 +151,13 @@ func MovePlayerDir(dir int) {
 		// component that gets run when the entity is stepped on.
 		if GetName(id) == "globe" {
 			// TODO: Different globe effects.
-			if GetCreature(PlayerId()).Wounds > 0 {
+			if GetCreature(PlayerId()).Health < 1.0 {
 				mutationMsg := FormatMessage("{obj.Thename} bursts. {sub.Thename} feel{sub.s} strange.\n", PlayerId(), id)
 				if !PlayerMutationRoll(1, mutationMsg) {
 					EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
 				}
 				Fx().Heal(PlayerId(), 1)
-				GetCreature(PlayerId()).Wounds -= 1
+				GetCreature(PlayerId()).Heal(0.15)
 				// Deferring this until the iteration is over.
 				defer Destroy(id)
 			}

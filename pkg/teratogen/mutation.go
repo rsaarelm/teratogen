@@ -157,7 +157,7 @@ func Mutate(id entity.Id) {
 	mut.Apply(id)
 
 	// Heal the creature while at it.
-	crit.Wounds = 0
+	crit.Health = 1.0
 
 	if mutations.MutationLevel() >= terminalMutationCount {
 		EMsg("{sub.Thename} mutate{sub.s} further!\n", id, entity.NilId)

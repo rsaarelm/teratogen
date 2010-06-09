@@ -84,9 +84,9 @@ func RollKnockback(attackerPower, defenderMass int) (numCells int) {
 	// Attacker needs to keep doing harder and harder strength checks to get
 	// more pushback.
 	for {
-		if NormRoll(4)+attackerPower >= difficulty {
+		if ContestRoll(attackerPower-difficulty) >= 0.0 {
 			numCells++
-			difficulty += 2
+			difficulty += 4
 		} else {
 			break
 		}

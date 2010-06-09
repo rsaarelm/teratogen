@@ -186,10 +186,10 @@ func UseItem(userId, itemId entity.Id) {
 			Msg("Nothing happens.\n")
 		case MedkitUse:
 			crit := GetCreature(userId)
-			if crit.Wounds > 0 {
+			if crit.Health < 1.0 {
 				EMsg("{sub.Thename} feel{sub.s} much better.\n", userId, itemId)
-				Fx().Heal(userId, crit.Wounds)
-				crit.Wounds = 0
+				Fx().Heal(userId, 1)
+				crit.Health = 1.0
 				Destroy(itemId)
 			} else {
 				EMsg("{sub.Thename} feel{sub.s} fine already.\n", userId, itemId)
