@@ -19,11 +19,10 @@ func pointsEqual(o1, o2 interface{}) bool {
 	return true
 }
 
-func testLine(t *testing.T, p1, p2 Pt2I, coords ...) {
-	ptVec := alg.UnpackEllipsis(coords)
-	pts1 := make([]interface{}, len(ptVec)/2)
-	for i := 0; i < len(ptVec); i += 2 {
-		pts1[i/2] = Pt2I{ptVec[i].(int), ptVec[i+1].(int)}
+func testLine(t *testing.T, p1, p2 Pt2I, coords ...int) {
+	pts1 := make([]interface{}, len(coords)/2)
+	for i := 0; i < len(coords); i += 2 {
+		pts1[i/2] = Pt2I{coords[i], coords[i+1]}
 	}
 	pts2 := iterable.Data(Line(p1, p2))
 	if !alg.ArraysEqual(pointsEqual, pts1, pts2) {
@@ -31,11 +30,10 @@ func testLine(t *testing.T, p1, p2 Pt2I, coords ...) {
 	}
 }
 
-func testHexLine(t *testing.T, p1, p2 Pt2I, coords ...) {
-	ptVec := alg.UnpackEllipsis(coords)
-	pts1 := make([]interface{}, len(ptVec)/2)
-	for i := 0; i < len(ptVec); i += 2 {
-		pts1[i/2] = Pt2I{ptVec[i].(int), ptVec[i+1].(int)}
+func testHexLine(t *testing.T, p1, p2 Pt2I, coords ...int) {
+	pts1 := make([]interface{}, len(coords)/2)
+	for i := 0; i < len(coords); i += 2 {
+		pts1[i/2] = Pt2I{coords[i], coords[i+1]}
 	}
 	pts2 := iterable.Data(HexLine(p1, p2))
 	if !alg.ArraysEqual(pointsEqual, pts1, pts2) {

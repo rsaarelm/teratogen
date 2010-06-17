@@ -5,7 +5,6 @@ import (
 	"exp/draw"
 	"exp/iterable"
 	"fmt"
-	"hyades/alg"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
@@ -285,8 +284,8 @@ func MainUILoop() {
 	ui.context.Close()
 }
 
-func MultiChoiceDialog(prompt string, options ...) (choice int, ok bool) {
-	return MultiChoiceDialogA(prompt, alg.UnpackEllipsis(options))
+func MultiChoiceDialog(prompt string, options ...interface{}) (choice int, ok bool) {
+	return MultiChoiceDialogA(prompt, options)
 }
 
 func MultiChoiceDialogA(prompt string, options []interface{}) (choice int, ok bool) {
