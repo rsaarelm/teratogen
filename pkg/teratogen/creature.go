@@ -74,7 +74,7 @@ const (
 type DamageData struct {
 	// The base magnitude of damage.
 	BaseMagnitude int
-	// How skillfully the damage was targeted.
+	// The type of damage it is.
 	Type DamageType
 	// Is there extra knockback involved?
 	KnockbackBonus int
@@ -190,6 +190,13 @@ func (self *Creature) ArmorFactor(id entity.Id) (result int) {
 	return
 }
 
+// HealthScale is used to adjust damage dealt to the creature. Creatures take
+// 1/HealthScale damage to their 0..1 health value for a single absolute unit
+// of damage.
+func (self *Creature) HealthScale() float64 {
+	return math.Sqrt(math.Pow(2, float64(self.MassFactor()+self.Toughness())))
+}
+
 func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id) {
 	if self.Statuses&StatusDead != 0 {
 		return
@@ -197,7 +204,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 
 	// TODO: Replace woundLevel with a damage system designed for the new
 	// health system.
-	self.Health -= float64(woundLevel) / 10.0
+	self.Health -= float64(woundLevel) / 2.0 / self.HealthScale()
 
 	if self.IsKilledByWounds() {
 		// Mark the critter as dead so whatever happens during it's death
@@ -290,30 +297,16 @@ func (self *Creature) MeleeDamageData(selfId entity.Id) (result *DamageData) {
 	return
 }
 
-// Deal damage to a creature. BaseDamage is the basic strength of the attack,
-// hitDegree is the skill value (0 being neutral, larger being better) with
-// which the attack was made. A skilled attack has a small chance of causing a
-// wound even if the baseDamage would not otherwise harm the creature.
-func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree int, sourcePos geom.Pt2I, causerId entity.Id) {
-	damageFactor := data.BaseMagnitude + hitDegree
-	armorFactor := self.ArmorFactor(selfId)
-
-	woundLevel := damageFactor - armorFactor
+func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree float64, sourcePos geom.Pt2I, causerId entity.Id) {
+	// TODO: Armor can remove damage.
+	damageAmount := data.BaseMagnitude
+	if hitDegree == 1.0 {
+		// Critical hit
+		damageAmount *= 2
+	}
 
 	isDirectionalDamage := !sourcePos.Equals(GetPos(selfId))
 	damageDir := geom.Vec2IToDir6(GetPos(selfId).Minus(sourcePos))
-
-	if woundLevel < 1 {
-		// If wounding by normal means didn't work, there's still a chance to
-		// score a wound if hitDegree was exceptionally good. Hit degree must
-		// beat the base-2 logarithm of the negative wound level's magnitude.
-		magnitude := num.Iabs(woundLevel)
-		if hitDegree > Log2Modifier(magnitude) && num.OneChanceIn(1+magnitude) {
-			woundLevel = 1
-		} else {
-			woundLevel = 0
-		}
-	}
 
 	if data.Type == BluntDamage && isDirectionalDamage {
 		// Possibility of knockback.
@@ -323,8 +316,8 @@ func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree int, 
 		}
 	}
 
-	if woundLevel > 0 {
-		self.Wound(selfId, woundLevel, causerId)
+	if damageAmount > 0 {
+		self.Wound(selfId, damageAmount, causerId)
 	} else {
 		EMsg("{sub.Thename} shrug{sub.s} off the damage.\n", selfId, entity.NilId)
 	}

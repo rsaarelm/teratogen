@@ -7,19 +7,6 @@ import (
 	"hyades/num"
 )
 
-// The scaleDifference is defender scale - attacker scale.
-func RollMeleeHit(toHit, defense int, scaleDifference int) (success bool, degree int) {
-	// Hitting requires a minimal absolute success based on the scale of
-	// the target and defeating the target's defense ability.
-	threshold := MinToHit(scaleDifference)
-	hitRoll := NormRoll(4) + toHit
-	defenseRoll := NormRoll(4) + defense
-
-	degree = hitRoll - defenseRoll
-	success = hitRoll >= threshold && degree > 0
-	return
-}
-
 func Attack(attackerId, defenderId entity.Id) {
 	attCrit, defCrit := GetCreature(attackerId), GetCreature(defenderId)
 	defense := 0
@@ -27,19 +14,19 @@ func Attack(attackerId, defenderId entity.Id) {
 		defense = defCrit.Skill
 	}
 
-	// Currently enemy skill doesn't affect defense. Scale difference does.
-	doesHit, hitDegree := RollMeleeHit(attCrit.Skill, defense,
-		defCrit.Scale-attCrit.Scale)
+	// The larger the defender is relative to the attacker, the easier it is to
+	// hit.
+	hitDegree := ContestRoll(attCrit.Skill - defense + defCrit.Scale - attCrit.Scale)
 
-	if doesHit && defCrit.HasIntrinsic(IntrinsicShimmer) && num.OneChanceIn(5) {
+	if hitDegree >= 0.0 && defCrit.HasIntrinsic(IntrinsicShimmer) && num.OneChanceIn(5) {
 		EMsg("{sub.Thename} phase{sub.s} out of {obj.thename's} reach.\n", defenderId, attackerId)
 		return
 	}
 
-	if doesHit {
+	if hitDegree >= 0.0 {
 		EMsg("{sub.Thename} hit{sub.s} {obj.thename}.\n", attackerId, defenderId)
 		// XXX: Assuming melee attack.
-		defCrit.Damage(defenderId, attCrit.MeleeDamageData(attackerId), hitDegree,
+		defCrit.Damage(defenderId, attCrit.MeleeDamageData(attackerId), 0,
 			GetPos(attackerId), attackerId)
 
 		DamageEquipment(attackerId, MeleeEquipSlot)
@@ -47,13 +34,13 @@ func Attack(attackerId, defenderId entity.Id) {
 		if IsAlive(defenderId) && attCrit.HasIntrinsic(IntrinsicHorns) && num.OneChanceIn(2) {
 			EMsg("{sub.Thename} headbutt{sub.s} {obj.thename}.\n", attackerId, defenderId)
 			defCrit.Damage(defenderId, &DamageData{2 + attCrit.MassFactor(), PiercingDamage, 0},
-				hitDegree, GetPos(attackerId), attackerId)
+				0, GetPos(attackerId), attackerId)
 		}
 
 		if IsAlive(defenderId) && attCrit.HasIntrinsic(IntrinsicHooves) && num.OneChanceIn(2) {
 			EMsg("{sub.Thename} kick{sub.s} {obj.thename}.\n", attackerId, defenderId)
 			defCrit.Damage(defenderId, &DamageData{2 + attCrit.MassFactor(), BluntDamage, 0},
-				hitDegree, GetPos(attackerId), attackerId)
+				0, GetPos(attackerId), attackerId)
 		}
 	} else {
 		EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n",
@@ -119,7 +106,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 		damage.BaseMagnitude += GetItem(gun).WoundBonus
 	}
 
-	hitDegree := NormRoll(4) + GetCreature(attackerId).Skill
+	hitDegree := ContestRoll(GetCreature(attackerId).Skill)
 
 	Fx().Shoot(attackerId, hitPos)
 
@@ -157,7 +144,7 @@ func DamageEquipment(ownerId entity.Id, slot EquipSlot) {
 	}
 }
 
-func DamagePos(pos, sourcePos geom.Pt2I, damage *DamageData, hitDegree int, causerId entity.Id) {
+func DamagePos(pos, sourcePos geom.Pt2I, damage *DamageData, hitDegree float64, causerId entity.Id) {
 	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
 		id := o.(entity.Id)
 		GetCreature(id).Damage(id, damage, hitDegree, sourcePos, causerId)
