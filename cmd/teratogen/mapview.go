@@ -262,25 +262,17 @@ func (self *MapView) onMouseButton(button int) {
 		}
 
 		if !vec.Equals(geom.ZeroVec2I) {
-			// If shift is pressed, right-click always shoots.
-			if self.shiftKeyState > 0 {
-				SendPlayerInput(func() bool {
-					game.Shoot(game.PlayerId(), tilePos)
-					return true
-				})
-				return
-			}
-
-			// If there's an enemy, right-click shoots at it.
-			for _ = range game.EnemiesAt(game.PlayerId(), tilePos).Iter() {
-				SendPlayerInput(func() bool {
-					game.Shoot(game.PlayerId(), tilePos)
-					return true
-				})
-				return
-			}
+			// TODO: Shoot enemies if they are on a firing line.
 		}
 	}
+}
+
+func playerShootDir(dir6 int) {
+	SendPlayerInput(func() bool {
+		id := game.PlayerId()
+		targ := game.GetPos(id).Plus(geom.Dir6ToVec(dir6).Scale(20))
+		return game.Shoot(id, targ)
+	})
 }
 
 func (self *MapView) isMousePressed(button int) bool {
@@ -348,14 +340,14 @@ func (self *MapView) AsyncHandleKey(key int) {
 	case '.':
 		// Idle.
 		SendPlayerInput(func() bool { return true })
-	case 'q':
+	case 'Q':
 		Quit()
-	case 'i', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
+	case 'w', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(0)
 			return true
 		})
-	case 'o', keyboard.K_PAGEUP, keyboard.K_KP9:
+	case 'e', keyboard.K_PAGEUP, keyboard.K_KP9:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(1)
 			return true
@@ -365,17 +357,17 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.SmartMovePlayer(2)
 			return true
 		})
-	case 'l', keyboard.K_PAGEDOWN, keyboard.K_KP3:
+	case 'd', keyboard.K_PAGEDOWN, keyboard.K_KP3:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(3)
 			return true
 		})
-	case 'k', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
+	case 's', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(4)
 			return true
 		})
-	case 'j', keyboard.K_DELETE, keyboard.K_KP1:
+	case 'a', keyboard.K_DELETE, keyboard.K_KP1:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(5)
 			return true
@@ -387,12 +379,24 @@ func (self *MapView) AsyncHandleKey(key int) {
 		})
 	case keyboard.K_RETURN, keyboard.K_KP5:
 		SmartLocalPlayerAction()
-	case 'u', keyboard.K_INSERT, keyboard.K_KP7:
+	case 'q', keyboard.K_INSERT, keyboard.K_KP7:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(7)
 			return true
 		})
-	case 'a':
+	case 'u':
+		playerShootDir(5)
+	case 'i':
+		playerShootDir(0)
+	case 'o':
+		playerShootDir(1)
+	case 'l':
+		playerShootDir(2)
+	case 'k':
+		playerShootDir(3)
+	case 'j':
+		playerShootDir(4)
+	case 'A':
 		ApplyItemMenu()
 	case ',':
 		SmartPlayerPickup(false)
@@ -414,20 +418,9 @@ func (self *MapView) AsyncHandleKey(key int) {
 		} else {
 			game.Msg(".\n")
 		}
-	case 'e':
+	case 'E':
 		EquipMenu()
-	case 'f':
-		if game.GunEquipped(game.PlayerId()) {
-			targetId := game.ClosestCreatureSeenBy(game.PlayerId())
-			if targetId != entity.NilId {
-				SendPlayerInput(func() bool { return game.Shoot(game.PlayerId(), game.GetPos(targetId)) })
-			} else {
-				game.Msg("You see nothing to shoot.\n")
-			}
-		} else {
-			game.Msg("You don't have a gun to fire.\n")
-		}
-	case 'd':
+	case 'D':
 		// Drop item.
 		if game.HasContents(game.PlayerId()) {
 			id := EntityChoiceDialog(

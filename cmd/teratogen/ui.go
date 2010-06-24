@@ -418,25 +418,25 @@ func EquipMenu() {
 func UiHelpLines() iterable.Iterable {
 	vec := new(vector.Vector)
 	vec.Push("esc: exit menu")
-	vec.Push("arrow keys, uiojkl: move, attack adjacent")
+	vec.Push("arrow keys, qweasd: move, attack adjacent")
 	vec.Push("Return, keypad 5: action key")
-	vec.Push("q: quit")
+	vec.Push("Q: quit")
 
 	if game.HasContents(game.PlayerId()) {
 		vec.Push("t: inventory")
-		vec.Push("d: drop item")
+		vec.Push("D: drop item")
 	}
 
 	if game.HasUsableItems(game.PlayerId()) {
-		vec.Push("a: use item")
+		vec.Push("A: use item")
 	}
 
 	if game.IsCarryingGear(game.PlayerId()) {
-		vec.Push("e: equip/remove gear")
+		vec.Push("E: equip/remove gear")
 	}
 
 	if game.GunEquipped(game.PlayerId()) {
-		vec.Push("f: fire gun")
+		vec.Push("uiojkl: fire gun in direction")
 	}
 
 	if game.NumPlayerTakeableItems() > 0 {
