@@ -40,6 +40,10 @@ func (lhs Vec2I) ElemMult(rhs Vec2I) (result Vec2I) {
 	return Vec2I{lhs.X * rhs.X, lhs.Y * rhs.Y}
 }
 
+func (lhs Vec2I) Scale(rhs int) (result Vec2I) {
+	return Vec2I{lhs.X * rhs, lhs.Y * rhs}
+}
+
 func (lhs Pt2I) ElemMult(rhs Vec2I) (result Pt2I) {
 	return Pt2I{lhs.X * rhs.X, lhs.Y * rhs.Y}
 }
