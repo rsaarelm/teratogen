@@ -213,3 +213,44 @@ func ClosestCreatureSeenBy(id entity.Id) entity.Id {
 	}
 	return ret.(entity.Id)
 }
+
+// AttackTargetPredicate returns a function that tells whether there's
+// something in the given position that the entity attacker wants to hurt. The
+// result function expects geom.Pt2I, but has interface{} type to make it
+// simpler to use with with iterable.Filter.
+func AttackTargetPredicate(attacker entity.Id) func(interface{}) bool {
+	return func(pos interface{}) bool {
+		return !alg.IsEmptyIter(EnemiesAt(attacker, pos.(geom.Pt2I)))
+	}
+}
+
+// AttackPriority returns a function that gives the priority with which
+// a creature wants to attack the given position. Lower value indicates higher
+// priority.
+func AttackPriority(attacker entity.Id) func(interface{}) float64 {
+	return func(o interface{}) float64 {
+		pos := o.(geom.Pt2I)
+		// Add some noise to the results so that tie-breaks are less
+		// predictable.
+		return float64(geom.HexDist(GetPos(attacker), pos)) +
+			num.SmoothNoise3D(float64(pos.X), float64(pos.Y), 0.0)/2.0
+	}
+}
+
+// BestAttackTarget returns the most preferred target for attacker within the
+// given range.
+func BestAttackTarget(attacker entity.Id, minRange, maxRange int) (target geom.Pt2I, targetFound bool) {
+	// Where the rays shot in 6 directions would stop.
+	targets := geom.RayEndsIn6Dirs(
+		GetPos(attacker),
+		func(pt geom.Pt2I) bool { return !IsOpen(pt) },
+		minRange,
+		maxRange)
+	// The ones that are something the attacker wants to hit.
+	targets = iterable.Filter(targets, AttackTargetPredicate(attacker))
+	o, targetFound := alg.IterMin(targets, AttackPriority(attacker))
+	if targetFound {
+		target = o.(geom.Pt2I)
+	}
+	return
+}

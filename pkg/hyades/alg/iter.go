@@ -38,3 +38,10 @@ func IterMin(iter iterable.Iterable, measure func(e1 interface{}) float64) (resu
 	}
 	return
 }
+
+func IsEmptyIter(iter iterable.Iterable) bool {
+	for _ = range iter.Iter() {
+		return false
+	}
+	return true
+}

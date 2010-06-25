@@ -92,3 +92,33 @@ func HexLine(p1, p2 Pt2I) iterable.Iterable {
 	}
 	return iterable.TakeWhile(ray, whilePred)
 }
+
+// Dir6RayEnd returns the point where a ray along a cardinal direction from the
+// origin will hit when positions where hitPred is true cause the ray to stop.
+func Dir6RayEnd(origin Pt2I, hitPred func(Pt2I) bool, dir6 int, minRange, maxRange int) (hitPos Pt2I, hitPosHit bool) {
+	ray := DiscreteRay(origin, Dir6ToVec(dir6))
+	ray = iterable.Take(iterable.Drop(ray, minRange), maxRange-minRange+1)
+	for o := range ray.Iter() {
+		hitPos = o.(Pt2I)
+		if hitPred(hitPos) {
+			hitPosHit = true
+			break
+		}
+	}
+	return
+}
+
+// RayEndsIn6Dirs iterates the geom.Pt2I positions where rays from origin will
+// end in the 6 hex cardinal directions. Only returns points where hitPred is
+// true.
+func RayEndsIn6Dirs(origin Pt2I, hitPred func(Pt2I) bool, minRange, maxRange int) iterable.Iterable {
+	return iterable.Func(func(c chan<- interface{}) {
+		for dir := 0; dir < 6; dir++ {
+			hitPos, hitPosHit := Dir6RayEnd(origin, hitPred, dir, minRange, maxRange)
+			if hitPosHit {
+				c <- hitPos
+			}
+		}
+		close(c)
+	})
+}
