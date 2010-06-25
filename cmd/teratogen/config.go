@@ -9,7 +9,10 @@ import (
 	"hyades/fs"
 	"hyades/keyboard"
 	"hyades/num"
+	"io/ioutil"
+	"json"
 	"os"
+	"path"
 	"unsafe"
 )
 
@@ -33,8 +36,28 @@ func usage() {
 	os.Exit(2)
 }
 
+func configFileName() string {
+	return path.Join(os.Getenv("HOME"), ".teratogenrc")
+}
+
+func loadRcFile(config *Config) os.Error {
+	if data, err := ioutil.ReadFile(configFileName()); err == nil {
+		jsonErr := json.Unmarshal(data, config)
+		if jsonErr != nil {
+			return jsonErr
+		}
+	} else {
+		// Didn't find config file, fail silently.
+	}
+	return nil
+}
+
 func ParseConfig() {
 	config = DefaultConfig()
+
+	if jsonErr := loadRcFile(config); jsonErr != nil {
+		fmt.Fprintf(os.Stderr, "Config error in %s: %s\n", configFileName(), jsonErr)
+	}
 
 	flag.BoolVar(&config.Sound, "sound", config.Sound, "Play sounds.")
 	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode.")
@@ -45,6 +68,9 @@ func ParseConfig() {
 	flag.StringVar(&config.ArchiveFile, "archive", fs.SelfExe(), "Media archive file.")
 	flag.Usage = usage
 	flag.Parse()
+
+	// XXX: If config file had bad values, these are presented as command line
+	// argument errors, not config file errors.
 
 	switch config.KeyLayout {
 	case "qwerty":
