@@ -246,7 +246,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		// Deathsplosion.
 		if self.Intrinsics&IntrinsicDeathsplode != 0 {
 			EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
-			Explode(GetPos(selfId), 3+self.Scale, selfId)
+			Explode(GetPos(selfId), self.Scale, selfId)
 		}
 
 		Destroy(selfId)
