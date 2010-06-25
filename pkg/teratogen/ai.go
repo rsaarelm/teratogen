@@ -26,14 +26,13 @@ func DoAI(critId entity.Id) bool {
 
 	// Bile attack.
 	const bileAttackRange = 5
-	if crit.Intrinsics&IntrinsicBile != 0 {
-		if CanSeeTo(GetPos(critId), GetPos(playerId)) && EntityDist(critId, playerId) <= bileAttackRange && num.OneChanceIn(2) {
+	if crit.HasIntrinsic(IntrinsicBile) && num.OneChanceIn(2) {
+		if targetPos, ok := BestAttackTarget(critId, 1, bileAttackRange); ok {
 			damageFactor := crit.Power + crit.Scale
 
-			hitPos := GetHitPos(GetPos(critId), GetPos(playerId))
-			Fx().Shoot(critId, hitPos)
+			Fx().Shoot(critId, targetPos)
 			EMsg("{sub.Thename} vomit{sub.s} bile.\n", critId, entity.NilId)
-			DamagePos(hitPos, GetPos(critId), &DamageData{BaseMagnitude: damageFactor, Type: AcidDamage},
+			DamagePos(targetPos, GetPos(critId), &DamageData{BaseMagnitude: damageFactor, Type: AcidDamage},
 				0, critId)
 
 			return true
