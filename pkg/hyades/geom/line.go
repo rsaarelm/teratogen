@@ -61,6 +61,17 @@ func HexRay(orig Pt2I, dx, dy float64) iterable.Iterable {
 	})
 }
 
+// DiscreteRay returns points that are consecutive multiples of a Vec2I jump
+// from the origin point.
+func DiscreteRay(orig Pt2I, dir Vec2I) iterable.Iterable {
+	return iterable.Func(func(c chan<- interface{}) {
+		c <- orig
+		for i := 1; ; i++ {
+			c <- orig.Plus(dir.Scale(i))
+		}
+	})
+}
+
 // Line iterates the consecutive Pt2I points along the line from p1 to p2.
 func Line(p1, p2 Pt2I) iterable.Iterable {
 	vec := p2.Minus(p1)
