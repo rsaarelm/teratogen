@@ -122,3 +122,16 @@ func RayEndsIn6Dirs(origin Pt2I, hitPred func(Pt2I) bool, minRange, maxRange int
 		close(c)
 	})
 }
+
+// HexLineOfSight returns whether there is an unblocked line of sight between
+// two points, and where the ray stops if there isn't. The initial and final
+// points of the line are not checked with hitPred.
+func HexLineOfSight(origin, target Pt2I, hitPred func(Pt2I) bool) (hitPos Pt2I, ok bool) {
+	for o := range iterable.Drop(HexLine(origin, target), 1).Iter() {
+		hitPos = o.(Pt2I)
+		if !hitPred(hitPos) {
+			return hitPos, hitPos.Equals(target)
+		}
+	}
+	return hitPos, true
+}

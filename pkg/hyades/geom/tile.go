@@ -163,6 +163,15 @@ func Vec2IToDir6(vec Vec2I) int {
 	return 0
 }
 
+// Vec2IToDir6Exact returns a hex direction corresponding to a vector, but
+// only if the vector aligns exactly with the correct hex basis vector.
+// Otherwise ok will be set to false and dir6 will be undefined.
+func Vec2IToDir6Exact(vec Vec2I) (dir6 int, ok bool) {
+	ok = vec.X == 0 || vec.Y == 0 || vec.X == vec.Y
+	dir6 = Vec2IToDir6(vec)
+	return
+}
+
 func Dir8ToVec(dir int) (result Vec2I) {
 	switch dir {
 	case 0:
