@@ -137,17 +137,19 @@ func (self *Context) Deserialize(in io.Reader) {
 func (self *Context) Serialize(out io.Writer) { self.manager.Serialize(out) }
 
 func makeManager() (result *entity.Manager) {
+	// NOTE: The (*Type)(nil) pattern is for passing type information to a
+	// reflection-using function without using any values.
 	result = entity.NewManager()
 	result.SetHandler(GlobalsComponent, new(Globals))
-	result.SetHandler(AreaComponent, entity.NewContainer(new(Area)))
-	result.SetHandler(LosComponent, entity.NewContainer(new(Los)))
-	result.SetHandler(PosComponent, entity.NewContainer(new(Position)))
-	result.SetHandler(NameComponent, entity.NewContainer(new(Name)))
-	result.SetHandler(CreatureComponent, entity.NewContainer(new(Creature)))
-	result.SetHandler(ItemComponent, entity.NewContainer(new(Item)))
-	result.SetHandler(DecalComponent, entity.NewContainer(new(Decal)))
-	result.SetHandler(MutationsComponent, entity.NewContainer(new(Mutations)))
-	result.SetHandler(WeaponComponent, entity.NewContainer(new(Weapon)))
+	result.SetHandler(AreaComponent, entity.NewContainer((*Area)(nil)))
+	result.SetHandler(LosComponent, entity.NewContainer((*Los)(nil)))
+	result.SetHandler(PosComponent, entity.NewContainer((*Position)(nil)))
+	result.SetHandler(NameComponent, entity.NewContainer((*Name)(nil)))
+	result.SetHandler(CreatureComponent, entity.NewContainer((*Creature)(nil)))
+	result.SetHandler(ItemComponent, entity.NewContainer((*Item)(nil)))
+	result.SetHandler(DecalComponent, entity.NewContainer((*Decal)(nil)))
+	result.SetHandler(MutationsComponent, entity.NewContainer((*Mutations)(nil)))
+	result.SetHandler(WeaponComponent, entity.NewContainer((*Weapon)(nil)))
 
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
 	result.SetHandler(MeleeEquipComponent, entity.NewRelation(entity.OneToOne))
