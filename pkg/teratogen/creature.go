@@ -197,6 +197,52 @@ func (self *Creature) HealthScale() float64 {
 	return math.Sqrt(math.Pow(2, float64(self.MassFactor()+self.Toughness())))
 }
 
+func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
+	// Mark the critter as dead so whatever happens during it's death
+	// doesn't cause a new call to Damage.
+	self.Statuses |= StatusDead
+
+	Fx().Destroy(selfId)
+	EMsg("{sub.Thename} {sub.is} killed.\n", selfId, causerId)
+
+	// Splatter blood.
+	if !self.HasIntrinsic(IntrinsicUnliving) {
+		bloodNum := rand.Intn(3 + self.Scale)
+		if bloodNum >= 2 {
+			SplatterBlood(GetPos(selfId), LargeBloodSplatter)
+		} else {
+			SplatterBlood(GetPos(selfId), SmallBloodSplatter)
+		}
+	}
+
+	if selfId == PlayerId() {
+		var msg string
+		if causerId != entity.NilId {
+			msg = FormatMessage("were killed by {sub.aname}.", causerId, entity.NilId)
+		} else {
+			msg = "died."
+		}
+		GameOver(msg)
+	}
+
+	if self.Intrinsics&IntrinsicEndboss != 0 {
+		// Killing the endboss.
+		WinGame("You win the game, hooray.")
+	}
+
+	if causerId == PlayerId() {
+		OnPlayerKill(selfId)
+	}
+
+	// Deathsplosion.
+	if self.Intrinsics&IntrinsicDeathsplode != 0 {
+		EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
+		Explode(GetPos(selfId), self.Scale, selfId)
+	}
+
+	Destroy(selfId)
+}
+
 func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id) {
 	if self.Statuses&StatusDead != 0 {
 		return
@@ -207,49 +253,7 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 	self.Health -= float64(woundLevel) / 2.0 / self.HealthScale()
 
 	if self.IsKilledByWounds() {
-		// Mark the critter as dead so whatever happens during it's death
-		// doesn't cause a new call to Damage.
-		self.Statuses |= StatusDead
-
-		Fx().Destroy(selfId)
-		EMsg("{sub.Thename} {sub.is} killed.\n", selfId, causerId)
-
-		// Splatter blood.
-		if !self.HasIntrinsic(IntrinsicUnliving) {
-			bloodNum := rand.Intn(3 + self.Scale)
-			if bloodNum >= 2 {
-				SplatterBlood(GetPos(selfId), LargeBloodSplatter)
-			} else {
-				SplatterBlood(GetPos(selfId), SmallBloodSplatter)
-			}
-		}
-
-		if selfId == PlayerId() {
-			var msg string
-			if causerId != entity.NilId {
-				msg = FormatMessage("were killed by {sub.aname}.", causerId, entity.NilId)
-			} else {
-				msg = "died."
-			}
-			GameOver(msg)
-		}
-
-		if self.Intrinsics&IntrinsicEndboss != 0 {
-			// Killing the endboss.
-			WinGame("You win the game, hooray.")
-		}
-
-		if causerId == PlayerId() {
-			OnPlayerKill(selfId)
-		}
-
-		// Deathsplosion.
-		if self.Intrinsics&IntrinsicDeathsplode != 0 {
-			EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
-			Explode(GetPos(selfId), self.Scale, selfId)
-		}
-
-		Destroy(selfId)
+		self.Die(selfId, causerId)
 	} else {
 		Fx().Damage(selfId, woundLevel)
 		EMsg("{sub.Thename} is at {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
