@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/num"
 	"math"
 	"rand"
 )
@@ -70,15 +69,6 @@ const (
 	ColdDamage
 	AcidDamage
 )
-
-type DamageData struct {
-	// The base magnitude of damage.
-	BaseMagnitude int
-	// The type of damage it is.
-	Type DamageType
-	// Is there extra knockback involved?
-	KnockbackBonus int
-}
 
 func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
 	return c
@@ -198,6 +188,10 @@ func (self *Creature) HealthScale() float64 {
 }
 
 func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
+	if self.Statuses&StatusDead != 0 {
+		return
+	}
+
 	// Mark the critter as dead so whatever happens during it's death
 	// doesn't cause a new call to Damage.
 	self.Statuses |= StatusDead
@@ -258,74 +252,17 @@ func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id
 		Fx().Damage(selfId, woundLevel)
 		EMsg("{sub.Thename} is at {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
 	}
-}
-
-func (self *Creature) MeleeWoundLevelAgainst(id, targetId entity.Id, hitDegree int) (woundLevel int) {
-	damageFactor := self.MeleeDamageFactor(id) + hitDegree
-
-	armorFactor := GetCreature(targetId).ArmorFactor(targetId)
-
-	woundLevel = damageFactor - armorFactor
-
-	// Not doing any wounds even though hit was successful. Mostly this is
-	// when a little critter tries to hit a big one.
-	if woundLevel < 1 {
-		// If you scored a good hit, you get one chance in the amount
-		// woundLevel went below 1 to hit anyway.
-		if hitDegree > Log2Modifier(-woundLevel) &&
-			num.OneChanceIn(1-woundLevel) {
-			woundLevel = 1
-		} else {
-			woundLevel = 0
-		}
-	}
-	return
-}
-
-func (self *Creature) MeleeDamageData(selfId entity.Id) (result *DamageData) {
-	result = new(DamageData)
-
-	result.BaseMagnitude = self.Power + self.MassFactor()
-	result.Type = BluntDamage
-
-	if o, ok := GetEquipment(selfId, MeleeEquipSlot); ok {
-		item := GetItem(o)
-		// Melee weapon bonus
-		result.BaseMagnitude += item.WoundBonus
-
-		if item.HasTrait(ItemKnockback) {
-			result.KnockbackBonus += ItemKnockbackStrength
-		}
-	}
-
-	return
-}
-
-func (self *Creature) Damage(selfId entity.Id, data *DamageData, hitDegree float64, sourcePos geom.Pt2I, causerId entity.Id) {
-	// TODO: Armor can remove damage.
-	damageAmount := data.BaseMagnitude
-	if hitDegree == 1.0 {
-		// Critical hit
-		damageAmount *= 2
-	}
-
-	isDirectionalDamage := !sourcePos.Equals(GetPos(selfId))
-	damageDir := geom.Vec2IToDir6(GetPos(selfId).Minus(sourcePos))
-
-	if data.Type == BluntDamage && isDirectionalDamage {
-		// Possibility of knockback.
-		knockbackAmount := RollKnockback(data.BaseMagnitude+data.KnockbackBonus, self.MassFactor())
-		if knockbackAmount > 0 {
-			Knockback(selfId, causerId, damageDir, knockbackAmount)
-		}
-	}
-
-	if damageAmount > 0 {
-		self.Wound(selfId, damageAmount, causerId)
-	} else {
-		EMsg("{sub.Thename} shrug{sub.s} off the damage.\n", selfId, entity.NilId)
-	}
 
 	// XXX: Damage amount not accounted in armor damage.
-	DamageEquipment(selfId, ArmorEquipSlot)
+	// TODO: Restore equipment damage.
+	//DamageEquipment(selfId, ArmorEquipSlot)
+}
+
+func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, magnitude float64, kind DamageType) {
+
+	adjustedMag := magnitude / self.HealthScale()
+	self.Health -= adjustedMag
+	if self.Health < 0 {
+		self.Die(selfId, causerId)
+	}
 }

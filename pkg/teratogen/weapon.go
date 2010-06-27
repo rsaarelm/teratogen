@@ -1,6 +1,7 @@
 package teratogen
 
 import (
+	"exp/iterable"
 	"hyades/entity"
 	"hyades/geom"
 )
@@ -9,7 +10,7 @@ const WeaponComponent = entity.ComponentFamily("weapon")
 
 type Weapon struct {
 	Name  string
-	Power int
+	Power float64
 	Range int
 }
 
@@ -46,6 +47,40 @@ func (self *Weapon) CanAttack(wielder, target entity.Id) bool {
 	return true
 }
 
-func (self *Weapon) Attack(wielder, target entity.Id) {
-	// TODO: Actual attack logic, move to damage if attack works.
+func (self *Weapon) Attack(wielder, target entity.Id, successDegree float64) {
+	// SuccessDegree scales damage from 1/2 to full, critical hits double the damage.
+	damage := self.Power/2 + successDegree*(self.Power/2)
+	if successDegree == 1.0 {
+		damage = self.Power * 2
+	}
+
+	GetCreature(target).Damage(
+		target, wielder,
+		GetPos(wielder), damage, BluntDamage)
+}
+
+func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
+	for o := range iterable.Drop(geom.HexLine(origin, target), 1).Iter() {
+		hitPos = o.(geom.Pt2I)
+		if !IsOpen(hitPos) {
+			break
+		}
+	}
+	return
+}
+
+func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
+	dummyWeapon := &Weapon{"dummyGun", 1.0, 10}
+
+	hitPos := GetHitPos(GetPos(attackerId), target)
+	Fx().Shoot(attackerId, hitPos)
+
+	DamagePos(hitPos, GetPos(attackerId), dummyWeapon.Power, PiercingDamage, attackerId)
+
+	return true
+}
+
+func Attack(attackerId, targetId entity.Id) {
+	dummyWeapon := &Weapon{"dummy", 1.0, 1}
+	dummyWeapon.Attack(attackerId, targetId, 0.5)
 }

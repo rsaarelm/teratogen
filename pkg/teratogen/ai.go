@@ -32,8 +32,7 @@ func DoAI(critId entity.Id) bool {
 
 			Fx().Shoot(critId, targetPos)
 			EMsg("{sub.Thename} vomit{sub.s} bile.\n", critId, entity.NilId)
-			DamagePos(targetPos, GetPos(critId), &DamageData{BaseMagnitude: damageFactor, Type: AcidDamage},
-				0, critId)
+			DamagePos(targetPos, GetPos(critId), float64(damageFactor), AcidDamage, critId)
 
 			return true
 		}
