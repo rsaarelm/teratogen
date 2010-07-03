@@ -228,10 +228,6 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	// of two. (Scale values are base-2 logarithms of the creature's volume.)
 	const magicNoise = 0.3
 
-	DrawString(g, area.Min.X, area.Min.Y+FontH, "%v toughness, mass %.0f kg",
-		txt.Capitalize(game.LevelDescription(playerCrit.Toughness())),
-		game.ScaleToMass(float64(playerCrit.Scale)+magicNoise, 0))
-
 	helpLineY := FontH * 3
 	for o := range UiHelpLines().Iter() {
 		DrawString(g, area.Min.X, area.Min.Y+helpLineY, o.(string))

@@ -91,7 +91,7 @@ var mutations = map[uint64]*mutation{
 	MutationGrow2:   &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
 	MutationGrow3:   &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
 	MutationEsp:     &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
-	MutationTough:   &mutation{MutationTough, toughMutation, 2, hasIntrinsicFilter(IntrinsicTough), 0},
+	MutationTough:   &mutation{MutationTough, toughMutation, 2, nil, 0},
 	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 4, hasIntrinsicFilter(IntrinsicShimmer), 0},
 	MutationHorns:   &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
 	MutationHooves:  &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
@@ -179,11 +179,6 @@ func terminalMutation(id entity.Id) {
 	crit := GetCreature(id)
 	crit.AddIntrinsic(IntrinsicChaosSpawn)
 
-	// Scramble base stats.
-	crit.Scale += NormRoll(4)
-	crit.Power += NormRoll(4)
-	crit.Skill += NormRoll(4)
-
 	if id == PlayerId() {
 		GameOver("became one with the Tau wave.")
 	}
@@ -238,12 +233,14 @@ func availableMutations(id entity.Id) iterable.Iterable {
 
 func growMutation(id entity.Id) {
 	EMsg("{sub.Thename} grow{sub.s} larger.\n", id, entity.NilId)
-	GetCreature(id).Scale++
+	// TODO: Fix obsolete mutation
+	//	GetCreature(id).Scale++
 }
 
 func powerMutation(id entity.Id) {
 	EMsg("{sub.Thename} grow{sub.s} stronger.\n", id, entity.NilId)
-	GetCreature(id).Power++
+	// TODO: Fix obsolete mutation
+	//	GetCreature(id).Power++
 }
 
 func hasIntrinsicFilter(intrinsic int32) func(id entity.Id) bool {
@@ -259,7 +256,7 @@ func esperMutation(id entity.Id) {
 
 func toughMutation(id entity.Id) {
 	EMsg("{sub.Thename's} skin hardens into scales.\n", id, entity.NilId)
-	GetCreature(id).AddIntrinsic(IntrinsicTough)
+	GetCreature(id).healthScale *= 0.2
 }
 
 func shimmerMutation(id entity.Id) {

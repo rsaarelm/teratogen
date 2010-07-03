@@ -70,7 +70,7 @@ func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 }
 
 func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
-	dummyWeapon := &Weapon{"dummyGun", 1.0, 10}
+	dummyWeapon := &Weapon{"dummyGun", 24.0, 10}
 
 	hitPos := GetHitPos(GetPos(attackerId), target)
 	Fx().Shoot(attackerId, hitPos)
@@ -81,6 +81,6 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 }
 
 func Attack(attackerId, targetId entity.Id) {
-	dummyWeapon := &Weapon{"dummy", 1.0, 1}
+	dummyWeapon := &Weapon{"dummy", 12.0, 1}
 	dummyWeapon.Attack(attackerId, targetId, 0.5)
 }

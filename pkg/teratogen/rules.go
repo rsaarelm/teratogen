@@ -11,22 +11,6 @@ import (
 	"rand"
 )
 
-// Game mechanics stuff.
-
-type ResolutionLevel int
-
-const (
-	Abysmal = -4 + iota
-	Terrible
-	Poor
-	Mediocre
-	Fair
-	Good
-	Great
-	Superb
-	Legendary
-)
-
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
 	const outOfDepthFactor = 2.0
@@ -61,9 +45,6 @@ func Log2Modifier(x int) int {
 	absMod := int(num.Round(num.Log2(math.Fabs(float64(x))+2) - 1))
 	return num.Isignum(x) * absMod
 }
-
-// Smaller things are logarithmically harder to hit.
-func MinToHit(scaleDiff int) int { return Poor - Log2Modifier(scaleDiff) }
 
 func LevelDescription(level int) string {
 	switch {
@@ -424,7 +405,7 @@ func CanEsperSense(id entity.Id) bool {
 func CreaturePowerLevel(id entity.Id) int {
 	if crit := GetCreature(id); crit != nil {
 		// TODO: Increase power from intrinsincs.
-		return num.Imax(1, crit.Power+crit.Scale)
+		return num.Imax(1, Log2Modifier(int(crit.HealthScale())))
 	}
 	return 0
 }

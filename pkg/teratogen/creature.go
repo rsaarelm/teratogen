@@ -24,9 +24,6 @@ const (
 	IntrinsicElectrocute
 	IntrinsicPoison
 	IntrinsicEndboss
-	IntrinsicTough         // Creature is +2 tougher than it's power.
-	IntrinsicFragile       // Creature's toughness is -2 from it's power.
-	IntrinsicDense         // Creature's mass is for scale +2 of creature's scale.
 	IntrinsicUnliving      // Creature is not a living thing.
 	IntrinsicEsper         // Creature can sense unseen living things.
 	IntrinsicMartialArtist // Creature can use it's skill to dodge attacks.
@@ -51,9 +48,8 @@ const (
 
 
 type CreatureTemplate struct {
-	Power, Skill int
-	Scale        int
-	Intrinsics   int32
+	Hp         float64
+	Intrinsics int32
 }
 
 type DamageType int
@@ -76,12 +72,10 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
-		Power:      self.Power,
-		Skill:      self.Skill,
-		Scale:      self.Scale,
-		Intrinsics: self.Intrinsics,
-		Health:     1.0,
-		Statuses:   0,
+		healthScale: self.Hp,
+		Intrinsics:  self.Intrinsics,
+		Health:      1.0,
+		Statuses:    0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
 }
@@ -89,11 +83,10 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 
 // Creature component. Stats etc.
 type Creature struct {
-	Power, Skill int
-	Scale        int
-	Intrinsics   int32
-	Health       float64
-	Statuses     int32
+	Intrinsics  int32
+	healthScale float64
+	Health      float64
+	Statuses    int32
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -104,17 +97,6 @@ func GetCreature(id entity.Id) *Creature {
 }
 
 func IsCreature(id entity.Id) bool { return GetCreature(id) != nil }
-
-func (self *Creature) Toughness() (result int) {
-	result = self.Power
-	if self.HasIntrinsic(IntrinsicTough) {
-		result += 2
-	}
-	if self.HasIntrinsic(IntrinsicFragile) {
-		result -= 2
-	}
-	return
-}
 
 func (self *Creature) Heal(amount float64) {
 	self.Health = math.Fmin(1.0, self.Health+amount)
@@ -134,8 +116,6 @@ func (self *Creature) WoundDescription() string {
 	return fmt.Sprintf("%d health", int(self.Health*100))
 }
 
-func (self *Creature) IsKilledByWounds() bool { return self.Health < 0.0 }
-
 func (self *Creature) AddIntrinsic(intrinsic int32) {
 	self.Intrinsics |= intrinsic
 }
@@ -154,37 +134,11 @@ func (self *Creature) RemoveStatus(status int32) {
 	self.Statuses &^= status
 }
 
-func (self *Creature) MeleeDamageFactor(id entity.Id) (result int) {
-	result = self.Power + self.MassFactor()
-	if o, ok := GetEquipment(id, MeleeEquipSlot); ok {
-		// Melee weapon bonus
-		result += GetItem(o).WoundBonus
-	}
-	return
-}
-
-func (self *Creature) MassFactor() (mass int) {
-	mass = self.Scale
-	if self.HasIntrinsic(IntrinsicDense) {
-		mass += 2
-	}
-	return
-}
-
-func (self *Creature) ArmorFactor(id entity.Id) (result int) {
-	result = self.MassFactor() + self.Toughness()
-	if o, ok := GetEquipment(id, ArmorEquipSlot); ok {
-		// Body armor bonus.
-		result += GetItem(o).DefenseBonus
-	}
-	return
-}
-
 // HealthScale is used to adjust damage dealt to the creature. Creatures take
 // 1/HealthScale damage to their 0..1 health value for a single absolute unit
 // of damage.
 func (self *Creature) HealthScale() float64 {
-	return math.Sqrt(math.Pow(2, float64(self.MassFactor()+self.Toughness())))
+	return self.healthScale
 }
 
 func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
@@ -201,7 +155,7 @@ func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
 
 	// Splatter blood.
 	if !self.HasIntrinsic(IntrinsicUnliving) {
-		bloodNum := rand.Intn(3 + self.Scale)
+		bloodNum := rand.Intn(4)
 		if bloodNum >= 2 {
 			SplatterBlood(GetPos(selfId), LargeBloodSplatter)
 		} else {
@@ -231,31 +185,10 @@ func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
 	// Deathsplosion.
 	if self.Intrinsics&IntrinsicDeathsplode != 0 {
 		EMsg("{sub.Thename} blow{sub.s} up!\n", selfId, causerId)
-		Explode(GetPos(selfId), self.Scale, selfId)
+		Explode(GetPos(selfId), 3, selfId)
 	}
 
 	Destroy(selfId)
-}
-
-func (self *Creature) Wound(selfId entity.Id, woundLevel int, causerId entity.Id) {
-	if self.Statuses&StatusDead != 0 {
-		return
-	}
-
-	// TODO: Replace woundLevel with a damage system designed for the new
-	// health system.
-	self.Health -= float64(woundLevel) / 2.0 / self.HealthScale()
-
-	if self.IsKilledByWounds() {
-		self.Die(selfId, causerId)
-	} else {
-		Fx().Damage(selfId, woundLevel)
-		EMsg("{sub.Thename} is at {sub.is} %v.\n", selfId, causerId, self.WoundDescription())
-	}
-
-	// XXX: Damage amount not accounted in armor damage.
-	// TODO: Restore equipment damage.
-	//DamageEquipment(selfId, ArmorEquipSlot)
 }
 
 func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, magnitude float64, kind DamageType) {

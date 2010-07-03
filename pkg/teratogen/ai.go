@@ -25,14 +25,13 @@ func DoAI(critId entity.Id) bool {
 	moveVec := geom.Dir6ToVec(dir6)
 
 	// Bile attack.
+	// TODO: Make this into a weapon object attack.
 	const bileAttackRange = 5
 	if crit.HasIntrinsic(IntrinsicBile) && num.OneChanceIn(2) {
 		if targetPos, ok := BestAttackTarget(critId, 1, bileAttackRange); ok {
-			damageFactor := crit.Power + crit.Scale
-
 			Fx().Shoot(critId, targetPos)
 			EMsg("{sub.Thename} vomit{sub.s} bile.\n", critId, entity.NilId)
-			DamagePos(targetPos, GetPos(critId), float64(damageFactor), AcidDamage, critId)
+			DamagePos(targetPos, GetPos(critId), 10.0, AcidDamage, critId)
 
 			return true
 		}
