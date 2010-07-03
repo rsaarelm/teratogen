@@ -6,12 +6,33 @@ import (
 	"hyades/geom"
 )
 
+const (
+	WeaponFist = iota
+	WeaponClaw
+	WeaponKick
+	WeaponHorns
+	WeaponJaws
+	WeaponPistol
+	WeaponBile
+)
+
 const WeaponComponent = entity.ComponentFamily("weapon")
 
 type Weapon struct {
 	Name  string
+	Verb  string
 	Power float64
 	Range int
+}
+
+var weapons = map[int]*Weapon{
+	WeaponFist:   &Weapon{"fist", "hit{sub.s}", 10, 1},
+	WeaponClaw:   &Weapon{"claw", "claw{sub.s}", 15, 1},
+	WeaponKick:   &Weapon{"hooves", "kick{sub.s}", 15, 1},
+	WeaponHorns:  &Weapon{"horns", "headbutt{sub.s}", 15, 1},
+	WeaponJaws:   &Weapon{"bite", "bite{sub.s}", 15, 1},
+	WeaponPistol: &Weapon{"pistol", "shoot{sub.s}", 10, 1},
+	WeaponBile:   &Weapon{"bile", "vomit{sub.s} bile at", 20, 1},
 }
 
 // Serve as template, prototype-style.
@@ -54,6 +75,7 @@ func (self *Weapon) Attack(wielder, target entity.Id, successDegree float64) {
 		damage = self.Power * 2
 	}
 
+	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
 	GetCreature(target).Damage(
 		target, wielder,
 		GetPos(wielder), damage, BluntDamage)
@@ -70,17 +92,18 @@ func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 }
 
 func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
-	dummyWeapon := &Weapon{"dummyGun", 24.0, 10}
+	dummyWeapon := &Weapon{"dummyGun", "shoot{sub.s}", 24.0, 10}
 
 	hitPos := GetHitPos(GetPos(attackerId), target)
 	Fx().Shoot(attackerId, hitPos)
 
+	EMsg("{sub.Thename} %s.\n", attackerId, entity.NilId, dummyWeapon.Verb)
 	DamagePos(hitPos, GetPos(attackerId), dummyWeapon.Power, PiercingDamage, attackerId)
 
 	return true
 }
 
 func Attack(attackerId, targetId entity.Id) {
-	dummyWeapon := &Weapon{"dummy", 12.0, 1}
+	dummyWeapon := &Weapon{"dummy", "hit{sub.s}", 12.0, 1}
 	dummyWeapon.Attack(attackerId, targetId, 0.5)
 }
