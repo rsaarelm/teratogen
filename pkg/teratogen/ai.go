@@ -6,44 +6,74 @@ import (
 	"hyades/geom"
 	"hyades/entity"
 	"hyades/num"
+	"rand"
 )
 
-func DoAI(critId entity.Id) bool {
+func DoAI(aiEntity entity.Id) bool {
 	playerId := PlayerId()
-	if critId == playerId {
+	if aiEntity == playerId {
 		return true
 	}
 
-	crit := GetCreature(critId)
+	crit := GetCreature(aiEntity)
 	if crit == nil {
 		// It's probably been killed mid-iteration.
 		return true
 	}
 
-	dirVec := GetPos(playerId).Minus(GetPos(critId))
+	// Occasional secondary attacks.
+	if /*num.OneChanceIn(2) && */ aiWeaponAttack(aiEntity, weaponLookup[crit.Attack2]) {
+		return true
+	}
+
+	// Otherwise try the primary attack always.
+	if aiWeaponAttack(aiEntity, weaponLookup[crit.Attack1]) {
+		return true
+	}
+
+	aiMove(aiEntity)
+
+	return true
+}
+
+func aiMove(aiEntity entity.Id) {
+	dirVec := GetPos(aiGetCurrentEnemyId(aiEntity)).Minus(GetPos(aiEntity))
 	dir6 := geom.Vec2IToDir6(dirVec)
 	moveVec := geom.Dir6ToVec(dir6)
 
-	// Bile attack.
-	// TODO: Make this into a weapon object attack.
-	const bileAttackRange = 5
-	if crit.HasIntrinsic(IntrinsicBile) && num.OneChanceIn(2) {
-		if targetPos, ok := BestAttackTarget(critId, 1, bileAttackRange); ok {
-			Fx().Shoot(critId, targetPos)
-			EMsg("{sub.Thename} vomit{sub.s} bile.\n", critId, entity.NilId)
-			DamagePos(targetPos, GetPos(critId), 10.0, AcidDamage, critId)
+	if TryMove(aiEntity, moveVec) {
+		return
+	}
+	// Random move if directional move is blocked.
+	TryMove(aiEntity, geom.Dir6ToVec(rand.Intn(6)))
+}
 
-			return true
-		}
+// aiWeaponAttack tries to attack an AI-decided target with a given weapon.
+// Returns whether the attack succeeded. Weapon may be nil, in which case the
+// function does nothing and returns false.
+func aiWeaponAttack(aiEntity entity.Id, weapon *Weapon) bool {
+	if weapon == nil {
+		return false
 	}
 
-	if GetPos(critId).Plus(moveVec).Equals(GetPos(playerId)) {
-		Attack(critId, playerId)
-	} else {
-		// TODO: Going around obstacles.
-		TryMove(critId, moveVec)
+	enemyId := aiGetCurrentEnemyId(aiEntity)
+	if enemyId == entity.NilId {
+		return false
 	}
-	return true
+	pos := GetPos(enemyId)
+	if weapon.CanAttack(aiEntity, pos) {
+		// TODO: Determine success level.
+		weapon.Attack(aiEntity, pos, 0.5)
+		return true
+	}
+	return false
+}
+
+// aiGetCurrentEnemy returns the entity which the AI entity is currently
+// attacking. May return entity.NilId if there is no current enemy.
+func aiGetCurrentEnemyId(aiEntity entity.Id) (currentEnemy entity.Id) {
+	// Currently everything just hunts the player.
+	return PlayerId()
 }
 
 // DoTurn is the entry point for running the game update loop.

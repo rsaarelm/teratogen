@@ -207,3 +207,11 @@ func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, ma
 		self.Die(selfId, causerId)
 	}
 }
+
+func (self *Creature) Weapon1() *Weapon {
+	return weaponLookup[self.Attack1]
+}
+
+func (self *Creature) Weapon2() *Weapon {
+	return weaponLookup[self.Attack2]
+}

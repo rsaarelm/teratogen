@@ -68,45 +68,60 @@ func (self *Weapon) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	manager.Handler(WeaponComponent).Add(guid, result)
 }
 
-func (self *Weapon) CanAttack(wielder, target entity.Id) bool {
-	// TODO: Return whether the target is in weapon's range and within clear
-	// line of sight.
+func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
 	pos0 := GetPos(wielder)
-	pos1 := GetPos(target)
-	if geom.HexDist(pos0, pos1) > self.Range {
+	if geom.HexDist(pos0, pos) > self.Range {
 		return false
 	}
 
 	// Attacks are only possible along hex axes.
-	if _, ok := geom.Vec2IToDir6Exact(pos1.Minus(pos0)); !ok {
+	if _, ok := geom.Vec2IToDir6Exact(pos.Minus(pos0)); !ok {
 		return false
 	}
 
-	if _, ok := geom.HexLineOfSight(pos0, pos1, IsBlocked); !ok {
+	if _, ok := geom.HexLineOfSight(pos0, pos, IsBlocked); !ok {
 		return false
 	}
+
+	// XXX: Doesn't check whether the line of attack is physically blocked by,
+	// say, another entity. Friendly fire fun.
 
 	return true
 }
 
-func (self *Weapon) Attack(wielder, target entity.Id, successDegree float64) {
+// Attack attacks a position with the weapon. Does not check whether the
+// weapon allows attacking that pos.
+func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, successDegree float64) {
 	// SuccessDegree scales damage from 1/2 to full, critical hits double the damage.
 	damage := self.Power/2 + successDegree*(self.Power/2)
 	if successDegree == 1.0 {
 		damage = self.Power * 2
 	}
 
+	// Recalculate pos in case a ranged attack hits something on the way.
+	pos = GetHitPos(GetPos(wielder), pos)
+
+
 	// TODO: Attack effect as weapon data, not just this ad-hoc thing.
 	if self.Range > 1 {
-		Fx().Shoot(wielder, GetPos(target))
+		Fx().Shoot(wielder, pos)
 	}
 
-	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
+	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
+		target := o.(entity.Id)
 
-	// TODO: Damage type from weapon.
-	GetCreature(target).Damage(
-		target, wielder,
-		GetPos(wielder), damage, BluntDamage)
+		EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
+
+		// TODO: Damage type from weapon.
+		GetCreature(target).Damage(
+			target, wielder,
+			GetPos(wielder), damage, BluntDamage)
+
+		return
+	}
+
+	// Attacking empty air.
+	EMsg("{sub.Thename} %s.\n", wielder, entity.NilId, self.Verb)
 }
 
 func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
@@ -120,13 +135,12 @@ func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 }
 
 func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
-	dummyWeapon := &Weapon{"dummyGun", "shoot{sub.s}", 24.0, 10}
-
-	hitPos := GetHitPos(GetPos(attackerId), target)
-	Fx().Shoot(attackerId, hitPos)
-
-	EMsg("{sub.Thename} %s.\n", attackerId, entity.NilId, dummyWeapon.Verb)
-	DamagePos(hitPos, GetPos(attackerId), dummyWeapon.Power, PiercingDamage, attackerId)
+	crit := GetCreature(attackerId)
+	// XXX: Always use second weapon for shooting.
+	if weapon := weaponLookup[crit.Attack2]; weapon != nil {
+		// TODO: Get success level.
+		weapon.Attack(attackerId, target, 0.5)
+	}
 
 	return true
 }
@@ -136,6 +150,6 @@ func Attack(attackerId, targetId entity.Id) {
 	// XXX: Fixed the first weapon as preferred melee attack.
 	if weapon := weaponLookup[crit.Attack1]; weapon != nil {
 		// TODO: Get success level.
-		weapon.Attack(attackerId, targetId, 0.5)
+		weapon.Attack(attackerId, GetPos(targetId), 0.5)
 	}
 }
