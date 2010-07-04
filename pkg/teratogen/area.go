@@ -300,6 +300,10 @@ func IsBlocked(pos geom.Pt2I) bool {
 	return !IsOpen(pos)
 }
 
+func BlocksRanged(pos geom.Pt2I) bool {
+	return IsObstacleTerrain(GetArea().GetTerrain(pos))
+}
+
 func GetSpawnPos() (pos geom.Pt2I, ok bool) {
 	return GetMatchingPos(
 		func(pos geom.Pt2I) bool { return isSpawnPos(pos) })

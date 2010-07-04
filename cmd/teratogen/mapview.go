@@ -270,7 +270,11 @@ func (self *MapView) onMouseButton(button int) {
 func playerShootDir(dir6 int) {
 	SendPlayerInput(func() bool {
 		id := game.PlayerId()
-		targ := game.GetPos(id).Plus(geom.Dir6ToVec(dir6).Scale(20))
+		dist := 1
+		if weapon := game.GetCreature(id).Weapon2(); weapon != nil {
+			dist = weapon.Range
+		}
+		targ := game.GetPos(id).Plus(geom.Dir6ToVec(dir6).Scale(dist))
 		return game.Shoot(id, targ)
 	})
 }

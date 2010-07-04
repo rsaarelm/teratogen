@@ -79,7 +79,7 @@ func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
 		return false
 	}
 
-	if _, ok := geom.HexLineOfSight(pos0, pos, IsBlocked); !ok {
+	if _, ok := geom.HexLineOfSight(pos0, pos, BlocksRanged); !ok {
 		return false
 	}
 

@@ -22,7 +22,7 @@ func DoAI(aiEntity entity.Id) bool {
 	}
 
 	// Occasional secondary attacks.
-	if /*num.OneChanceIn(2) && */ aiWeaponAttack(aiEntity, weaponLookup[crit.Attack2]) {
+	if num.OneChanceIn(2) && aiWeaponAttack(aiEntity, weaponLookup[crit.Attack2]) {
 		return true
 	}
 
@@ -61,7 +61,7 @@ func aiWeaponAttack(aiEntity entity.Id, weapon *Weapon) bool {
 		return false
 	}
 	pos := GetPos(enemyId)
-	if weapon.CanAttack(aiEntity, pos) {
+	if CanSeeTo(GetPos(aiEntity), pos) && weapon.CanAttack(aiEntity, pos) {
 		// TODO: Determine success level.
 		weapon.Attack(aiEntity, pos, 0.5)
 		return true

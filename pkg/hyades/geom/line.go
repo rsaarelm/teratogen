@@ -129,7 +129,7 @@ func RayEndsIn6Dirs(origin Pt2I, hitPred func(Pt2I) bool, minRange, maxRange int
 func HexLineOfSight(origin, target Pt2I, hitPred func(Pt2I) bool) (hitPos Pt2I, ok bool) {
 	for o := range iterable.Drop(HexLine(origin, target), 1).Iter() {
 		hitPos = o.(Pt2I)
-		if !hitPred(hitPos) {
+		if hitPred(hitPos) {
 			return hitPos, hitPos.Equals(target)
 		}
 	}
