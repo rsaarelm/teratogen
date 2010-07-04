@@ -42,6 +42,8 @@ func init() {
 		NameComponent:      NameTemplate("protagonist", "chars:16", PronounIt, false),
 		MutationsComponent: entity.NewDefaultTemplate((*Mutations)(nil), MutationsComponent, nil),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponFist,
+			Attack2:    WeaponPistol,
 			Hp:         100,
 			Intrinsics: IntrinsicMartialArtist},
 	}
@@ -50,6 +52,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected human", "chars:13", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponFist,
 			Hp:         20,
 			Intrinsics: IntrinsicMartialArtist},
 	}
@@ -58,6 +61,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected guard", "chars:12", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponFist,
+			Attack2:    WeaponPistol,
 			Hp:         30,
 			Intrinsics: IntrinsicMartialArtist},
 	}
@@ -66,6 +71,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponFist,
 			Hp:         25,
 			Intrinsics: NoIntrinsic},
 	}
@@ -74,6 +80,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("dog-thing", "chars:2", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponJaws,
 			Hp:         15,
 			Intrinsics: NoIntrinsic},
 	}
@@ -82,6 +89,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponClaw,
+			Attack2:    WeaponBile,
 			Hp:         30,
 			Intrinsics: IntrinsicBile},
 	}
@@ -90,6 +99,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("crawling mass", "chars:7", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponCrawl,
 			Hp:         70,
 			Intrinsics: IntrinsicSlow | IntrinsicDeathsplode},
 	}
@@ -98,6 +108,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("cyclops", "chars:6", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponFist,
+			Attack2:    WeaponCyclops,
 			Hp:         30,
 			Intrinsics: IntrinsicPsychicBlast | IntrinsicConfuse},
 	}
@@ -106,6 +118,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("wendigo", "chars:8", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponClaw,
 			Hp:         50,
 			Intrinsics: IntrinsicFast},
 	}
@@ -114,6 +127,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("spider", "chars:10", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1: WeaponSpider,
+			// TODO: Web spraying weapon?
 			Hp:         50,
 			Intrinsics: IntrinsicPoison},
 	}
@@ -122,6 +137,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected soldier", "chars:14", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponBayonet,
+			Attack2:    WeaponRifle,
 			Hp:         45,
 			Intrinsics: IntrinsicMartialArtist},
 	}
@@ -130,6 +147,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("killbot", "chars:11", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponSaw,
+			Attack2:    WeaponZap,
 			Hp:         100,
 			Intrinsics: IntrinsicElectrocute | IntrinsicUnliving},
 	}
@@ -138,6 +157,7 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("ogre", "chars:15", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponSmash,
 			Hp:         120,
 			Intrinsics: NoIntrinsic},
 	}
@@ -146,6 +166,8 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("elder spawn", "chars:5", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponSmash,
+			Attack2:    WeaponNether,
 			Hp:         200,
 			Intrinsics: IntrinsicEndboss},
 	}

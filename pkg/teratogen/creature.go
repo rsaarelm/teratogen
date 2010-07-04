@@ -48,7 +48,11 @@ const (
 
 
 type CreatureTemplate struct {
-	Hp         float64
+	Hp float64
+	// Primary attack, generally a melee attack.
+	Attack1 int
+	// Secondary attack, generally a ranged attack or nothing
+	Attack2    int
 	Intrinsics int32
 }
 
@@ -72,6 +76,8 @@ func (self *CreatureTemplate) Derive(c entity.ComponentTemplate) entity.Componen
 
 func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := &Creature{
+		Attack1:     self.Attack1,
+		Attack2:     self.Attack2,
 		healthScale: self.Hp,
 		Intrinsics:  self.Intrinsics,
 		Health:      1.0,
@@ -83,6 +89,8 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 
 // Creature component. Stats etc.
 type Creature struct {
+	Attack1     int
+	Attack2     int
 	Intrinsics  int32
 	healthScale float64
 	Health      float64

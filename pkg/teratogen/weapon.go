@@ -7,13 +7,23 @@ import (
 )
 
 const (
-	WeaponFist = iota
+	NoWeapon = iota
+	WeaponFist
+	WeaponBayonet
 	WeaponClaw
 	WeaponKick
 	WeaponHorns
 	WeaponJaws
 	WeaponPistol
+	WeaponRifle
 	WeaponBile
+	WeaponCrawl
+	WeaponSpider
+	WeaponCyclops
+	WeaponSaw
+	WeaponZap
+	WeaponSmash
+	WeaponNether
 )
 
 const WeaponComponent = entity.ComponentFamily("weapon")
@@ -25,14 +35,25 @@ type Weapon struct {
 	Range int
 }
 
-var weapons = map[int]*Weapon{
-	WeaponFist:   &Weapon{"fist", "hit{sub.s}", 10, 1},
-	WeaponClaw:   &Weapon{"claw", "claw{sub.s}", 15, 1},
-	WeaponKick:   &Weapon{"hooves", "kick{sub.s}", 15, 1},
-	WeaponHorns:  &Weapon{"horns", "headbutt{sub.s}", 15, 1},
-	WeaponJaws:   &Weapon{"bite", "bite{sub.s}", 15, 1},
-	WeaponPistol: &Weapon{"pistol", "shoot{sub.s}", 10, 1},
-	WeaponBile:   &Weapon{"bile", "vomit{sub.s} bile at", 20, 1},
+var weaponLookup = map[int]*Weapon{
+	NoWeapon:      nil,
+	WeaponFist:    &Weapon{"fist", "hit{sub.s}", 10, 1},
+	WeaponBayonet: &Weapon{"bayonet", "hit{sub.s}", 20, 1},
+	WeaponClaw:    &Weapon{"claw", "claw{sub.s}", 15, 1},
+	WeaponKick:    &Weapon{"hooves", "kick{sub.s}", 15, 1},
+	WeaponHorns:   &Weapon{"horns", "headbutt{sub.s}", 15, 1},
+	WeaponJaws:    &Weapon{"bite", "bite{sub.s}", 15, 1},
+	WeaponPistol:  &Weapon{"pistol", "shoot{sub.s}", 10, 7},
+	WeaponRifle:   &Weapon{"rifle", "shoot{sub.s}", 24, 12},
+	WeaponBile:    &Weapon{"bile", "vomit{sub.s} bile at", 19, 5},
+	WeaponCrawl:   &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1},
+	// TODO: Poison
+	WeaponSpider:  &Weapon{"bite", "bite{sub.s}", 30, 1},
+	WeaponCyclops: &Weapon{"psychic blast", "blast{sub.s}", 24, 7},
+	WeaponSaw:     &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1},
+	WeaponZap:     &Weapon{"electro-zapper", "zap{sub.s}", 15, 4},
+	WeaponSmash:   &Weapon{"mighty smash", "hit{sub.s}", 40, 1},
+	WeaponNether:  &Weapon{"nether ray", "exhale{sub.s}", 40, 7},
 }
 
 // Serve as template, prototype-style.
@@ -75,7 +96,14 @@ func (self *Weapon) Attack(wielder, target entity.Id, successDegree float64) {
 		damage = self.Power * 2
 	}
 
+	// TODO: Attack effect as weapon data, not just this ad-hoc thing.
+	if self.Range > 1 {
+		Fx().Shoot(wielder, GetPos(target))
+	}
+
 	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
+
+	// TODO: Damage type from weapon.
 	GetCreature(target).Damage(
 		target, wielder,
 		GetPos(wielder), damage, BluntDamage)
@@ -104,6 +132,10 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 }
 
 func Attack(attackerId, targetId entity.Id) {
-	dummyWeapon := &Weapon{"dummy", "hit{sub.s}", 12.0, 1}
-	dummyWeapon.Attack(attackerId, targetId, 0.5)
+	crit := GetCreature(attackerId)
+	// XXX: Fixed the first weapon as preferred melee attack.
+	if weapon := weaponLookup[crit.Attack1]; weapon != nil {
+		// TODO: Get success level.
+		weapon.Attack(attackerId, targetId, 0.5)
+	}
 }
