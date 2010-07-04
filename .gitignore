@@ -11,3 +11,4 @@ cmd/teratogen/teratogen
 _test
 *.out
 Make.deps
+TAGS
