@@ -198,24 +198,6 @@ func init() {
 		DecalComponent: DecalTemplate(0),
 	}
 
-	a["plantpot"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("plant pot", "items:3", PronounIt, false),
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, NoUse, NoItemTrait},
-	}
-	a["pistol"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("pistol", "items:4", PronounIt, false),
-		ItemComponent: &ItemTemplate{
-			EquipmentSlot: GunEquipSlot,
-			Durability:    12,
-			WoundBonus:    1,
-			DefenseBonus:  0,
-			Use:           NoUse,
-			Traits:        NoItemTrait},
-	}
 	a["machete"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 0),
 		PosComponent:  PosTemplate(),
@@ -299,17 +281,5 @@ func init() {
 			DefenseBonus:  0,
 			Use:           NoUse,
 			Traits:        ItemKnockback},
-	}
-	a["spingun"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 4),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("spinner gun", "items:10", PronounIt, false),
-		ItemComponent: &ItemTemplate{
-			EquipmentSlot: GunEquipSlot,
-			Durability:    30,
-			WoundBonus:    2,
-			DefenseBonus:  0,
-			Use:           NoUse,
-			Traits:        ItemRapidFire},
 	}
 }
