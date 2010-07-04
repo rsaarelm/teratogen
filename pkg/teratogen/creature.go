@@ -17,12 +17,7 @@ const (
 	NoIntrinsic   = 0
 	IntrinsicSlow = 1 << iota
 	IntrinsicFast
-	IntrinsicBile
 	IntrinsicDeathsplode
-	IntrinsicPsychicBlast
-	IntrinsicConfuse
-	IntrinsicElectrocute
-	IntrinsicPoison
 	IntrinsicEndboss
 	IntrinsicUnliving      // Creature is not a living thing.
 	IntrinsicEsper         // Creature can sense unseen living things.

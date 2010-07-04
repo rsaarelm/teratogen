@@ -19,7 +19,8 @@ const (
 	WeaponBile
 	WeaponCrawl
 	WeaponSpider
-	WeaponCyclops
+	WeaponGaze
+	WeaponPsiBlast
 	WeaponSaw
 	WeaponZap
 	WeaponSmash
@@ -36,24 +37,24 @@ type Weapon struct {
 }
 
 var weaponLookup = map[int]*Weapon{
-	NoWeapon:      nil,
-	WeaponFist:    &Weapon{"fist", "hit{sub.s}", 10, 1},
-	WeaponBayonet: &Weapon{"bayonet", "hit{sub.s}", 20, 1},
-	WeaponClaw:    &Weapon{"claw", "claw{sub.s}", 15, 1},
-	WeaponKick:    &Weapon{"hooves", "kick{sub.s}", 15, 1},
-	WeaponHorns:   &Weapon{"horns", "headbutt{sub.s}", 15, 1},
-	WeaponJaws:    &Weapon{"bite", "bite{sub.s}", 15, 1},
-	WeaponPistol:  &Weapon{"pistol", "shoot{sub.s}", 10, 7},
-	WeaponRifle:   &Weapon{"rifle", "shoot{sub.s}", 24, 12},
-	WeaponBile:    &Weapon{"bile", "vomit{sub.s} bile at", 19, 5},
-	WeaponCrawl:   &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1},
-	// TODO: Poison
-	WeaponSpider:  &Weapon{"bite", "bite{sub.s}", 30, 1},
-	WeaponCyclops: &Weapon{"psychic blast", "blast{sub.s}", 24, 7},
-	WeaponSaw:     &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1},
-	WeaponZap:     &Weapon{"electro-zapper", "zap{sub.s}", 15, 4},
-	WeaponSmash:   &Weapon{"mighty smash", "hit{sub.s}", 40, 1},
-	WeaponNether:  &Weapon{"nether ray", "exhale{sub.s}", 40, 7},
+	NoWeapon:       nil,
+	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1},
+	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1},
+	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1},
+	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1},
+	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1},
+	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1},
+	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 10, 7},
+	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12},
+	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5},
+	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1},
+	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1},     // TODO: Poison
+	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7}, // TODO: Confuse
+	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7},
+	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1},
+	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4}, // TODO: Stun
+	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1},
+	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7},
 }
 
 // Serve as template, prototype-style.

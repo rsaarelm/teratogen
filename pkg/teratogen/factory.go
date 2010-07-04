@@ -92,7 +92,7 @@ func init() {
 			Attack1:    WeaponClaw,
 			Attack2:    WeaponBile,
 			Hp:         30,
-			Intrinsics: IntrinsicBile},
+			Intrinsics: NoIntrinsic},
 	}
 	a["crawlingmass"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 4),
@@ -108,10 +108,10 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("cyclops", "chars:6", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
-			Attack1:    WeaponFist,
-			Attack2:    WeaponCyclops,
+			Attack1:    WeaponGaze,
+			Attack2:    WeaponPsiBlast,
 			Hp:         30,
-			Intrinsics: IntrinsicPsychicBlast | IntrinsicConfuse},
+			Intrinsics: NoIntrinsic},
 	}
 	a["wendigo"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 6),
@@ -130,7 +130,7 @@ func init() {
 			Attack1: WeaponSpider,
 			// TODO: Web spraying weapon?
 			Hp:         50,
-			Intrinsics: IntrinsicPoison},
+			Intrinsics: NoIntrinsic},
 	}
 	a["infectedSolder"] = entity.Assemblage{
 		Metadata:      MetaTemplate(100, 8),
@@ -150,7 +150,7 @@ func init() {
 			Attack1:    WeaponSaw,
 			Attack2:    WeaponZap,
 			Hp:         100,
-			Intrinsics: IntrinsicElectrocute | IntrinsicUnliving},
+			Intrinsics: IntrinsicUnliving},
 	}
 	a["ogre"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 8),
