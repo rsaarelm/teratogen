@@ -103,7 +103,7 @@ func (self *Area) MakeBSPMap() {
 		}
 	}
 
-	for pt := range doors.Iter() {
+	for _, pt := range *doors {
 		pt := pt.(geom.Pt2I)
 		self.SetTerrain(pt, TerrainDoor)
 	}

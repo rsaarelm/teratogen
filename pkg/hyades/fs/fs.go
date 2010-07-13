@@ -74,7 +74,7 @@ func (self *Archive) ListFiles() (list []string, err os.Error) {
 		names.Push(header.Name)
 	}
 
-	list = names.Data()
+	list = names.Copy()
 	return
 }
 
@@ -145,5 +145,5 @@ func magicSites(data []byte, magic []byte) []int {
 		}
 	}
 
-	return points.Data()
+	return points.Copy()
 }

@@ -173,7 +173,7 @@ func (self *GostakState) ParseString(str string) (err os.Error) {
 
 		token = scan.Scan()
 	}
-	for o := range cells.Iter() {
+	for _, o := range *cells {
 		cell := o.(GostakCell)
 		err = self.EvalCell(cell)
 		if err != nil {

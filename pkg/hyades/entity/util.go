@@ -23,7 +23,7 @@ func uniqueComponentTable(handler Handler) (ids map[uintptr]int, values []interf
 			i++
 		}
 	}
-	values = vals.Data()
+	values = vals.Copy()
 	return
 }
 

@@ -229,7 +229,7 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	const magicNoise = 0.3
 
 	helpLineY := FontH * 3
-	for o := range UiHelpLines().Iter() {
+	for _, o := range *UiHelpLines() {
 		DrawString(g, area.Min.X, area.Min.Y+helpLineY, o.(string))
 		helpLineY += FontH
 	}
@@ -411,7 +411,7 @@ func EquipMenu() {
 	}
 }
 
-func UiHelpLines() iterable.Iterable {
+func UiHelpLines() *vector.Vector {
 	vec := new(vector.Vector)
 	vec.Push("esc: exit menu")
 	vec.Push("arrow keys, qweasd: move, attack adjacent")

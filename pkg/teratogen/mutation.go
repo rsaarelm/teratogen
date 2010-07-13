@@ -2,7 +2,6 @@ package teratogen
 
 import (
 	"container/vector"
-	"exp/iterable"
 	"hyades/entity"
 	"hyades/num"
 )
@@ -143,7 +142,7 @@ func Mutate(id entity.Id) {
 		return
 	}
 
-	available := iterable.Data(availableMutations(id))
+	available := ([]interface{})(*availableMutations(id))
 
 	if len(available) == 0 {
 		// No available mutations.
@@ -219,7 +218,7 @@ func mutationStatusString(numMutations int) string {
 	return ""
 }
 
-func availableMutations(id entity.Id) iterable.Iterable {
+func availableMutations(id entity.Id) *vector.Vector {
 	vec := new(vector.Vector)
 
 	for _, m := range mutations {

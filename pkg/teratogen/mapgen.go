@@ -59,7 +59,7 @@ func AddPointToConnectingWall(graph alg.Graph, room1, room2 *BspRoom, x, y int) 
 	ptVec := arc.(*vector.Vector)
 
 	// Look for duplicates.
-	for pt := range ptVec.Iter() {
+	for _, pt := range *ptVec {
 		pt := pt.(geom.Pt2I)
 		// If one is found, return.
 		if pt.X == x && pt.Y == y {
@@ -242,8 +242,9 @@ func wallsToMakeDoorsIn(wallGraph alg.Graph) (result *vector.Vector) {
 func DoorLocations(wallGraph alg.Graph) (result *vector.Vector) {
 	result = new(vector.Vector)
 
-	for wall := range wallsToMakeDoorsIn(wallGraph).Iter() {
-		result.Push(num.RandomFromIterable(wall.(iterable.Iterable)))
+	for _, o := range *wallsToMakeDoorsIn(wallGraph) {
+		wall := o.(*vector.Vector)
+		result.Push(wall.At(rand.Intn(wall.Len())))
 	}
 
 	return

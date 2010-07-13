@@ -112,7 +112,7 @@ func drawEntities(g gfx.Graphics) {
 	}
 	alg.PredicateSort(entityEarlierInDrawOrder, seq)
 
-	for sorted := range seq.Iter() {
+	for _, sorted := range *seq {
 		id := sorted.(entity.Id)
 		pos := game.GetPos(id)
 		seen := game.GetLos().Get(pos) == game.LosSeen
