@@ -25,17 +25,44 @@ func (self *posTemplate) MakeComponent(manager *entity.Manager, guid entity.Id) 
 // The position component.
 type Position struct {
 	pos geom.Pt2I
+
+	// velocity is the entity's movement vector from it's last turn. Use it for
+	// dodge bonuses, charge attacks etc.
+	velocity geom.Vec2I
+
+	// velocityStale indicates the velocity hasn't been updated recently and
+	// should be cleared.
+	velocityStale bool
 }
 
 // Pos returns the position in the position component.
 func (self *Position) Pos() geom.Pt2I { return self.pos }
 
+// Velocity returns the velocity in the position component.
+func (self *Position) Velocity() geom.Vec2I { return self.velocity }
+
 // MoveAbs sets the position in the position component.
 func (self *Position) MoveAbs(pos geom.Pt2I) { self.pos = pos }
 
 // Move adds the given vector to the position in the position component.
-func (self *Position) Move(vec geom.Vec2I) { self.pos = self.pos.Plus(vec) }
+func (self *Position) Move(vec geom.Vec2I) {
+	self.velocity = vec
+	self.velocityStale = false
+	self.pos = self.pos.Plus(vec)
+}
 
+func (self *Position) ClearStaleVelocity() {
+	if self.velocityStale {
+		self.velocity = geom.ZeroVec2I
+	}
+}
+
+// MakeVelocityStale makes the current velocity "stale", to be set to zero on
+// next time ClearStaleVelocity is called, but calling Move after calling
+// MakeVelocityStale will remove the staleness.
+func (self *Position) MakeVelocityStale() {
+	self.velocityStale = true
+}
 
 func PosComp(id entity.Id) *Position {
 	if posComp := GetManager().Handler(PosComponent).Get(id); posComp != nil {

@@ -90,6 +90,9 @@ type Creature struct {
 	healthScale float64
 	Health      float64
 	Statuses    int32
+	// Velocity is the creature's movement vector from it's last turn. Use it
+	// for dodge bonuses, charge attacks etc.
+	Velocity geom.Vec2I
 }
 
 func GetCreature(id entity.Id) *Creature {

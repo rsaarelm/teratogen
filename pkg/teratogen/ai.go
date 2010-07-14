@@ -78,6 +78,8 @@ func aiGetCurrentEnemyId(aiEntity entity.Id) (currentEnemy entity.Id) {
 
 // DoTurn is the entry point for running the game update loop.
 func DoTurn() {
+	makeVelocitiesStale()
+
 	if IsHeartbeatTurn(GetCurrentTurn()) {
 		Heartbeats()
 	}
@@ -113,6 +115,8 @@ func DoTurn() {
 			}
 		}
 	}
+
+	clearStaleVelocities()
 
 	NextTurn()
 }
@@ -280,4 +284,26 @@ func BestAttackTarget(attacker entity.Id, minRange, maxRange int) (target geom.P
 		target = o.(geom.Pt2I)
 	}
 	return
+}
+
+// Make the velocities of positional entities stale, call this at the
+// beginning of a turn.
+func makeVelocitiesStale() {
+	for o := range Creatures().Iter() {
+		id := o.(entity.Id)
+		if pos := PosComp(id); EntityActsThisTurn(id) && pos != nil {
+			pos.MakeVelocityStale()
+		}
+	}
+}
+
+// Clear velocities that are stale. Call this at the end of the turn, to set
+// velocities of unmoved entities to zero.
+func clearStaleVelocities() {
+	for o := range Creatures().Iter() {
+		id := o.(entity.Id)
+		if pos := PosComp(id); EntityActsThisTurn(id) && pos != nil {
+			pos.ClearStaleVelocity()
+		}
+	}
 }
