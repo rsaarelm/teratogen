@@ -138,6 +138,7 @@ func magicSites(data []byte, magic []byte) []int {
 		for j := 0; j < len(magic); j++ {
 			if data[i+j] != magic[j] {
 				found = false
+				continue
 			}
 		}
 		if found {
