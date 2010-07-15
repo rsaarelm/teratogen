@@ -10,6 +10,7 @@ import (
 	"image/png"
 	"hyades/num"
 	"once"
+	"os"
 	"strings"
 )
 
@@ -186,7 +187,11 @@ var errorImage image.Image
 
 func loadError() {
 	// Use this image to indicate failed loading of an actual image.
-	errorImage, _ = png.Decode(strings.NewReader(errorImageData))
+	var err os.Error
+	errorImage, err = png.Decode(strings.NewReader(errorImageData))
+	if err != nil {
+		panic("Unable to load hardcoded error image: " + err.String())
+	}
 }
 
 func ErrorImage() image.Image {
