@@ -62,8 +62,6 @@ type Context interface {
 	// Convert converts an image into a SDL surface
 	Convert(img image.Image) Surface
 
-	// TODO: API for freeing surfaces created by Convert. This should be done by a GC finalizer.
-
 	// MakeSound converts wav file data into a SDL sound object.
 	MakeSound(wavData []byte) (result sfx.Sound, err os.Error)
 
