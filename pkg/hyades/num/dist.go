@@ -19,6 +19,9 @@ func MakeWeightedDist(weight func(val interface{}) float64, values []interface{}
 func (self WeightedDist) gather(weight func(val interface{}) float64, values []interface{}) (sum float64) {
 	for i := 0; i < len(values); i++ {
 		w := weight(values[i])
+		if w <= 0.0 {
+			continue
+		}
 		sum += w
 		self[i] = weightNode{w, values[i]}
 	}
