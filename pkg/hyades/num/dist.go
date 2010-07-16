@@ -44,3 +44,5 @@ func (self WeightedDist) Sample(x float64) interface{} {
 	}
 	return self[len(self)-1].value
 }
+
+func (self WeightedDist) Empty() bool { return len(self) == 0 }
