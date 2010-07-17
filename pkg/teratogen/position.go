@@ -92,9 +92,9 @@ func SetPos(guid entity.Id, pos geom.Pt2I) bool {
 	return false
 }
 
-// GetParentPosOrPos returns the GetParentPosOrPos of the container entity of
-// entity guid if one exists and both entity guid and the container have a
-// position component. Otherwise it works like GetPos.
+// GetParentPosOrPos returns the position of the eldest container parent of an
+// entity that has a position component. For entities that are not contained
+// in a parent, it works like GetPos.
 func GetParentPosOrPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
 	if guid == entity.NilId {
 		ok = false
