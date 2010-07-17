@@ -47,7 +47,8 @@ func Log2Modifier(x int) int {
 }
 
 // ContestRoll makes a random opposition check against the given skill rating
-// (larger values make easier contests, skill 0 means 50 % probability) and
+// (larger values make easier contests, skill 0 means 50 % probability, a
+// change of +/-1 near zero means about +/- 5 % change in probability) and
 // returns the degree of success or failure. The result is a number between
 // -1.0 and 1.0 inclusive. Positive values are successes, negative values are
 // failures, and the absolute value is the degree of success. Values of
