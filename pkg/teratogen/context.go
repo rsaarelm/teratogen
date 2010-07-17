@@ -62,7 +62,7 @@ func (self *Context) EnterLevel(depth int) {
 	// Make new area.
 	globals.AreaId = self.manager.NewEntity()
 	GetManager().Handler(AreaComponent).Add(globals.AreaId, NewArea())
-	GetManager().Handler(LosComponent).Add(globals.AreaId, NewLos())
+	GetManager().Handler(FovComponent).Add(globals.AreaId, NewFov())
 
 	endDepth := 15
 
@@ -102,7 +102,7 @@ func (self *Context) EnterLevel(depth int) {
 	} else {
 		dbg.Die("Couldn't place player.")
 	}
-	GetLos().DoLos(GetPos(playerId))
+	GetFov().DoFov(GetPos(playerId))
 
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
@@ -142,7 +142,7 @@ func makeManager() (result *entity.Manager) {
 	result = entity.NewManager()
 	result.SetHandler(GlobalsComponent, new(Globals))
 	result.SetHandler(AreaComponent, entity.NewContainer((*Area)(nil)))
-	result.SetHandler(LosComponent, entity.NewContainer((*Los)(nil)))
+	result.SetHandler(FovComponent, entity.NewContainer((*Fov)(nil)))
 	result.SetHandler(PosComponent, entity.NewContainer((*Position)(nil)))
 	result.SetHandler(NameComponent, entity.NewContainer((*Name)(nil)))
 	result.SetHandler(CreatureComponent, entity.NewContainer((*Creature)(nil)))
@@ -165,8 +165,8 @@ func GetArea() *Area {
 	return GetManager().Handler(AreaComponent).Get(GetGlobals().AreaId).(*Area)
 }
 
-func GetLos() *Los {
-	return GetManager().Handler(LosComponent).Get(GetGlobals().AreaId).(*Los)
+func GetFov() *Fov {
+	return GetManager().Handler(FovComponent).Get(GetGlobals().AreaId).(*Fov)
 }
 
 // Entities returns an iteration of all the entity ids in the game.

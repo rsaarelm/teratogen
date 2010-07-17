@@ -10,10 +10,10 @@ GOFILES=\
 	decal.go\
 	effects.go\
 	factory.go\
+	fov.go\
 	globals.go\
 	heartbeat.go\
 	item.go\
-	los.go\
 	mapgen.go\
 	mutation.go\
 	name.go\

@@ -6,66 +6,66 @@ import (
 	"hyades/geom"
 )
 
-type LosState byte
+type FovState byte
 
 const (
-	LosUnknown LosState = iota
-	LosMapped
-	LosSeen
+	FovUnknown FovState = iota
+	FovMapped
+	FovSeen
 )
 
-const LosComponent = entity.ComponentFamily("los")
+const FovComponent = entity.ComponentFamily("los")
 
 // Line-of-sight state component.
-type Los struct {
+type Fov struct {
 	w, h int
-	los  []LosState
+	los  []FovState
 }
 
-func NewLos() (result *Los) {
-	result = new(Los)
-	result.los = make([]LosState, mapWidth*mapHeight)
+func NewFov() (result *Fov) {
+	result = new(Fov)
+	result.los = make([]FovState, mapWidth*mapHeight)
 	return
 }
 
-func (self *Los) ClearSight() {
+func (self *Fov) ClearSight() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
-		if self.los[idx] == LosSeen {
-			self.los[idx] = LosMapped
+		if self.los[idx] == FovSeen {
+			self.los[idx] = FovMapped
 		}
 	}
 }
 
 // Debug command that makes the entire map visible.
-func (self *Los) WizardEye() {
+func (self *Fov) WizardEye() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
-		self.los[idx] = LosSeen
+		self.los[idx] = FovSeen
 	}
 }
 
-func (self *Los) ClearMapped() {
+func (self *Fov) ClearMapped() {
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
 		idx := pt.X + mapWidth*pt.Y
-		self.los[idx] = LosUnknown
+		self.los[idx] = FovUnknown
 	}
 }
 
-func (self *Los) MarkSeen(pos geom.Pt2I) {
+func (self *Fov) MarkSeen(pos geom.Pt2I) {
 	if GetArea().InArea(pos) {
-		self.los[pos.X+pos.Y*mapWidth] = LosSeen
+		self.los[pos.X+pos.Y*mapWidth] = FovSeen
 	}
 }
 
-func (self *Los) Get(pos geom.Pt2I) LosState {
+func (self *Fov) Get(pos geom.Pt2I) FovState {
 	if GetArea().InArea(pos) {
 		return self.los[pos.X+pos.Y*mapWidth]
 	}
-	return LosUnknown
+	return FovUnknown
 }
 
-func (self *Los) DoLos(center geom.Pt2I) {
+func (self *Fov) DoFov(center geom.Pt2I) {
 	const losRadius = 12
 
 	blocks := func(vec geom.Vec2I) bool { return GetArea().BlocksSight(center.Plus(vec)) }

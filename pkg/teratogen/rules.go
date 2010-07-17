@@ -83,10 +83,10 @@ func NormRoll(max int) int {
 }
 
 func MovePlayerDir(dir int) {
-	GetLos().ClearSight()
+	GetFov().ClearSight()
 	TryMove(PlayerId(), geom.Dir6ToVec(dir))
 
-	GetLos().DoLos(GetPos(PlayerId()))
+	GetFov().DoFov(GetPos(PlayerId()))
 
 	// TODO: More general collision code, do collisions for AI creatures
 	// too.

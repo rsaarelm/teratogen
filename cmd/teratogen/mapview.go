@@ -115,8 +115,8 @@ func drawEntities(g gfx.Graphics) {
 	for _, sorted := range *seq {
 		id := sorted.(entity.Id)
 		pos := game.GetPos(id)
-		seen := game.GetLos().Get(pos) == game.LosSeen
-		mapped := seen || game.GetLos().Get(pos) == game.LosMapped
+		seen := game.GetFov().Get(pos) == game.FovSeen
+		mapped := seen || game.GetFov().Get(pos) == game.FovMapped
 		esp := game.PlayerIsEsper() && game.CanEsperSense(id)
 		// TODO: Draw static (item) entities from map memory.
 		if esp || mapped {
@@ -132,7 +132,7 @@ func drawEntities(g gfx.Graphics) {
 func drawTerrain(g gfx.Graphics) {
 	mapWidth, mapHeight := game.MapDims()
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if game.GetLos().Get(pt) == game.LosUnknown {
+		if game.GetFov().Get(pt) == game.FovUnknown {
 			continue
 		}
 		idx := game.GetArea().GetTerrain(pt)
@@ -153,7 +153,7 @@ func drawTerrain(g gfx.Graphics) {
 func drawShadows(g gfx.Graphics) {
 	mapWidth, mapHeight := game.MapDims()
 	for pt := range geom.PtIter(0, 0, mapWidth, mapHeight) {
-		if game.GetLos().Get(pt) == game.LosUnknown {
+		if game.GetFov().Get(pt) == game.FovUnknown {
 			continue
 		}
 		dist := geom.HexDist(game.GetPos(game.PlayerId()), pt)
