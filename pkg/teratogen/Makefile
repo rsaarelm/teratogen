@@ -11,6 +11,7 @@ GOFILES=\
 	effects.go\
 	factory.go\
 	globals.go\
+	heartbeat.go\
 	item.go\
 	los.go\
 	mapgen.go\
