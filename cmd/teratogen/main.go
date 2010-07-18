@@ -8,6 +8,21 @@ import (
 )
 
 func main() {
+	InitialConfig()
+	InitUI()
+	InitMedia()
+
+	fx = new(SdlEffects)
+	game.InitEffects(fx)
+	game.NewContext().InitGame()
+
+	go LogicLoop()
+	MainUILoop()
+}
+
+var fx *SdlEffects
+
+func InitialConfig() {
 	ParseConfig()
 
 	seed := num.RandStateFromClock()
@@ -22,19 +37,7 @@ func main() {
 
 	num.RestoreRngState(seed)
 	fmt.Println("Logos:", RandStateToBabble(seed))
-
-	InitUI()
-	InitMedia()
-
-	fx = new(SdlEffects)
-	game.InitEffects(fx)
-	game.NewContext().InitGame()
-
-	go LogicLoop()
-	MainUILoop()
 }
-
-var fx *SdlEffects
 
 func LogicLoop() {
 	for {
