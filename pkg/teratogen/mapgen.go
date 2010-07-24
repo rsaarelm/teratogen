@@ -191,8 +191,8 @@ func wallsToMakeDoorsIn(wallGraph alg.Graph) (result *vector.Vector) {
 		return
 	}
 
-	connectedRooms := alg.NewMapSet()
-	edgeRooms := alg.NewMapSet()
+	connectedRooms := alg.NewVecSet()
+	edgeRooms := alg.NewVecSet()
 
 	// The room list comes from a map, the order should be reasonably
 	// random so we don't need a specific rng op here.
