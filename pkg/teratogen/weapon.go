@@ -102,7 +102,6 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, successDegree float
 	// Recalculate pos in case a ranged attack hits something on the way.
 	pos = GetHitPos(GetPos(wielder), pos)
 
-
 	// TODO: Attack effect as weapon data, not just this ad-hoc thing.
 	if self.Range > 1 {
 		Fx().Shoot(wielder, pos)
