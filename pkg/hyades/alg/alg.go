@@ -34,6 +34,22 @@ func PredicateSort(isLess func(i, j interface{}) bool, items *vector.Vector) {
 	sort.Sort(sortable)
 }
 
+type GenSortable []interface{}
+
+func (self *GenSortable) Len() int { return len(*self) }
+
+func (self *GenSortable) Less(i, j int) bool {
+	if cmp, ok := Cmp([]interface{}(*self)[i], []interface{}(*self)[j]); ok {
+		return cmp < 1
+	}
+	panic("Cmp failed in GenSortable.")
+}
+
+func (self *GenSortable) Swap(i, j int) {
+	seq := []interface{}(*self)
+	seq[j], seq[i] = seq[i], seq[j]
+}
+
 // ChanData reads the output from a channel into an array.
 func ChanData(in <-chan interface{}) (result []interface{}) {
 	vec := new(vector.Vector)
