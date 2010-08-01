@@ -396,6 +396,9 @@ func OnPlayerKill(killedId entity.Id) {
 }
 
 func PlayerMutationRoll(power int, msg string) bool {
+	// XXX: Taking mutations out for now. Will rewrite them.
+	return false
+
 	mutationResistance := 10 + GetMutations(PlayerId()).MutationLevel()
 
 	// Cap too big mutation chances. Always have a reasonably low chance of
