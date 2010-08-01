@@ -44,7 +44,7 @@ var weaponLookup = map[int]*Weapon{
 	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1},
 	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1},
 	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1},
-	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 10, 7},
+	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 30, 7},
 	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12},
 	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5},
 	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1},
@@ -139,7 +139,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	// XXX: Always use second weapon for shooting.
 	if weapon := weaponLookup[crit.Attack2]; weapon != nil {
 		// TODO: Get success level.
-		weapon.Attack(attackerId, target, 0.5)
+		weapon.Attack(attackerId, target, 0.99)
 	}
 
 	return true
