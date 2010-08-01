@@ -150,6 +150,7 @@ func makeManager() (result *entity.Manager) {
 	result.SetHandler(DecalComponent, entity.NewContainer((*Decal)(nil)))
 	result.SetHandler(MutationsComponent, entity.NewContainer((*Mutations)(nil)))
 	result.SetHandler(WeaponComponent, entity.NewContainer((*Weapon)(nil)))
+	result.SetHandler(FixedInventoryComponent, entity.NewContainer((*FixedInventory)(nil)))
 
 	result.SetHandler(ContainComponent, entity.NewRelation(entity.OneToMany))
 	result.SetHandler(MeleeEquipComponent, entity.NewRelation(entity.OneToOne))

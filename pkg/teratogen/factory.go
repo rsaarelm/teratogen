@@ -41,6 +41,11 @@ func init() {
 		PosComponent:       PosTemplate(),
 		NameComponent:      NameTemplate("protagonist", "chars:16", PronounIt, false),
 		MutationsComponent: entity.NewDefaultTemplate((*Mutations)(nil), MutationsComponent, nil),
+		FixedInventoryComponent: entity.NewDefaultTemplate((*FixedInventory)(nil), FixedInventoryComponent, map[string]interface{}{
+			"Ammo":     50,
+			"MedKits":  0,
+			"Grenades": 0,
+			"Armor":    0}),
 		CreatureComponent: &CreatureTemplate{
 			Attack1:    WeaponFist,
 			Attack2:    WeaponPistol,

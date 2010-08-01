@@ -13,6 +13,7 @@ GOFILES=\
 	fov.go\
 	globals.go\
 	heartbeat.go\
+	inventory.go\
 	item.go\
 	mapgen.go\
 	mutation.go\
