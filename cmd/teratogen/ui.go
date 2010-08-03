@@ -223,10 +223,8 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	}
 	DrawColorString(g, area.Min.X, area.Min.Y, statusLineColor(), "%v", txt.Capitalize(healthStatus))
 
-	// Add this arbitrary number in [-0.5, 0.5] to player scale when generating
-	// the unit value, so that the resulting number won't be an obvious power
-	// of two. (Scale values are base-2 logarithms of the creature's volume.)
-	const magicNoise = 0.3
+	inv := game.GetInventory(game.PlayerId())
+	DrawString(g, area.Min.X, area.Min.Y+FontH, fmt.Sprintf("Ammo: %d", inv.Ammo))
 
 	helpLineY := FontH * 3
 	for _, o := range *UiHelpLines() {

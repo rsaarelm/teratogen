@@ -5,6 +5,7 @@ import (
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
+	"hyades/num"
 )
 
 
@@ -33,6 +34,7 @@ const (
 	NoUse ItemUse = iota
 	MedkitUse
 	StabilizerUse
+	AmmoUse
 )
 
 const (
@@ -143,6 +145,21 @@ func IsTakeableItem(e entity.Id) bool { return IsItem(e) }
 func CarryLimit(id entity.Id) int { return 8 }
 
 func TakeItem(takerId, itemId entity.Id) bool {
+	// XXX: Fixed inventory hack. If the taker has a fixed inventory, put items
+	// that go there there instead of normal inventory.
+	item := GetItem(itemId)
+	inv := GetInventory(takerId)
+	if item.Use == AmmoUse && inv != nil {
+		if inv.Ammo == MaxAmmo {
+			EMsg("{sub.Thename} can't carry any more ammo.\n", takerId, entity.NilId)
+			return false
+		}
+
+		inv.Ammo = num.Imin(MaxAmmo, inv.Ammo+AmmoPerClip)
+		Destroy(itemId)
+		return false
+	}
+
 	numCarrying := CountContents(takerId)
 	if numCarrying < CarryLimit(takerId) {
 		SetParent(itemId, takerId)

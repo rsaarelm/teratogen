@@ -287,4 +287,10 @@ func init() {
 			Use:           NoUse,
 			Traits:        ItemKnockback},
 	}
+	a["ammo"] = entity.Assemblage{
+		Metadata:      MetaTemplate(150, 0),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("ammo clip", "items:19", PronounIt, false),
+		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, AmmoUse, NoItemTrait},
+	}
 }

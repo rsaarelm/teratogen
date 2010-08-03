@@ -34,28 +34,33 @@ type Weapon struct {
 	Verb  string
 	Power float64
 	Range int
+	Flags int64
 }
 
 var weaponLookup = map[int]*Weapon{
 	NoWeapon:       nil,
-	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1},
-	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1},
-	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1},
-	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1},
-	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1},
-	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1},
-	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 30, 7},
-	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12},
-	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5},
-	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1},
-	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1},     // TODO: Poison
-	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7}, // TODO: Confuse
-	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7},
-	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1},
-	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4}, // TODO: Stun
-	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1},
-	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7},
+	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1, 0},
+	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1, 0},
+	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1, 0},
+	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1, 0},
+	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1, 0},
+	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1, 0},
+	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 30, 7, WeaponUsesAmmo},
+	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12, WeaponUsesAmmo},
+	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5, 0},
+	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1, 0},
+	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1, 0},     // TODO: Poison
+	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7, 0}, // TODO: Confuse
+	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7, 0},
+	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1, 0},
+	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4, 0}, // TODO: Stun
+	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1, 0},
+	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7, 0},
 }
+
+const (
+	WeaponUsesAmmo = 1 << iota
+)
 
 // Serve as template, prototype-style.
 
@@ -67,6 +72,10 @@ func (self *Weapon) MakeComponent(manager *entity.Manager, guid entity.Id) {
 	result := new(Weapon)
 	*result = *self
 	manager.Handler(WeaponComponent).Add(guid, result)
+}
+
+func (self *Weapon) HasFlag(flag int64) bool {
+	return (self.Flags & flag) != 0
 }
 
 func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
@@ -134,10 +143,33 @@ func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
 	return
 }
 
+// ExpendAmmo checks whether the weapon consumes ammo. If it does and the
+// wielder is an ammo-tracking entity, subtract ammo from the wielder. If the
+// wielder is out of ammo, return false to indicate that the attack is not
+// possible. If there was ammo left or the weapon doesn't use ammo, return
+// true.
+func (self *Weapon) ExpendAmmo(wielder entity.Id) (attackPossible bool) {
+	if self.HasFlag(WeaponUsesAmmo) {
+		if inv := GetInventory(wielder); inv != nil {
+			if inv.Ammo == 0 {
+				return false
+			}
+			inv.Ammo--
+			return true
+		}
+	}
+	return true
+}
+
 func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 	crit := GetCreature(attackerId)
-	// XXX: Always use second weapon for shooting.
+
+	// XXX: Ugly hardcoding for always using second weapon for shooting.
 	if weapon := weaponLookup[crit.Attack2]; weapon != nil {
+		if !weapon.ExpendAmmo(attackerId) {
+			EMsg("{sub.Thename} {sub.is} out of ammo.\n", attackerId, entity.NilId)
+			return false
+		}
 		// TODO: Get success level.
 		weapon.Attack(attackerId, target, 0.99)
 	}
