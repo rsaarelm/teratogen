@@ -257,12 +257,12 @@ func init() {
 		NameComponent: NameTemplate("medkit", "items:7", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse, NoItemTrait},
 	}
-	a["stabilizer"] = entity.Assemblage{
-		Metadata:      MetaTemplate(300, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("genetic stabilizer", "items:18", PronounIt, false),
-		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, StabilizerUse, NoItemTrait},
-	}
+	//	a["stabilizer"] = entity.Assemblage{
+	//		Metadata:      MetaTemplate(300, 0),
+	//		PosComponent:  PosTemplate(),
+	//		NameComponent: NameTemplate("genetic stabilizer", "items:18", PronounIt, false),
+	//		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, StabilizerUse, NoItemTrait},
+	//	}
 	a["monoblade"] = entity.Assemblage{
 		Metadata:      MetaTemplate(200, 5),
 		PosComponent:  PosTemplate(),
