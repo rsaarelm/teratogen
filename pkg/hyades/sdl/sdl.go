@@ -45,6 +45,12 @@ func withCString(str string, effect func(*C.char)) {
 	C.free(unsafe.Pointer(cs))
 }
 
+type sdlSurface C.SDL_Surface
+
+type mixChunk C.Mix_Chunk
+
+type musicWrap C.musicWrap
+
 //////////////////////////////////////////////////////////////////
 // SDL Context object
 //////////////////////////////////////////////////////////////////
@@ -123,7 +129,7 @@ type Font interface {
 type context struct {
 	config Config
 
-	canvas           *C.SDL_Surface
+	canvas           *sdlSurface
 	windowW, windowH int
 
 	kbd    chan int
@@ -167,7 +173,7 @@ func NewWindow(config Config) (result Context, err os.Error) {
 		err = os.NewError(getError())
 		return
 	}
-	screen := C.SDL_SetVideoMode(C.int(config.Width*config.PixelScale), C.int(config.Height*config.PixelScale), bitsPerPixel, C.Uint32(screenFlags))
+	screen := (*sdlSurface)(C.SDL_SetVideoMode(C.int(config.Width*config.PixelScale), C.int(config.Height*config.PixelScale), bitsPerPixel, C.Uint32(screenFlags)))
 	if screen == nil {
 		err = os.NewError(getError())
 		return
@@ -207,10 +213,10 @@ func (self *context) FlushImage() {
 	zoomCanvas := self.canvas.Zoom(float64(self.config.PixelScale), float64(self.config.PixelScale))
 	// Turn off alpha flags so that alpha components in the canvas won't cause
 	// partial drawing to the screen.
-	C.SDL_SetAlpha(zoomCanvas.(*C.SDL_Surface), 0, 255)
+	C.SDL_SetAlpha(zoomCanvas.(*sdlSurface).raw(), 0, 255)
 	self.videoSurface().Blit(zoomCanvas, x, y)
 	self.Free(zoomCanvas)
-	C.SDL_Flip(self.videoSurface())
+	C.SDL_Flip(self.videoSurface().raw())
 }
 
 func (self *context) KeyboardChan() <-chan int {
@@ -232,11 +238,11 @@ func (self *context) Close() {
 	_ = <-self.exitChan
 }
 
-func (self *context) videoSurface() *C.SDL_Surface {
-	return C.SDL_GetVideoSurface()
+func (self *context) videoSurface() *sdlSurface {
+	return (*sdlSurface)(C.SDL_GetVideoSurface())
 }
 
-func (self *context) createSurface(width, height int) *C.SDL_Surface {
+func (self *context) createSurface(width, height int) *sdlSurface {
 	var rmask, gmask, bmask, amask C.Uint32
 	if C.SDL_BYTEORDER == C.SDL_BIG_ENDIAN {
 		rmask, gmask, bmask, amask = 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
@@ -244,9 +250,9 @@ func (self *context) createSurface(width, height int) *C.SDL_Surface {
 		rmask, gmask, bmask, amask = 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 	}
 
-	return C.SDL_CreateRGBSurface(0, C.int(width), C.int(height),
+	return (*sdlSurface)(C.SDL_CreateRGBSurface(0, C.int(width), C.int(height),
 		C.int(self.videoSurface().format.BitsPerPixel), rmask, gmask, bmask,
-		amask)
+		amask))
 }
 
 func (self *context) Convert(img image.Image) Surface {
@@ -263,7 +269,7 @@ func (self *context) Convert(img image.Image) Surface {
 }
 
 func (self *context) IsNativeSurface(img image.Image) bool {
-	_, ok := img.(*C.SDL_Surface)
+	_, ok := img.(*sdlSurface)
 	return ok
 }
 
@@ -279,7 +285,7 @@ func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) 
 		err = os.NewError(getError())
 		return
 	}
-	result = chunk
+	result = (*mixChunk)(chunk)
 	return
 }
 
@@ -296,7 +302,7 @@ func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error)
 	if music.music == nil {
 		err = os.NewError(C.GoString(C.Mix_GetError()))
 	}
-	result = music
+	result = (*musicWrap)(music)
 	return
 }
 
@@ -435,14 +441,14 @@ func (self *context) handleKeyEvent(keyEvt *C.SDL_KeyboardEvent, isKeyUp bool) {
 
 func (self *context) Free(handle interface{}) {
 	switch handle := handle.(type) {
-	case (*C.SDL_Surface):
-		C.SDL_FreeSurface(handle)
+	case (*sdlSurface):
+		C.SDL_FreeSurface(handle.raw())
 	case (*ttfFont):
 		handle.Free()
-	case (*C.musicWrap):
+	case (*musicWrap):
 		C.Mix_FreeMusic(handle.music)
-	case (*C.Mix_Chunk):
-		C.Mix_FreeChunk(handle)
+	case (*mixChunk):
+		C.Mix_FreeChunk(handle.raw())
 	default:
 		fmt.Printf("Tried to free unknown resource type %v.\n", handle)
 	}
@@ -476,17 +482,15 @@ func eventType(evt *C.SDL_Event) byte {
 // Video
 //////////////////////////////////////////////////////////////////
 
-func (self *C.SDL_Surface) FreeSurface() {
-	if self != nil {
-		C.SDL_FreeSurface(self)
-	}
+func (self *sdlSurface) raw() *C.SDL_Surface {
+	return (*C.SDL_Surface)(self)
 }
 
-func (self *C.SDL_Surface) contains(x, y int) bool {
+func (self *sdlSurface) contains(x, y int) bool {
 	return x < self.Width() && y < self.Height() && x >= 0 && y >= 0
 }
 
-func (self *C.SDL_Surface) Set(x, y int, c image.Color) {
+func (self *sdlSurface) Set(x, y int, c image.Color) {
 	if !self.contains(x, y) {
 		return
 	}
@@ -497,24 +501,24 @@ func (self *C.SDL_Surface) Set(x, y int, c image.Color) {
 	*(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(self.pitch)+x<<2))) = color
 }
 
-func (self *C.SDL_Surface) FillRect(rect draw.Rectangle, c image.Color) {
+func (self *sdlSurface) FillRect(rect draw.Rectangle, c image.Color) {
 	r, g, b, a := gfx.RGBA8Bit(c)
 	if a < 255 {
 		// Alpha-blended rectangle.
-		C.boxRGBA(self,
+		C.boxRGBA(self.raw(),
 			C.Sint16(rect.Min.X), C.Sint16(rect.Min.Y),
 			C.Sint16(rect.Max.X)-1, C.Sint16(rect.Max.Y)-1,
 			C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a))
 	} else {
 		// Efficient FillRect rectangle if opaque alpha.
 		sdlRect := convertRect(rect)
-		C.SDL_FillRect(self,
+		C.SDL_FillRect(self.raw(),
 			&sdlRect,
 			C.Uint32(self.mapRGBA(c)))
 	}
 }
 
-func (self *C.SDL_Surface) mapRGBA(c image.Color) uint32 {
+func (self *sdlSurface) mapRGBA(c image.Color) uint32 {
 	// TODO: Compensate for pre-alphamultiplication from c.RGBA(), intensify RGB if A is low.
 	r, g, b, a := gfx.RGBA8Bit(c)
 
@@ -522,11 +526,11 @@ func (self *C.SDL_Surface) mapRGBA(c image.Color) uint32 {
 		C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)))
 }
 
-func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
-	if surf, ok := img.(*C.SDL_Surface); ok {
+func (self *sdlSurface) Blit(img image.Image, x, y int) {
+	if surf, ok := img.(*sdlSurface); ok {
 		// It's a SDL surface, do a fast SDL blit.
 		rect := C.SDL_Rect{C.Sint16(x), C.Sint16(y), 0, 0}
-		C.SDL_BlitSurface(surf, nil, self, &rect)
+		C.SDL_BlitSurface(surf.raw(), nil, self.raw(), &rect)
 	} else {
 		// It's something else, naively draw the individual pixels.
 		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
@@ -535,11 +539,11 @@ func (self *C.SDL_Surface) Blit(img image.Image, x, y int) {
 	}
 }
 
-func (self *C.SDL_Surface) Width() int { return int(self.w) }
+func (self *sdlSurface) Width() int { return int(self.w) }
 
-func (self *C.SDL_Surface) Height() int { return int(self.h) }
+func (self *sdlSurface) Height() int { return int(self.h) }
 
-func (self *C.SDL_Surface) At(x, y int) image.Color {
+func (self *sdlSurface) At(x, y int) image.Color {
 	if !self.contains(x, y) {
 		return image.RGBAColor{0, 0, 0, 0}
 	}
@@ -556,26 +560,26 @@ func (self *C.SDL_Surface) At(x, y int) image.Color {
 }
 
 // For compliance wth the image.Image interface
-func (self *C.SDL_Surface) ColorModel() image.ColorModel {
+func (self *sdlSurface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
 }
 
-func (self *C.SDL_Surface) SetClip(clipRect draw.Rectangle) {
+func (self *sdlSurface) SetClip(clipRect draw.Rectangle) {
 	sdlClipRect := convertRect(clipRect)
-	C.SDL_SetClipRect(self, &sdlClipRect)
+	C.SDL_SetClipRect(self.raw(), &sdlClipRect)
 }
 
-func (self *C.SDL_Surface) ClearClip() { C.SDL_SetClipRect(self, nil) }
+func (self *sdlSurface) ClearClip() { C.SDL_SetClipRect(self.raw(), nil) }
 
-func (self *C.SDL_Surface) GetClip() draw.Rectangle {
+func (self *sdlSurface) GetClip() draw.Rectangle {
 	var sdlRect C.SDL_Rect
-	C.SDL_GetClipRect(self, &sdlRect)
+	C.SDL_GetClipRect(self.raw(), &sdlRect)
 	return draw.Rect(int(sdlRect.x), int(sdlRect.y),
 		int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
 }
 
-func (self *C.SDL_Surface) Zoom(sx, sy float64) Surface {
-	return C.zoomSurface(self, C.double(sx), C.double(sy), 0)
+func (self *sdlSurface) Zoom(sx, sy float64) Surface {
+	return (*sdlSurface)(C.zoomSurface(self.raw(), C.double(sx), C.double(sy), 0))
 }
 
 func sdlColor(col image.Color) C.SDL_Color {
@@ -612,15 +616,11 @@ func initAudio() {
 
 func exitAudio() { C.Mix_CloseAudio() }
 
-func (self *C.Mix_Chunk) Play() { C.Mix_PlayChannelTimed(-1, self, 0, -1) }
+func (self *mixChunk) raw() *C.Mix_Chunk { return (*C.Mix_Chunk)(self) }
 
-func (self *C.Mix_Chunk) Free() {
-	if self != nil {
-		C.Mix_FreeChunk(self)
-	}
-}
+func (self *mixChunk) Play() { C.Mix_PlayChannelTimed(-1, self.raw(), 0, -1) }
 
-func (self *C.musicWrap) Play() { C.Mix_PlayMusic(self.music, -1) }
+func (self *musicWrap) Play() { C.Mix_PlayMusic(self.music, -1) }
 
 //////////////////////////////////////////////////////////////////
 // TTF
@@ -675,7 +675,7 @@ func (self *ttfFont) Render(text string, color image.Color) (result image.Image,
 		err = os.NewError(getError())
 		return
 	}
-	return surface, err
+	return (*sdlSurface)(surface), err
 }
 
 func (self *ttfFont) StringWidth(text string) int {
