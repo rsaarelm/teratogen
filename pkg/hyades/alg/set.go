@@ -61,7 +61,9 @@ func NewVecSet() *VecSet {
 }
 
 func (self *VecSet) Add(item interface{}) {
-	(*vector.Vector)(self).Push(item)
+	if !self.Contains(item) {
+		(*vector.Vector)(self).Push(item)
+	}
 }
 
 func (self *VecSet) find(item interface{}) (idx int, ok bool) {
