@@ -574,3 +574,8 @@ func SmartPlayerPickup(alwaysPickupFirst bool) entity.Id {
 }
 
 func VisualScale() int { return config.TileScale }
+
+func YesNoInput() bool {
+	key := GetKey()
+	return key == 'y' || key == 'Y'
+}

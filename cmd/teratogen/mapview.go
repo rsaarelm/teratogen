@@ -345,7 +345,12 @@ func (self *MapView) AsyncHandleKey(key int) {
 		// Idle.
 		SendPlayerInput(func() bool { return true })
 	case 'Q':
-		Quit()
+		game.Msg("Really quit? Your game will be lost. [y/n]\n")
+		if YesNoInput() {
+			Quit()
+		} else {
+			game.Msg("Okay, then.\n")
+		}
 	case 'w', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
 		SendPlayerInput(func() bool {
 			game.SmartMovePlayer(0)
