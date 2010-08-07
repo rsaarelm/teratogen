@@ -41,7 +41,7 @@ func InitialConfig() {
 }
 
 func SaveFileName() string {
-	return "/tmp/saved.gam"
+	return "teratogen.sav"
 }
 
 // Try to load a save if there is one. Delete the successfully loaded save.
