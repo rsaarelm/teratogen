@@ -446,22 +446,13 @@ func (self *MapView) AsyncHandleKey(key int) {
 			return true
 		})
 	case 'S':
-		saveFile, err := os.Open("/tmp/saved.gam", os.O_WRONLY|os.O_CREAT, 0666)
+		saveFile, err := os.Open(SaveFileName(), os.O_WRONLY|os.O_CREAT, 0666)
 		dbg.AssertNoError(err)
 		game.GetContext().Serialize(saveFile)
 		saveFile.Close()
 		game.Msg("Game saved.\n")
-	case 'L':
-		GetUISync()
-		loadFile, err := os.Open("/tmp/saved.gam", os.O_RDONLY, 0666)
-		if err != nil {
-			game.Msg("Error loading game: " + err.String())
-			break
-		}
-		game.GetContext().Deserialize(loadFile)
-		loadFile.Close()
-		game.Msg("Game loaded.\n")
-		ReleaseUISync()
+		fmt.Println("Be seeing you.")
+		Quit()
 	case keyboard.K_F12:
 		game.Msg("Saving screenshot.\n")
 		SaveScreenshot()

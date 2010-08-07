@@ -16,6 +16,7 @@ func main() {
 	game.InitEffects(fx)
 	game.NewContext().InitGame()
 
+	JourneyOnward()
 	go LogicLoop()
 	MainUILoop()
 }
@@ -37,6 +38,26 @@ func InitialConfig() {
 
 	num.RestoreRngState(seed)
 	fmt.Println("Logos:", RandStateToBabble(seed))
+}
+
+func SaveFileName() string {
+	return "/tmp/saved.gam"
+}
+
+// Try to load a save if there is one. Delete the successfully loaded save.
+func JourneyOnward() bool {
+	GetUISync()
+	defer ReleaseUISync()
+	fileName := SaveFileName()
+	loadFile, err := os.Open(fileName, os.O_RDONLY, 0666)
+	if err != nil {
+		return false
+	}
+	game.GetContext().Deserialize(loadFile)
+	loadFile.Close()
+	os.Remove(fileName)
+	game.Msg("Game loaded.\n")
+	return true
 }
 
 func LogicLoop() {
