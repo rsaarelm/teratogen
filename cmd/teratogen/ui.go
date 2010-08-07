@@ -179,9 +179,14 @@ func GetKey() (result int) {
 	ui.PushKeyHandler(gui.KeyHandlerFunc(func(keyCode int) { ret <- keyCode }))
 	defer ui.PopKeyHandler()
 
-	ReleaseUISync()
-	result = <-ret
-	GetUISync()
+	result = -1
+
+	// Don't return key release events, which have negative numbers as values.
+	for result < 0 {
+		ReleaseUISync()
+		result = <-ret
+		GetUISync()
+	}
 
 	return
 }
