@@ -203,18 +203,6 @@ func init() {
 		DecalComponent: DecalTemplate(0),
 	}
 
-	a["machete"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 0),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("machete", "items:5", PronounIt, false),
-		ItemComponent: &ItemTemplate{
-			EquipmentSlot: MeleeEquipSlot,
-			Durability:    20,
-			WoundBonus:    2,
-			DefenseBonus:  0,
-			Use:           NoUse,
-			Traits:        NoItemTrait},
-	}
 	a["vest"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 0),
 		PosComponent:  PosTemplate(),
@@ -256,36 +244,6 @@ func init() {
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("medkit", "items:7", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse, NoItemTrait},
-	}
-	//	a["stabilizer"] = entity.Assemblage{
-	//		Metadata:      MetaTemplate(300, 0),
-	//		PosComponent:  PosTemplate(),
-	//		NameComponent: NameTemplate("genetic stabilizer", "items:18", PronounIt, false),
-	//		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, StabilizerUse, NoItemTrait},
-	//	}
-	a["monoblade"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 5),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("monoblade", "items:8", PronounIt, false),
-		ItemComponent: &ItemTemplate{
-			EquipmentSlot: MeleeEquipSlot,
-			Durability:    20,
-			WoundBonus:    5,
-			DefenseBonus:  0,
-			Use:           NoUse,
-			Traits:        NoItemTrait},
-	}
-	a["sledge"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 2),
-		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("sledgehammer", "items:9", PronounIt, false),
-		ItemComponent: &ItemTemplate{
-			EquipmentSlot: MeleeEquipSlot,
-			Durability:    40,
-			WoundBonus:    3,
-			DefenseBonus:  0,
-			Use:           NoUse,
-			Traits:        ItemKnockback},
 	}
 	a["ammo"] = entity.Assemblage{
 		Metadata:      MetaTemplate(150, 0),
