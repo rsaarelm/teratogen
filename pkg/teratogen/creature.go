@@ -11,6 +11,7 @@ import (
 
 const CreatureComponent = entity.ComponentFamily("creature")
 
+const ArmorScale = 100
 
 // Creature intrinsic traits.
 const (
@@ -76,6 +77,7 @@ func (self *CreatureTemplate) MakeComponent(manager *entity.Manager, guid entity
 		healthScale: self.Hp,
 		Intrinsics:  self.Intrinsics,
 		Health:      1.0,
+		Armor:       0.0,
 		Statuses:    0,
 	}
 	manager.Handler(CreatureComponent).Add(guid, result)
@@ -89,6 +91,7 @@ type Creature struct {
 	Intrinsics  int32
 	healthScale float64
 	Health      float64
+	Armor       float64
 	Statuses    int32
 	// Velocity is the creature's movement vector from it's last turn. Use it
 	// for dodge bonuses, charge attacks etc.
@@ -198,12 +201,40 @@ func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
 }
 
 func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, magnitude float64, kind DamageType) {
+	if self.Armor > 0 {
+		// Damage armor if there is one.
+		armorMag := magnitude / ArmorScale
+		self.Armor -= armorMag
+
+		if self.Armor < 0 {
+			// The armor got entirely destroyed.
+
+			// Apply half of the remaining damage to actual health.
+			magnitude = -self.Armor * ArmorScale
+			magnitude /= 2
+			self.Armor = 0
+		} else {
+			return
+		}
+	}
 
 	adjustedMag := magnitude / self.HealthScale()
 	self.Health -= adjustedMag
 	if self.Health < 0 {
 		self.Die(selfId, causerId)
 	}
+}
+
+// AddArmor checks if the armorPoints provided would increase the creature's
+// armor. If so, it sets the armor to the level and returns true. Otherwise
+// returns false.
+func (self *Creature) AddArmor(armorPoints int) bool {
+	level := float64(armorPoints) / ArmorScale
+	if level > self.Armor {
+		self.Armor = level
+		return true
+	}
+	return false
 }
 
 func (self *Creature) Weapon1() *Weapon {

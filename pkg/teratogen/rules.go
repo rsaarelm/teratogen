@@ -11,6 +11,10 @@ import (
 	"rand"
 )
 
+const VestArmorLevel = 30
+const RiotArmorLevel = 70
+const HardsuitArmorLevel = 120
+
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
 	const outOfDepthFactor = 2.0

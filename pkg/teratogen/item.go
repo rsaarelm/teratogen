@@ -160,6 +160,19 @@ func TakeItem(takerId, itemId entity.Id) bool {
 		return false
 	}
 
+	// XXX: Armor hack, instantly wear if it improves armor, leave on ground otherwise.
+	if item.EquipmentSlot == ArmorEquipSlot {
+		crit := GetCreature(takerId)
+		if crit.AddArmor(item.DefenseBonus) {
+			EMsg("{sub.Thename} wear{sub.s} {obj.thename}.\n", takerId, itemId)
+			Destroy(itemId)
+			return false
+		} else {
+			EMsg("{sub.Thename} {sub.is} already armored well enough.\n", takerId, itemId)
+			return false
+		}
+	}
+
 	numCarrying := CountContents(takerId)
 	if numCarrying < CarryLimit(takerId) {
 		SetParent(itemId, takerId)

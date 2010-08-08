@@ -121,8 +121,11 @@ func drawEntities(g gfx.Graphics) {
 		// TODO: Draw static (item) entities from map memory.
 		if esp || mapped {
 			if esp || seen || !game.IsMobile(id) {
-				armorId, _ := game.GetEquipment(id, game.ArmorEquipSlot)
-				Draw(g, GearedIcon(game.GetIconId(id), armorId), pos.X, pos.Y)
+				var armor float64
+				if crit := game.GetCreature(id); crit != nil {
+					armor = crit.Armor
+				}
+				Draw(g, GearedIcon(game.GetIconId(id), armor), pos.X, pos.Y)
 				continue
 			}
 		}
@@ -487,16 +490,18 @@ func InCellJitter() geom.Vec2I {
 }
 
 // GearedIcon may change the icon of a character based on it's gear.
-func GearedIcon(icon string, armor entity.Id) string {
+func GearedIcon(icon string, armorValue float64) string {
+	armorLevel := int(armorValue * game.ArmorScale)
 	if icon == "chars:16" {
-		// Player icon
-		switch game.GetName(armor) {
-		case "kevlar armor":
-			return "chars:17"
-		case "riot armor":
-			return "chars:18"
-		case "hard suit":
+		if armorLevel > game.RiotArmorLevel {
+			// Hard suit
 			return "chars:19"
+		} else if armorLevel > game.VestArmorLevel {
+			// Riot armor
+			return "chars:18"
+		} else if armorLevel > 0 {
+			// Tactical vest
+			return "chars:17"
 		}
 	}
 

@@ -215,15 +215,15 @@ func init() {
 			Use:           NoUse,
 			Traits:        NoItemTrait},
 	}
-	a["kevlar"] = entity.Assemblage{
+	a["vest"] = entity.Assemblage{
 		Metadata:      MetaTemplate(400, 0),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("kevlar armor", "items:6", PronounIt, false),
+		NameComponent: NameTemplate("tactical vest", "items:6", PronounIt, false),
 		ItemComponent: &ItemTemplate{
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    20,
 			WoundBonus:    0,
-			DefenseBonus:  1,
+			DefenseBonus:  VestArmorLevel,
 			Use:           NoUse,
 			Traits:        NoItemTrait},
 	}
@@ -235,7 +235,7 @@ func init() {
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    20,
 			WoundBonus:    0,
-			DefenseBonus:  3,
+			DefenseBonus:  RiotArmorLevel,
 			Use:           NoUse,
 			Traits:        NoItemTrait},
 	}
@@ -247,7 +247,7 @@ func init() {
 			EquipmentSlot: ArmorEquipSlot,
 			Durability:    40,
 			WoundBonus:    0,
-			DefenseBonus:  7,
+			DefenseBonus:  HardsuitArmorLevel,
 			Use:           NoUse,
 			Traits:        ItemHardsuit},
 	}

@@ -226,7 +226,12 @@ func drawStatus(g gfx.Graphics, area draw.Rectangle) {
 	if mutations != "" {
 		healthStatus += ", " + mutations
 	}
-	DrawColorString(g, area.Min.X, area.Min.Y, statusLineColor(), "%v", txt.Capitalize(healthStatus))
+	armorStatus := ""
+	if playerCrit.Armor > 0 {
+		armorStatus = fmt.Sprintf(" + %d Armor", int(playerCrit.Armor*game.ArmorScale))
+	}
+	DrawColorString(g, area.Min.X, area.Min.Y, statusLineColor(),
+		"%v%v", txt.Capitalize(healthStatus), armorStatus)
 
 	inv := game.GetInventory(game.PlayerId())
 	DrawString(g, area.Min.X, area.Min.Y+FontH, fmt.Sprintf("Ammo: %d", inv.Ammo))
