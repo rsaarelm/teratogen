@@ -1,7 +1,6 @@
 package main
 
 import (
-	"exp/draw"
 	"hyades/gfx"
 	"hyades/num"
 	"image"
@@ -15,9 +14,9 @@ func TestAnim1(anim *gfx.Anim) {
 	for t < 2e9 {
 		g, dt := anim.StartDraw()
 		t += dt
-		for x := 0; x < g.Width(); x++ {
-			h := float64(g.Height())
-			w := float64(g.Width())
+		for x := g.Bounds().Min.X; x < g.Bounds().Max.X; x++ {
+			h := float64(g.Bounds().Dy())
+			w := float64(g.Bounds().Dx())
 			y := int(h/2 + h/4*math.Sin(float64(t)/1e8+float64(x)/w*16))
 			g.Set(x, y, gfx.AliceBlue)
 		}
@@ -31,7 +30,7 @@ func TestAnim2(anim *gfx.Anim) {
 	for t < 2e9 {
 		g, dt := anim.StartDraw()
 		t += dt
-		gfx.ThickLine(g, draw.Pt(0, 0), draw.Pt(1000, 1000), gfx.Teal, 2)
+		gfx.ThickLine(g, image.Pt(0, 0), image.Pt(1000, 1000), gfx.Teal, 2)
 		anim.StopDraw()
 	}
 }
@@ -87,14 +86,14 @@ func ParticleAnim(anim *gfx.Anim, x, y int, size int, lifetime int64, speed floa
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				g.FillRect(draw.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.Color())
+				g.FillRect(image.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.Color())
 			}
 		}
 		anim.StopDraw()
 	}
 }
 
-func LineAnim(anim *gfx.Anim, p1, p2 draw.Point, lifetime int64, startColor, endColor image.Color, thickness int) {
+func LineAnim(anim *gfx.Anim, p1, p2 image.Point, lifetime int64, startColor, endColor image.Color, thickness int) {
 	defer anim.Close()
 	life := lifetime
 	for life > 0 {

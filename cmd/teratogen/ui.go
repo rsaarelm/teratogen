@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/vector"
-	"exp/draw"
 	"exp/iterable"
 	"fmt"
 	"hyades/dbg"
@@ -106,7 +105,7 @@ func (self *UI) AddScreenAnim(anim *gfx.Anim) *gfx.Anim {
 	return self.AddAnim(anim)
 }
 
-func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
+func (self *UI) Draw(g gfx.Graphics, area image.Rectangle) {
 	g.FillRect(area, image.RGBAColor{0, 0, 0, 255})
 
 	gui.DrawChildren(g, area, self)
@@ -117,15 +116,15 @@ func (self *UI) Draw(g gfx.Graphics, area draw.Rectangle) {
 	self.DrawAnims(g, elapsed)
 }
 
-func (self *UI) Children(area draw.Rectangle) iterable.Iterable {
+func (self *UI) Children(area image.Rectangle) iterable.Iterable {
 	// TODO: Adapt to area.
 	cols, rows := VisualScale()*200/TileW-1, VisualScale()*120/TileH-1
 	return iterable.Func(func(c chan<- interface{}) {
-		c <- &gui.Window{self.mapView, draw.Rect(0, 0, TileW*cols, TileH*rows)}
+		c <- &gui.Window{self.mapView, image.Rect(0, 0, TileW*cols, TileH*rows)}
 		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
-			draw.Rect(0, TileH*(rows+1), screenWidth, screenHeight)}
+			image.Rect(0, TileH*(rows+1), screenWidth, screenHeight)}
 		c <- &gui.Window{gui.DrawFunc(drawStatus),
-			draw.Rect(TileW*(cols+1), 0, screenWidth, FontH*20)}
+			image.Rect(TileW*(cols+1), 0, screenWidth, FontH*20)}
 		close(c)
 	})
 }
@@ -191,7 +190,7 @@ func GetKey() (result int) {
 	return
 }
 
-func drawMsgLines(g gfx.Graphics, area draw.Rectangle) {
+func drawMsgLines(g gfx.Graphics, area image.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
 
@@ -214,7 +213,7 @@ func statusLineColor() image.Color {
 	return defaultTextColor
 }
 
-func drawStatus(g gfx.Graphics, area draw.Rectangle) {
+func drawStatus(g gfx.Graphics, area image.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
 
@@ -264,7 +263,7 @@ func MainUILoop() {
 		GetUISync()
 
 		g := ui.context.SdlScreen()
-		area := draw.Rect(0, 0, g.Width(), g.Height())
+		area := g.Bounds()
 		ui.Draw(g, area)
 
 		gui.DispatchTickEvent(ui, area, timeElapsed)
@@ -482,7 +481,7 @@ func (self *SdlEffects) Print(str string) { fmt.Fprint(ui.msg, str) }
 func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
 	worldP1 := Tile2WorldPos(game.GetPos(shooterId))
 	worldP2 := Tile2WorldPos(hitPos).Plus(InCellJitter())
-	p1, p2 := draw.Pt(worldP1.X, worldP1.Y), draw.Pt(worldP2.X, worldP2.Y)
+	p1, p2 := image.Pt(worldP1.X, worldP1.Y), image.Pt(worldP2.X, worldP2.Y)
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
 
 	// TODO: Sparks when hitting walls.

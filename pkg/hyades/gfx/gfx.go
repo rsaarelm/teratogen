@@ -9,20 +9,20 @@ import (
 	"image"
 	"image/png"
 	"hyades/num"
-	"once"
 	"os"
 	"strings"
+	"sync"
 )
 
 // Graphics context interface, for drawing into things.
 type Graphics interface {
 	draw.Image
 	Blit(img image.Image, x, y int)
-	FillRect(rect draw.Rectangle, color image.Color)
+	FillRect(rect image.Rectangle, color image.Color)
 
 	// Set a clipping rectangle on the context. Nothing will be drawn outside
 	// the clipping rectangle.
-	SetClip(clipRect draw.Rectangle)
+	SetClip(clipRect image.Rectangle)
 
 	// Clear the clipping rectangle.
 	ClearClip()
@@ -45,9 +45,7 @@ func (self *procImage) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
 }
 
-func (self *procImage) Width() int { return self.width }
-
-func (self *procImage) Height() int { return self.height }
+func (self *procImage) Bounds() image.Rectangle { return image.Rect(0, 0, self.width, self.height) }
 
 func (self *procImage) At(x, y int) image.Color {
 	return self.colorF(float64(x)/float64(self.width-1), float64(y)/float64(self.height-1))
@@ -57,8 +55,8 @@ func (self *procImage) At(x, y int) image.Color {
 func IdFilter(src image.Image) (result func(float64, float64) image.Color) {
 	return func(x, y float64) image.Color {
 		return src.At(
-			int(num.Round(x*float64(src.Width()-1))),
-			int(num.Round(y*float64(src.Height()-1))))
+			int(num.Round(x*float64(src.Bounds().Dx()-1))),
+			int(num.Round(y*float64(src.Bounds().Dy()-1))))
 	}
 }
 
@@ -66,9 +64,9 @@ func IdFilter(src image.Image) (result func(float64, float64) image.Color) {
 // nearest-neighbor with an integer multiplication factor. Useful for making
 // graphics with large uniform pixels.
 func IntScaleImage(src image.Image, xScale, yScale int) image.Image {
-	result := DefaultConstructor(src.Width()*xScale, src.Height()*yScale)
-	for x := 0; x < result.Width(); x++ {
-		for y := 0; y < result.Height(); y++ {
+	result := DefaultConstructor(src.Bounds().Dx()*xScale, src.Bounds().Dy()*yScale)
+	for x := 0; x < result.Bounds().Dx(); x++ {
+		for y := 0; y < result.Bounds().Dy(); y++ {
 			result.Set(x, y, src.At(x/xScale, y/yScale))
 		}
 	}
@@ -77,15 +75,13 @@ func IntScaleImage(src image.Image, xScale, yScale int) image.Image {
 
 type Mask [][]byte
 
-func (self Mask) Width() int { return len(self) }
-
-func (self Mask) Height() int { return len(self[0]) }
+func (self Mask) Bounds() image.Rectangle { return image.Rect(0, 0, len(self), len(self[0])) }
 
 // Convert the pixels beneath mask with return values of filter given the
 // original pixel and the mask value.
 func BlitMask(img draw.Image, mask Mask, filter func(maskVal byte, srcVal image.Color) (dstVal image.Color), ox, oy int) {
-	for x, ex := 0, mask.Width(); x < ex; x++ {
-		for y, ey := 0, mask.Height(); y < ey; y++ {
+	for x, ex := 0, mask.Bounds().Dx(); x < ex; x++ {
+		for y, ey := 0, mask.Bounds().Dy(); y < ey; y++ {
 			xp, yp := x+ox, y+oy
 			img.Set(xp, yp, filter(mask[x][y], img.At(xp, yp)))
 		}
@@ -94,10 +90,10 @@ func BlitMask(img draw.Image, mask Mask, filter func(maskVal byte, srcVal image.
 
 // Use filter on surface pixels to turn the surface into mask.
 func MakeMask(img image.Image, filter func(src image.Color) byte) (mask Mask) {
-	mask = make(Mask, img.Width())
-	for x := 0; x < img.Width(); x++ {
-		mask[x] = make([]byte, img.Height())
-		for y := 0; y < img.Height(); y++ {
+	mask = make(Mask, img.Bounds().Dy())
+	for x := 0; x < img.Bounds().Dx(); x++ {
+		mask[x] = make([]byte, img.Bounds().Dy())
+		for y := 0; y < img.Bounds().Dy(); y++ {
 			mask[x][y] = filter(img.At(x, y))
 		}
 	}
@@ -117,8 +113,8 @@ func BlitColorMask(img draw.Image, mask Mask, col image.Color, ox, oy int) {
 }
 
 func FilterImage(img draw.Image, filter func(image.Color) image.Color) {
-	for x := 0; x < img.Width(); x++ {
-		for y := 0; y < img.Height(); y++ {
+	for x := 0; x < img.Bounds().Dx(); x++ {
+		for y := 0; y < img.Bounds().Dy(); y++ {
 			img.Set(x, y, filter(img.At(x, y)))
 		}
 	}
@@ -135,20 +131,20 @@ func FilterTransparent(img draw.Image, transparencyColor image.Color) {
 		})
 }
 
-func Clip(src image.Image, cons Constructor, rect draw.Rectangle) (result draw.Image) {
+func Clip(src image.Image, cons Constructor, rect image.Rectangle) (result draw.Image) {
 	result = cons(rect.Dx(), rect.Dy())
-	draw.Draw(result, draw.Rect(0, 0, result.Width(), result.Height()), src, rect.Min)
+	draw.Draw(result, result.Bounds(), src, rect.Min)
 	return
 }
 
 func MakeTiles(src image.Image, cons Constructor, tileW, tileH int) (result []draw.Image) {
-	cols, rows := src.Width()/tileW, src.Height()/tileH
+	cols, rows := src.Bounds().Dx()/tileW, src.Bounds().Dy()/tileH
 	result = make([]draw.Image, cols*rows)
 	i := 0
 	for y := 0; y < rows; y++ {
 		for x := 0; x < cols; x++ {
 			result[i] = Clip(src, cons,
-				draw.Rect(x*tileW, y*tileH, (x+1)*tileW, (y+1)*tileH))
+				image.Rect(x*tileW, y*tileH, (x+1)*tileW, (y+1)*tileH))
 			i++
 		}
 	}
@@ -194,19 +190,19 @@ func loadError() {
 	}
 }
 
+var onceError sync.Once
+
 func ErrorImage() image.Image {
-	once.Do(loadError)
+	onceError.Do(loadError)
 	return errorImage
 }
 
 type TranslateGraphics struct {
-	Vec   draw.Point
+	Vec   image.Point
 	Inner Graphics
 }
 
-func (self *TranslateGraphics) Width() int { return self.Inner.Width() }
-
-func (self *TranslateGraphics) Height() int { return self.Inner.Height() }
+func (self *TranslateGraphics) Bounds() image.Rectangle { return self.Inner.Bounds() }
 
 func (self *TranslateGraphics) At(x, y int) image.Color {
 	return self.Inner.At(x-self.Vec.X, y-self.Vec.Y)
@@ -224,23 +220,23 @@ func (self *TranslateGraphics) Blit(img image.Image, x, y int) {
 	self.Inner.Blit(img, x-self.Vec.X, y-self.Vec.Y)
 }
 
-func (self *TranslateGraphics) FillRect(rect draw.Rectangle, color image.Color) {
+func (self *TranslateGraphics) FillRect(rect image.Rectangle, color image.Color) {
 	self.Inner.FillRect(rect.Sub(self.Vec), color)
 }
 
-func (self *TranslateGraphics) SetClip(clipRect draw.Rectangle) {
+func (self *TranslateGraphics) SetClip(clipRect image.Rectangle) {
 	self.Inner.SetClip(clipRect)
 }
 
 func (self *TranslateGraphics) ClearClip() { self.Inner.ClearClip() }
 
 // Center sets the translation so that the given rectangle will be centered on the given point.
-func (self *TranslateGraphics) Center(area draw.Rectangle, x, y int) {
-	self.Vec = draw.Pt(area.Min.X+x-area.Dx()/2, area.Min.Y+y-area.Dy()/2)
+func (self *TranslateGraphics) Center(area image.Rectangle, x, y int) {
+	self.Vec = image.Pt(area.Min.X+x-area.Dx()/2, area.Min.Y+y-area.Dy()/2)
 }
 
 // Line draws a line on the given draw.Image.
-func Line(dst draw.Image, p1, p2 draw.Point, col image.Color) {
+func Line(dst draw.Image, p1, p2 image.Point, col image.Color) {
 	for o := range geom.Line(geom.Pt2I{p1.X, p1.Y}, geom.Pt2I{p2.X, p2.Y}).Iter() {
 		pt := o.(geom.Pt2I)
 		dst.Set(pt.X, pt.Y, col)
@@ -249,11 +245,11 @@ func Line(dst draw.Image, p1, p2 draw.Point, col image.Color) {
 
 // Line draws a thick line on the given graphics context. Implementation is
 // naive and slow.
-func ThickLine(dst Graphics, p1, p2 draw.Point, col image.Color, thickness int) {
+func ThickLine(dst Graphics, p1, p2 image.Point, col image.Color, thickness int) {
 	offset := thickness / 2
 	for o := range geom.Line(geom.Pt2I{p1.X, p1.Y}, geom.Pt2I{p2.X, p2.Y}).Iter() {
 		pt := o.(geom.Pt2I)
-		rect := draw.Rect(pt.X-offset, pt.Y-offset, pt.X+offset+1, pt.Y+offset+1)
+		rect := image.Rect(pt.X-offset, pt.Y-offset, pt.X+offset+1, pt.Y+offset+1)
 		dst.FillRect(rect, col)
 	}
 }

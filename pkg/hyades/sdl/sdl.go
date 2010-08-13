@@ -98,16 +98,16 @@ type Surface interface {
 
 	// Sets a clipping rectangle on a SDL surface. It's not possible to
 	// draw outside the rectangle.
-	SetClip(clipRect draw.Rectangle)
+	SetClip(clipRect image.Rectangle)
 
 	// Clears a clipping rectangle on a SDL surface, if set.
 	ClearClip()
 
 	// Returns the clip rectangle of a SDL surface, if one has been set.
-	GetClip() draw.Rectangle
+	GetClip() image.Rectangle
 
 	// Efficintly fills a rectangle on the screen with uniform color.
-	FillRect(rect draw.Rectangle, c image.Color)
+	FillRect(rect image.Rectangle, c image.Color)
 
 	// Blit draws an image on the surface. It is much more efficient if
 	// the image is a SDL surface.
@@ -189,7 +189,8 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	result = ctx
 	ctx.config = config
 	ctx.canvas = ctx.createSurface(config.Width, config.Height)
-	ctx.windowW, ctx.windowH = screen.Width(), screen.Height()
+	screenBounds := screen.Bounds()
+	ctx.windowW, ctx.windowH = screenBounds.Max.X, screenBounds.Max.Y
 	ctx.kbd = make(chan int, keyBufferSize)
 	ctx.mouse = make(chan draw.Mouse, 1)
 	ctx.resize = make(chan bool, 1)
@@ -256,7 +257,8 @@ func (self *context) createSurface(width, height int) *sdlSurface {
 }
 
 func (self *context) Convert(img image.Image) Surface {
-	width, height := img.Width(), img.Height()
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
 
 	surf := self.createSurface(width, height)
 
@@ -334,7 +336,7 @@ func (self *context) eventLoop() {
 				// sloppy to just plug it in without a
 				// converter...
 				mouse := draw.Mouse{int(motEvt.state),
-					draw.Pt(
+					image.Pt(
 						int(motEvt.x)/self.config.PixelScale,
 						int(motEvt.y)/self.config.PixelScale),
 					time.Nanoseconds(),
@@ -351,7 +353,7 @@ func (self *context) eventLoop() {
 					buttons += wheelDownBit
 				}
 				mouse := draw.Mouse{buttons,
-					draw.Pt(
+					image.Pt(
 						int(btnEvt.x)/self.config.PixelScale,
 						int(btnEvt.y)/self.config.PixelScale),
 					time.Nanoseconds(),
@@ -460,7 +462,7 @@ func (self *context) Free(handle interface{}) {
 
 func getError() string { return C.GoString(C.SDL_GetError()) }
 
-func convertRect(rect draw.Rectangle) C.SDL_Rect {
+func convertRect(rect image.Rectangle) C.SDL_Rect {
 	rect = rect.Canon()
 	return C.SDL_Rect{C.Sint16(rect.Min.X),
 		C.Sint16(rect.Min.Y),
@@ -487,7 +489,7 @@ func (self *sdlSurface) raw() *C.SDL_Surface {
 }
 
 func (self *sdlSurface) contains(x, y int) bool {
-	return x < self.Width() && y < self.Height() && x >= 0 && y >= 0
+	return self.Bounds().Contains(image.Pt(x, y))
 }
 
 func (self *sdlSurface) Set(x, y int, c image.Color) {
@@ -501,7 +503,7 @@ func (self *sdlSurface) Set(x, y int, c image.Color) {
 	*(*uint32)(unsafe.Pointer(pixels + uintptr(y*int(self.pitch)+x<<2))) = color
 }
 
-func (self *sdlSurface) FillRect(rect draw.Rectangle, c image.Color) {
+func (self *sdlSurface) FillRect(rect image.Rectangle, c image.Color) {
 	r, g, b, a := gfx.RGBA8Bit(c)
 	if a < 255 {
 		// Alpha-blended rectangle.
@@ -533,15 +535,15 @@ func (self *sdlSurface) Blit(img image.Image, x, y int) {
 		C.SDL_BlitSurface(surf.raw(), nil, self.raw(), &rect)
 	} else {
 		// It's something else, naively draw the individual pixels.
-		draw.Draw(surf, draw.Rect(x, y, x+img.Width(), y+img.Height()),
-			self, draw.Pt(0, 0))
+		draw.Draw(surf, img.Bounds().Add(image.Pt(x, y)),
+			self, image.Pt(0, 0))
 
 	}
 }
 
-func (self *sdlSurface) Width() int { return int(self.w) }
-
-func (self *sdlSurface) Height() int { return int(self.h) }
+func (self *sdlSurface) Bounds() image.Rectangle {
+	return image.Rect(0, 0, int(self.w), int(self.h))
+}
 
 func (self *sdlSurface) At(x, y int) image.Color {
 	if !self.contains(x, y) {
@@ -564,17 +566,17 @@ func (self *sdlSurface) ColorModel() image.ColorModel {
 	return image.RGBAColorModel
 }
 
-func (self *sdlSurface) SetClip(clipRect draw.Rectangle) {
+func (self *sdlSurface) SetClip(clipRect image.Rectangle) {
 	sdlClipRect := convertRect(clipRect)
 	C.SDL_SetClipRect(self.raw(), &sdlClipRect)
 }
 
 func (self *sdlSurface) ClearClip() { C.SDL_SetClipRect(self.raw(), nil) }
 
-func (self *sdlSurface) GetClip() draw.Rectangle {
+func (self *sdlSurface) GetClip() image.Rectangle {
 	var sdlRect C.SDL_Rect
 	C.SDL_GetClipRect(self.raw(), &sdlRect)
-	return draw.Rect(int(sdlRect.x), int(sdlRect.y),
+	return image.Rect(int(sdlRect.x), int(sdlRect.y),
 		int(sdlRect.x)+int(sdlRect.w), int(sdlRect.y)+int(sdlRect.h))
 }
 

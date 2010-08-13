@@ -9,8 +9,8 @@ import (
 	"hyades/sfx"
 	"image"
 	"image/png"
-	"once"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -20,8 +20,10 @@ var archive *fs.Archive
 
 var cache map[string]interface{}
 
+var onceMedia sync.Once
+
 func Load(filename string) (data []byte, err os.Error) {
-	once.Do(initArchive)
+	onceMedia.Do(initArchive)
 	return archive.ReadFile(filename)
 }
 
@@ -86,7 +88,7 @@ func loadFonts() {
 func InitMedia() {
 	fmt.Printf("Initializing media... ")
 	defer fmt.Printf("Done.\n")
-	once.Do(initArchive)
+	onceMedia.Do(initArchive)
 	makeTiles("font", "media/font.png", FontW, FontH, 1)
 	makeTiles("chars", "media/chars.png", TileW, TileH, config.TileScale)
 	makeTiles("tiles", "media/tiles.png", TileW, TileH, config.TileScale)

@@ -51,7 +51,7 @@ type MapView struct {
 	// this.
 	mouseDownTime [3]int64
 	lastMouse     draw.Mouse
-	lastArea      draw.Rectangle
+	lastArea      image.Rectangle
 
 	// XXX: Hacky way to remember if shift is pressed.
 	shiftKeyState int
@@ -83,7 +83,7 @@ func Draw(g gfx.Graphics, spriteId string, x, y int) {
 func DrawShadow(g gfx.Graphics, darkness uint8, x, y int) {
 	sx, sy := DrawPos(geom.Pt2I{x, y})
 	g.FillRect(
-		draw.Rect(sx, sy, sx+TileW, sy+TileH),
+		image.Rect(sx, sy, sx+TileW, sy+TileH),
 		image.RGBAColor{0, 0, 0, darkness})
 }
 
@@ -182,21 +182,21 @@ func entityEarlierInDrawOrder(i, j interface{}) bool {
 
 func AnimTest() { go TestAnim2(ui.AddScreenAnim(gfx.NewAnim(0.0))) }
 
-func (self *MapView) Draw(g gfx.Graphics, area draw.Rectangle) {
+func (self *MapView) Draw(g gfx.Graphics, area image.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
 
 	elapsed := time.Nanoseconds() - self.timePoint
 	self.timePoint += elapsed
 
-	g2 := &gfx.TranslateGraphics{draw.Pt(0, 0), g}
+	g2 := &gfx.TranslateGraphics{image.Pt(0, 0), g}
 	x, y := CenterDrawPos(game.GetPos(game.PlayerId()))
 	g2.Center(area, x, y)
 	DrawWorld(g2)
 	self.DrawAnims(g2, elapsed)
 }
 
-func (self *MapView) Children(area draw.Rectangle) iterable.Iterable {
+func (self *MapView) Children(area image.Rectangle) iterable.Iterable {
 	return alg.EmptyIter()
 }
 
@@ -211,7 +211,7 @@ func World2TilePos(worldPos geom.Pt2I) geom.Pt2I {
 		(worldPos.Y - worldPos.X/2) / TileH}
 }
 
-func (self *MapView) InvTransform(area draw.Rectangle, screenX, screenY int) (worldX, worldY int) {
+func (self *MapView) InvTransform(area image.Rectangle, screenX, screenY int) (worldX, worldY int) {
 	worldPos := Tile2WorldPos(game.GetPos(game.PlayerId()))
 	worldPos.X += screenX - area.Min.X - area.Dx()/2
 	worldPos.Y += screenY - area.Min.Y - area.Dy()/2
@@ -295,7 +295,7 @@ func (self *MapView) pressMouse(button int) {
 
 func (self *MapView) releaseMouse(button int) { self.mouseDownTime[button] = -1 }
 
-func (self *MapView) HandleMouseEvent(area draw.Rectangle, event draw.Mouse) bool {
+func (self *MapView) HandleMouseEvent(area image.Rectangle, event draw.Mouse) bool {
 	wx, wy := self.InvTransform(area, event.X, event.Y)
 
 	self.lastMouse = event
