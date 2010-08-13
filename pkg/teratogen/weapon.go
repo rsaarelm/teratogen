@@ -4,6 +4,7 @@ import (
 	"exp/iterable"
 	"hyades/entity"
 	"hyades/geom"
+	"hyades/num"
 )
 
 const (
@@ -102,22 +103,33 @@ func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
 // Attack attacks a position with the weapon. Does not check whether the
 // weapon allows attacking that pos.
 func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, successDegree float64) {
-	// SuccessDegree scales damage from 1/2 to full, critical hits double the damage.
-	damage := self.Power/2 + successDegree*(self.Power/2)
-	if successDegree == 1.0 {
-		damage = self.Power * 2
+	isRangedAttack := self.Range > 1
+	isCriticalHit := successDegree == 1.0
+
+	// SuccessDegree scales damage from 1/8 to full.
+	damage := num.Lerp(self.Power/8, self.Power, successDegree)
+	if isCriticalHit {
+		// TODO: Special effect for critical hit. Just amping the damage is
+		// bad, as it throws off the attrition. Some kind of weapon-specific
+		// status damage like stunning or a crippling or bleeding wound would
+		// be nice though.
 	}
 
 	// Recalculate pos in case a ranged attack hits something on the way.
 	pos = GetHitPos(GetPos(wielder), pos)
 
-	// TODO: Attack effect as weapon data, not just this ad-hoc thing.
-	if self.Range > 1 {
+	if isRangedAttack {
+		// TODO: Attack effect as weapon data, not just this ad-hoc thing.
 		Fx().Shoot(wielder, pos)
 	}
 
 	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
 		target := o.(entity.Id)
+
+		if successDegree < 0 {
+			EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n", wielder, target)
+			return
+		}
 
 		EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
 
@@ -170,8 +182,9 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 			EMsg("{sub.Thename} {sub.is} out of ammo.\n", attackerId, entity.NilId)
 			return false
 		}
-		// TODO: Get success level.
-		weapon.Attack(attackerId, target, 0.99)
+
+		success := ShootHitDegree(attackerId, weapon)
+		weapon.Attack(attackerId, target, success)
 	}
 
 	return true
@@ -181,7 +194,17 @@ func Attack(attackerId, targetId entity.Id) {
 	crit := GetCreature(attackerId)
 	// XXX: Fixed the first weapon as preferred melee attack.
 	if weapon := weaponLookup[crit.Attack1]; weapon != nil {
-		// TODO: Get success level.
-		weapon.Attack(attackerId, GetPos(targetId), 0.5)
+		success := HitDegree(attackerId, targetId, weapon)
+		weapon.Attack(attackerId, GetPos(targetId), success)
 	}
+}
+
+func HitDegree(attackerId, targetId entity.Id, weapon *Weapon) float64 {
+	// TODO: Special rules for a more fancy attack skill system go here.
+	return ContestRoll(5)
+}
+
+func ShootHitDegree(attackerId entity.Id, weapon *Weapon) float64 {
+	// TODO: Special rules for a more fancy attack skill system go here.
+	return ContestRoll(5)
 }

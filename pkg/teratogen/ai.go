@@ -62,8 +62,8 @@ func aiWeaponAttack(aiEntity entity.Id, weapon *Weapon) bool {
 	}
 	pos := GetPos(enemyId)
 	if CanSeeTo(GetPos(aiEntity), pos) && weapon.CanAttack(aiEntity, pos) {
-		// TODO: Determine success level.
-		weapon.Attack(aiEntity, pos, 0.5)
+		// XXX: Replicating HitDegree check. Put attack logic in one place only.
+		weapon.Attack(aiEntity, pos, HitDegree(aiEntity, enemyId, weapon))
 		return true
 	}
 	return false

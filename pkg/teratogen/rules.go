@@ -57,14 +57,14 @@ func Log2Modifier(x int) int {
 // -1.0 and 1.0 inclusive. Positive values are successes, negative values are
 // failures, and the absolute value is the degree of success. Values of
 // exactly -1.0 or 1.0 can be treated as critical failures and successes.
-func ContestRoll(skill int) (result float64) {
+func ContestRoll(skill float64) (result float64) {
 	// Standard deviation of 8 makes a unit of difficulty give around 5 % difference
 	const sd = 8.0
 	// Critical threshold 1.75 gives around 4 % chances to both critical
 	// success and failure.
 	const critThres = 1.75
 
-	result = rand.NormFloat64()*sd + float64(skill)
+	result = rand.NormFloat64()*sd + skill
 	result /= sd * critThres
 	result = num.Clamp(-1.0, 1.0, result)
 	return
@@ -401,20 +401,6 @@ func OnPlayerKill(killedId entity.Id) {
 
 func PlayerMutationRoll(power int, msg string) bool {
 	// XXX: Taking mutations out for now. Will rewrite them.
-	return false
-
-	mutationResistance := 10 + GetMutations(PlayerId()).MutationLevel()
-
-	// Cap too big mutation chances. Always have a reasonably low chance of
-	// doing a mutation.
-	power = num.Imin(power, mutationResistance-2)
-
-	if ContestRoll(power-mutationResistance) >= 0 {
-		Msg(msg)
-		Fx().MorePrompt()
-		Mutate(PlayerId())
-		return true
-	}
 	return false
 }
 
