@@ -7,6 +7,7 @@ import (
 	"hyades/geom"
 	"hyades/num"
 	"io"
+	"os"
 	"rand"
 )
 
@@ -200,4 +201,24 @@ func Creatures() iterable.Iterable {
 func OtherCreatures(excludedId interface{}) iterable.Iterable {
 	pred := func(o interface{}) bool { return o != excludedId && IsCreature(o.(entity.Id)) }
 	return iterable.Filter(Entities(), pred)
+}
+
+func SaveGame(fileName string) (err os.Error) {
+	saveFile, err := os.Open(fileName, os.O_WRONLY|os.O_CREAT, 0666)
+	if err != nil {
+		return err
+	}
+	GetContext().Serialize(saveFile)
+	saveFile.Close()
+	return
+}
+
+func LoadGame(fileName string) (err os.Error) {
+	loadFile, err := os.Open(fileName, os.O_RDONLY, 0666)
+	if err != nil {
+		return err
+	}
+	GetContext().Deserialize(loadFile)
+	loadFile.Close()
+	return
 }

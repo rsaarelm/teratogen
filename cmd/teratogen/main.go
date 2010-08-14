@@ -48,14 +48,18 @@ func SaveFileName() string {
 func JourneyOnward() bool {
 	GetUISync()
 	defer ReleaseUISync()
-	fileName := SaveFileName()
-	loadFile, err := os.Open(fileName, os.O_RDONLY, 0666)
+	err := game.LoadGame(SaveFileName())
 	if err != nil {
+		// XXX: Since we got a global var for game state, undo the damage from a
+		// botched load by reiniting the game state.
+
+		// XXX: The reinited game state will have a different rng seed than the
+		// one reported at the command line.
+		game.NewContext().InitGame()
+
 		return false
 	}
-	game.GetContext().Deserialize(loadFile)
-	loadFile.Close()
-	os.Remove(fileName)
+	os.Remove(SaveFileName())
 	game.Msg("Game loaded.\n")
 	return true
 }

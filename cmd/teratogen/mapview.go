@@ -13,7 +13,6 @@ import (
 	"hyades/keyboard"
 	"hyades/num"
 	"image"
-	"os"
 	"rand"
 	game "teratogen"
 	"time"
@@ -454,10 +453,8 @@ func (self *MapView) AsyncHandleKey(key int) {
 			return true
 		})
 	case 'S':
-		saveFile, err := os.Open(SaveFileName(), os.O_WRONLY|os.O_CREAT, 0666)
+		err := game.SaveGame(SaveFileName())
 		dbg.AssertNoError(err)
-		game.GetContext().Serialize(saveFile)
-		saveFile.Close()
 		game.Msg("Game saved.\n")
 		fmt.Println("Be seeing you.")
 		Quit()
