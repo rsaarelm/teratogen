@@ -282,6 +282,10 @@ func (self *Area) MakeVisceraMap() {
 // IsUnwalkable returns whether the terrain in pos can't be walked into.
 func IsUnwalkable(pos geom.Pt2I) bool { return IsObstacleTerrain(GetArea().GetTerrain(pos)) }
 
+func IsOpenTerrain(pos geom.Pt2I) bool {
+	return !IsObstacleTerrain(GetArea().GetTerrain(pos))
+}
+
 func IsOpen(pos geom.Pt2I) bool {
 	if IsObstacleTerrain(GetArea().GetTerrain(pos)) {
 		return false

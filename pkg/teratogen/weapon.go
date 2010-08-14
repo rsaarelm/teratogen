@@ -101,9 +101,45 @@ func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
 }
 
 // Attack attacks a position with the weapon. Does not check whether the
-// weapon allows attacking that pos.
-func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, successDegree float64) {
+// weapon allows attacking that pos. Some weapons may hit targets in between
+// the attacker and the target pos.
+func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64) {
 	isRangedAttack := self.Range > 1
+
+	if !self.ExpendAmmo(wielder) {
+		EMsg("{sub.Thename} {sub.is} out of ammo.\n", wielder, entity.NilId)
+		return
+	}
+
+	var successDegree float64
+
+	for o := range iterable.Drop(geom.HexLine(GetPos(wielder), pos), 1).Iter() {
+		hitPos := o.(geom.Pt2I)
+		successDegree = self.checkHits(hitPos, attackBonus)
+		if successDegree >= 0 {
+			pos = hitPos
+			break
+		}
+	}
+
+	if isRangedAttack {
+		// TODO: Attack effect as weapon data, not just this ad-hoc thing.
+		Fx().Shoot(wielder, pos)
+	}
+
+	target := CreatureAt(pos)
+	if target == entity.NilId {
+		// No creature at final pos, attacking empty air.
+		EMsg("{sub.Thename} %s.\n", wielder, target, self.Verb)
+		return
+	}
+
+	if successDegree < 0 {
+		// Missed a creature.
+		EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n", wielder, target)
+		return
+	}
+
 	isCriticalHit := successDegree == 1.0
 
 	// SuccessDegree scales damage from 1/8 to full.
@@ -115,44 +151,35 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, successDegree float
 		// be nice though.
 	}
 
-	// Recalculate pos in case a ranged attack hits something on the way.
-	pos = GetHitPos(GetPos(wielder), pos)
+	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
 
-	if isRangedAttack {
-		// TODO: Attack effect as weapon data, not just this ad-hoc thing.
-		Fx().Shoot(wielder, pos)
-	}
-
-	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
-		target := o.(entity.Id)
-
-		if successDegree < 0 {
-			EMsg("{sub.Thename} {.section sub.you}miss{.or}misses{.end} {obj.thename}.\n", wielder, target)
-			return
-		}
-
-		EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
-
-		// TODO: Damage type from weapon.
-		GetCreature(target).Damage(
-			target, wielder,
-			GetPos(wielder), damage, BluntDamage)
-
-		return
-	}
-
-	// Attacking empty air.
-	EMsg("{sub.Thename} %s.\n", wielder, entity.NilId, self.Verb)
+	// TODO: Damage type from weapon.
+	GetCreature(target).Damage(
+		target, wielder,
+		GetPos(wielder), damage, BluntDamage)
 }
 
-func GetHitPos(origin, target geom.Pt2I) (hitPos geom.Pt2I) {
-	for o := range iterable.Drop(geom.HexLine(origin, target), 1).Iter() {
-		hitPos = o.(geom.Pt2I)
-		if !IsOpen(hitPos) {
-			break
+// checkHits returns whether the weapon's attack hits something in the given
+// cell. The result is a success roll. Nonnegative values mean a degree of
+// hit, negative values mean a miss. It doesn't specify what is hit. It might
+// be a terrain tile or an entity. Entities can evade attacks, so the result
+// for open tiles containing an entity target can be somewhat random.
+func (self *Weapon) checkHits(pos geom.Pt2I, attackBonus float64) float64 {
+	if !IsOpenTerrain(pos) {
+		return 1.0
+	}
+
+	for o := range EntitiesAt(pos).Iter() {
+		id := o.(entity.Id)
+		if BlocksMovement(id) {
+			success := ContestRoll(attackBonus - DefenseSkill(id))
+			if success >= 0 {
+				return success
+			}
 		}
 	}
-	return
+
+	return -1.0
 }
 
 // ExpendAmmo checks whether the weapon consumes ammo. If it does and the
@@ -178,13 +205,7 @@ func Shoot(attackerId entity.Id, target geom.Pt2I) (endsMove bool) {
 
 	// XXX: Ugly hardcoding for always using second weapon for shooting.
 	if weapon := weaponLookup[crit.Attack2]; weapon != nil {
-		if !weapon.ExpendAmmo(attackerId) {
-			EMsg("{sub.Thename} {sub.is} out of ammo.\n", attackerId, entity.NilId)
-			return false
-		}
-
-		success := ShootHitDegree(attackerId, weapon)
-		weapon.Attack(attackerId, target, success)
+		weapon.Attack(attackerId, target, AttackSkill(attackerId, weapon))
 	}
 
 	return true
@@ -194,17 +215,20 @@ func Attack(attackerId, targetId entity.Id) {
 	crit := GetCreature(attackerId)
 	// XXX: Fixed the first weapon as preferred melee attack.
 	if weapon := weaponLookup[crit.Attack1]; weapon != nil {
-		success := HitDegree(attackerId, targetId, weapon)
-		weapon.Attack(attackerId, GetPos(targetId), success)
+		weapon.Attack(attackerId, GetPos(targetId), AttackSkill(attackerId, weapon))
 	}
 }
 
-func HitDegree(attackerId, targetId entity.Id, weapon *Weapon) float64 {
-	// TODO: Special rules for a more fancy attack skill system go here.
-	return ContestRoll(5)
+func AttackSkill(attackerId entity.Id, weapon *Weapon) float64 {
+	// TODO: Special rules for a more fancy attack skill system go here. A
+	// default skill of +5 gives around 75 % chance of success, seems to work
+	// nicely in practice.
+	return 5
 }
 
-func ShootHitDegree(attackerId entity.Id, weapon *Weapon) float64 {
-	// TODO: Special rules for a more fancy attack skill system go here.
-	return ContestRoll(5)
+func DefenseSkill(defenderId entity.Id) float64 {
+	// TODO: Defense against different attack types (bullets vs melee).
+
+	// TODO: Actual defense ability.
+	return 0
 }

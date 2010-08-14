@@ -183,6 +183,16 @@ func EntitiesAt(pos geom.Pt2I) iterable.Iterable {
 	return iterable.Filter(Entities(), posPred)
 }
 
+// CreatureAt returns the id of a creature at a given position, if there is
+// one. It's assumed that only one creature can be present at one position at
+// once.
+func CreatureAt(pos geom.Pt2I) entity.Id {
+	for o := range iterable.Filter(EntitiesAt(pos), EntityFilterFn(IsCreature)).Iter() {
+		return o.(entity.Id)
+	}
+	return entity.NilId
+}
+
 func Creatures() iterable.Iterable {
 	return iterable.Filter(Entities(), EntityFilterFn(IsCreature))
 }
