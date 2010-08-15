@@ -1,10 +1,12 @@
 package teratogen
 
 import (
+	"compress/gzip"
 	"exp/iterable"
 	"hyades/dbg"
 	"hyades/entity"
 	"hyades/geom"
+	"hyades/mem"
 	"hyades/num"
 	"io"
 	"os"
@@ -203,22 +205,75 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 	return iterable.Filter(Entities(), pred)
 }
 
-func SaveGame(fileName string) (err os.Error) {
-	saveFile, err := os.Open(fileName, os.O_WRONLY|os.O_CREAT, 0666)
+const saveMagicId = "SAVE"
+
+// XXX: Should be able to inline this in the var declaration below. Can't due
+// to issue1029
+type writerCloser interface {
+	io.Writer
+	Close() os.Error
+}
+
+func SaveGame(fileName string, useGzip bool) (err os.Error) {
+	var saveFile writerCloser
+
+	saveFile, err = os.Open(fileName, os.O_WRONLY|os.O_CREAT, 0666)
 	if err != nil {
 		return err
 	}
+
+	// Write the save header
+	saveFile.Write([]byte(saveMagicId))
+
+	// XXX: Awkward bool -> byte conversion, since we don't have ternary ops.
+	if useGzip {
+		mem.WriteFixed(saveFile, byte(1))
+	} else {
+		mem.WriteFixed(saveFile, byte(0))
+	}
+
+	if useGzip {
+		saveFile, _ = gzip.NewWriter(saveFile)
+	}
+
+	// Write the actual save data.
 	GetContext().Serialize(saveFile)
+
 	saveFile.Close()
 	return
 }
 
+// XXX: Should be able to inline this in the var declaration below. Can't due
+// to issue1029
+type readerCloser interface {
+	io.Reader
+	Close() os.Error
+}
+
 func LoadGame(fileName string) (err os.Error) {
-	loadFile, err := os.Open(fileName, os.O_RDONLY, 0666)
+	var loadFile readerCloser
+
+	loadFile, err = os.Open(fileName, os.O_RDONLY, 0666)
 	if err != nil {
 		return err
 	}
+
+	// Load the header.
+	fileMagic := make([]byte, 4)
+	loadFile.Read(fileMagic)
+	if string(fileMagic) != saveMagicId {
+		return os.NewError("Not a valid savefile.")
+	}
+
+	useGzip := mem.ReadByte(loadFile)
+	if useGzip != 0 {
+		// If the save is compressed, switch to a gzip reader.
+		loadFile, _ = gzip.NewReader(loadFile)
+	}
+
+	// Load the actual data.
 	GetContext().Deserialize(loadFile)
+
 	loadFile.Close()
 	return
 }

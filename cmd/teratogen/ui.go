@@ -20,6 +20,8 @@ import (
 	"time"
 )
 
+const UseGzipSaves = true
+
 const redrawIntervalNs = 30e6
 const capFps = true
 

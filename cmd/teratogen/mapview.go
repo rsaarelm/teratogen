@@ -453,7 +453,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 			return true
 		})
 	case 'S':
-		err := game.SaveGame(SaveFileName())
+		err := game.SaveGame(SaveFileName(), UseGzipSaves)
 		dbg.AssertNoError(err)
 		game.Msg("Game saved.\n")
 		fmt.Println("Be seeing you.")
