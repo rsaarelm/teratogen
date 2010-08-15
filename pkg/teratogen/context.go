@@ -206,6 +206,7 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 }
 
 const saveMagicId = "SAVE"
+const saveVersion = 0
 
 // XXX: Should be able to inline this in the var declaration below. Can't due
 // to issue1029
@@ -214,6 +215,11 @@ type writerCloser interface {
 	Close() os.Error
 }
 
+// SaveGame saves the game state to a file. The file gets a header:
+//   0 - 3: Magic bytes "SAVE" to identify the savefile
+//   4 - 5: Save version as little-endian int16
+//   6: 0 if the save isn't compressed. 1 if it's compressed with gzip.
+//   7 -: World save data.
 func SaveGame(fileName string, useGzip bool) (err os.Error) {
 	var saveFile writerCloser
 
@@ -224,6 +230,8 @@ func SaveGame(fileName string, useGzip bool) (err os.Error) {
 
 	// Write the save header
 	saveFile.Write([]byte(saveMagicId))
+
+	mem.WriteFixed(saveFile, int16(saveVersion))
 
 	// XXX: Awkward bool -> byte conversion, since we don't have ternary ops.
 	if useGzip {
@@ -265,6 +273,11 @@ func LoadGame(fileName string) (err os.Error) {
 		return os.NewError("Not a valid savefile.")
 	}
 
+	version := mem.ReadInt16(loadFile)
+	if !isValidSaveVersion(version) {
+		return os.NewError("Incompatible save version.")
+	}
+
 	useGzip := mem.ReadByte(loadFile)
 	if useGzip != 0 {
 		// If the save is compressed, switch to a gzip reader.
@@ -276,4 +289,11 @@ func LoadGame(fileName string) (err os.Error) {
 
 	loadFile.Close()
 	return
+}
+
+func isValidSaveVersion(version int16) bool {
+	// Make the logic here more complex if we start getting backwards
+	// incompatible too. For now, the basic assumption is that future save
+	// versions can't be used.
+	return version <= saveVersion
 }

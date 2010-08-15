@@ -42,6 +42,12 @@ func ReadByte(in io.Reader) byte {
 	return result
 }
 
+func ReadInt16(in io.Reader) int16 {
+	var result int16
+	ReadFixed(in, &result)
+	return result
+}
+
 func ReadInt32(in io.Reader) int32 {
 	var result int32
 	ReadFixed(in, &result)
