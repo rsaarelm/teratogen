@@ -208,20 +208,13 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 const saveMagicId = "SAVE"
 const saveVersion = 0
 
-// XXX: Should be able to inline this in the var declaration below. Can't due
-// to issue1029
-type writerCloser interface {
-	io.Writer
-	Close() os.Error
-}
-
 // SaveGame saves the game state to a file. The file gets a header:
 //   0 - 3: Magic bytes "SAVE" to identify the savefile
 //   4 - 5: Save version as little-endian int16
 //   6: 0 if the save isn't compressed. 1 if it's compressed with gzip.
 //   7 -: World save data.
 func SaveGame(fileName string, useGzip bool) (err os.Error) {
-	var saveFile writerCloser
+	var saveFile io.WriteCloser
 
 	saveFile, err = os.Open(fileName, os.O_WRONLY|os.O_CREAT, 0666)
 	if err != nil {
@@ -251,15 +244,8 @@ func SaveGame(fileName string, useGzip bool) (err os.Error) {
 	return
 }
 
-// XXX: Should be able to inline this in the var declaration below. Can't due
-// to issue1029
-type readerCloser interface {
-	io.Reader
-	Close() os.Error
-}
-
 func LoadGame(fileName string) (err os.Error) {
-	var loadFile readerCloser
+	var loadFile io.ReadCloser
 
 	loadFile, err = os.Open(fileName, os.O_RDONLY, 0666)
 	if err != nil {
