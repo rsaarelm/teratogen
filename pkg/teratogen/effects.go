@@ -16,6 +16,11 @@ type Effects interface {
 	// Damage shows damage done to an entity.
 	Damage(id entity.Id, amout int)
 
+	// Sparks shows a spark blast at the given pos. Used for example for
+	// bullets hitting walls. This might be changed into a more general "show
+	// effect here" method later.
+	Sparks(pos geom.Pt2I)
+
 	// Heal shows an entity healing.
 	Heal(id entity.Id, amount int)
 

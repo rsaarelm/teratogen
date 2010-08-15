@@ -122,6 +122,11 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64
 		}
 	}
 
+	if !IsOpenTerrain(pos) {
+		// Hitting a wall
+		Fx().Sparks(pos)
+	}
+
 	if isRangedAttack {
 		// TODO: Attack effect as weapon data, not just this ad-hoc thing.
 		Fx().Shoot(wielder, pos)

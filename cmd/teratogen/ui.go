@@ -485,8 +485,13 @@ func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
 	worldP2 := Tile2WorldPos(hitPos).Plus(InCellJitter())
 	p1, p2 := image.Pt(worldP1.X, worldP1.Y), image.Pt(worldP2.X, worldP2.Y)
 	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
+}
 
-	// TODO: Sparks when hitting walls.
+func (self *SdlEffects) Sparks(pos geom.Pt2I) {
+	p := Tile2WorldPos(pos).Plus(InCellJitter())
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p.X, p.Y,
+		VisualScale(), 2e8, float64(VisualScale())*10.0,
+		gfx.White, gfx.Yellow, 15)
 }
 
 func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
