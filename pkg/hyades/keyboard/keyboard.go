@@ -12,12 +12,20 @@ const (
 )
 
 func (self KeyMap) Map(key int) int {
+	sign := 1
+	if key < 0 {
+		// Remove the minus sign from codes of released keys, but remember the
+		// sign for later.
+		sign = -1
+		key = -key
+	}
+
 	keyCh := key & StripModifiers
 	mods := key &^ keyCh
 	if keyCh >= 32 && keyCh-32 < len(self) {
 		keyCh = int(self[keyCh-32])
 	}
-	return keyCh | mods
+	return sign * (keyCh | mods)
 }
 
 func KeyCode(keyName string) (code int, ok bool) {
