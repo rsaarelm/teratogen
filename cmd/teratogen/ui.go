@@ -62,6 +62,9 @@ type UI struct {
 
 	mapView   *MapView
 	timePoint int64
+
+	// A persistent text input component which remembers old commands.
+	commandLine *txt.TextInput
 }
 
 var ui *UI
@@ -94,6 +97,7 @@ func newUI() (result *UI) {
 	result.running = true
 	result.mapView = NewMapView()
 	result.timePoint = time.Nanoseconds()
+	result.commandLine = txt.NewTextInput()
 	result.PushKeyHandler(result.mapView)
 
 	return
@@ -474,6 +478,29 @@ func ApplyItemMenu() (actionMade bool) {
 		game.Msg("Okay, then.\n")
 	}
 	return false
+}
+
+func InputText(prompt string) (result string) {
+	input := ui.commandLine
+
+	running := true
+	defer func() { running = false }()
+
+	// Display the input area
+	go func(anim *gfx.Anim) {
+		defer anim.Close()
+		for running {
+			g, _ := anim.StartDraw()
+			// XXX: Hardcoded positions
+			DrawString(g, 8, 120, prompt+input.CurrentInput)
+			anim.StopDraw()
+		}
+	}(ui.AddScreenAnim(gfx.NewAnim(0.0)))
+
+	ui.PushKeyHandler(input)
+	result = <-input.Input
+	ui.PopKeyHandler()
+	return
 }
 
 type SdlEffects struct{}
