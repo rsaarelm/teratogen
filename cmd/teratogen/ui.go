@@ -495,8 +495,8 @@ func InputText(prompt string) (result string) {
 		defer anim.Close()
 		for running {
 			g, _ := anim.StartDraw()
-			DrawString(g, stringX, stringY, prompt+input.CurrentInput)
-			cursorXOff := ui.font.StringWidth(prompt + input.CurrentInput[0:input.CursorPos()])
+			DrawString(g, stringX, stringY, prompt+input.CurrentInput())
+			cursorXOff := ui.font.StringWidth(prompt + input.CurrentInput()[0:input.CursorPos()])
 			// Draw cursor.
 			g.FillRect(image.Rect(stringX+cursorXOff, stringY, stringX+cursorXOff+1, stringY+ui.font.Height()), defaultTextColor)
 			anim.StopDraw()
