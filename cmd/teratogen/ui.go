@@ -483,6 +483,10 @@ func ApplyItemMenu() (actionMade bool) {
 func InputText(prompt string) (result string) {
 	input := ui.commandLine
 
+	// XXX: Hardcoded positions
+	const stringX = 8
+	const stringY = 120
+
 	running := true
 	defer func() { running = false }()
 
@@ -491,8 +495,10 @@ func InputText(prompt string) (result string) {
 		defer anim.Close()
 		for running {
 			g, _ := anim.StartDraw()
-			// XXX: Hardcoded positions
-			DrawString(g, 8, 120, prompt+input.CurrentInput)
+			DrawString(g, stringX, stringY, prompt+input.CurrentInput)
+			cursorXOff := ui.font.StringWidth(prompt + input.CurrentInput[0:input.CursorPos()])
+			// Draw cursor.
+			g.FillRect(image.Rect(stringX+cursorXOff, stringY, stringX+cursorXOff+1, stringY+ui.font.Height()), defaultTextColor)
 			anim.StopDraw()
 		}
 	}(ui.AddScreenAnim(gfx.NewAnim(0.0)))

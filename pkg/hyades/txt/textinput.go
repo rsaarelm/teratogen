@@ -18,6 +18,10 @@ func NewTextInput() (result *TextInput) {
 	return
 }
 
+func (self *TextInput) CursorPos() int {
+	return self.cursorPos
+}
+
 func (self *TextInput) setCursor(pos int) {
 	self.cursorPos = pos
 
