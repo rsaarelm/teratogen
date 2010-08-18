@@ -2,8 +2,8 @@ package txt
 
 import (
 	"container/vector"
+	"fmt"
 	"hyades/keyboard"
-	"utf8"
 )
 
 type TextInput struct {
@@ -37,28 +37,39 @@ func (self *TextInput) moveCursor(delta int) {
 }
 
 func (self *TextInput) insert(text string) {
-	self.CurrentInput = self.CurrentInput[0:self.cursorPos] + text +
-		self.CurrentInput[self.cursorPos:]
+	self.setCurrent(self.CurrentInput()[0:self.cursorPos] + text +
+		self.CurrentInput()[self.cursorPos:])
 }
 
 func (self *TextInput) delete(n int) {
-	if self.cursorPos+n > len(self.CurrentInput) {
-		n = len(self.CurrentInput) - self.cursorPos
+	if self.cursorPos+n > len(self.CurrentInput()) {
+		n = len(self.CurrentInput()) - self.cursorPos
 	}
-	self.CurrentInput = self.CurrentInput[0:self.cursorPos] +
-		self.CurrentInput[self.cursorPos+n:]
+	self.setCurrent(self.CurrentInput()[0:self.cursorPos] +
+		self.CurrentInput()[self.cursorPos+n:])
+}
+
+func (self *TextInput) eatDuplicate() {
+	if self.historyPos > 0 &&
+		self.inputHistory.At(self.historyPos) == self.inputHistory.At(self.historyPos - 1) {
+		self.inputHistory.Delete(self.historyPos)
+		self.historyPos--
+	}
 }
 
 func (self *TextInput) Clear() {
-	self.CurrentInput = ""
 	self.setCursor(0)
+	empty := ""
+	self.historyPos = self.inputHistory.Len() - 1
+	if self.CurrentInput() != empty {
+		self.inputHistory.Push(empty)
+		self.historyPos++
+	}
 }
 
 func (self *TextInput) HandleKey(keyCode int) {
 	if keyCode > 0 && keyCode&keyboard.Nonprintable == 0 {
-		buf := make([]byte, 4)
-		utf8.EncodeRune(keyCode, buf)
-		self.insert(string(buf))
+		self.insert(fmt.Sprintf("%c", keyCode))
 
 		self.moveCursor(1)
 	} else {
