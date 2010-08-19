@@ -462,7 +462,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 		game.Msg("Saving screenshot.\n")
 		SaveScreenshot()
 	case keyboard.K_F2:
-		txt := InputText("Type something> ")
+		txt := GetMsg().InputText("Type something> ")
 		game.Msg("%s\n", txt)
 	}
 }

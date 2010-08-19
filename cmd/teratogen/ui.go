@@ -62,9 +62,6 @@ type UI struct {
 
 	mapView   *MapView
 	timePoint int64
-
-	// A persistent text input component which remembers old commands.
-	commandLine *txt.TextInput
 }
 
 var ui *UI
@@ -97,7 +94,6 @@ func newUI() (result *UI) {
 	result.running = true
 	result.mapView = NewMapView()
 	result.timePoint = time.Nanoseconds()
-	result.commandLine = txt.NewTextInput()
 	result.PushKeyHandler(result.mapView)
 
 	return
@@ -200,9 +196,26 @@ func drawMsgLines(g gfx.Graphics, area image.Rectangle) {
 	g.SetClip(area)
 	defer g.ClearClip()
 
+	fontH := ui.font.Height()
+
+	// Scroll down if there's too much text.
+	maxLines := area.Dy() / fontH
+	if GetMsg().NumLines()-ui.oldestLineSeen > maxLines {
+		ui.oldestLineSeen = GetMsg().NumLines() - maxLines
+	}
+
 	for i := ui.oldestLineSeen; i < GetMsg().NumLines(); i++ {
-		DrawString(g, area.Min.X, area.Min.Y+(FontH*(i-ui.oldestLineSeen)),
+		yOff := area.Min.Y + (fontH * (i - ui.oldestLineSeen))
+		DrawString(g, area.Min.X, yOff,
 			GetMsg().GetLine(i))
+		if GetMsg().CursorPos.Y == i {
+			// Draw cursor.
+			xOff := ui.font.StringWidth(GetMsg().GetLine(i)[0:GetMsg().CursorPos.X])
+			g.FillRect(
+				image.Rect(area.Min.X+xOff, yOff,
+					area.Min.X+xOff+1, yOff+ui.font.Height()),
+				defaultTextColor)
+		}
 	}
 }
 
@@ -478,35 +491,6 @@ func ApplyItemMenu() (actionMade bool) {
 		game.Msg("Okay, then.\n")
 	}
 	return false
-}
-
-func InputText(prompt string) (result string) {
-	input := ui.commandLine
-
-	// XXX: Hardcoded positions
-	const stringX = 8
-	const stringY = 120
-
-	running := true
-	defer func() { running = false }()
-
-	// Display the input area
-	go func(anim *gfx.Anim) {
-		defer anim.Close()
-		for running {
-			g, _ := anim.StartDraw()
-			DrawString(g, stringX, stringY, prompt+input.CurrentInput())
-			cursorXOff := ui.font.StringWidth(prompt + input.CurrentInput()[0:input.CursorPos()])
-			// Draw cursor.
-			g.FillRect(image.Rect(stringX+cursorXOff, stringY, stringX+cursorXOff+1, stringY+ui.font.Height()), defaultTextColor)
-			anim.StopDraw()
-		}
-	}(ui.AddScreenAnim(gfx.NewAnim(0.0)))
-
-	ui.PushKeyHandler(input)
-	result = <-input.Input
-	ui.PopKeyHandler()
-	return
 }
 
 type SdlEffects struct{}
