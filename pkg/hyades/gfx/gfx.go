@@ -131,6 +131,12 @@ func FilterTransparent(img draw.Image, transparencyColor image.Color) {
 		})
 }
 
+// AlphaRemoveFn is a FilterImage function that turns the alpha channel opaque.
+func OpaqueAlphaFn(col image.Color) image.Color {
+	r, g, b, _ := RGBA8Bit(col)
+	return image.RGBAColor{r, g, b, 255}
+}
+
 func Clip(src image.Image, cons Constructor, rect image.Rectangle) (result draw.Image) {
 	result = cons(rect.Dx(), rect.Dy())
 	draw.Draw(result, result.Bounds(), src, rect.Min)
