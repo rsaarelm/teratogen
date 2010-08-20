@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"exp/draw"
 	"fmt"
 	"hyades/dbg"
 	"hyades/fs"
@@ -105,11 +106,18 @@ func Media(name string) interface{} { return cache[name] }
 func SaveScreenshot() {
 	GetUISync()
 	screen := ui.context.SdlScreen()
+
+	shot := image.NewRGBA(screen.Bounds().Dx(), screen.Bounds().Dy())
+	draw.Draw(shot, screen.Bounds(), screen, image.ZP)
+
+	// XXX: Alpha must be removed from the image or the shot bitmap goes funny.
+	gfx.FilterImage(shot, gfx.OpaqueAlphaFn)
+
 	filename := fmt.Sprintf("/tmp/sshot-%d.png", time.UTC().Seconds())
 	file, err := os.Open(filename, os.O_WRONLY|os.O_CREAT, 0666)
 
 	if err == nil {
-		png.Encode(file, screen)
+		png.Encode(file, shot)
 	}
 
 	file.Close()
