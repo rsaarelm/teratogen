@@ -119,6 +119,10 @@ func (self *TextInput) HandleKey(keyCode int) {
 			self.historyMove(-1)
 		case keyboard.K_DOWN, keyboard.K_KP2:
 			self.historyMove(1)
+		case keyboard.K_HOME:
+			self.setCursor(0)
+		case keyboard.K_END:
+			self.setCursor(len(self.CurrentInput()))
 		case keyboard.K_RETURN, keyboard.K_KP_ENTER:
 			self.Input <- self.CurrentInput()
 			self.eatDuplicate()
