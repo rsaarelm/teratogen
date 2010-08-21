@@ -440,7 +440,8 @@ func EquipMenu() {
 func UiHelpLines() *vector.Vector {
 	vec := new(vector.Vector)
 	vec.Push("esc: exit menu")
-	vec.Push("arrow keys, qweasd: move, attack adjacent")
+	vec.Push("arrow keys, qwe asd: move/attack")
+	vec.Push("uio jkl: fire gun")
 	vec.Push("Return, keypad 5: action key")
 	vec.Push("Q: quit")
 
