@@ -4,11 +4,27 @@ import (
 	"exp/eval"
 	"os"
 	"strings"
+	"sync"
 	game "teratogen"
 )
 
+var onceTerp sync.Once
+
+var terp *eval.World
+
+func initTerp() {
+	terp = eval.NewWorld()
+
+	t, v := eval.FuncFromNativeTyped(wrapNextLevel, game.NextLevel)
+	terp.DefineConst("NextLevel", t, v)
+}
+
+func wrapNextLevel(t *eval.Thread, args []eval.Value, res []eval.Value) {
+	game.NextLevel()
+}
+
 func RunRepl() {
-	terp := eval.NewWorld()
+	onceTerp.Do(initTerp)
 
 	GetMsg().WriteString("Welcome to the console. Press return without writing anything to exit.\n")
 	for {
@@ -32,14 +48,19 @@ func RunRepl() {
 			if err != nil {
 				game.Msg("%v\n", err)
 			} else {
-				game.Msg("%v\n", ret)
+				if ret != nil {
+					game.Msg("%v\n", ret)
+				}
 			}
 		}
 	}
 }
 
+// needTerminatingSemicolon checks if the error message is non-nil and
+// complaining about missing end semicolon.
 func needTerminatingSemicolon(err os.Error) bool {
-	// Check if the error is one complaining about missing end semicolon
+	// XXX: Hardcoded specific error message wording, this will break if the
+	// eval library changes its error message.
 	const terminatingSemicolonMsg = "expected ';', found 'EOF'"
 	return err != nil && strings.Index(err.String(), terminatingSemicolonMsg) != -1
 }
