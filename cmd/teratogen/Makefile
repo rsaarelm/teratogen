@@ -8,6 +8,7 @@ GOFILES=\
 	mapview.go\
 	media.go\
 	msg.go\
+	repl.go\
 	ui.go\
 
 include $(GOROOT)/src/Make.cmd

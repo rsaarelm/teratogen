@@ -607,14 +607,3 @@ func YesNoInput() bool {
 	key := GetKey()
 	return key == 'y' || key == 'Y'
 }
-
-func RunRepl() {
-	GetMsg().WriteString("Welcome to the console. Press return without writing anything to exit.\n")
-	for {
-		txt := GetMsg().InputText("> ")
-		if txt == "" {
-			return
-		}
-		game.Msg("%s\n", txt)
-	}
-}
