@@ -17,7 +17,7 @@ const HardsuitArmorLevel = 120
 
 func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
-	const outOfDepthFactor = 2.0
+	const outOfDepthFactor = 80.0
 	fscarcity := float64(scarcity)
 
 	if depth < minDepth {

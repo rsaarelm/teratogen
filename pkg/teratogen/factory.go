@@ -62,7 +62,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["infectedGuard"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 0),
+		Metadata:      MetaTemplate(100, 3),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected guard", "chars:12", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
@@ -72,7 +72,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["zombie"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 3),
+		Metadata:      MetaTemplate(100, 2),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
