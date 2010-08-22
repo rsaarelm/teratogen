@@ -26,6 +26,9 @@ const (
 	WeaponZap
 	WeaponSmash
 	WeaponNether
+	WeaponBear
+	WeaponGator
+	WeaponCultist
 )
 
 const WeaponComponent = entity.ComponentFamily("weapon")
@@ -57,6 +60,9 @@ var weaponLookup = map[int]*Weapon{
 	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4, 0}, // TODO: Stun
 	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1, 0},
 	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7, 0},
+	WeaponBear:     &Weapon{"claws", "maul{sub.s}", 40, 1, 0},
+	WeaponGator:    &Weapon{"bite", "bite{sub.s}", 60, 1, 0},
+	WeaponCultist:  &Weapon{"curse", "zap{sub.s}", 20, 4, 0}, // TODO: Curse
 }
 
 const (

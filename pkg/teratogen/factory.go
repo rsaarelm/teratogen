@@ -90,7 +90,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["belcher"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 4),
+		Metadata:      MetaTemplate(200, 2),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -147,6 +147,15 @@ func init() {
 			Hp:         45,
 			Intrinsics: IntrinsicMartialArtist},
 	}
+	a["bear"] = entity.Assemblage{
+		Metadata:      MetaTemplate(2000, 0),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("bear", "chars:23", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponBear,
+			Hp:         80,
+			Intrinsics: NoIntrinsic},
+	}
 	a["killbot"] = entity.Assemblage{
 		Metadata:      MetaTemplate(300, 8),
 		PosComponent:  PosTemplate(),
@@ -166,6 +175,77 @@ func init() {
 			Hp:         120,
 			Intrinsics: NoIntrinsic},
 	}
+	a["gator"] = entity.Assemblage{
+		Metadata:      MetaTemplate(800, 4),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("gator", "chars:9", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponGator,
+			Hp:         75,
+			Intrinsics: IntrinsicSlow},
+	}
+	a["cultist"] = entity.Assemblage{
+		Metadata:      MetaTemplate(400, 10),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("cultist", "chars:25", PronounHe, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponBayonet,
+			Attack2:    WeaponCultist,
+			Hp:         75,
+			Intrinsics: NoIntrinsic},
+	}
+
+	// Insect creatures, add some special attack...?
+	a["anunaki"] = entity.Assemblage{
+		Metadata:      MetaTemplate(800, 10),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("anunaki", "chars:24", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponJaws,
+			Hp:         90,
+			Intrinsics: NoIntrinsic},
+	}
+
+	a["monolith"] = entity.Assemblage{
+		Metadata:      MetaTemplate(500, 10),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("monolith", "chars:27", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack2:    WeaponZap,
+			Hp:         150,
+			Intrinsics: IntrinsicImmobile},
+	}
+
+	a["imago"] = entity.Assemblage{
+		Metadata:      MetaTemplate(800, 13),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("imago", "chars:21", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponJaws,
+			Hp:         120,
+			Intrinsics: IntrinsicFast},
+	}
+
+	a["abomination"] = entity.Assemblage{
+		Metadata:      MetaTemplate(800, 13),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("imago", "chars:20", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponJaws,
+			Hp:         120,
+			Intrinsics: NoIntrinsic},
+	}
+
+	a["gomboc"] = entity.Assemblage{
+		Metadata:      MetaTemplate(500, 13),
+		PosComponent:  PosTemplate(),
+		NameComponent: NameTemplate("gomboc", "chars:26", PronounIt, false),
+		CreatureComponent: &CreatureTemplate{
+			Attack1:    WeaponSmash,
+			Hp:         120,
+			Intrinsics: IntrinsicFast},
+	}
+
 	a["boss1"] = entity.Assemblage{
 		Metadata:      MetaTemplate(-1, 0),
 		PosComponent:  PosTemplate(),
