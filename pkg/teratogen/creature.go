@@ -27,6 +27,7 @@ const (
 	IntrinsicHorns         // 50 % chance for a bonus +2 piercing melee attack
 	IntrinsicHooves        // 50 % chance for a bonus +2 blunt melee attack
 	IntrinsicShimmer       // 20 % chance to evade incoming attacks
+	IntrinsicImmobile
 )
 
 // Creature transient status traits.
