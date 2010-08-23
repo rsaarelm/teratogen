@@ -239,22 +239,22 @@ func drawStatus(g gfx.Graphics, area image.Rectangle) {
 	playerCrit := game.GetCreature(game.PlayerId())
 
 	wounds := playerCrit.WoundDescription()
-	mutations := game.MutationStatus(game.PlayerId())
+
 	healthStatus := wounds
-	if mutations != "" {
-		healthStatus += ", " + mutations
-	}
-	armorStatus := ""
 	if playerCrit.Armor > 0 {
-		armorStatus = fmt.Sprintf(" + %d Armor", int(playerCrit.Armor*game.ArmorScale))
+		healthStatus += fmt.Sprintf(" + %d Armor", int(playerCrit.Armor*game.ArmorScale))
 	}
 	DrawColorString(g, area.Min.X, area.Min.Y, statusLineColor(),
-		"%v%v", txt.Capitalize(healthStatus), armorStatus)
+		"%v", txt.Capitalize(healthStatus))
+
+	mutations := game.GetMutations(game.PlayerId())
+	DrawColorString(g, area.Min.X, area.Min.Y+FontH, statusLineColor(),
+		fmt.Sprintf("%.02f humanity", mutations.HumanityLevel()*100.0))
 
 	inv := game.GetInventory(game.PlayerId())
-	DrawString(g, area.Min.X, area.Min.Y+FontH, fmt.Sprintf("Ammo: %d", inv.Ammo))
+	DrawString(g, area.Min.X, area.Min.Y+2*FontH, fmt.Sprintf("Ammo: %d", inv.Ammo))
 
-	helpLineY := FontH * 3
+	helpLineY := FontH * 4
 	for _, o := range *UiHelpLines() {
 		DrawString(g, area.Min.X, area.Min.Y+helpLineY, o.(string))
 		helpLineY += FontH

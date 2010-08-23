@@ -10,6 +10,7 @@ const MutationsComponent = entity.ComponentFamily("mutations")
 
 type Mutations struct {
 	mutations uint64
+	Humanity  float64
 }
 
 const (
@@ -107,6 +108,10 @@ func GetMutations(id entity.Id) *Mutations {
 
 func (self *Mutations) MutationLevel() int {
 	return num.NumberOfSetBitsU64(self.mutations)
+}
+
+func (self *Mutations) HumanityLevel() float64 {
+	return self.Humanity
 }
 
 func (self *Mutations) HasMutation(mutation uint64) bool {
