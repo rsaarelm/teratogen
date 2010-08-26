@@ -49,6 +49,8 @@ test.dirs: $(addsuffix .test, $(TEST))
 	$(GOMAKE) -C $* test
 
 clean: clean.dirs
+	rm -f Make.deps
+	rm -f ../cmd/cgo
 
 install: install.dirs
 
@@ -57,6 +59,7 @@ test: test.dirs
 nuke: nuke.dirs
 
 deps:
+	ln -sf $(GOROOT)/src/cmd/cgo ../cmd/ 	# XXX: Hack to get around the relative reference to cgo which deps.bash introduces.
 	$(GOROOT)/src/pkg/deps.bash
 
 -include Make.deps
