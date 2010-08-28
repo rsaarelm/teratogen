@@ -7,7 +7,6 @@ import (
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/mem"
-	"hyades/num"
 	"io"
 	"os"
 	"rand"
@@ -81,11 +80,8 @@ func (self *Context) EnterLevel(depth int) {
 	case depth <= 15:
 		GetArea().MakeVisceraMap()
 	default:
-		if num.WithProb(0.5) {
-			GetArea().MakeCaveMap()
-		} else {
-			GetArea().MakeBSPMap()
-		}
+		depth = 15
+		GetArea().MakeVisceraMap()
 	}
 
 	if depth == endDepth {
