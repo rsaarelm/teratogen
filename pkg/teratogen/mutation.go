@@ -9,6 +9,7 @@ import (
 const MutationsComponent = entity.ComponentFamily("mutations")
 
 const ExpScale float64 = 0.0002
+const LevelUpHpBonus = 10
 
 const numLevels = 20
 
@@ -150,6 +151,8 @@ func Mutate(id entity.Id) {
 		terminalMutation(id)
 		return
 	}
+
+	crit.healthScale += LevelUpHpBonus
 
 	// Level-up full heal
 	crit.Health = 1.0
