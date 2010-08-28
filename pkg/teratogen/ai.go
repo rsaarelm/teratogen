@@ -37,10 +37,6 @@ func DoAI(aiEntity entity.Id) bool {
 }
 
 func aiMove(aiEntity entity.Id) {
-	if crit := GetCreature(aiEntity); crit != nil && crit.HasIntrinsic(IntrinsicImmobile) {
-		return
-	}
-
 	dirVec := GetPos(aiGetCurrentEnemyId(aiEntity)).Minus(GetPos(aiEntity))
 	dir6 := geom.Vec2IToDir6(dirVec)
 	moveVec := geom.Dir6ToVec(dir6)

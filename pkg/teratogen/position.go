@@ -115,6 +115,13 @@ func GetParentPosOrPos(guid entity.Id) (pos geom.Pt2I, ok bool) {
 }
 
 func TryMove(id entity.Id, vec geom.Vec2I) (success bool) {
+	if crit := GetCreature(id); crit != nil {
+		if crit.HasIntrinsic(IntrinsicImmobile) {
+			// Immobiles can't ever move.
+			return false
+		}
+	}
+
 	if IsOpen(GetPos(id).Plus(vec)) {
 		PosComp(id).Move(vec)
 		return true
