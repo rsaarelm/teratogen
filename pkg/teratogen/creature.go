@@ -123,7 +123,7 @@ func (self *Creature) IsSeriouslyHurt() bool {
 }
 
 func (self *Creature) WoundDescription() string {
-	return fmt.Sprintf("%d health", int(self.Health*100))
+	return fmt.Sprintf("%d health", int(self.Health*self.healthScale))
 }
 
 func (self *Creature) AddIntrinsic(intrinsic int32) {
