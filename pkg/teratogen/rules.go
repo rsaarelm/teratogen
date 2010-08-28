@@ -410,3 +410,19 @@ func DamagePos(pos, sourcePos geom.Pt2I, magnitude float64, kind DamageType, cau
 		GetCreature(id).Damage(id, causerId, sourcePos, magnitude, kind)
 	}
 }
+
+// ConfusionScramble randomly rotates a direction a creature is using around
+// if the creature has the confused status on. Use this on directions
+// creatures use for moving or attacking. Longer than unit length vectors
+// retain their length in hexes, but are returned pointing along one of the
+// hex cardinal directions if scrambled.
+func ConfusionScramble(id entity.Id, dir geom.Vec2I) geom.Vec2I {
+	if crit := GetCreature(id); crit != nil && crit.HasStatus(StatusConfused) {
+		// Confused creatures don't always manage to step where they want to.
+		if num.OneChanceIn(2) {
+			// Randomize direction.
+			return geom.Dir6ToVec(rand.Intn(6)).Scale(dir.HexLen())
+		}
+	}
+	return dir
+}

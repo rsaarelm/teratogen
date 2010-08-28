@@ -53,8 +53,8 @@ var weaponLookup = map[int]*Weapon{
 	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12, WeaponUsesAmmo},
 	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5, 0},
 	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1, 0},
-	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1, 0},     // TODO: Poison
-	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7, 0}, // TODO: Confuse
+	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1, 0}, // TODO: Poison
+	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7, WeaponConfuses},
 	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7, 0},
 	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1, 0},
 	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4, 0}, // TODO: Stun
@@ -67,6 +67,7 @@ var weaponLookup = map[int]*Weapon{
 
 const (
 	WeaponUsesAmmo = 1 << iota
+	WeaponConfuses
 )
 
 // Serve as template, prototype-style.
@@ -117,6 +118,13 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64
 		return
 	}
 
+	if crit := GetCreature(wielder); crit != nil {
+		// Rotate the target for confused creatures.
+		// XXX: Moving between vectors and points here is a bit clumsy.
+		vec := ConfusionScramble(wielder, pos.Minus(GetPos(wielder)))
+		pos = GetPos(wielder).Plus(vec)
+	}
+
 	var successDegree float64
 
 	for o := range iterable.Drop(geom.HexLine(GetPos(wielder), pos), 1).Iter() {
@@ -164,10 +172,21 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64
 
 	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
 
-	// TODO: Damage type from weapon.
-	GetCreature(target).Damage(
-		target, wielder,
-		GetPos(wielder), damage, BluntDamage)
+	if crit := GetCreature(target); crit != nil {
+
+		// TODO: Damage type from weapon.
+		crit.Damage(
+			target, wielder,
+			GetPos(wielder), damage, BluntDamage)
+
+		switch {
+		case self.HasFlag(WeaponConfuses):
+			if num.OneChanceIn(2) {
+				crit.AddStatus(StatusConfused)
+				EMsg("{sub.Thename} {sub.is} confused.\n", target, entity.NilId)
+			}
+		}
+	}
 }
 
 // checkHits returns whether the weapon's attack hits something in the given

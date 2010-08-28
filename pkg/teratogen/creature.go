@@ -245,3 +245,36 @@ func (self *Creature) Weapon1() *Weapon {
 func (self *Creature) Weapon2() *Weapon {
 	return weaponLookup[self.Attack2]
 }
+
+// SaveToLose removes the specified status effect with the given probabilty.
+// Returns true if the effect was removed, false if the effect stays or wasn't
+// present to begin with.
+func (self *Creature) SaveToLose(status int32, prob float64) bool {
+	if self.HasStatus(status) && rand.Float64() <= prob {
+		self.RemoveStatus(status)
+		return true
+	}
+	return false
+}
+
+func StatusDescription(status int32) string {
+	switch status {
+	case StatusSlow:
+		return "slow"
+	case StatusQuick:
+		return "quick"
+	case StatusConfused:
+		return "confused"
+	case StatusStunned:
+		return "stunned"
+	case StatusPoisoned:
+		return "poisoned"
+	case StatusDead:
+		return "dead"
+	case StatusBloodTrail:
+		return "trailing blood"
+	case StatusMutationShield:
+		return "protected from mutation"
+	}
+	return ""
+}

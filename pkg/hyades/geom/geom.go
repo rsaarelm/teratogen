@@ -72,6 +72,10 @@ func (lhs Vec2I) Dot(rhs Vec2I) int { return lhs.X*rhs.X + lhs.Y*rhs.Y }
 
 func (self Vec2I) Abs() float64 { return math.Sqrt(float64(self.Dot(self))) }
 
+func (self Vec2I) HexLen() int {
+	return HexDist(Origin, Origin.Plus(self))
+}
+
 // XXX: Should use iterable.Iterable?
 
 // Iterate points where x0 <= x < x0 + width and y0 <= y < y0 + height.

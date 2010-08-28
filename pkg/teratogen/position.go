@@ -120,6 +120,8 @@ func TryMove(id entity.Id, vec geom.Vec2I) (success bool) {
 			// Immobiles can't ever move.
 			return false
 		}
+
+		vec = ConfusionScramble(id, vec)
 	}
 
 	if IsOpen(GetPos(id).Plus(vec)) {

@@ -110,7 +110,10 @@ func Heartbeats() {
 
 // Heartbeat runs status updates on active entities. Things such as temporary
 // effects wearing off or affecting an entity go here.
-func Heartbeat(id entity.Id) { bloodtrailHeartbeat(id) }
+func Heartbeat(id entity.Id) {
+	bloodtrailHeartbeat(id)
+	buffHeartBeat(id)
+}
 
 func bloodtrailHeartbeat(id entity.Id) {
 	crit := GetCreature(id)
@@ -129,6 +132,18 @@ func bloodtrailHeartbeat(id entity.Id) {
 				crit.RemoveStatus(StatusBloodTrail)
 			}
 		}
+	}
+}
+
+func buffHeartBeat(id entity.Id) {
+	crit := GetCreature(id)
+	if crit == nil {
+		return
+	}
+
+	if crit.SaveToLose(StatusConfused, 1.0/10) {
+		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
+			id, entity.NilId, StatusDescription(StatusConfused))
 	}
 }
 
