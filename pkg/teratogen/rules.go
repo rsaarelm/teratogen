@@ -109,10 +109,7 @@ func MovePlayerDir(dir int) {
 		if GetName(id) == "globe" {
 			// TODO: Different globe effects.
 			if GetCreature(PlayerId()).Health < 1.0 {
-				mutationMsg := FormatMessage("{obj.Thename} bursts. {sub.Thename} feel{sub.s} strange.\n", PlayerId(), id)
-				if !PlayerMutationRoll(1, mutationMsg) {
-					EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
-				}
+				EMsg("{obj.Thename} bursts. {sub.Thename} feel{sub.s} better.\n", PlayerId(), id)
 				Fx().Heal(PlayerId(), 1)
 				GetCreature(PlayerId()).Heal(0.15)
 				// Deferring this until the iteration is over.
@@ -378,30 +375,21 @@ func CanEsperSense(id entity.Id) bool {
 	return false
 }
 
-func CreaturePowerLevel(id entity.Id) int {
-	if crit := GetCreature(id); crit != nil {
-		// TODO: Increase power from intrinsincs.
-		return num.Imax(1, Log2Modifier(int(crit.HealthScale())))
+// ExpValue returns the experience point reward the player should get for
+// defeating a creature.
+func ExpValue(creatureId entity.Id) float64 {
+	if crit := GetCreature(creatureId); crit != nil {
+		// XXX: Only looks at hit points, should also be adjusted based on
+		// weapons and intrinsics that make the creature more challenging.
+		return crit.HealthScale()
 	}
 	return 0
 }
 
 func OnPlayerKill(killedId entity.Id) {
-	const mutationResistance = 10
-
-	power := CreaturePowerLevel(killedId)
-	dist := EntityDist(killedId, PlayerId())
-	if dist < 2.0 {
-		// More effect from close combat kills.
-		power *= 2
+	if mutations := GetMutations(PlayerId()); mutations != nil {
+		mutations.GiveExp(PlayerId(), ExpValue(killedId))
 	}
-
-	PlayerMutationRoll(power, "The kill affects you.\n")
-}
-
-func PlayerMutationRoll(power int, msg string) bool {
-	// XXX: Taking mutations out for now. Will rewrite them.
-	return false
 }
 
 func IsAlive(id entity.Id) bool {

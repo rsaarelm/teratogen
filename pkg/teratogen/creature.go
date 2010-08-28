@@ -151,14 +151,6 @@ func (self *Creature) HealthScale() float64 {
 	return self.healthScale
 }
 
-// ExpValue returns the experience point reward the player should get for
-// defeating the creature.
-func (self *Creature) ExpValue() float64 {
-	// XXX: Only looks at hit points, not at extra powers from weapons and
-	// intrinsics.
-	return self.HealthScale()
-}
-
 func (self *Creature) Die(selfId entity.Id, causerId entity.Id) {
 	if self.Statuses&StatusDead != 0 {
 		return

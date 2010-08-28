@@ -8,6 +8,10 @@ import (
 
 const MutationsComponent = entity.ComponentFamily("mutations")
 
+const ExpScale float64 = 0.0002
+
+const numLevels = 20
+
 type Mutations struct {
 	mutations uint64
 	Humanity  float64
@@ -114,6 +118,17 @@ func (self *Mutations) HumanityLevel() float64 {
 	return self.Humanity
 }
 
+func (self *Mutations) GiveExp(id entity.Id, amount float64) {
+	oldHumanity := self.Humanity
+	self.Humanity -= amount * ExpScale
+
+	// XXX: Subtract the very small number from both to keep a mutation from
+	// happening at the very first humanity drop from 100 % to 99.whatever %.
+	for i := int(self.Humanity*numLevels - 1e-9); i < int(oldHumanity*numLevels-1e-9); i++ {
+		Mutate(id)
+	}
+}
+
 func (self *Mutations) HasMutation(mutation uint64) bool {
 	return self.mutations&mutation != 0
 }
@@ -128,17 +143,6 @@ func Mutate(id entity.Id) {
 		return
 	}
 
-	if crit.HasStatus(StatusMutationShield) {
-		EMsg("{sub.Thename} remain{sub.s} unchanged.\n", id, entity.NilId)
-		if num.OneChanceIn(2) {
-			crit.RemoveStatus(StatusMutationShield)
-			if id == PlayerId() {
-				Msg("You feel less stable.\n")
-			}
-		}
-		return
-	}
-
 	mutations := GetMutations(id)
 
 	// Creatures without a mutations component just go terminal straight away.
@@ -147,23 +151,26 @@ func Mutate(id entity.Id) {
 		return
 	}
 
+	// Level-up full heal
+	crit.Health = 1.0
+
 	available := ([]interface{})(*availableMutations(id))
 
 	if len(available) == 0 {
 		// No available mutations.
 		EMsg("{sub.Thename} feel{sub.s} unstable for a moment.\n", id, entity.NilId)
-		return
+	} else {
+		mut := num.RandomChoiceA(available).(*mutation)
+
+		EMsg("{sub.Thename} mutate{sub.s}.\n", id, entity.NilId)
+		mut.Apply(id)
+
+		if id == PlayerId() {
+			Fx().MorePrompt()
+		}
 	}
 
-	mut := num.RandomChoiceA(available).(*mutation)
-
-	EMsg("{sub.Thename} mutate{sub.s}.\n", id, entity.NilId)
-	mut.Apply(id)
-
-	// Heal the creature while at it.
-	crit.Health = 1.0
-
-	if mutations.MutationLevel() >= terminalMutationCount {
+	if mutations.HumanityLevel() < 0 {
 		EMsg("{sub.Thename} mutate{sub.s} further!\n", id, entity.NilId)
 		terminalMutation(id)
 	}
@@ -186,41 +193,6 @@ func terminalMutation(id entity.Id) {
 	if id == PlayerId() {
 		GameOver("became one with the Tau wave.")
 	}
-}
-
-const terminalMutationCount = 10
-
-func MutationStatus(id entity.Id) string {
-	if mut := GetMutations(id); mut != nil {
-		return mutationStatusString(mut.MutationLevel())
-	}
-	return ""
-}
-
-func mutationStatusString(numMutations int) string {
-	switch numMutations {
-	case 1:
-		return "touched"
-	case 2:
-		return "tainted"
-	case 3:
-		return "unclean"
-	case 4:
-		return "altered"
-	case 5:
-		return "warped"
-	case 6:
-		return "blighted"
-	case 7:
-		return "noxious"
-	case 8:
-		return "corrupt"
-	case 9:
-		return "baneful"
-	case 10:
-		return "forsaken"
-	}
-	return ""
 }
 
 func availableMutations(id entity.Id) *vector.Vector {
