@@ -231,7 +231,7 @@ func init() {
 	a["abomination"] = entity.Assemblage{
 		Metadata:      MetaTemplate(800, 13),
 		PosComponent:  PosTemplate(),
-		NameComponent: NameTemplate("imago", "chars:20", PronounIt, false),
+		NameComponent: NameTemplate("abomination", "chars:20", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
 			Attack1:    WeaponJaws,
 			Hp:         120,
