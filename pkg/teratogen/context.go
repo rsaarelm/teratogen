@@ -105,8 +105,24 @@ func (self *Context) EnterLevel(depth int) {
 	GetFov().DoFov(GetPos(playerId))
 
 	spawnEntities(
-		makeSpawnDistribution(depth, AssemblageNamesIter(assemblages)),
-		spawnsPerLevel)
+		makeSpawnDistribution(
+			depth,
+			iterable.Filter(
+				AssemblageNamesIter(assemblages),
+				func(o interface{}) bool {
+					return AssemblageHasComponent(assemblages[o.(string)], CreatureComponent)
+				})),
+		creaturesPerLevel)
+
+	spawnEntities(
+		makeSpawnDistribution(
+			depth,
+			iterable.Filter(
+				AssemblageNamesIter(assemblages),
+				func(o interface{}) bool {
+					return !AssemblageHasComponent(assemblages[o.(string)], CreatureComponent)
+				})),
+		itemsPerLevel)
 
 	globals.CurrentLevel = int32(depth)
 }

@@ -231,7 +231,8 @@ func EntityDist(id1, id2 entity.Id) float64 {
 	return math.MaxFloat64
 }
 
-const spawnsPerLevel = 32
+const creaturesPerLevel = 24
+const itemsPerLevel = 12
 
 func Spawn(name string) entity.Id {
 	id := assemblages[name].MakeEntity(GetManager())
