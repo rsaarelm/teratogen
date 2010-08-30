@@ -7,6 +7,7 @@ import (
 	"hyades/entity"
 	"hyades/geom"
 	"hyades/mem"
+	"hyades/num"
 	"io"
 	"os"
 	"rand"
@@ -103,15 +104,16 @@ func (self *Context) EnterLevel(depth int) {
 	}
 	GetFov().DoFov(GetPos(playerId))
 
-	spawnEntities(depth)
+	spawnEntities(
+		makeSpawnDistribution(depth, AssemblageNamesIter(assemblages)),
+		spawnsPerLevel)
 
 	globals.CurrentLevel = int32(depth)
 }
 
-func spawnEntities(depth int) {
-	spawns := makeSpawnDistribution(depth, AssemblageNamesIter(assemblages))
-	for i := 0; i < spawnsPerLevel; i++ {
-		proto := spawns.Sample(rand.Float64()).(string)
+func spawnEntities(dist num.WeightedDist, num int) {
+	for i := 0; i < num; i++ {
+		proto := dist.Sample(rand.Float64()).(string)
 		SpawnRandomPos(proto)
 	}
 }
