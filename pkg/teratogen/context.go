@@ -103,13 +103,17 @@ func (self *Context) EnterLevel(depth int) {
 	}
 	GetFov().DoFov(GetPos(playerId))
 
+	spawnEntities(depth)
+
+	globals.CurrentLevel = int32(depth)
+}
+
+func spawnEntities(depth int) {
 	spawns := makeSpawnDistribution(depth)
 	for i := 0; i < spawnsPerLevel; i++ {
 		proto := spawns.Sample(rand.Float64()).(string)
 		SpawnRandomPos(proto)
 	}
-
-	globals.CurrentLevel = int32(depth)
 }
 
 func Destroy(id entity.Id) {
