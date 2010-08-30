@@ -109,7 +109,7 @@ func (self *Context) EnterLevel(depth int) {
 }
 
 func spawnEntities(depth int) {
-	spawns := makeSpawnDistribution(depth)
+	spawns := makeSpawnDistribution(depth, AssemblageNamesIter(assemblages))
 	for i := 0; i < spawnsPerLevel; i++ {
 		proto := spawns.Sample(rand.Float64()).(string)
 		SpawnRandomPos(proto)

@@ -267,18 +267,14 @@ func clearNonplayerEntities() {
 	}
 }
 
-func makeSpawnDistribution(depth int) num.WeightedDist {
+// makeSpawnDistribution makes a distribution of the given assemblage set for
+// the given depth.
+func makeSpawnDistribution(depth int, as iterable.Iterable) num.WeightedDist {
 	weightFn := func(item interface{}) float64 {
 		metadata := assemblages[item.(string)][Metadata].(*metaTemplate)
 		return SpawnWeight(metadata.Scarcity, metadata.MinDepth, depth)
 	}
-	values := make([]interface{}, len(assemblages))
-	i := 0
-	for name, _ := range assemblages {
-		values[i] = name
-		i++
-	}
-	return num.MakeWeightedDist(weightFn, values)
+	return num.MakeWeightedDist(weightFn, iterable.Data(as))
 }
 
 func BlocksMovement(id entity.Id) bool { return IsCreature(id) }

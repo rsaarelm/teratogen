@@ -1,6 +1,7 @@
 package teratogen
 
 import (
+	"exp/iterable"
 	"hyades/entity"
 )
 
@@ -333,4 +334,28 @@ func init() {
 		NameComponent: NameTemplate("ammo clip", "items:19", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, AmmoUse, NoItemTrait},
 	}
+}
+
+func AssemblageHasComponent(o entity.Assemblage, family entity.ComponentFamily) bool {
+	_, ok := o[family]
+	return ok
+}
+
+// AssemblageHasComponentFilterFn makes a filter function usable by
+// exp/iterable for assemblages that have a template component of a specific
+// family.
+func AssemblageHasComponentFilterFn(family entity.ComponentFamily) func(interface{}) bool {
+	return func(o interface{}) bool {
+		_, ok := o.(entity.Assemblage)[family]
+		return ok
+	}
+}
+
+func AssemblageNamesIter(assemblages map[string]entity.Assemblage) iterable.Iterable {
+	return iterable.Func(func(c chan<- interface{}) {
+		for name, _ := range assemblages {
+			c <- name
+		}
+		close(c)
+	})
 }
