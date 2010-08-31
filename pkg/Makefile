@@ -1,4 +1,4 @@
-all: deps install
+all: install
 
 DIRS=\
 	gostak\
@@ -37,9 +37,10 @@ nuke.dirs: $(addsuffix .nuke, $(DIRS))
 test.dirs: $(addsuffix .test, $(TEST))
 
 %.clean:
+	rm -f Make.deps
 	$(GOMAKE) -C $* clean
 
-%.install:
+%.install: Make.deps
 	$(GOMAKE) -C $* install
 
 %.nuke:
@@ -49,7 +50,6 @@ test.dirs: $(addsuffix .test, $(TEST))
 	$(GOMAKE) -C $* test
 
 clean: clean.dirs
-	rm -f Make.deps
 	rm -f ../cmd/cgo
 
 install: install.dirs
@@ -58,8 +58,10 @@ test: test.dirs
 
 nuke: nuke.dirs
 
-deps:
+Make.deps:
 	ln -sf $(GOROOT)/src/cmd/cgo ../cmd/ 	# XXX: Hack to get around the relative reference to cgo which deps.bash introduces.
 	$(GOROOT)/src/pkg/deps.bash
+
+deps: Make.deps
 
 -include Make.deps
