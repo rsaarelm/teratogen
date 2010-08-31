@@ -9,6 +9,7 @@ import (
 
 const (
 	NoWeapon = iota
+	WeaponGlove
 	WeaponFist
 	WeaponBayonet
 	WeaponClaw
@@ -43,6 +44,7 @@ type Weapon struct {
 
 var weaponLookup = map[int]*Weapon{
 	NoWeapon:       nil,
+	WeaponGlove:    &Weapon{"kinetic glove", "hit{sub.s}", 40, 1, 0},
 	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1, 0},
 	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1, 0},
 	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1, 0},

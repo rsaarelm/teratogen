@@ -19,13 +19,7 @@ type Mutations struct {
 }
 
 const (
-	MutationStr1 = 1 << iota
-	MutationStr2
-	MutationStr3
-	MutationGrow1
-	MutationGrow2
-	MutationGrow3
-	MutationEsp
+	MutationEsp = 1 << iota
 	MutationTough
 	MutationShimmer
 	MutationHooves
@@ -89,12 +83,6 @@ func (self *mutation) CanApplyTo(id entity.Id) bool {
 }
 
 var mutations = map[uint64]*mutation{
-	MutationStr1:    &mutation{MutationStr1, powerMutation, 0, nil, 0},
-	MutationStr2:    &mutation{MutationStr2, powerMutation, 0, nil, MutationStr1},
-	MutationStr3:    &mutation{MutationStr3, powerMutation, 0, nil, MutationStr2},
-	MutationGrow1:   &mutation{MutationGrow1, growMutation, 0, nil, 0},
-	MutationGrow2:   &mutation{MutationGrow2, growMutation, 0, nil, MutationGrow1},
-	MutationGrow3:   &mutation{MutationGrow3, growMutation, 0, nil, MutationGrow2},
 	MutationEsp:     &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
 	MutationTough:   &mutation{MutationTough, toughMutation, 2, nil, 0},
 	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 4, hasIntrinsicFilter(IntrinsicShimmer), 0},
@@ -208,18 +196,6 @@ func availableMutations(id entity.Id) *vector.Vector {
 	}
 
 	return vec
-}
-
-func growMutation(id entity.Id) {
-	EMsg("{sub.Thename} grow{sub.s} larger.\n", id, entity.NilId)
-	// TODO: Fix obsolete mutation
-	//	GetCreature(id).Scale++
-}
-
-func powerMutation(id entity.Id) {
-	EMsg("{sub.Thename} grow{sub.s} stronger.\n", id, entity.NilId)
-	// TODO: Fix obsolete mutation
-	//	GetCreature(id).Power++
 }
 
 func hasIntrinsicFilter(intrinsic int32) func(id entity.Id) bool {

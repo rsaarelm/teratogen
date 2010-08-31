@@ -56,7 +56,7 @@ func init() {
 			"Grenades": 0,
 			"Armor":    0}),
 		CreatureComponent: &CreatureTemplate{
-			Attack1:    WeaponFist,
+			Attack1:    WeaponGlove,
 			Attack2:    WeaponPistol,
 			Hp:         100,
 			Intrinsics: IntrinsicMartialArtist},
