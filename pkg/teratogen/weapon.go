@@ -40,31 +40,32 @@ type Weapon struct {
 	Power float64
 	Range int
 	Flags int64
+	Fx    AttackFx
 }
 
 var weaponLookup = map[int]*Weapon{
 	NoWeapon:       nil,
-	WeaponGlove:    &Weapon{"kinetic glove", "hit{sub.s}", 40, 1, 0},
-	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1, 0},
-	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1, 0},
-	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1, 0},
-	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1, 0},
-	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1, 0},
-	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1, 0},
-	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 30, 7, WeaponUsesAmmo},
-	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12, WeaponUsesAmmo},
-	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5, 0},
-	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1, 0},
-	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1, 0}, // TODO: Poison
-	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7, WeaponConfuses},
-	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7, 0},
-	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1, 0},
-	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4, 0}, // TODO: Stun
-	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1, 0},
-	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7, 0},
-	WeaponBear:     &Weapon{"claws", "maul{sub.s}", 40, 1, 0},
-	WeaponGator:    &Weapon{"bite", "bite{sub.s}", 60, 1, 0},
-	WeaponCultist:  &Weapon{"curse", "zap{sub.s}", 20, 4, 0}, // TODO: Curse
+	WeaponGlove:    &Weapon{"kinetic glove", "hit{sub.s}", 40, 1, 0, NoAttackFx},
+	WeaponFist:     &Weapon{"fist", "hit{sub.s}", 10, 1, 0, NoAttackFx},
+	WeaponBayonet:  &Weapon{"bayonet", "hit{sub.s}", 20, 1, 0, NoAttackFx},
+	WeaponClaw:     &Weapon{"claw", "claw{sub.s}", 15, 1, 0, NoAttackFx},
+	WeaponKick:     &Weapon{"hooves", "kick{sub.s}", 15, 1, 0, NoAttackFx},
+	WeaponHorns:    &Weapon{"horns", "headbutt{sub.s}", 15, 1, 0, NoAttackFx},
+	WeaponJaws:     &Weapon{"bite", "bite{sub.s}", 15, 1, 0, NoAttackFx},
+	WeaponPistol:   &Weapon{"pistol", "shoot{sub.s}", 30, 7, WeaponUsesAmmo, AttackFxBeam},
+	WeaponRifle:    &Weapon{"rifle", "shoot{sub.s}", 24, 12, WeaponUsesAmmo, AttackFxBeam},
+	WeaponBile:     &Weapon{"bile", "vomit{sub.s} bile at", 19, 5, 0, AttackFxSpray},
+	WeaponCrawl:    &Weapon{"touch", "{.section sub.you}touch{.or}touches{.end}", 10, 1, 0, NoAttackFx},
+	WeaponSpider:   &Weapon{"bite", "bite{sub.s}", 30, 1, 0, NoAttackFx}, // TODO: Poison
+	WeaponGaze:     &Weapon{"gaze", "gazes{sub.s} at", 24, 7, WeaponConfuses, NoAttackFx},
+	WeaponPsiBlast: &Weapon{"psychic blast", "blast{sub.s}", 24, 7, 0, AttackFxBeam},
+	WeaponSaw:      &Weapon{"chainsaw", "chainsaw{sub.s}", 35, 1, 0, NoAttackFx},
+	WeaponZap:      &Weapon{"electro-zapper", "zap{sub.s}", 15, 4, 0, AttackFxElectro}, // TODO: Stun
+	WeaponSmash:    &Weapon{"mighty smash", "hit{sub.s}", 40, 1, 0, NoAttackFx},
+	WeaponNether:   &Weapon{"nether ray", "exhale{sub.s}", 40, 7, 0, AttackFxBeam},
+	WeaponBear:     &Weapon{"claws", "maul{sub.s}", 40, 1, 0, NoAttackFx},
+	WeaponGator:    &Weapon{"bite", "bite{sub.s}", 60, 1, 0, NoAttackFx},
+	WeaponCultist:  &Weapon{"curse", "zap{sub.s}", 20, 4, 0, NoAttackFx}, // TODO: Curse
 }
 
 const (
@@ -113,8 +114,6 @@ func (self *Weapon) CanAttack(wielder entity.Id, pos geom.Pt2I) bool {
 // weapon allows attacking that pos. Some weapons may hit targets in between
 // the attacker and the target pos.
 func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64) {
-	isRangedAttack := self.Range > 1
-
 	if !self.ExpendAmmo(wielder) {
 		EMsg("{sub.Thename} {sub.is} out of ammo.\n", wielder, entity.NilId)
 		return
@@ -143,9 +142,8 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64
 		Fx().Sparks(pos)
 	}
 
-	if isRangedAttack {
-		// TODO: Attack effect as weapon data, not just this ad-hoc thing.
-		Fx().Shoot(wielder, pos)
+	if self.Fx != NoAttackFx {
+		Fx().Shoot(wielder, pos, self.Fx)
 	}
 
 	target := CreatureAt(pos)

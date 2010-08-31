@@ -5,13 +5,22 @@ import (
 	"hyades/geom"
 )
 
+type AttackFx int
+
+const (
+	NoAttackFx AttackFx = iota
+	AttackFxBeam
+	AttackFxSpray
+	AttackFxElectro
+)
+
 // Interface which Teratogen uses to communicate events to the client module.
 type Effects interface {
 	// Print prints some text to the client message panel.
 	Print(str string)
 
 	// Shoot shows an entity shooting somewhere.
-	Shoot(shooterId entity.Id, target geom.Pt2I)
+	Shoot(shooterId entity.Id, target geom.Pt2I, fx AttackFx)
 
 	// Damage shows damage done to an entity.
 	Damage(id entity.Id, amout int)

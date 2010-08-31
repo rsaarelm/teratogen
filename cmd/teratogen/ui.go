@@ -498,11 +498,19 @@ type SdlEffects struct{}
 
 func (self *SdlEffects) Print(str string) { fmt.Fprint(ui.msg, str) }
 
-func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I) {
+func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I, fx game.AttackFx) {
 	worldP1 := Tile2WorldPos(game.GetPos(shooterId))
 	worldP2 := Tile2WorldPos(hitPos).Plus(InCellJitter())
 	p1, p2 := image.Pt(worldP1.X, worldP1.Y), image.Pt(worldP2.X, worldP2.Y)
-	go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
+	switch fx {
+	case game.AttackFxBeam:
+		go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
+		//	case game.AttackFxSpray:
+		//	case game.AttackFxElectro:
+	default:
+		go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
+	}
+
 }
 
 func (self *SdlEffects) Sparks(pos geom.Pt2I) {
