@@ -15,7 +15,7 @@ const VestArmorLevel = 30
 const RiotArmorLevel = 70
 const HardsuitArmorLevel = 120
 
-func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
+func SpawnWeight(scarcity, minDepth, maxDepth int, depth int) (result float64) {
 	const epsilon = 1e-7
 	const outOfDepthFactor = 80.0
 	fscarcity := float64(scarcity)
@@ -26,11 +26,9 @@ func SpawnWeight(scarcity, minDepth int, depth int) (result float64) {
 		fscarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
 	}
 
-	const depthCap = 4
-	if depth > minDepth+depthCap {
-		// Also increase scarcity when we're out of the creature's depth, but
-		// only up to a cap.
-		outOfDepth := num.Imax(depth-minDepth*2, depthCap)
+	if maxDepth >= 0 && depth >= maxDepth {
+		// Do the same for maximum depth, if it's defined (not -1).
+		outOfDepth := depth - maxDepth
 		fscarcity *= math.Pow(outOfDepthFactor, float64(outOfDepth))
 	}
 
@@ -273,7 +271,7 @@ func clearNonplayerEntities() {
 func makeSpawnDistribution(depth int, as iterable.Iterable) num.WeightedDist {
 	weightFn := func(item interface{}) float64 {
 		metadata := assemblages[item.(string)][Metadata].(*metaTemplate)
-		return SpawnWeight(metadata.Scarcity, metadata.MinDepth, depth)
+		return SpawnWeight(metadata.Scarcity, metadata.MinDepth, metadata.MaxDepth, depth)
 	}
 	return num.MakeWeightedDist(weightFn, iterable.Data(as))
 }

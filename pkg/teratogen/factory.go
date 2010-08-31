@@ -15,12 +15,18 @@ type KW map[string]interface{}
 const Metadata = entity.ComponentFamily("dummy-metadata")
 
 type metaTemplate struct {
+	// How rare is the entity. Higher values mean more rare entities. -1 means
+	// that the entity can't be spawned using the random spawner.
 	Scarcity int
+	// Minimum depth where the entity can be normally spawned.
 	MinDepth int
+	// Maximum depth where the entity can be normally spawned. -1 if no max
+	// depth.
+	MaxDepth int
 }
 
-func MetaTemplate(scarcity, minDepth int) *metaTemplate {
-	return &metaTemplate{scarcity, minDepth}
+func MetaTemplate(scarcity, minDepth, maxDepth int) *metaTemplate {
+	return &metaTemplate{scarcity, minDepth, maxDepth}
 }
 
 func (self *metaTemplate) Derive(c entity.ComponentTemplate) entity.ComponentTemplate {
@@ -38,7 +44,7 @@ func init() {
 	assemblages = make(map[string]entity.Assemblage)
 	a := assemblages
 	a["protagonist"] = entity.Assemblage{
-		Metadata:      MetaTemplate(-1, 0),
+		Metadata:      MetaTemplate(-1, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("protagonist", "chars:16", PronounIt, false),
 		MutationsComponent: entity.NewDefaultTemplate((*Mutations)(nil), MutationsComponent,
@@ -56,7 +62,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["infectedHuman"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 0),
+		Metadata:      MetaTemplate(100, 0, 4),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected human", "chars:13", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
@@ -65,7 +71,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["infectedGuard"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 3),
+		Metadata:      MetaTemplate(100, 3, 7),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected guard", "chars:12", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
@@ -75,7 +81,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["zombie"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 2),
+		Metadata:      MetaTemplate(100, 2, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("zombie", "chars:1", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -84,7 +90,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["dogthing"] = entity.Assemblage{
-		Metadata:      MetaTemplate(150, 0),
+		Metadata:      MetaTemplate(150, 0, 7),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("dog-thing", "chars:2", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -93,7 +99,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["belcher"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 2),
+		Metadata:      MetaTemplate(200, 2, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("belcher", "chars:3", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -103,7 +109,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["crawlingmass"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 4),
+		Metadata:      MetaTemplate(200, 4, 10),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("crawling mass", "chars:7", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -112,7 +118,7 @@ func init() {
 			Intrinsics: IntrinsicSlow | IntrinsicDeathsplode},
 	}
 	a["cyclops"] = entity.Assemblage{
-		Metadata:      MetaTemplate(300, 4),
+		Metadata:      MetaTemplate(300, 4, 10),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("cyclops", "chars:6", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -122,7 +128,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["wendigo"] = entity.Assemblage{
-		Metadata:      MetaTemplate(300, 6),
+		Metadata:      MetaTemplate(300, 6, 13),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("wendigo", "chars:8", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -131,7 +137,7 @@ func init() {
 			Intrinsics: IntrinsicFast},
 	}
 	a["spider"] = entity.Assemblage{
-		Metadata:      MetaTemplate(400, 6),
+		Metadata:      MetaTemplate(400, 6, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("spider", "chars:10", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -141,7 +147,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["infectedSolder"] = entity.Assemblage{
-		Metadata:      MetaTemplate(100, 8),
+		Metadata:      MetaTemplate(100, 8, 13),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("infected soldier", "chars:14", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
@@ -151,7 +157,7 @@ func init() {
 			Intrinsics: IntrinsicMartialArtist},
 	}
 	a["bear"] = entity.Assemblage{
-		Metadata:      MetaTemplate(2000, 0),
+		Metadata:      MetaTemplate(2000, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("bear", "chars:23", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -160,7 +166,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["killbot"] = entity.Assemblage{
-		Metadata:      MetaTemplate(300, 8),
+		Metadata:      MetaTemplate(300, 8, 13),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("killbot", "chars:11", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -170,7 +176,7 @@ func init() {
 			Intrinsics: IntrinsicUnliving},
 	}
 	a["ogre"] = entity.Assemblage{
-		Metadata:      MetaTemplate(200, 8),
+		Metadata:      MetaTemplate(200, 8, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("ogre", "chars:15", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -179,7 +185,7 @@ func init() {
 			Intrinsics: NoIntrinsic},
 	}
 	a["gator"] = entity.Assemblage{
-		Metadata:      MetaTemplate(800, 4),
+		Metadata:      MetaTemplate(800, 4, 10),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("gator", "chars:9", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -188,7 +194,7 @@ func init() {
 			Intrinsics: IntrinsicSlow},
 	}
 	a["cultist"] = entity.Assemblage{
-		Metadata:      MetaTemplate(400, 10),
+		Metadata:      MetaTemplate(400, 10, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("cultist", "chars:25", PronounHe, false),
 		CreatureComponent: &CreatureTemplate{
@@ -200,7 +206,7 @@ func init() {
 
 	// Insect creatures, add some special attack...?
 	a["anunaki"] = entity.Assemblage{
-		Metadata:      MetaTemplate(800, 10),
+		Metadata:      MetaTemplate(800, 10, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("anunaki", "chars:24", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -210,7 +216,7 @@ func init() {
 	}
 
 	a["monolith"] = entity.Assemblage{
-		Metadata:      MetaTemplate(500, 10),
+		Metadata:      MetaTemplate(500, 10, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("monolith", "chars:27", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -220,7 +226,7 @@ func init() {
 	}
 
 	a["imago"] = entity.Assemblage{
-		Metadata:      MetaTemplate(800, 13),
+		Metadata:      MetaTemplate(800, 13, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("imago", "chars:21", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -230,7 +236,7 @@ func init() {
 	}
 
 	a["abomination"] = entity.Assemblage{
-		Metadata:      MetaTemplate(800, 13),
+		Metadata:      MetaTemplate(800, 13, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("abomination", "chars:20", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -240,7 +246,7 @@ func init() {
 	}
 
 	a["gomboc"] = entity.Assemblage{
-		Metadata:      MetaTemplate(500, 13),
+		Metadata:      MetaTemplate(500, 13, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("gomboc", "chars:26", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -250,7 +256,7 @@ func init() {
 	}
 
 	a["boss1"] = entity.Assemblage{
-		Metadata:      MetaTemplate(-1, 0),
+		Metadata:      MetaTemplate(-1, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("elder spawn", "chars:5", PronounIt, false),
 		CreatureComponent: &CreatureTemplate{
@@ -261,33 +267,33 @@ func init() {
 	}
 
 	a["blood_small"] = entity.Assemblage{
-		Metadata:       MetaTemplate(-1, 0),
+		Metadata:       MetaTemplate(-1, 0, -1),
 		PosComponent:   PosTemplate(),
 		NameComponent:  NameTemplate("blood splatter", "items:16", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 	a["blood_large"] = entity.Assemblage{
-		Metadata:       MetaTemplate(-1, 0),
+		Metadata:       MetaTemplate(-1, 0, -1),
 		PosComponent:   PosTemplate(),
 		NameComponent:  NameTemplate("blood pool", "items:15", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 	a["blood_trail"] = entity.Assemblage{
-		Metadata:       MetaTemplate(-1, 0),
+		Metadata:       MetaTemplate(-1, 0, -1),
 		PosComponent:   PosTemplate(),
 		NameComponent:  NameTemplate("bloody trail", "items:17", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 
 	a["globe"] = entity.Assemblage{
-		Metadata:       MetaTemplate(30, 0),
+		Metadata:       MetaTemplate(30, 0, -1),
 		PosComponent:   PosTemplate(),
 		NameComponent:  NameTemplate("globe", "items:1", PronounIt, false),
 		DecalComponent: DecalTemplate(0),
 	}
 
 	a["vest"] = entity.Assemblage{
-		Metadata:      MetaTemplate(400, 0),
+		Metadata:      MetaTemplate(400, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("tactical vest", "items:6", PronounIt, false),
 		ItemComponent: &ItemTemplate{
@@ -299,7 +305,7 @@ func init() {
 			Traits:        NoItemTrait},
 	}
 	a["riot"] = entity.Assemblage{
-		Metadata:      MetaTemplate(400, 3),
+		Metadata:      MetaTemplate(400, 3, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("riot armor", "items:13", PronounIt, false),
 		ItemComponent: &ItemTemplate{
@@ -311,7 +317,7 @@ func init() {
 			Traits:        NoItemTrait},
 	}
 	a["hardsuit"] = entity.Assemblage{
-		Metadata:      MetaTemplate(600, 8),
+		Metadata:      MetaTemplate(600, 8, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("hard suit", "items:14", PronounIt, false),
 		ItemComponent: &ItemTemplate{
@@ -323,13 +329,13 @@ func init() {
 			Traits:        ItemHardsuit},
 	}
 	a["medkit"] = entity.Assemblage{
-		Metadata:      MetaTemplate(300, 0),
+		Metadata:      MetaTemplate(300, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("medkit", "items:7", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, MedkitUse, NoItemTrait},
 	}
 	a["ammo"] = entity.Assemblage{
-		Metadata:      MetaTemplate(150, 0),
+		Metadata:      MetaTemplate(150, 0, -1),
 		PosComponent:  PosTemplate(),
 		NameComponent: NameTemplate("ammo clip", "items:19", PronounIt, false),
 		ItemComponent: &ItemTemplate{NoEquipSlot, 0, 0, 0, AmmoUse, NoItemTrait},
