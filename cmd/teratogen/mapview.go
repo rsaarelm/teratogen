@@ -295,8 +295,6 @@ func (self *MapView) pressMouse(button int) {
 func (self *MapView) releaseMouse(button int) { self.mouseDownTime[button] = -1 }
 
 func (self *MapView) HandleMouseEvent(area image.Rectangle, event draw.Mouse) bool {
-	wx, wy := self.InvTransform(area, event.X, event.Y)
-
 	self.lastMouse = event
 	self.lastArea = area
 
@@ -307,10 +305,6 @@ func (self *MapView) HandleMouseEvent(area image.Rectangle, event draw.Mouse) bo
 			self.releaseMouse(i)
 		}
 	}
-
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), wx, wy,
-		1, 1e8, float64(config.Scale)*20.0,
-		gfx.White, gfx.Cyan, 6)
 
 	return true
 }

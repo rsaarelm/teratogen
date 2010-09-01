@@ -36,11 +36,33 @@ func TestAnim2(anim *gfx.Anim) {
 }
 
 type particle struct {
-	x, y, dx, dy float64
-	startColor   image.Color
-	endColor     image.Color
-	life         int64
-	lifetime     int64
+	// Position
+	x, y float64
+	// Velocity
+	dx, dy     float64
+	startColor image.Color
+	endColor   image.Color
+	life       int64
+	lifetime   int64
+	size       int
+}
+
+type ParticleMaterial struct {
+	StartColor image.Color
+	EndColor   image.Color
+	Size       int
+}
+
+var (
+	materialSpark = ParticleMaterial{gfx.White, gfx.Yellow, VisualScale()}
+	materialBlood = ParticleMaterial{gfx.Red, gfx.Red, VisualScale()}
+	materialGib   = ParticleMaterial{gfx.Red, gfx.Red, VisualScale() * 2}
+	materialBile  = ParticleMaterial{gfx.DarkKhaki, gfx.DarkGreen, VisualScale()}
+)
+
+type ParticleTrajectory struct {
+	Dx, Dy   float64
+	Lifetime int64
 }
 
 func newParticle(x, y int, lifetime int64, speed float64, startColor, endColor image.Color) (result *particle) {
@@ -66,12 +88,12 @@ func (self *particle) Color() image.Color {
 }
 
 // Blasts particles in all directions from origin.
-func ParticleAnim(anim *gfx.Anim, x, y int, size int, lifetime int64, speed float64, startColor, endColor image.Color, particleCount int) {
+func ParticleAnim(anim *gfx.Anim, mat ParticleMaterial, x, y int, lifetime int64, speed float64, particleCount int) {
 	defer anim.Close()
 	particles := make([]*particle, particleCount)
 
 	for i := 0; i < len(particles); i++ {
-		particles[i] = newParticle(x, y, lifetime, speed, startColor, endColor)
+		particles[i] = newParticle(x, y, lifetime, speed, mat.StartColor, mat.EndColor)
 	}
 
 	liveOnes := len(particles)
@@ -86,7 +108,7 @@ func ParticleAnim(anim *gfx.Anim, x, y int, size int, lifetime int64, speed floa
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				g.FillRect(image.Rect(int(p.x), int(p.y), int(p.x)+size, int(p.y)+size), p.Color())
+				g.FillRect(image.Rect(int(p.x), int(p.y), int(p.x)+mat.Size, int(p.y)+mat.Size), p.Color())
 			}
 		}
 		anim.StopDraw()

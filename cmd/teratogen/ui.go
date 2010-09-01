@@ -515,16 +515,15 @@ func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I, fx game.Att
 
 func (self *SdlEffects) Sparks(pos geom.Pt2I) {
 	p := Tile2WorldPos(pos).Plus(InCellJitter())
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p.X, p.Y,
-		VisualScale(), 2e8, float64(VisualScale())*10.0,
-		gfx.White, gfx.Yellow, 15)
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialSpark,
+		p.X, p.Y, 2e8, float64(VisualScale())*10.0, 15)
 }
 
 func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		VisualScale(), 2e8, float64(VisualScale())*10.0,
-		gfx.Red, gfx.Red, int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialBlood,
+		sx, sy, 2e8, float64(VisualScale())*10.0,
+		int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
 	PlaySound("hit")
 }
 
@@ -535,9 +534,9 @@ func (self *SdlEffects) Heal(id entity.Id, amount int) {
 func (self *SdlEffects) Destroy(id entity.Id) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
 	const gibNum = 8
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		VisualScale(), 2e8, float64(VisualScale())*10.0,
-		gfx.Red, gfx.Red, int(20.0*math.Log(gibNum)/math.Log(2.0)))
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialGib,
+		sx, sy, 2e8, float64(VisualScale())*10.0,
+		int(20.0*math.Log(gibNum)/math.Log(2.0)))
 
 	PlaySound("death")
 }
@@ -553,9 +552,9 @@ func (self *SdlEffects) MorePrompt() { MorePrompt() }
 func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
 	sx, sy := CenterDrawPos(center)
 	const gibNum = 8
-	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), sx, sy,
-		VisualScale(), 2e8, float64(radius*VisualScale())*10.0,
-		gfx.White, gfx.Yellow, int(20.0*math.Log(gibNum)/math.Log(2.0)))
+	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialSpark,
+		sx, sy, 2e8, float64(radius*VisualScale())*10.0,
+		int(20.0*math.Log(gibNum)/math.Log(2.0)))
 
 	// TODO: Explosion sound
 }
