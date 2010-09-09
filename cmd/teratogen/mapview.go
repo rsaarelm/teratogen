@@ -49,7 +49,7 @@ type MapView struct {
 	// context-dependent, should have a more general scheduling mechanism for
 	// this.
 	mouseDownTime [3]int64
-	lastMouse     draw.Mouse
+	lastMouse     draw.MouseEvent
 	lastArea      image.Rectangle
 
 	// XXX: Hacky way to remember if shift is pressed.
@@ -222,7 +222,7 @@ func (self *MapView) onMouseButton(button int) {
 
 	event := self.lastMouse
 	area := self.lastArea
-	wx, wy := self.InvTransform(area, event.X, event.Y)
+	wx, wy := self.InvTransform(area, event.Loc.X, event.Loc.Y)
 
 	tilePos := World2TilePos(geom.Pt2I{wx, wy})
 	vec := tilePos.Minus(game.GetPos(game.PlayerId()))
@@ -294,7 +294,7 @@ func (self *MapView) pressMouse(button int) {
 
 func (self *MapView) releaseMouse(button int) { self.mouseDownTime[button] = -1 }
 
-func (self *MapView) HandleMouseEvent(area image.Rectangle, event draw.Mouse) bool {
+func (self *MapView) HandleMouseEvent(area image.Rectangle, event draw.MouseEvent) bool {
 	self.lastMouse = event
 	self.lastArea = area
 
@@ -462,7 +462,7 @@ func (self *MapView) AsyncHandleKey(key int) {
 
 func (self *MapView) HandleKey(key int) { go self.AsyncHandleKey(key) }
 
-func (self *MapView) MouseExited(event draw.Mouse) {
+func (self *MapView) MouseExited(event draw.MouseEvent) {
 	for i := 0; i < 3; i++ {
 		self.releaseMouse(i)
 	}

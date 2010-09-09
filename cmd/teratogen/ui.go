@@ -14,7 +14,6 @@ import (
 	"hyades/sdl"
 	"hyades/txt"
 	"image"
-	"math"
 	"sync"
 	game "teratogen"
 	"time"
@@ -510,20 +509,20 @@ func (self *SdlEffects) Shoot(shooterId entity.Id, hitPos geom.Pt2I, fx game.Att
 	default:
 		go LineAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), p1, p2, 2e8, gfx.White, gfx.DarkRed, VisualScale())
 	}
-
 }
+
+var smallBlastEmit = ParticleBlastEmitter(2, 10)
 
 func (self *SdlEffects) Sparks(pos geom.Pt2I) {
 	p := Tile2WorldPos(pos).Plus(InCellJitter())
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialSpark,
-		p.X, p.Y, 2e8, float64(VisualScale())*10.0, 15)
+		smallBlastEmit, p.X, p.Y, 15)
 }
 
 func (self *SdlEffects) Damage(id entity.Id, woundLevel int) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialBlood,
-		sx, sy, 2e8, float64(VisualScale())*10.0,
-		int(20.0*math.Log(float64(woundLevel))/math.Log(2.0)))
+		smallBlastEmit, sx, sy, num.Imax(8, woundLevel))
 	PlaySound("hit")
 }
 
@@ -533,10 +532,10 @@ func (self *SdlEffects) Heal(id entity.Id, amount int) {
 
 func (self *SdlEffects) Destroy(id entity.Id) {
 	sx, sy := CenterDrawPos(game.GetPos(id))
-	const gibNum = 8
+	const gibNum = 20
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialGib,
-		sx, sy, 2e8, float64(VisualScale())*10.0,
-		int(20.0*math.Log(gibNum)/math.Log(2.0)))
+		ParticleBlastEmitter(3, 10),
+		sx, sy, gibNum)
 
 	PlaySound("death")
 }
@@ -551,10 +550,9 @@ func (self *SdlEffects) MorePrompt() { MorePrompt() }
 
 func (self *SdlEffects) Explode(center geom.Pt2I, power int, radius int) {
 	sx, sy := CenterDrawPos(center)
-	const gibNum = 8
+	const gibNum = 20
 	go ParticleAnim(ui.AddMapAnim(gfx.NewAnim(0.0)), materialSpark,
-		sx, sy, 2e8, float64(radius*VisualScale())*10.0,
-		int(20.0*math.Log(gibNum)/math.Log(2.0)))
+		smallBlastEmit, sx, sy, gibNum)
 
 	// TODO: Explosion sound
 }

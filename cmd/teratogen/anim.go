@@ -36,15 +36,38 @@ func TestAnim2(anim *gfx.Anim) {
 }
 
 type particle struct {
-	// Position
-	x, y float64
-	// Velocity
-	dx, dy     float64
 	startColor image.Color
 	endColor   image.Color
-	life       int64
-	lifetime   int64
 	size       int
+
+	// Velocity
+	dx, dy float64
+	// Acceleration
+	d2x, d2y float64
+	lifetime int64
+
+	life int64
+
+	// Position
+	x, y float64
+}
+
+func (self *particle) Color() image.Color {
+	relativeLife := float64(self.life) / float64(self.lifetime)
+	return gfx.LerpColor(self.endColor, self.startColor, relativeLife)
+}
+
+func newParticle(x, y float64, mat ParticleMaterial, emit ParticleEmitter) (result *particle) {
+	track := emit.Emit()
+	return &particle{
+		mat.StartColor,
+		mat.EndColor,
+		mat.Size * VisualScale(),
+		track.Dx * float64(VisualScale()), track.Dy * float64(VisualScale()),
+		track.D2x * float64(VisualScale()), track.D2y * float64(VisualScale()),
+		track.Lifetime,
+		track.Lifetime,
+		x, y}
 }
 
 type ParticleMaterial struct {
@@ -54,46 +77,57 @@ type ParticleMaterial struct {
 }
 
 var (
-	materialSpark = ParticleMaterial{gfx.White, gfx.Yellow, VisualScale()}
-	materialBlood = ParticleMaterial{gfx.Red, gfx.Red, VisualScale()}
-	materialGib   = ParticleMaterial{gfx.Red, gfx.Red, VisualScale() * 2}
-	materialBile  = ParticleMaterial{gfx.DarkKhaki, gfx.DarkGreen, VisualScale()}
+	materialSpark = ParticleMaterial{gfx.White, gfx.Yellow, 1}
+	materialBlood = ParticleMaterial{gfx.Red, gfx.Red, 1}
+	materialGib   = ParticleMaterial{gfx.DarkRed, gfx.DarkRed, 2}
+	materialBile  = ParticleMaterial{gfx.DarkKhaki, gfx.DarkGreen, 1}
 )
 
 type ParticleTrajectory struct {
-	Dx, Dy   float64
+	// Velocity in units per second
+	Dx, Dy float64
+	// Acceleration in units per second squared
+	D2x, D2y float64
+	// Lifetime in nanoseconds
 	Lifetime int64
 }
 
-func newParticle(x, y int, lifetime int64, speed float64, startColor, endColor image.Color) (result *particle) {
-	result = new(particle)
-
-	result.x, result.y = float64(x), float64(y)
-
-	// Perturb speed and lifetime using normal distribution.
-	speed = num.Clamp(speed/4.0, speed*2.0, rand.NormFloat64()*math.Fabs(speed)/4.0+speed)
-	result.lifetime = int64(rand.NormFloat64()*float64(lifetime/4) + float64(lifetime))
-	result.life = result.lifetime
-	result.startColor, result.endColor = startColor, endColor
-	angle := num.RandomAngle()
-	result.dx = speed * math.Cos(angle)
-	result.dy = speed * math.Sin(angle)
-
-	return
+type ParticleEmitter interface {
+	Emit() ParticleTrajectory
 }
 
-func (self *particle) Color() image.Color {
-	relativeLife := float64(self.life) / float64(self.lifetime)
-	return gfx.LerpColor(self.endColor, self.startColor, relativeLife)
+type particleEmitterFn func() ParticleTrajectory
+
+func (self particleEmitterFn) Emit() ParticleTrajectory { return self() }
+
+func ParticleBlastEmitter(avgRadius float64, avgSpeed float64) ParticleEmitter {
+	return particleEmitterFn(func() ParticleTrajectory {
+		avgLife := avgRadius * 1e9 / avgSpeed
+
+		// Perturb speed and lifetime using normal distribution.
+		speed := num.Clamp(avgSpeed/4.0, avgSpeed*2.0,
+			rand.NormFloat64()*math.Fabs(avgSpeed)/4.0+avgSpeed)
+		lifetime := int64(rand.NormFloat64()*(avgLife/4) + avgLife)
+		angle := num.RandomAngle()
+
+		return ParticleTrajectory{
+			speed * math.Cos(angle), speed * math.Sin(angle),
+			0, 0,
+			lifetime}
+	})
 }
 
 // Blasts particles in all directions from origin.
-func ParticleAnim(anim *gfx.Anim, mat ParticleMaterial, x, y int, lifetime int64, speed float64, particleCount int) {
+func ParticleAnim(anim *gfx.Anim, mat ParticleMaterial, emit ParticleEmitter, x, y int, particleCount int) {
+	if particleCount < 1 {
+		return
+	}
+
 	defer anim.Close()
 	particles := make([]*particle, particleCount)
 
 	for i := 0; i < len(particles); i++ {
-		particles[i] = newParticle(x, y, lifetime, speed, mat.StartColor, mat.EndColor)
+		particles[i] = newParticle(float64(x), float64(y), mat, emit)
 	}
 
 	liveOnes := len(particles)
@@ -107,8 +141,10 @@ func ParticleAnim(anim *gfx.Anim, mat ParticleMaterial, x, y int, lifetime int64
 				liveOnes++
 				p.x += p.dx * float64(t) / 1e9
 				p.y += p.dy * float64(t) / 1e9
+				p.dx += p.d2x * float64(t) / 1e9
+				p.dy += p.d2y * float64(t) / 1e9
 				// XXX: Could have nicer particles.
-				g.FillRect(image.Rect(int(p.x), int(p.y), int(p.x)+mat.Size, int(p.y)+mat.Size), p.Color())
+				g.FillRect(image.Rect(int(p.x), int(p.y), int(p.x)+p.size, int(p.y)+p.size), p.Color())
 			}
 		}
 		anim.StopDraw()

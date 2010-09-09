@@ -55,8 +55,23 @@ type musicWrap C.musicWrap
 // SDL Context object
 //////////////////////////////////////////////////////////////////
 
+// XXX: The Context interface in exp/draw used to be like this, and the SDL
+// Context was written against it. It was changed recently to use a single
+// event channel instead of the multiple ones. I'm copying the old one here so
+// I won't have to change apps that depend on the SDL context to change their
+// channel use.
+type oldExpDrawContext interface {
+	Screen() draw.Image
+	FlushImage()
+
+	KeyboardChan() <-chan int
+	MouseChan() <-chan draw.MouseEvent
+	ResizeChan() <-chan bool
+	QuitChan() <-chan bool
+}
+
 type Context interface {
-	draw.Context
+	oldExpDrawContext
 
 	// SdlScreen is the same as Screen, but it return the screen cast into a
 	// sdl.Surface instead of draw.Image.
@@ -133,7 +148,7 @@ type context struct {
 	windowW, windowH int
 
 	kbd    chan int
-	mouse  chan draw.Mouse
+	mouse  chan draw.MouseEvent
 	resize chan bool
 	quit   chan bool
 
@@ -192,7 +207,7 @@ func NewWindow(config Config) (result Context, err os.Error) {
 	screenBounds := screen.Bounds()
 	ctx.windowW, ctx.windowH = screenBounds.Max.X, screenBounds.Max.Y
 	ctx.kbd = make(chan int, keyBufferSize)
-	ctx.mouse = make(chan draw.Mouse, 1)
+	ctx.mouse = make(chan draw.MouseEvent, 1)
 	ctx.resize = make(chan bool, 1)
 	ctx.quit = make(chan bool, 1)
 	ctx.exitChan = make(chan bool)
@@ -224,7 +239,7 @@ func (self *context) KeyboardChan() <-chan int {
 	return self.kbd
 }
 
-func (self *context) MouseChan() <-chan draw.Mouse {
+func (self *context) MouseChan() <-chan draw.MouseEvent {
 	return self.mouse
 }
 
@@ -332,10 +347,10 @@ func (self *context) eventLoop() {
 			case C.SDL_MOUSEMOTION:
 				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
 				// XXX: SDL mouse button state *should* map
-				// directly to draw.Mouse.Buttons. Still a bit
+				// directly to draw.MouseEvent.Buttons. Still a bit
 				// sloppy to just plug it in without a
 				// converter...
-				mouse := draw.Mouse{int(motEvt.state),
+				mouse := draw.MouseEvent{int(motEvt.state),
 					image.Pt(
 						int(motEvt.x)/self.config.PixelScale,
 						int(motEvt.y)/self.config.PixelScale),
@@ -352,7 +367,7 @@ func (self *context) eventLoop() {
 				if typ == C.SDL_MOUSEBUTTONDOWN && btnEvt.button == C.SDL_BUTTON_WHEELDOWN {
 					buttons += wheelDownBit
 				}
-				mouse := draw.Mouse{buttons,
+				mouse := draw.MouseEvent{buttons,
 					image.Pt(
 						int(btnEvt.x)/self.config.PixelScale,
 						int(btnEvt.y)/self.config.PixelScale),

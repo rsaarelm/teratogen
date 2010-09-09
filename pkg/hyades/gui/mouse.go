@@ -17,10 +17,10 @@ type MouseListener interface {
 	// MouseEvent takes a mouse state and may respond somehow. Returns
 	// whether the event was consumed or if it should be passed on to the
 	// next widget.
-	HandleMouseEvent(area image.Rectangle, event draw.Mouse) (consumed bool)
+	HandleMouseEvent(area image.Rectangle, event draw.MouseEvent) (consumed bool)
 
 	// MouseExited notifies the listener that the mouse has exited its area.
-	MouseExited(event draw.Mouse)
+	MouseExited(event draw.MouseEvent)
 }
 
 // DispactchMouseEvent looks for widgets at where the mouse cursor is and that
@@ -29,8 +29,8 @@ type MouseListener interface {
 // previousReceiver can be set to point to the MouseListener that received the
 // previous mouse event. If it's different than the currently found one, it
 // will be notified that the mouse has exited its area.
-func DispatchMouseEvent(area image.Rectangle, root Widget, event draw.Mouse, previousReceiver MouseListener) MouseListener {
-	pos := image.Pt(event.X, event.Y)
+func DispatchMouseEvent(area image.Rectangle, root Widget, event draw.MouseEvent, previousReceiver MouseListener) MouseListener {
+	pos := image.Pt(event.Loc.X, event.Loc.Y)
 	for childWindow := range WidgetsContaining(pos, area, root).Iter() {
 		child := childWindow.(*Window)
 		if mouseReceiver, ok := child.Widget.(MouseListener); ok {

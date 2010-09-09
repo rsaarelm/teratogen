@@ -221,6 +221,7 @@ func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, ma
 
 	adjustedMag := magnitude / self.HealthScale()
 	self.Health -= adjustedMag
+	Fx().Damage(selfId, int(math.Log(float64(adjustedMag)) / math.Log(2)))
 	if self.Health < 0 {
 		self.Die(selfId, causerId)
 	}
