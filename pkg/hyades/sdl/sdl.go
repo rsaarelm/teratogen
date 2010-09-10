@@ -2,14 +2,12 @@ package sdl
 
 /*
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <SDL_rotozoom.h>
 #include <SDL_gfxPrimitives.h>
 
 // Structs to help cgo handle some opaque SDL types.
 
-typedef struct music { Mix_Music *music; } musicWrap;
 typedef struct font { TTF_Font *font; } fontWrap;
 
 // XXX: Workaround to nested struct misalignment with cgo.
@@ -24,7 +22,6 @@ import "C"
 import (
 	"exp/draw"
 	"fmt"
-	"hyades/dbg"
 	"hyades/geom"
 	"hyades/gfx"
 	"hyades/keyboard"
@@ -46,10 +43,6 @@ func withCString(str string, effect func(*C.char)) {
 }
 
 type sdlSurface C.SDL_Surface
-
-type mixChunk C.Mix_Chunk
-
-type musicWrap C.musicWrap
 
 //////////////////////////////////////////////////////////////////
 // SDL Context object
@@ -194,9 +187,6 @@ func NewWindow(config Config) (result Context, err os.Error) {
 		return
 	}
 	C.SDL_EnableUNICODE(1)
-	if config.Audio {
-		initAudio()
-	}
 
 	initTTF()
 
@@ -291,36 +281,11 @@ func (self *context) IsNativeSurface(img image.Image) bool {
 }
 
 func (self *context) MakeSound(wavData []byte) (result sfx.Sound, err os.Error) {
-	if !self.config.Audio {
-		err = os.NewError("Audio not active.")
-		return
-	}
-
-	rw := C.SDL_RWFromMem(unsafe.Pointer(&wavData[0]), C.int(len(wavData)))
-	chunk := C.Mix_LoadWAV_RW(rw, 1)
-	if chunk == nil {
-		err = os.NewError(getError())
-		return
-	}
-	result = (*mixChunk)(chunk)
-	return
+	return &dummySound{}, nil
 }
 
 func (self *context) LoadMusic(filename string) (result sfx.Sound, err os.Error) {
-	if !self.config.Audio {
-		err = os.NewError("Audio not active.")
-		return
-	}
-
-	cs := C.CString(filename)
-	music := &C.musicWrap{C.Mix_LoadMUS(cs)}
-	C.free(unsafe.Pointer(cs))
-
-	if music.music == nil {
-		err = os.NewError(C.GoString(C.Mix_GetError()))
-	}
-	result = (*musicWrap)(music)
-	return
+	return &dummySound{}, nil
 }
 
 func (self *context) KeyRepeatOn() {
@@ -382,9 +347,6 @@ func (self *context) eventLoop() {
 				_ = self.quit <- true
 			}
 		}
-	}
-	if self.config.Audio {
-		exitAudio()
 	}
 	C.SDL_Quit()
 	self.exitChan <- true
@@ -462,10 +424,10 @@ func (self *context) Free(handle interface{}) {
 		C.SDL_FreeSurface(handle.raw())
 	case (*ttfFont):
 		handle.Free()
-	case (*musicWrap):
-		C.Mix_FreeMusic(handle.music)
-	case (*mixChunk):
-		C.Mix_FreeChunk(handle.raw())
+		//	case (*musicWrap):
+		//		C.Mix_FreeMusic(handle.music)
+		//	case (*mixChunk):
+		//		C.Mix_FreeChunk(handle.raw())
 	default:
 		fmt.Printf("Tried to free unknown resource type %v.\n", handle)
 	}
@@ -608,36 +570,9 @@ func sdlColor(col image.Color) C.SDL_Color {
 // Audio
 //////////////////////////////////////////////////////////////////
 
-func initAudio() {
-	var audioFormat C.Uint16
-	switch sfx.DefaultSampleBytes {
-	case sfx.Bit8:
-		audioFormat = C.Uint16(C.AUDIO_S8)
-	case sfx.Bit16:
-		// XXX: Can't use AUDIO_S16 here as it's #defined to be "AUDIO_S16LSB",
-		// and cgo doesn't chase #defines with non-literal values.
-		audioFormat = C.Uint16(C.AUDIO_S16LSB)
+type dummySound struct{}
 
-	default:
-		dbg.Die("Bad audioBytesPerSample %v", sfx.DefaultSampleBytes)
-	}
-
-	audioBuffers := C.int(4096)
-
-	ok := C.Mix_OpenAudio(C.int(sfx.DefaultSampleRate), audioFormat, C.int(sfx.DefaultNumChannels), audioBuffers)
-
-	if ok != 0 {
-		panic("Mixer error: " + getError())
-	}
-}
-
-func exitAudio() { C.Mix_CloseAudio() }
-
-func (self *mixChunk) raw() *C.Mix_Chunk { return (*C.Mix_Chunk)(self) }
-
-func (self *mixChunk) Play() { C.Mix_PlayChannelTimed(-1, self.raw(), 0, -1) }
-
-func (self *musicWrap) Play() { C.Mix_PlayMusic(self.music, -1) }
+func (self *dummySound) Play() {}
 
 //////////////////////////////////////////////////////////////////
 // TTF
