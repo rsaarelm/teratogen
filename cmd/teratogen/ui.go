@@ -442,7 +442,7 @@ func UiHelpLines() *vector.Vector {
 	vec.Push("arrow keys, qwe asd: move/attack")
 	vec.Push("uio jkl: fire gun")
 	vec.Push("Return, keypad 5: action key")
-	vec.Push("Q: quit")
+	vec.Push("Q: quit S: save and quit")
 
 	if game.HasContents(game.PlayerId()) {
 		vec.Push("t: inventory")
