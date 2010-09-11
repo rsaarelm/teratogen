@@ -13,6 +13,12 @@ GOFILES=\
 
 include $(GOROOT)/src/Make.cmd
 
+# Redefine link rule to set the path for the shared objects at binary
+# location. $ORIGIN is the magic rpath that always looks from where the binary
+# is.
+$(TARG): _go_.$O $(OFILES)
+	$(LD) -r \$$ORIGIN -o $@ _go_.$O $(OFILES)
+
 MEDIAFILES=$(wildcard media/*)
 
 media.tar.gz: $(MEDIAFILES)
