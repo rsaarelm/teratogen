@@ -62,7 +62,6 @@ func ParseConfig() {
 		fmt.Fprintf(os.Stderr, "Config error in %s: %s\n", configFileName(), jsonErr)
 	}
 
-	flag.BoolVar(&config.Sound, "sound", config.Sound, "Play sounds")
 	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode")
 	flag.StringVar(&config.KeyLayout, "layout", config.KeyLayout, "Keyboard layout: qwerty|dvorak|colemak")
 	flag.StringVar(&config.RngSeed, "logos", config.RngSeed, "Genesis seed")
