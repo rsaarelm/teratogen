@@ -12,3 +12,4 @@ _test
 *.out
 Make.deps
 TAGS
+dist

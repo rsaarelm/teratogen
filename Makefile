@@ -34,6 +34,7 @@ test: deps build.libs
 
 clean: clean.cmds
 	$(GOMAKE) -C pkg clean
+	rm -rf dist
 
 nuke: clean.cmds
 	$(GOMAKE) -C pkg nuke
