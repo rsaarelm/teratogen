@@ -224,7 +224,6 @@ func OtherCreatures(excludedId interface{}) iterable.Iterable {
 }
 
 const saveMagicId = "SAVE"
-const saveVersion = 0
 
 // SaveGame saves the game state to a file. The file gets a header:
 //   0 - 3: Magic bytes "SAVE" to identify the savefile
@@ -242,7 +241,7 @@ func SaveGame(fileName string, useGzip bool) (err os.Error) {
 	// Write the save header
 	saveFile.Write([]byte(saveMagicId))
 
-	mem.WriteFixed(saveFile, int16(saveVersion))
+	mem.WriteFixed(saveFile, int16(versionInt()))
 
 	// XXX: Awkward bool -> byte conversion, since we don't have ternary ops.
 	if useGzip {
@@ -299,5 +298,5 @@ func isValidSaveVersion(version int16) bool {
 	// Make the logic here more complex if we start getting backwards
 	// incompatible too. For now, the basic assumption is that future save
 	// versions can't be used.
-	return version <= saveVersion
+	return version <= int16(versionInt())
 }
