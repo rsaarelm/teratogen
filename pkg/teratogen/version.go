@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-const Version = "000"
+const Version = "001"
 
 func versionInt() int {
 	ver, err := strconv.Atoi(Version)
