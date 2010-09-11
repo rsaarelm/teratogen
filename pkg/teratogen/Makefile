@@ -20,6 +20,7 @@ GOFILES=\
 	name.go\
 	position.go\
 	rules.go\
+	version.go\
 	weapon.go\
 
 include $(GOROOT)/src/Make.pkg

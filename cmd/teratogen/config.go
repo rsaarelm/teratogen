@@ -13,6 +13,7 @@ import (
 	"json"
 	"os"
 	"path"
+	game "teratogen"
 	"unsafe"
 )
 
@@ -55,19 +56,27 @@ func loadRcFile(config *Config) os.Error {
 func ParseConfig() {
 	config = DefaultConfig()
 
+	versionQuery := false
+
 	if jsonErr := loadRcFile(config); jsonErr != nil {
 		fmt.Fprintf(os.Stderr, "Config error in %s: %s\n", configFileName(), jsonErr)
 	}
 
-	flag.BoolVar(&config.Sound, "sound", config.Sound, "Play sounds.")
-	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode.")
-	flag.StringVar(&config.KeyLayout, "layout", config.KeyLayout, "Keyboard layout: qwerty|dvorak|colemak.")
-	flag.StringVar(&config.RngSeed, "logos", config.RngSeed, "Genesis seed.")
+	flag.BoolVar(&config.Sound, "sound", config.Sound, "Play sounds")
+	flag.BoolVar(&config.Fullscreen, "fullscreen", config.Fullscreen, "Run in full screen mode")
+	flag.StringVar(&config.KeyLayout, "layout", config.KeyLayout, "Keyboard layout: qwerty|dvorak|colemak")
+	flag.StringVar(&config.RngSeed, "logos", config.RngSeed, "Genesis seed")
 	flag.IntVar(&config.Scale, "scale", config.Scale, "Window scaling factor, 1|2")
 	flag.IntVar(&config.TileScale, "tilescale", config.TileScale, "Tile scaling factor, 1|2")
-	flag.StringVar(&config.ArchiveFile, "archive", fs.SelfExe(), "Media archive file.")
+	flag.StringVar(&config.ArchiveFile, "archive", fs.SelfExe(), "Media archive file")
+	flag.BoolVar(&versionQuery, "version", false, "Print version and exit")
 	flag.Usage = usage
 	flag.Parse()
+
+	if versionQuery {
+		fmt.Println(game.Version)
+		os.Exit(0)
+	}
 
 	// XXX: If config file had bad values, these are presented as command line
 	// argument errors, not config file errors.
