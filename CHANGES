@@ -1,0 +1,10 @@
+002
+---
+
+Fixed shared object link path bug, the binary should now be runnable without
+tweaking LD_LIBRARY_PATH.
+
+001
+---
+
+Initial release.
