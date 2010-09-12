@@ -5,6 +5,8 @@ _obj/
 cmd/databake/databake
 cmd/sdltest/sdltest
 cmd/teratogen/teratogen
+cmd/teratogen/*.so
+pkg/hyades/sdl/*.so
 *.cgo?.go
 *.cgo?.?
 *_cgo_*
