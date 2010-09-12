@@ -34,4 +34,3 @@ function build {
 
 build amd64
 build 386
-make clean
