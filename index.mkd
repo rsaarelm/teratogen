@@ -7,8 +7,37 @@ Teratogen
 
 (C) 2009-2010 Risto Saarelma
 
-A proper page that tells that this is a roguelike game written in the Google
-Go programming language, with download links, goes here.
+Teratogen is a simple roguelike game inspired by survival horror games. You go
+down the levels, shoot the various mutated creatures, and try not to die. Since
+the game isn't very well-balanced, not dying doesn't really work that well.
+
+The maps in Teratogen are hex-based. You can only move in six directions.
+Because of this, the movement key setup is somewhat different from the
+roguelike standard. You can move around using the `qwe` and `asd` keys, as well as
+the arrow keys and numpad keys. The game is mostly about shooting things and,
+for the sake of faster gameplay, you can't aim in other directions than the 6
+cardinal ones. Shooting has its own dedicated keys. You use `uio` and `jkl`
+keys to shoot. So the idea is to keep one hand on the movement keys and the
+other on the shooting keys.
+
+The game is programmed in the [Google Go](http://golang.org/) programming
+language, and started out as an exercise to test Go's suitability for game
+programming.
+
+Downloads
+---------
+
+You must have SDL and SDL_gfx libraries installed to run Teratogen.
+
+There are currently only Linux binaries, due to the problems of compiling
+Google Go programs on Windows.
+
+[32-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-002-linux-386.tar.bz2)
+
+[64-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-002-linux-amd64.tar.bz2)
+
+You can find the source at the [project
+page](http://github.com/rsaarelm/teratogen).
 
 Screenshots
 -----------
