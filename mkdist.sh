@@ -9,7 +9,7 @@ function build {
     make nuke
     make all GOARCH=$1
 
-    NAME=teratogen-$1-`cmd/teratogen/teratogen -version`
+    NAME=teratogen-`cmd/teratogen/teratogen -version`-${GOOS}-$1
 
     # Make a temporary dir where the package is assembled.
     DIR=`mktemp -d`
