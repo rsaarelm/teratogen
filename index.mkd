@@ -28,7 +28,7 @@ programming.
 Downloads
 ---------
 
-You must have SDL and SDL_gfx libraries installed to run Teratogen.
+You must have SDL, SDL_ttf and SDL_gfx libraries installed to run Teratogen.
 
 There are currently only Linux binaries, due to the problems of compiling
 Google Go programs on Windows.
