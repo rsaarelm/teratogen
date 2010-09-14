@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hyades/entity"
 	"hyades/geom"
+	"hyades/num"
 	"math"
 	"rand"
 )
@@ -257,6 +258,39 @@ func (self *Creature) SaveToLose(status int32, prob float64) bool {
 		return true
 	}
 	return false
+}
+
+// Heartbeat runs state updates on the creature that happen every turn
+// regardless of what the creature is otherwise doing.
+func (self *Creature) Heartbeat(selfId entity.Id) {
+	self.bloodTrailHeartbeat(selfId)
+	self.buffHeartbeat(selfId)
+
+	if self.Cooldown > 0 {
+		self.Cooldown--
+	}
+}
+
+func (self *Creature) bloodTrailHeartbeat(selfId entity.Id) {
+	standingIn := BloodSplatterAt(GetPos(selfId))
+	if standingIn == LargeBloodSplatter {
+		// Creatures start tracking blood when they walk through pools of blood.
+		self.AddStatus(StatusBloodTrail)
+	} else {
+		if self.HasStatus(StatusBloodTrail) {
+			SplatterBlood(GetPos(selfId), BloodTrail)
+			if num.OneChanceIn(3) {
+				self.RemoveStatus(StatusBloodTrail)
+			}
+		}
+	}
+}
+
+func (self *Creature) buffHeartbeat(selfId entity.Id) {
+	if self.SaveToLose(StatusConfused, 1.0/10) {
+		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
+			selfId, entity.NilId, StatusDescription(StatusConfused))
+	}
 }
 
 func StatusDescription(status int32) string {
