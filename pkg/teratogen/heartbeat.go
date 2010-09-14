@@ -112,7 +112,7 @@ func Heartbeats() {
 // effects wearing off or affecting an entity go here.
 func Heartbeat(id entity.Id) {
 	bloodtrailHeartbeat(id)
-	buffHeartBeat(id)
+	buffHeartbeat(id)
 }
 
 func bloodtrailHeartbeat(id entity.Id) {
@@ -135,7 +135,7 @@ func bloodtrailHeartbeat(id entity.Id) {
 	}
 }
 
-func buffHeartBeat(id entity.Id) {
+func buffHeartbeat(id entity.Id) {
 	crit := GetCreature(id)
 	if crit == nil {
 		return
