@@ -2,6 +2,7 @@ package teratogen
 
 import (
 	"hyades/entity"
+	"hyades/num"
 )
 
 // DoTurn is the entry point for running the game update loop.
@@ -110,8 +111,39 @@ func Heartbeats() {
 // Heartbeat runs status updates on active entities. Things such as temporary
 // effects wearing off or affecting an entity go here.
 func Heartbeat(id entity.Id) {
-	if crit := GetCreature(id); crit != nil {
-		crit.Heartbeat(id)
+	bloodtrailHeartbeat(id)
+	buffHeartBeat(id)
+}
+
+func bloodtrailHeartbeat(id entity.Id) {
+	crit := GetCreature(id)
+	if crit == nil {
+		return
+	}
+
+	standingIn := BloodSplatterAt(GetPos(id))
+	if standingIn == LargeBloodSplatter {
+		// Creatures start tracking blood when they walk through pools of blood.
+		crit.AddStatus(StatusBloodTrail)
+	} else {
+		if crit.HasStatus(StatusBloodTrail) {
+			SplatterBlood(GetPos(id), BloodTrail)
+			if num.OneChanceIn(3) {
+				crit.RemoveStatus(StatusBloodTrail)
+			}
+		}
+	}
+}
+
+func buffHeartBeat(id entity.Id) {
+	crit := GetCreature(id)
+	if crit == nil {
+		return
+	}
+
+	if crit.SaveToLose(StatusConfused, 1.0/10) {
+		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
+			id, entity.NilId, StatusDescription(StatusConfused))
 	}
 }
 

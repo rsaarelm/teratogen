@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hyades/entity"
 	"hyades/geom"
-	"hyades/num"
 	"math"
 	"rand"
 )
@@ -97,9 +96,7 @@ type Creature struct {
 	Statuses    int32
 	// Velocity is the creature's movement vector from it's last turn. Use it
 	// for dodge bonuses, charge attacks etc.
-	Velocity  geom.Vec2I
-	Cooldowns [NumPowerSlots]int
-	Powers    [NumPowerSlots]PowerId
+	Velocity geom.Vec2I
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -259,41 +256,6 @@ func (self *Creature) SaveToLose(status int32, prob float64) bool {
 		return true
 	}
 	return false
-}
-
-// Heartbeat runs state updates on the creature that happen every turn
-// regardless of what the creature is otherwise doing.
-func (self *Creature) Heartbeat(selfId entity.Id) {
-	self.bloodTrailHeartbeat(selfId)
-	self.buffHeartbeat(selfId)
-
-	for i, _ := range self.Cooldowns {
-		if self.Cooldowns[i] > 0 {
-			self.Cooldowns[i]--
-		}
-	}
-}
-
-func (self *Creature) bloodTrailHeartbeat(selfId entity.Id) {
-	standingIn := BloodSplatterAt(GetPos(selfId))
-	if standingIn == LargeBloodSplatter {
-		// Creatures start tracking blood when they walk through pools of blood.
-		self.AddStatus(StatusBloodTrail)
-	} else {
-		if self.HasStatus(StatusBloodTrail) {
-			SplatterBlood(GetPos(selfId), BloodTrail)
-			if num.OneChanceIn(3) {
-				self.RemoveStatus(StatusBloodTrail)
-			}
-		}
-	}
-}
-
-func (self *Creature) buffHeartbeat(selfId entity.Id) {
-	if self.SaveToLose(StatusConfused, 1.0/10) {
-		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
-			selfId, entity.NilId, StatusDescription(StatusConfused))
-	}
 }
 
 func StatusDescription(status int32) string {
