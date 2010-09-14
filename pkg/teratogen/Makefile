@@ -19,6 +19,7 @@ GOFILES=\
 	mutation.go\
 	name.go\
 	position.go\
+	power.go\
 	rules.go\
 	version.go\
 	weapon.go\

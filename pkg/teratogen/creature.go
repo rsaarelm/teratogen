@@ -97,8 +97,9 @@ type Creature struct {
 	Statuses    int32
 	// Velocity is the creature's movement vector from it's last turn. Use it
 	// for dodge bonuses, charge attacks etc.
-	Velocity geom.Vec2I
-	Cooldown int
+	Velocity  geom.Vec2I
+	Cooldowns [NumPowerSlots]int
+	Powers    [NumPowerSlots]PowerId
 }
 
 func GetCreature(id entity.Id) *Creature {
@@ -266,8 +267,10 @@ func (self *Creature) Heartbeat(selfId entity.Id) {
 	self.bloodTrailHeartbeat(selfId)
 	self.buffHeartbeat(selfId)
 
-	if self.Cooldown > 0 {
-		self.Cooldown--
+	for i, _ := range self.Cooldowns {
+		if self.Cooldowns[i] > 0 {
+			self.Cooldowns[i]--
+		}
 	}
 }
 
