@@ -113,6 +113,11 @@ func Heartbeats() {
 func Heartbeat(id entity.Id) {
 	bloodtrailHeartbeat(id)
 	buffHeartbeat(id)
+
+	// Cooldown.
+	if crit := GetCreature(id); crit != nil && crit.Cooldown > 0 {
+		crit.Cooldown--
+	}
 }
 
 func bloodtrailHeartbeat(id entity.Id) {

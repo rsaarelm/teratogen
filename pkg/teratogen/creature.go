@@ -97,6 +97,7 @@ type Creature struct {
 	// Velocity is the creature's movement vector from it's last turn. Use it
 	// for dodge bonuses, charge attacks etc.
 	Velocity geom.Vec2I
+	Cooldown int
 }
 
 func GetCreature(id entity.Id) *Creature {
