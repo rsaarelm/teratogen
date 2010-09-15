@@ -224,6 +224,13 @@ func (self *Creature) Damage(selfId, causerId entity.Id, sourcePos geom.Pt2I, ma
 	}
 
 	adjustedMag := magnitude / self.HealthScale()
+
+	// Frozen creatures are more death-prone
+	if self.Health < adjustedMag*2 && self.HasStatus(StatusFrozen) {
+		adjustedMag *= 2
+		EMsg("{sub.Thename} shatters!\n", selfId, entity.NilId)
+	}
+
 	self.Health -= adjustedMag
 	Fx().Damage(selfId, int(math.Log(float64(adjustedMag))/math.Log(2)))
 	if self.Health < 0 {
