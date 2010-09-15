@@ -9,6 +9,8 @@ import (
 	"rand"
 )
 
+// DoAI runs AI for a creature. Returns true if this ends the creature's move,
+// false if the creature gets to act again immediately afterwards.
 func DoAI(aiEntity entity.Id) bool {
 	playerId := PlayerId()
 	if aiEntity == playerId {
@@ -18,6 +20,10 @@ func DoAI(aiEntity entity.Id) bool {
 	crit := GetCreature(aiEntity)
 	if crit == nil {
 		// It's probably been killed mid-iteration.
+		return true
+	}
+
+	if !CanAct(aiEntity) {
 		return true
 	}
 
