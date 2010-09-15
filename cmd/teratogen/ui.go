@@ -122,8 +122,10 @@ func (self *UI) Children(area image.Rectangle) iterable.Iterable {
 	cols, rows := VisualScale()*200/TileW-1, VisualScale()*120/TileH-1
 	return iterable.Func(func(c chan<- interface{}) {
 		c <- &gui.Window{self.mapView, image.Rect(0, 0, TileW*cols, TileH*rows)}
+		c <- &gui.Window{gui.DrawFunc(drawCommandBar),
+			image.Rect(0, TileH*rows, screenWidth, TileH*(rows+2))}
 		c <- &gui.Window{gui.DrawFunc(drawMsgLines),
-			image.Rect(0, TileH*(rows+1), screenWidth, screenHeight)}
+			image.Rect(0, TileH*(rows+3), screenWidth, screenHeight)}
 		c <- &gui.Window{gui.DrawFunc(drawStatus),
 			image.Rect(TileW*(cols+1), 0, screenWidth, FontH*20)}
 		close(c)
@@ -189,6 +191,23 @@ func GetKey() (result int) {
 	}
 
 	return
+}
+
+func drawCommandBar(g gfx.Graphics, area image.Rectangle) {
+	g.SetClip(area)
+	defer g.ClearClip()
+	const numSlots = 10
+	const slotWidth = 16
+	const perLine = 5
+
+	for i := 0; i < numSlots; i++ {
+		x := (i % perLine) * slotWidth * FontW
+		y := (i / perLine) * FontH
+		// TODO: Print text description
+		idx := (i + 1) % 10
+		txt := fmt.Sprintf("%d %s", idx, ShortNamePower(idx))
+		DrawString(g, area.Min.X+x, area.Min.Y+y, txt)
+	}
 }
 
 func drawMsgLines(g gfx.Graphics, area image.Rectangle) {
@@ -441,8 +460,9 @@ func UiHelpLines() *vector.Vector {
 	vec.Push("esc: exit menu")
 	vec.Push("arrow keys, qwe asd: move/attack")
 	vec.Push("uio jkl: fire gun")
-	vec.Push("Return, keypad 5: action key")
+	vec.Push("Return, numpad 5: action key")
 	vec.Push("Q: quit S: save and quit")
+	vec.Push("Typewriter number keys: Command bar")
 
 	if game.HasContents(game.PlayerId()) {
 		vec.Push("t: inventory")
@@ -612,4 +632,17 @@ func VisualScale() int { return config.TileScale }
 func YesNoInput() bool {
 	key := GetKey()
 	return key == 'y' || key == 'Y'
+}
+
+func UsePower(idx int) {
+	game.Msg("Power %d is unbound.\n", idx)
+	// TODO
+}
+
+// ShortNamePower returns the name of the power in the given slot in a form
+// short enough to print to the on-screen command bar. Cooldowns and uses left
+// can be included if applicable.
+func ShortNamePower(idx int) string {
+	// TODO
+	return ""
 }

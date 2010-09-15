@@ -446,6 +446,8 @@ func (self *MapView) AsyncHandleKey(key int) {
 			game.PlayerEnterStairs()
 			return true
 		})
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		UsePower(int(key - '0'))
 	case 'S':
 		err := game.SaveGame(SaveFileName(), UseGzipSaves)
 		dbg.AssertNoError(err)
