@@ -272,6 +272,10 @@ func (self *MapView) onMouseButton(button int) {
 func playerShootDir(dir6 int) {
 	SendPlayerInput(func() bool {
 		id := game.PlayerId()
+		if !game.CanAct(id) {
+			return true
+		}
+
 		dist := 1
 		if weapon := game.GetCreature(id).Weapon2(); weapon != nil {
 			dist = weapon.Range

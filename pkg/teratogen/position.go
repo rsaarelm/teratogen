@@ -121,6 +121,11 @@ func TryMove(id entity.Id, vec geom.Vec2I) (success bool) {
 			return false
 		}
 
+		if crit.HasStatus(StatusFrozen) {
+			// Frozen ones can't either.
+			return false
+		}
+
 		vec = ConfusionScramble(id, vec)
 	}
 

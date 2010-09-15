@@ -118,6 +118,10 @@ func MovePlayerDir(dir int) {
 }
 
 func SmartMovePlayer(dir int) {
+	if !CanAct(PlayerId()) {
+		return
+	}
+
 	// Special 8-directional move, with the straight left/right alternating.
 	pos := GetPos(PlayerId())
 	column := pos.X - pos.Y
@@ -420,4 +424,17 @@ func ConfusionScramble(id entity.Id, dir geom.Vec2I) geom.Vec2I {
 		}
 	}
 	return dir
+}
+
+// CanAct returns whether the entity queried is a creature that is currently
+// capable of taking any actions at all.
+func CanAct(id entity.Id) bool {
+	if crit := GetCreature(id); crit != nil {
+		if crit.HasStatus(StatusFrozen) {
+			return false
+		}
+
+		return true
+	}
+	return false
 }

@@ -42,6 +42,7 @@ const (
 	StatusDead
 	StatusBloodTrail
 	StatusMutationShield // Prevents next mutation to creature.
+	StatusFrozen
 )
 
 
@@ -294,6 +295,11 @@ func (self *Creature) buffHeartbeat(selfId entity.Id) {
 		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
 			selfId, entity.NilId, StatusDescription(StatusConfused))
 	}
+
+	if self.SaveToLose(StatusFrozen, 1.0/10) {
+		EMsg("{sub.Thename} {sub.is} no longer %s.\n",
+			selfId, entity.NilId, StatusDescription(StatusFrozen))
+	}
 }
 
 func StatusDescription(status int32) string {
@@ -314,6 +320,8 @@ func StatusDescription(status int32) string {
 		return "trailing blood"
 	case StatusMutationShield:
 		return "protected from mutation"
+	case StatusFrozen:
+		return "frozen"
 	}
 	return ""
 }
