@@ -14,7 +14,7 @@ import (
 	"hyades/num"
 	"image"
 	"rand"
-	game "teratogen"
+	"teratogen/game"
 	"time"
 )
 

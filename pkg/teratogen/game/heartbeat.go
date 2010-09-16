@@ -1,4 +1,4 @@
-package teratogen
+package game
 
 import (
 	"hyades/entity"

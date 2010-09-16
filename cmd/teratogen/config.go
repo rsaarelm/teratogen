@@ -13,7 +13,7 @@ import (
 	"json"
 	"os"
 	"path"
-	game "teratogen"
+	"teratogen/game"
 	"unsafe"
 )
 

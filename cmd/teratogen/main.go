@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"hyades/num"
 	"os"
-	game "teratogen"
+	"teratogen/game"
 )
 
 func main() {

@@ -15,7 +15,7 @@ import (
 	"hyades/txt"
 	"image"
 	"sync"
-	game "teratogen"
+	"teratogen/game"
 	"time"
 )
 

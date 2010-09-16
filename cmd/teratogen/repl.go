@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 	"sync"
-	game "teratogen"
+	"teratogen/game"
 )
 
 var onceTerp sync.Once

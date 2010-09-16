@@ -16,7 +16,7 @@ DIRS=\
 	hyades/sdl\
 	hyades/sfx\
 	hyades/txt\
-	teratogen\
+	teratogen/game
 
 NOTEST=\
 	hyades/dbg\
