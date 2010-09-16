@@ -16,17 +16,33 @@ const (
 
 const NumPowerSlots = 4
 
-// Powers that don't need extra parameters to activate.
-type UndirectedPower interface {
-	UsePower(user entity.Id)
+func ExpectsDirection(power PowerId) bool {
+	switch power {
+	case PowerCryoBurst,
+		PowerKineticBlast,
+		PowerTeleport:
+		return true
+	}
+	return false
 }
 
-// Power that goes in a specific direction. Might take -1 for "point to self".
-type DirectedPower interface {
-	UsePowerTowards(user entity.Id, dir6 int)
+func ShortPowerName(power PowerId) string {
+	switch power {
+	//        "--------------" Size limit
+	case PowerCryoBurst:
+		return "cryo burst"
+	case PowerChainLightning:
+		return "chain lightng"
+	case PowerKineticBlast:
+		return "kinetic blast"
+	case PowerTeleport:
+		return "teleport"
+	}
+	return "UNKNOWN POWER"
 }
 
-// Power that targets a specific entity. Item enchantments and such.
-type TargetedPower interface {
-	UsePowerAt(user entity.Id, target entity.Id)
+func UsePower(user entity.Id, power PowerId, dir6 int) {
+	switch power {
+	// TODO
+	}
 }

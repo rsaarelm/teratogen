@@ -660,7 +660,24 @@ func UsePower(idx int) {
 // can be included if applicable.
 func ShortNamePower(idx int) string {
 	player := game.PlayerId()
+	playerCrit := game.GetCreature(player)
 	switch idx {
+	case 1:
+		if playerCrit.Powers[0] != game.NoPower {
+			return game.ShortPowerName(playerCrit.Powers[0])
+		}
+	case 2:
+		if playerCrit.Powers[1] != game.NoPower {
+			return game.ShortPowerName(playerCrit.Powers[1])
+		}
+	case 3:
+		if playerCrit.Powers[2] != game.NoPower {
+			return game.ShortPowerName(playerCrit.Powers[2])
+		}
+	case 4:
+		if playerCrit.Powers[3] != game.NoPower {
+			return game.ShortPowerName(playerCrit.Powers[3])
+		}
 	case medkitCommandSlot:
 		medkitCount := game.ContentItemCount(player, game.IsMedKit)
 		// TODO: Gray out the text when there are zero medkits.
