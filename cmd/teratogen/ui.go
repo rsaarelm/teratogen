@@ -634,15 +634,37 @@ func YesNoInput() bool {
 	return key == 'y' || key == 'Y'
 }
 
+const medkitCommandSlot = 0
+
 func UsePower(idx int) {
+	player := game.PlayerId()
+
+	switch idx {
+	case medkitCommandSlot:
+		id, ok := game.FirstContentItem(player, game.IsMedKit)
+		if !ok {
+			game.Msg("You have no medkits.\n")
+		} else {
+			SendPlayerInput(func() bool {
+				game.UseItem(player, id)
+				return true
+			})
+		}
+		return
+	}
 	game.Msg("Power %d is unbound.\n", idx)
-	// TODO
 }
 
 // ShortNamePower returns the name of the power in the given slot in a form
 // short enough to print to the on-screen command bar. Cooldowns and uses left
 // can be included if applicable.
 func ShortNamePower(idx int) string {
-	// TODO
+	player := game.PlayerId()
+	switch idx {
+	case medkitCommandSlot:
+		medkitCount := game.ContentItemCount(player, game.IsMedKit)
+		// TODO: Gray out the text when there are zero medkits.
+		return fmt.Sprintf("medkit (%d)", medkitCount)
+	}
 	return ""
 }

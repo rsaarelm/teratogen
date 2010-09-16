@@ -271,3 +271,27 @@ func RapidFireGunEquipped(id entity.Id) bool {
 
 	return false
 }
+
+func IsMedKit(id entity.Id) bool {
+	// XXX: Should have a more robust item identification scheme than looking
+	// at item use.
+	if item := GetItem(id); item != nil {
+		return item.Use == MedkitUse
+	}
+	return false
+}
+
+// ContentItemCount returns the number of items carried by owner which satisfy
+// the given predicate function.
+func ContentItemCount(owner entity.Id, pred func(entity.Id) bool) int {
+	return len(iterable.Data(iterable.Filter(Contents(owner), EntityFilterFn(pred))))
+}
+
+// FirstContentItem returns the first item (in an unspecified iteration order)
+// carried by owner which satisfies the given predicate function.
+func FirstContentItem(owner entity.Id, pred func(entity.Id) bool) (result entity.Id, ok bool) {
+	for i := range iterable.Filter(Contents(owner), EntityFilterFn(pred)).Iter() {
+		return i.(entity.Id), true
+	}
+	return entity.NilId, false
+}
