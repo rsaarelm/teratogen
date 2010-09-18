@@ -121,10 +121,14 @@ func drawEntities(g gfx.Graphics) {
 		if esp || mapped {
 			if esp || seen || !game.IsMobile(id) {
 				var armor float64
-				if crit := game.GetCreature(id); crit != nil {
+				crit := game.GetCreature(id)
+				if crit != nil {
 					armor = crit.Armor
 				}
 				Draw(g, GearedIcon(game.GetIconId(id), armor), pos.X, pos.Y)
+				if crit != nil && crit.HasStatus(game.StatusFrozen) {
+					Draw(g, "items:20", pos.X, pos.Y)
+				}
 				continue
 			}
 		}
