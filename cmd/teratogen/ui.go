@@ -205,8 +205,13 @@ func drawCommandBar(g gfx.Graphics, area image.Rectangle) {
 		y := (i / perLine) * FontH
 		// TODO: Print text description
 		idx := (i + 1) % 10
-		txt := fmt.Sprintf("%d %s", idx, ShortNamePower(idx))
-		DrawString(g, area.Min.X+x, area.Min.Y+y, txt)
+		name, usable := ShortNamePower(idx)
+		txt := fmt.Sprintf("%d %s", idx, name)
+		color := defaultTextColor
+		if !usable {
+			color = gfx.LightSlateGray
+		}
+		DrawColorString(g, area.Min.X+x, area.Min.Y+y, color, txt)
 	}
 }
 
@@ -664,9 +669,44 @@ func keyToDir(key int) (dir6 int, ok bool) {
 
 func UsePower(idx int) {
 	player := game.PlayerId()
+	playerCrit := game.GetCreature(player)
 
-	switch idx {
-	case medkitCommandSlot:
+	switch {
+	case idx >= 1 && idx <= 4:
+		slot := idx - 1
+		if playerCrit.Powers[slot] != game.NoPower {
+			if playerCrit.Cooldowns[slot] > 0 {
+				game.Msg("Power not usable for another %d turn(s).\n",
+					playerCrit.Cooldowns[slot])
+				return
+			}
+
+			power := game.GetPower(playerCrit.Powers[slot])
+			switch fn := power.Action.(type) {
+			case func(entity.Id, int) bool:
+				// Directional power
+				game.Msg("Which direction?\n")
+				dir, ok := keyToDir(GetKey())
+				if ok {
+					SendPlayerInput(func() bool {
+						return fn(game.PlayerId(), dir)
+					})
+				}
+			case func(entity.Id) bool:
+				// Undirected power
+				SendPlayerInput(func() bool {
+					return fn(game.PlayerId())
+				})
+			default:
+				panic("Unsupported power function signature")
+			}
+			// XXX: Game logic in UI layer. Bad, bad, bad. But I'm too lazy to
+			// make a game-side func for this, since the powers differ by how
+			// they are invoked, directed or not.
+			playerCrit.Cooldowns[slot] += power.Cooldown
+			return
+		}
+	case idx == medkitCommandSlot:
 		id, ok := game.FirstContentItem(player, game.IsMedKit)
 		if !ok {
 			game.Msg("You have no medkits.\n")
@@ -684,30 +724,24 @@ func UsePower(idx int) {
 // ShortNamePower returns the name of the power in the given slot in a form
 // short enough to print to the on-screen command bar. Cooldowns and uses left
 // can be included if applicable.
-func ShortNamePower(idx int) string {
+func ShortNamePower(idx int) (name string, usable bool) {
 	player := game.PlayerId()
 	playerCrit := game.GetCreature(player)
-	switch idx {
-	case 1:
-		if playerCrit.Powers[0] != game.NoPower {
-			return game.GetPower(playerCrit.Powers[0]).ShortName
+	switch {
+	case idx >= 1 && idx <= 4:
+		slot := idx - 1
+		if playerCrit.Powers[slot] != game.NoPower {
+			name = game.GetPower(playerCrit.Powers[slot]).ShortName
+			if cool := playerCrit.Cooldowns[slot]; cool > 0 {
+				name += fmt.Sprintf(" (%d)", cool)
+				return name, false
+			}
+			return name, true
 		}
-	case 2:
-		if playerCrit.Powers[1] != game.NoPower {
-			return game.GetPower(playerCrit.Powers[1]).ShortName
-		}
-	case 3:
-		if playerCrit.Powers[2] != game.NoPower {
-			return game.GetPower(playerCrit.Powers[2]).ShortName
-		}
-	case 4:
-		if playerCrit.Powers[3] != game.NoPower {
-			return game.GetPower(playerCrit.Powers[3]).ShortName
-		}
-	case medkitCommandSlot:
+	case idx == medkitCommandSlot:
 		medkitCount := game.ContentItemCount(player, game.IsMedKit)
 		// TODO: Gray out the text when there are zero medkits.
-		return fmt.Sprintf("medkit (%d)", medkitCount)
+		return fmt.Sprintf("medkit (%d)", medkitCount), medkitCount > 0
 	}
-	return ""
+	return "", false
 }

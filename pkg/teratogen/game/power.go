@@ -32,7 +32,7 @@ type Power struct {
 
 var powerLookup = map[PowerId]*Power{
 	NoPower:        nil,
-	PowerCryoBurst: &Power{"cryo burst", 5, DoCryoBurst},
+	PowerCryoBurst: &Power{"cryo burst", 10, DoCryoBurst},
 }
 
 func GetPower(id PowerId) *Power {
