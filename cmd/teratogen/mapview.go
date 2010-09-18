@@ -129,6 +129,9 @@ func drawEntities(g gfx.Graphics) {
 				if crit != nil && crit.HasStatus(game.StatusFrozen) {
 					Draw(g, "items:20", pos.X, pos.Y)
 				}
+				if crit != nil && crit.HasStatus(game.StatusConfused) {
+					Draw(g, "items:21", pos.X, pos.Y)
+				}
 				continue
 			}
 		}
