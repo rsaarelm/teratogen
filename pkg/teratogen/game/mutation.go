@@ -4,6 +4,7 @@ import (
 	"container/vector"
 	"hyades/entity"
 	"hyades/num"
+	"math"
 	"rand"
 )
 
@@ -118,7 +119,7 @@ func (self *Mutations) GiveExp(id entity.Id, amount float64) {
 
 	// XXX: Subtract the very small number from both to keep a mutation from
 	// happening at the very first humanity drop from 100 % to 99.whatever %.
-	for i := int(self.Humanity*numLevels - 1e-9); i < int(oldHumanity*numLevels-1e-9); i++ {
+	for i := int(math.Floor(self.Humanity*numLevels - 1e-9)); i < int(math.Floor(oldHumanity*numLevels-1e-9)); i++ {
 		Mutate(id)
 	}
 }
@@ -166,7 +167,7 @@ func Mutate(id entity.Id) {
 		}
 	}
 
-	if mutations.HumanityLevel() < 0 {
+	if mutations.HumanityLevel() <= 0 {
 		EMsg("{sub.Thename} mutate{sub.s} further!\n", id, entity.NilId)
 		terminalMutation(id)
 	}
