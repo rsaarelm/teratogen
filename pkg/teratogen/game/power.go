@@ -44,12 +44,12 @@ func DoCryoBurst(user entity.Id, dir6 int) (endsMove bool) {
 	if dir6 == -1 {
 		pos = GetPos(user)
 	} else {
-		dirVec := geom.Dir6ToVec(dir6)
+		dx, dy := geom.HexToPlane(geom.Origin.Plus(geom.Dir6ToVec(dir6)))
 
 		// XXX: Shooting code should go into its own function.
 	Outer:
 		for o := range iterable.Drop(
-			geom.HexRay(GetPos(user), float64(dirVec.X), float64(dirVec.Y)),
+			geom.HexRay(GetPos(user), dx, dy),
 			1).Iter() {
 			pos = o.(geom.Pt2I)
 			if !IsOpenTerrain(pos) {
