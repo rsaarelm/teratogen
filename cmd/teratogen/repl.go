@@ -17,10 +17,17 @@ func initTerp() {
 
 	t, v := eval.FuncFromNativeTyped(wrapNextLevel, game.NextLevel)
 	terp.DefineConst("NextLevel", t, v)
+
+	t, v = eval.FuncFromNativeTyped(wrapMutate, (func())(nil))
+	terp.DefineConst("Mutate", t, v)
 }
 
 func wrapNextLevel(t *eval.Thread, args []eval.Value, res []eval.Value) {
 	game.NextLevel()
+}
+
+func wrapMutate(t *eval.Thread, args []eval.Value, res []eval.Value) {
+	game.Mutate(game.PlayerId())
 }
 
 func RunRepl() {
