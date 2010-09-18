@@ -27,6 +27,7 @@ const (
 	MutationHorns
 	MutationFast
 	MutationCryo
+	MutationLightning
 )
 
 type mutation struct {
@@ -85,13 +86,14 @@ func (self *mutation) CanApplyTo(id entity.Id) bool {
 }
 
 var mutations = map[uint64]*mutation{
-	MutationEsp:     &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
-	MutationTough:   &mutation{MutationTough, toughMutation, 2, nil, 0},
-	MutationShimmer: &mutation{MutationShimmer, shimmerMutation, 4, hasIntrinsicFilter(IntrinsicShimmer), 0},
-	MutationHorns:   &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
-	MutationHooves:  &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
-	MutationFast:    &mutation{MutationFast, fastMutation, 6, hasIntrinsicFilter(IntrinsicFast), 0},
-	MutationCryo:    &mutation{MutationCryo, cryoMutation, 0, nil, 0},
+	MutationEsp:       &mutation{MutationEsp, esperMutation, 0, hasIntrinsicFilter(IntrinsicEsper), 0},
+	MutationTough:     &mutation{MutationTough, toughMutation, 2, nil, 0},
+	MutationShimmer:   &mutation{MutationShimmer, shimmerMutation, 4, hasIntrinsicFilter(IntrinsicShimmer), 0},
+	MutationHorns:     &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
+	MutationHooves:    &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
+	MutationFast:      &mutation{MutationFast, fastMutation, 6, hasIntrinsicFilter(IntrinsicFast), 0},
+	MutationCryo:      &mutation{MutationCryo, cryoMutation, 0, nil, 0},
+	MutationLightning: &mutation{MutationLightning, lightningMutation, 0, nil, 0},
 	// TODO more
 }
 
@@ -253,4 +255,9 @@ func addPower(id entity.Id, power PowerId) {
 func cryoMutation(id entity.Id) {
 	EMsg("{sub.Thename} feel{sub.s} very cold.\n", id, entity.NilId)
 	addPower(id, PowerCryoBurst)
+}
+
+func lightningMutation(id entity.Id) {
+	EMsg("{sub.Thename} feel{sub.s} very tingly.\n", id, entity.NilId)
+	addPower(id, PowerChainLightning)
 }
