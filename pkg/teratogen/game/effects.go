@@ -12,6 +12,7 @@ const (
 	AttackFxBeam
 	AttackFxSpray
 	AttackFxElectro
+	AttackFxFrost
 )
 
 // Interface which Teratogen uses to communicate events to the client module.
