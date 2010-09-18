@@ -216,7 +216,7 @@ func esperMutation(id entity.Id) {
 
 func toughMutation(id entity.Id) {
 	EMsg("{sub.Thename's} skin hardens into scales.\n", id, entity.NilId)
-	GetCreature(id).healthScale *= 0.2
+	GetCreature(id).healthScale *= 1.2
 }
 
 func shimmerMutation(id entity.Id) {
