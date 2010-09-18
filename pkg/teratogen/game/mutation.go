@@ -4,6 +4,7 @@ import (
 	"container/vector"
 	"hyades/entity"
 	"hyades/num"
+	"rand"
 )
 
 const MutationsComponent = entity.ComponentFamily("mutations")
@@ -25,6 +26,7 @@ const (
 	MutationHooves
 	MutationHorns
 	MutationFast
+	MutationCryo
 )
 
 type mutation struct {
@@ -89,6 +91,7 @@ var mutations = map[uint64]*mutation{
 	MutationHorns:   &mutation{MutationHorns, hornsMutation, 0, hasIntrinsicFilter(IntrinsicHorns), 0},
 	MutationHooves:  &mutation{MutationHooves, hoovesMutation, 0, hasIntrinsicFilter(IntrinsicHooves), 0},
 	MutationFast:    &mutation{MutationFast, fastMutation, 6, hasIntrinsicFilter(IntrinsicFast), 0},
+	MutationCryo:    &mutation{MutationCryo, cryoMutation, 0, nil, 0},
 	// TODO more
 }
 
@@ -232,4 +235,22 @@ func hoovesMutation(id entity.Id) {
 func fastMutation(id entity.Id) {
 	EMsg("{sub.Thename} {sub.is} suddenly moving faster.\n", id, entity.NilId)
 	GetCreature(id).AddIntrinsic(IntrinsicFast)
+}
+
+func addPower(id entity.Id, power PowerId) {
+	crit := GetCreature(id)
+	// Put power in an empty slot if there is one, otherwise replace a random
+	// existing power.
+	for i := 0; i < NumPowerSlots; i++ {
+		if crit.Powers[i] == NoPower {
+			crit.Powers[i] = power
+			return
+		}
+	}
+	crit.Powers[rand.Intn(NumPowerSlots)] = power
+}
+
+func cryoMutation(id entity.Id) {
+	EMsg("{sub.Thename} feel{sub.s} very cold.\n", id, entity.NilId)
+	addPower(id, PowerCryoBurst)
 }
