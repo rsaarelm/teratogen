@@ -636,6 +636,32 @@ func YesNoInput() bool {
 
 const medkitCommandSlot = 0
 
+// keyToDir maps a key to a 6-direction. Pointing to self ('.' key) returns
+// -1.
+func keyToDir(key int) (dir6 int, ok bool) {
+	switch keymap.Map(key) {
+	case 'i', 'w', keyboard.K_KP8, keyboard.K_HOME, keyboard.K_UP:
+		return 0, true
+	case 'o', 'e', keyboard.K_PAGEUP, keyboard.K_KP9:
+		return 1, true
+	case 'l', 'd', keyboard.K_PAGEDOWN, keyboard.K_KP3:
+		return 2, true
+	case 'k', 's', keyboard.K_KP2, keyboard.K_END, keyboard.K_DOWN:
+		return 3, true
+	case 'j', 'a', keyboard.K_DELETE, keyboard.K_KP1:
+		return 4, true
+	case 'u', 'q', keyboard.K_INSERT, keyboard.K_KP7:
+		return 5, true
+	}
+
+	switch key {
+	// Down ('>') equals "at self" for now.
+	case '.', '>':
+		return -1, true
+	}
+	return 0, false
+}
+
 func UsePower(idx int) {
 	player := game.PlayerId()
 
