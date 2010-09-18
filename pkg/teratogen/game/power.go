@@ -65,7 +65,23 @@ func DoCryoBurst(user entity.Id, dir6 int) (endsMove bool) {
 		}
 	}
 	Fx().Shoot(user, pos, AttackFxFrost)
+
+	// TODO: Make the explosion frost-colored.
 	Fx().Explode(pos, 5, 2)
+
+	for pt := range geom.HexRadiusIter(pos.X, pos.Y, 1) {
+		critId := CreatureAt(pt)
+		if crit := GetCreature(critId); crit != nil {
+			// Let's be nice and not have friendly fire. You can't freeze
+			// yourself with the blast.
+			if critId != user {
+				// XXX: No resistance check.
+				crit.AddStatus(StatusFrozen)
+				EMsg("{sub.Thename} {sub.is} frozen.\n", critId, entity.NilId)
+			}
+		}
+	}
+
 	// TODO: Freeze effect instead of damage.
 	return true
 }
