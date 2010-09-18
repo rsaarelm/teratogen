@@ -308,3 +308,22 @@ func HexToPlane(hexPt Pt2I) (x, y float64) {
 func PlaneToHex(x, y float64) Pt2I {
 	return Pt2I{int(num.Round(x/2 + y)), int(num.Round(y - x/2))}
 }
+
+// HexRadiusIter returns an iteration of points at most radius hex tiles away
+// from the center position.
+func HexRadiusIter(x0, y0, radius int) <-chan Pt2I {
+	c := make(chan Pt2I)
+	go func() {
+		center := Pt2I{x0, y0}
+		for y := y0 - radius; y <= y0+radius; y++ {
+			for x := x0 - radius; x <= x0+radius; x++ {
+				pt := Pt2I{x, y}
+				if HexDist(pt, center) <= radius {
+					c <- Pt2I{x, y}
+				}
+			}
+		}
+		close(c)
+	}()
+	return c
+}

@@ -284,7 +284,7 @@ func BlocksMovement(id entity.Id) bool { return IsCreature(id) }
 
 func Explode(pos geom.Pt2I, power int, cause entity.Id) {
 	Fx().Explode(pos, power, 2)
-	for pt := range geom.PtIter(pos.X-1, pos.Y-1, 3, 3) {
+	for pt := range geom.HexRadiusIter(pos.X, pos.Y, 1) {
 		DamagePos(pt, pos, float64(power*10), BluntDamage, cause)
 	}
 }
