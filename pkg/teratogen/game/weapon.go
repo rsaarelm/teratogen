@@ -173,6 +173,10 @@ func (self *Weapon) Attack(wielder entity.Id, pos geom.Pt2I, attackBonus float64
 	EMsg("{sub.Thename} %s {obj.thename}.\n", wielder, target, self.Verb)
 
 	if crit := GetCreature(target); crit != nil {
+		if ShimmerTest(target) {
+			EMsg("{sub.Thename} phase{sub.s} away from the attack.\n", target, entity.NilId)
+			return
+		}
 
 		// TODO: Damage type from weapon.
 		crit.Damage(
@@ -201,6 +205,10 @@ func (self *Weapon) checkHits(pos geom.Pt2I, attackBonus float64) float64 {
 
 	for o := range EntitiesAt(pos).Iter() {
 		id := o.(entity.Id)
+		if ShimmerTest(id) {
+			EMsg("{sub.Thename} phase{sub.s} away from the attack.\n", id, entity.NilId)
+			continue
+		}
 		if BlocksMovement(id) {
 			success := ContestRoll(attackBonus - DefenseSkill(id))
 			if success >= 0 {

@@ -169,6 +169,17 @@ func SmartMovePlayer(dir int) {
 
 	for o := range EnemiesAt(PlayerId(), target).Iter() {
 		Attack(PlayerId(), o.(entity.Id))
+
+		// Special logic for horns and hooves.
+
+		//XXX: Shouldn't be here. Should be in a general melee attack function
+		//called for both player and enemies.
+		if IsAlive(o.(entity.Id)) && GetCreature(PlayerId()).HasIntrinsic(IntrinsicHooves) && num.OneChanceIn(3) {
+			weaponLookup[WeaponKick].Attack(PlayerId(), GetPos(o.(entity.Id)), AttackSkill(PlayerId(), weaponLookup[WeaponKick]))
+		}
+		if IsAlive(o.(entity.Id)) && GetCreature(PlayerId()).HasIntrinsic(IntrinsicHorns) && num.OneChanceIn(3) {
+			weaponLookup[WeaponHorns].Attack(PlayerId(), GetPos(o.(entity.Id)), AttackSkill(PlayerId(), weaponLookup[WeaponHorns]))
+		}
 		return
 	}
 	// No attack, move normally.
@@ -435,6 +446,17 @@ func CanAct(id entity.Id) bool {
 		}
 
 		return true
+	}
+	return false
+}
+
+// ShimmerTest returns true if id is an entity with the shimmer intrinsic and
+// managed to phase out of the way of an incoming attack.
+func ShimmerTest(id entity.Id) bool {
+	if crit := GetCreature(id); crit != nil {
+		if crit.HasIntrinsic(IntrinsicShimmer) && num.OneChanceIn(5) {
+			return true
+		}
 	}
 	return false
 }
