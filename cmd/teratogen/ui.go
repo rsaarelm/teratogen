@@ -664,19 +664,19 @@ func ShortNamePower(idx int) string {
 	switch idx {
 	case 1:
 		if playerCrit.Powers[0] != game.NoPower {
-			return game.ShortPowerName(playerCrit.Powers[0])
+			return game.GetPower(playerCrit.Powers[0]).ShortName
 		}
 	case 2:
 		if playerCrit.Powers[1] != game.NoPower {
-			return game.ShortPowerName(playerCrit.Powers[1])
+			return game.GetPower(playerCrit.Powers[1]).ShortName
 		}
 	case 3:
 		if playerCrit.Powers[2] != game.NoPower {
-			return game.ShortPowerName(playerCrit.Powers[2])
+			return game.GetPower(playerCrit.Powers[2]).ShortName
 		}
 	case 4:
 		if playerCrit.Powers[3] != game.NoPower {
-			return game.ShortPowerName(playerCrit.Powers[3])
+			return game.GetPower(playerCrit.Powers[3]).ShortName
 		}
 	case medkitCommandSlot:
 		medkitCount := game.ContentItemCount(player, game.IsMedKit)
