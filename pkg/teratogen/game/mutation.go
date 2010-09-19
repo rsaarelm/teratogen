@@ -250,7 +250,9 @@ func addPower(id entity.Id, power PowerId) {
 			return
 		}
 	}
-	crit.Powers[rand.Intn(NumPowerSlots)] = power
+	slot := rand.Intn(NumPowerSlots)
+	crit.Powers[slot] = power
+	crit.Cooldowns[slot] = 0
 }
 
 func cryoMutation(id entity.Id) {
