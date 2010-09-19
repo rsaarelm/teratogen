@@ -33,9 +33,9 @@ You must have SDL, SDL_ttf and SDL_gfx libraries installed to run Teratogen.
 There are currently only Linux binaries, due to the problems of compiling
 Google Go programs on Windows.
 
-[32-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-002-linux-386.tar.bz2)
+[32-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-003-linux-386.tar.bz2)
 
-[64-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-002-linux-amd64.tar.bz2)
+[64-bit Linux](http://github.com/downloads/rsaarelm/teratogen/teratogen-003-linux-amd64.tar.bz2)
 
 You can find the source at the [project
 page](http://github.com/rsaarelm/teratogen).
