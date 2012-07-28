@@ -48,7 +48,10 @@ func main() {
 
 	pic, err := archive.LoadPng(fs, "assets/chars.png")
 
-	draw.Draw(sdl.Video(), sdl.Video().Bounds(), pic, image.Pt(0, 0), draw.Over)
+	sdlPic := sdl.ToSurface(pic)
+	sdlPic.Blit(0, 0, sdl.Video())
+
+	draw.Draw(sdl.Video(), image.Rect(200, 0, 800, 600), pic, image.Pt(0, 0), draw.Over)
 
 	font.RenderTo32Bit(
 		"Hello, world!",

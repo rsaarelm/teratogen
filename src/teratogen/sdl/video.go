@@ -8,6 +8,7 @@ import "C"
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"reflect"
 	"runtime"
 	"unsafe"
@@ -49,7 +50,7 @@ func (s *Surface) Bounds() image.Rectangle {
 
 func (s *Surface) At(x, y int) (c color.Color) {
 	if image.Pt(x, y).In(s.Bounds()) {
-		c = s.GetColor(s.Pixels32()[x+y*s.Pitch()])
+		c = s.GetColor(s.Pixels32()[x+y*s.Pitch32()])
 	}
 	return
 }
@@ -124,6 +125,14 @@ func NewSurface(w, h int) (s *Surface) {
 		video.format.Gmask,
 		video.format.Bmask,
 		video.format.Amask)
-	runtime.SetFinalizer(ptr, func(s *C.SDL_Surface) { C.SDL_FreeSurface(s) })
-	return &Surface{ptr}
+	s = &Surface{ptr}
+	runtime.SetFinalizer(s, func(s *Surface) { C.SDL_FreeSurface(s.ptr) })
+	return
+}
+
+func ToSurface(img image.Image) (s *Surface) {
+	s = NewSurface(img.Bounds().Dx(), img.Bounds().Dy())
+	//s.Set(0, 0, color.RGBA{0xff, 0xff, 0xff, 0xff})
+	draw.Draw(s, s.Bounds(), img, img.Bounds().Min, draw.Over)
+	return
 }
