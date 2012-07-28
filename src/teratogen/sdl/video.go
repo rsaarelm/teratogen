@@ -18,17 +18,6 @@ type Surface struct {
 	ptr *C.SDL_Surface
 }
 
-// Pixels returns a byte slice memory-mapped to the pixel buffer of the
-// surface.
-func (s *Surface) Pixels() (result []byte) {
-	size := int(s.ptr.pitch) * int(s.ptr.h)
-
-	result = []byte{}
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&result))
-	*header = reflect.SliceHeader{uintptr(s.ptr.pixels), size, size}
-	return
-}
-
 // Pixels32 is the same as Pixels, except that it returns an array of 32-bit
 // values. This is convenient for pixel manipulation of 32-bit color surfaces.
 func (s *Surface) Pixels32() (result []uint32) {
@@ -59,11 +48,6 @@ func (s *Surface) Set(x, y int, c color.Color) {
 	if image.Pt(x, y).In(s.Bounds()) {
 		s.Pixels32()[x+y*s.Pitch32()] = s.MapColor(c)
 	}
-}
-
-// Pitch returns the byte span of a horizontal line in the surface.
-func (s *Surface) Pitch() int {
-	return int(s.ptr.pitch)
 }
 
 // Pitch32 returns the span of a horizontal line in the surface in 32-bit units.
