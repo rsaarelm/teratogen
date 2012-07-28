@@ -67,11 +67,16 @@ func (s *Surface) BPP() int {
 	return int(s.ptr.format.BytesPerPixel)
 }
 
-// MapColor converts color data into the internal format of the surface.
 func (s *Surface) MapColor(c color.Color) uint32 {
 	r, g, b, a := c.RGBA()
 	r8, g8, b8, a8 := C.Uint8(r>>8), C.Uint8(g>>8), C.Uint8(b>>8), C.Uint8(a>>8)
 	return uint32(C.SDL_MapRGBA(s.ptr.format, r8, g8, b8, a8))
+}
+
+func (s *Surface) GetColor(c32 uint32) color.Color {
+	var r8, g8, b8, a8 C.Uint8
+	C.SDL_GetRGBA(C.Uint32(c32), s.ptr.format, &r8, &g8, &b8, &a8)
+	return color.RGBA{uint8(r8), uint8(g8), uint8(b8), uint8(a8)}
 }
 
 var kbd chan KeyEvent

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"io/ioutil"
 	"teratogen/font"
 	"teratogen/sdl"
@@ -21,7 +22,10 @@ func main() {
 		panic(err)
 	}
 
-	font.RenderTo32Bit("Hello, world!", 0xffffffff, 32, 32, sdl.Video())
+	font.RenderTo32Bit(
+		"Hello, world!",
+		sdl.Video().MapColor(color.RGBA{128, 255, 128, 255}),
+		32, 32, sdl.Video())
 	sdl.Flip()
 
 	key := <-sdl.KeyboardChan()
