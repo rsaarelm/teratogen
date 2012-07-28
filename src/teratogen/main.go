@@ -4,15 +4,45 @@ import (
 	"fmt"
 	"image/color"
 	"io/ioutil"
+	"os"
+	"teratogen/archive"
 	"teratogen/font"
 	"teratogen/sdl"
 )
+
+// Set up a file archive that first looks for files in the local physical
+// filesystem path, then in a zip file contained in the local binary.
+func initArchive() (fs archive.Device, err error) {
+	var devices = make([]archive.Device, 0)
+
+	fd, err := archive.FsDevice(".")
+	if err != nil {
+		// If the file system path won't work, things are bad.
+		return
+	}
+	devices = append(devices, fd)
+
+	zd, zerr := archive.FileZipDevice(os.Args[0])
+	// If the self exe isn't a zip, just don't add the device. Things still
+	// work if the assets can be found in the filesystem.
+	if zerr == nil {
+		devices = append(devices, zd)
+	}
+
+	return archive.New(devices...), nil
+}
 
 func main() {
 	sdl.Open(800, 600)
 	defer sdl.Close()
 
-	fontBuf, err := ioutil.ReadFile("assets/04round_bold.ttf")
+	fs, err := initArchive()
+	if err != nil {
+		panic(err)
+	}
+
+	fontFile, err := fs.Open("assets/04round_bold.ttf")
+	fontBuf, err := ioutil.ReadAll(fontFile)
 	if err != nil {
 		panic(err)
 	}
