@@ -62,10 +62,14 @@ func main() {
 	sdl.Flip()
 
 	for {
-		key := <-sdl.KeyboardChan()
-		fmt.Printf("%s\n", key)
-		if key.Sym == sdl.K_ESCAPE {
-			break
+		switch e := (<-sdl.Events).(type) {
+		case sdl.KeyEvent:
+			fmt.Printf("%s\n", e)
+			if e.Sym == sdl.K_ESCAPE {
+				return
+			}
+		case sdl.QuitEvent:
+			return
 		}
 	}
 }

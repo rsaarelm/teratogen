@@ -64,14 +64,6 @@ func (m KeyMod) String() string {
 	return strings.Join(mods, "|")
 }
 
-type KeyEvent struct {
-	Print rune // Printable character
-	Sym   KeySym
-	Code  Scancode
-	Mod   KeyMod
-	KeyUp bool // True if this event was a key being unpressed
-}
-
 func (sym KeySym) String() string {
 	if str, found := symNames[sym]; found {
 		return str

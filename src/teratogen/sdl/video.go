@@ -77,6 +77,9 @@ func (s *Surface) GetColor(c32 uint32) color.Color {
 }
 
 func (s *Surface) Blit(x, y int, target *Surface) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	targetRect := convertRect(image.Rect(x, y, x, y))
 	C.SDL_BlitSurface(s.ptr, nil, target.ptr, &targetRect)
 }
@@ -93,19 +96,31 @@ func Video() *Surface {
 // Flip swaps screen buffers with a double-buffered display mode. Use it to
 // make the changes you made to the screen become visible.
 func Flip() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	C.SDL_Flip(C.SDL_GetVideoSurface())
 }
 
 func FillRect(rect image.Rectangle, color color.Color) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	sdlRect := convertRect(rect)
 	C.SDL_FillRect(C.SDL_GetVideoSurface(), &sdlRect, C.Uint32(Video().MapColor(color)))
 }
 
 func Clear(color color.Color) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	C.SDL_FillRect(C.SDL_GetVideoSurface(), nil, C.Uint32(Video().MapColor(color)))
 }
 
 func NewSurface(w, h int) (s *Surface) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	video := C.SDL_GetVideoSurface()
 	ptr := C.SDL_CreateRGBSurface(
 		0, C.int(w), C.int(h), C.int(video.format.BitsPerPixel),

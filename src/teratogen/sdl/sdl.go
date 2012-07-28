@@ -8,24 +8,17 @@ import "C"
 
 import (
 	"image"
+	"sync"
 	"unsafe"
 )
 
-type MouseEvent struct {
-	Pos     image.Point
-	Buttons int8
-}
-
-var kbd chan KeyEvent
-var mouse chan MouseEvent
-var quit chan bool
-
-var exitChan chan bool
-
-const keyBufferSize = 16
+var mutex sync.Mutex
 
 // Open starts a windowed SDL application.
 func Open(width, height int) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	initFlags := int64(C.SDL_INIT_VIDEO)
 	screenFlags := 0
 
@@ -39,46 +32,21 @@ func Open(width, height int) {
 		panic(getError())
 	}
 	C.SDL_EnableUNICODE(1)
-
-	kbd = make(chan KeyEvent, keyBufferSize)
-	mouse = make(chan MouseEvent, 1)
-	quit = make(chan bool, 1)
-	exitChan = make(chan bool)
-
-	go eventLoop()
-
-	return
 }
-
-// KeyboardChan returns a channel which emits keyboard events from the SDL
-// event loop.
-func KeyboardChan() <-chan KeyEvent {
-	return kbd
-}
-
-// MouseChan returns a channel which emits mouse events from the SDL
-// event loop.
-func MouseChan() <-chan MouseEvent {
-	return mouse
-}
-
-// QuitChan returns a channel which emits close application events from the
-// SDL event loop.
-func QuitChan() <-chan bool { return quit }
 
 // Close exits the SDL application.
 func Close() {
-	exitChan <- true
-	// Wait for the event loop to finish and close SDL. The program may exit
-	// without calling SDL_Quit if this isn't done.
-	_ = <-exitChan
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	C.SDL_Quit()
 }
 
-func IsKeyDown(key int) bool {
+func IsKeyDown(key KeySym) bool {
 	var numKeys C.int
 	keys := C.SDL_GetKeyState(&numKeys)
 
-	if key < 0 || key >= int(numKeys) {
+	if int(key) < 0 || int(key) >= int(numKeys) {
 		return false
 	}
 
@@ -96,65 +64,8 @@ func EnableKeyRepeat(delay int, interval int) (ok bool) {
 	return int(C.SDL_EnableKeyRepeat(C.int(delay), C.int(interval))) == 0
 }
 
-func eventLoop() {
-	var evt C.SDL_Event
-
-	defer func() { exitChan <- true }()
-	defer C.SDL_Quit()
-
-	for {
-		select {
-		case _ = <-exitChan:
-			return
-		default:
-		}
-
-		if C.SDL_WaitEvent(&evt) != 0 {
-			switch typ := eventType(&evt); typ {
-			case C.SDL_KEYDOWN, C.SDL_KEYUP:
-				keyEvt := ((*C.SDL_KeyboardEvent)(unsafe.Pointer(&evt)))
-
-				data := KeyEvent{
-					rune(keyEvt.keysym.unicode),
-					KeySym(keyEvt.keysym.sym),
-					Scancode(keyEvt.keysym.scancode),
-					KeyMod(keyEvt.keysym.mod),
-					typ == C.SDL_KEYUP}
-
-				select {
-				case kbd <- data: // Send new key
-				case _ = <-kbd: // Buffer full, drop oldest key, then send
-					kbd <- data
-				default:
-				}
-
-			case C.SDL_MOUSEMOTION, C.SDL_MOUSEBUTTONUP, C.SDL_MOUSEBUTTONDOWN:
-				motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(&evt)))
-				data := MouseEvent{image.Pt(int(motEvt.x), int(motEvt.y)), int8(motEvt.state)}
-
-				select {
-				case mouse <- data:
-				default:
-				}
-			case C.SDL_QUIT:
-				quit <- true
-			}
-		}
-	}
-}
-
 func getError() string {
 	return C.GoString(C.SDL_GetError())
-}
-
-// Cgo can't access the "type" field of the SDL_Event union type directly
-// because it collides with a Go reserved word. This function casts the union
-// into a minimal struct that contains only the leading type byte and returns
-// the byte.
-func eventType(evt *C.SDL_Event) byte {
-	return byte(((*struct {
-		_type C.Uint8
-	})(unsafe.Pointer(evt)))._type)
 }
 
 func convertRect(rect image.Rectangle) C.SDL_Rect {
