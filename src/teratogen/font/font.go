@@ -17,6 +17,8 @@ import "C"
 import (
 	"errors"
 	"image"
+	"io"
+	"io/ioutil"
 	"reflect"
 	"teratogen/gfx"
 	"unsafe"
@@ -39,8 +41,14 @@ type Font struct {
 // New creates a new bitmap font sheet with the desired characters rendered in
 // the desired size from the given TTF font data in the byte buffer.
 func New(
-	ttfBuffer []byte, glyphHeight float64,
+	r io.Reader, glyphHeight float64,
 	startChar, numChars int) (result *Font, err error) {
+
+	ttfBuffer, err := ioutil.ReadAll(r)
+	if err != nil {
+		return
+	}
+
 	result = new(Font)
 
 	// Estimate a sufficiently big power of two dimension for the font sheet.

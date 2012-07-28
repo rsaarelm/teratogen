@@ -4,9 +4,12 @@ import (
 	"archive/zip"
 	"errors"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
+	"teratogen/font"
 )
 
 type Device interface {
@@ -63,4 +66,26 @@ func (md multiDevice) Open(path string) (rc io.ReadCloser, err error) {
 
 func New(devs ...Device) Device {
 	return multiDevice(devs)
+}
+
+func LoadPng(d Device, path string) (img image.Image, err error) {
+	r, err := d.Open(path)
+	if err != nil {
+		return
+	}
+	defer r.Close()
+	return png.Decode(r)
+	r.Close()
+	return
+}
+
+func LoadFont(
+	d Device, path string, glyphHeight float64,
+	startChar, numChars int) (f *font.Font, err error) {
+	r, err := d.Open(path)
+	if err != nil {
+		return
+	}
+	defer r.Close()
+	return font.New(r, glyphHeight, startChar, numChars)
 }

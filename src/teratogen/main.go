@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"io/ioutil"
 	"os"
 	"teratogen/archive"
-	"teratogen/font"
 	"teratogen/sdl"
 )
 
@@ -41,13 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	fontFile, err := fs.Open("assets/04round_bold.ttf")
-	fontBuf, err := ioutil.ReadAll(fontFile)
-	if err != nil {
-		panic(err)
-	}
-
-	font, err := font.New(fontBuf, 16.0, 32, 96)
+	font, err := archive.LoadFont(fs, "assets/04round_bold.ttf", 16.0, 32, 96)
 	if err != nil {
 		panic(err)
 	}
