@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"os"
 	"teratogen/archive"
+	"teratogen/gfx"
 	"teratogen/sdl"
 )
 
@@ -48,11 +49,11 @@ func main() {
 
 	pic, err := archive.LoadPng(fs, "assets/chars.png")
 
-	sdlPic := sdl.ToSurface(pic)
+	sdlPic := gfx.Scaled(sdl.ToSurface(pic), 2, 2)
 	sdlPic.SetColorKey(color.RGBA{0x00, 0xff, 0xff, 0xff})
 	sdlPic.Blit(0, 0, sdl.Video())
 
-	draw.Draw(sdl.Video(), image.Rect(200, 0, 800, 600), pic, image.Pt(0, 0), draw.Over)
+	draw.Draw(sdl.Video(), image.Rect(300, 0, 800, 600), pic, image.Pt(0, 0), draw.Over)
 
 	font.RenderTo32Bit(
 		"Hello, world!",
