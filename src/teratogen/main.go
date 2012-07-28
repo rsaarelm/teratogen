@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
+	"image/draw"
 	"os"
 	"teratogen/archive"
 	"teratogen/sdl"
@@ -43,6 +45,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	pic, err := archive.LoadPng(fs, "assets/chars.png")
+
+	draw.Draw(sdl.Video(), sdl.Video().Bounds(), pic, image.Pt(0, 0), draw.Over)
 
 	font.RenderTo32Bit(
 		"Hello, world!",
