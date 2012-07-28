@@ -114,7 +114,7 @@ func (s *Font) render32BitChar(
 
 	tPix := target.Pixels32()
 
-	tRect := image.Rect(0, 0, target.Size().X, target.Size().Y)
+	tRect := target.Bounds()
 
 	for gy := 0; gy <= int(g.y1-g.y0); gy++ {
 		tPos := x + (y+gy)*target.Pitch32()

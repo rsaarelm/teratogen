@@ -8,7 +8,7 @@ import (
 type Surface32Bit interface {
 	Pixels32() []uint32
 	Pitch32() int
-	Size() image.Point
+	Bounds() image.Rectangle
 
 	// MapColor converts color data into the internal format of the surface.
 	MapColor(c color.Color) uint32

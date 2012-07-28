@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -38,8 +39,25 @@ func (s *Surface) Pixels32() (result []uint32) {
 	return
 }
 
-func (s *Surface) Size() image.Point {
-	return image.Pt(int(s.ptr.w), int(s.ptr.h))
+func (s *Surface) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (s *Surface) Bounds() image.Rectangle {
+	return image.Rect(0, 0, int(s.ptr.w), int(s.ptr.h))
+}
+
+func (s *Surface) At(x, y int) (c color.Color) {
+	if image.Pt(x, y).In(s.Bounds()) {
+		c = s.GetColor(s.Pixels32()[x+y*s.Pitch()])
+	}
+	return
+}
+
+func (s *Surface) Set(x, y int, c color.Color) {
+	if image.Pt(x, y).In(s.Bounds()) {
+		s.Pixels32()[x+y*s.Pitch32()] = s.MapColor(c)
+	}
 }
 
 // Pitch returns the byte span of a horizontal line in the surface.
@@ -91,4 +109,16 @@ func FillRect(rect image.Rectangle, color color.Color) {
 
 func Clear(color color.Color) {
 	C.SDL_FillRect(C.SDL_GetVideoSurface(), nil, C.Uint32(Video().MapColor(color)))
+}
+
+func NewSurface(w, h int) (s *Surface) {
+	video := C.SDL_GetVideoSurface()
+	ptr := C.SDL_CreateRGBSurface(
+		0, C.int(w), C.int(h), C.int(video.format.BitsPerPixel),
+		video.format.Rmask,
+		video.format.Gmask,
+		video.format.Bmask,
+		video.format.Amask)
+	runtime.SetFinalizer(ptr, func(s *C.SDL_Surface) { C.SDL_FreeSurface(s) })
+	return &Surface{ptr}
 }
