@@ -49,6 +49,7 @@ func main() {
 	pic, err := archive.LoadPng(fs, "assets/chars.png")
 
 	sdlPic := sdl.ToSurface(pic)
+	sdlPic.SetColorKey(color.RGBA{0x00, 0xff, 0xff, 0xff})
 	sdlPic.Blit(0, 0, sdl.Video())
 
 	draw.Draw(sdl.Video(), image.Rect(200, 0, 800, 600), pic, image.Pt(0, 0), draw.Over)

@@ -97,6 +97,10 @@ func (s *Surface) Blit(x, y int, target *Surface) {
 	C.SDL_BlitSurface(s.ptr, nil, target.ptr, &targetRect)
 }
 
+func (s *Surface) SetColorKey(c color.Color) {
+	C.SDL_SetColorKey(s.ptr, C.SDL_SRCCOLORKEY, C.Uint32(s.MapColor(c)))
+}
+
 // Video returns the surface for the base SDL window.
 func Video() *Surface {
 	return &Surface{C.SDL_GetVideoSurface()}
