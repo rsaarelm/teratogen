@@ -91,6 +91,11 @@ func (s *Surface) GetColor(c32 uint32) color.Color {
 	return color.RGBA{uint8(r8), uint8(g8), uint8(b8), uint8(a8)}
 }
 
+func (s *Surface) Blit(x, y int, target *Surface) {
+	targetRect := convertRect(image.Rect(x, y, x, y))
+	C.SDL_BlitSurface(s.ptr, nil, target.ptr, &targetRect)
+}
+
 // Video returns the surface for the base SDL window.
 func Video() *Surface {
 	return &Surface{C.SDL_GetVideoSurface()}
