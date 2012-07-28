@@ -28,6 +28,11 @@ func main() {
 		32, 32, sdl.Video())
 	sdl.Flip()
 
-	key := <-sdl.KeyboardChan()
-	fmt.Printf("%s\n", key.FixedSym())
+	for {
+		key := <-sdl.KeyboardChan()
+		fmt.Printf("%s\n", key)
+		if key.Sym == sdl.K_ESCAPE {
+			break
+		}
+	}
 }

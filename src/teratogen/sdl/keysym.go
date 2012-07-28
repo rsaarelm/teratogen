@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Denotes a key on the keyboard, like 'a' or 'up arrow'.
@@ -16,10 +17,58 @@ type KeySym int
 // keyboard layout.
 type Scancode int
 
+type KeyMod int
+
+// SDL key modifiers
+const (
+	KMOD_NONE   KeyMod = C.KMOD_NONE
+	KMOD_LSHIFT        = C.KMOD_LSHIFT
+	KMOD_RSHIFT        = C.KMOD_RSHIFT
+	KMOD_LCTRL         = C.KMOD_LCTRL
+	KMOD_RCTRL         = C.KMOD_RCTRL
+	KMOD_LALT          = C.KMOD_LALT
+	KMOD_RALT          = C.KMOD_RALT
+	KMOD_LMETA         = C.KMOD_LMETA
+	KMOD_RMETA         = C.KMOD_RMETA
+	KMOD_NUM           = C.KMOD_NUM
+	KMOD_CAPS          = C.KMOD_CAPS
+	KMOD_MODE          = C.KMOD_MODE
+
+	KMOD_CTRL  = KMOD_LCTRL | KMOD_RCTRL
+	KMOD_SHIFT = KMOD_LSHIFT | KMOD_RSHIFT
+	KMOD_ALT   = KMOD_LALT | KMOD_RALT
+	KMOD_META  = KMOD_RMETA | KMOD_LMETA
+)
+
+var modNames = map[KeyMod]string{
+	KMOD_LSHIFT: "LSHIFT",
+	KMOD_RSHIFT: "RSHIFT",
+	KMOD_LCTRL:  "LCTRL",
+	KMOD_RCTRL:  "RCTRL",
+	KMOD_LALT:   "LALT",
+	KMOD_RALT:   "RALT",
+	KMOD_LMETA:  "LMETA",
+	KMOD_RMETA:  "RMETA",
+	KMOD_NUM:    "NUM",
+	KMOD_CAPS:   "CAPS",
+	KMOD_MODE:   "MODE",
+}
+
+func (m KeyMod) String() string {
+	mods := make([]string, 0)
+	for k, v := range modNames {
+		if m&k != 0 {
+			mods = append(mods, v)
+		}
+	}
+	return strings.Join(mods, "|")
+}
+
 type KeyEvent struct {
 	Print rune // Printable character
 	Sym   KeySym
 	Code  Scancode
+	Mod   KeyMod
 	KeyUp bool // True if this event was a key being unpressed
 }
 
@@ -46,7 +95,7 @@ func (evt KeyEvent) FixedSym() KeySym {
 	return evt.Sym
 }
 
-// Expose SDL keysym constants
+// SDL keysym constants
 const (
 	K_UNKNOWN      KeySym = C.SDLK_UNKNOWN
 	K_FIRST               = C.SDLK_FIRST

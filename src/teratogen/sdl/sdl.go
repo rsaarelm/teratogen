@@ -201,6 +201,7 @@ func eventLoop() {
 					rune(keyEvt.keysym.unicode),
 					KeySym(keyEvt.keysym.sym),
 					Scancode(keyEvt.keysym.scancode),
+					KeyMod(keyEvt.keysym.mod),
 					typ == C.SDL_KEYUP}
 
 				select {
