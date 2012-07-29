@@ -30,14 +30,31 @@ type footprintStep struct {
 }
 
 // FootprintTemplate is a precomputed structure for efficiently generating
-// footprints.
+// footprints. It is an ordered sequence of unit distance steps that form the
+// entire footprint and always extend from either point (0, 0) or steps made
+// earlier in the sequence. The expansion of a multi-tile entity's footprint
+// must be made explicit in this way to correctly account for situations where
+// the entity has partially moved through a portal.
 type FootprintTemplate struct {
 	steps []footprintStep
 }
 
-func (it FootprintTemplate) Validate() error {
+func NewTemplate() *FootprintTemplate {
+	return &FootprintTemplate{make([]footprintStep, 0)}
+}
+
+// AddStep adds a construction step to the footprint template. The new point's
+// parent point must be either (0, 0) or a point added by a previous step, and
+// the new point must be at distance 1 from the parent point. This method is
+// for efficient construction of footprint templates, so checking the
+// requirements is the responsibility of the caller.
+func (ft *FootprintTemplate) AddStep(parent, pos image.Point) {
+	ft.steps = append(ft.steps, footprintStep{parent, pos})
+}
+
+func (ft *FootprintTemplate) Validate() error {
 	validParents := map[image.Point]bool{image.Pt(0, 0): true}
-	for _, e := range it.steps {
+	for _, e := range ft.steps {
 		if _, ok := validParents[e.parent]; !ok {
 			return errors.New(fmt.Sprintf("Unparented node %s", e))
 		}
@@ -57,8 +74,8 @@ func (it FootprintTemplate) Validate() error {
 // empty list corresponds to a single-cell footprint that only contains the
 // origin point. The connectedness of points is currently determined by hex
 // tile distance metric.
-func MakeTemplate(shape []image.Point) (result FootprintTemplate, err error) {
-	result.steps = make([]footprintStep, 0)
+func MakeTemplate(shape []image.Point) (result *FootprintTemplate, err error) {
+	result = NewTemplate()
 
 	// Collect points to a map where they can be conveniently deleted from
 	// during computation.
@@ -82,7 +99,7 @@ func MakeTemplate(shape []image.Point) (result FootprintTemplate, err error) {
 					// ever want to do non-hex geometries?
 
 					// Found a contiguous point.
-					result.steps = append(result.steps, footprintStep{parent, pt})
+					result.AddStep(parent, pt)
 					parents = append(parents, pt)
 					delete(pointSet, pt)
 					break
@@ -95,11 +112,6 @@ func MakeTemplate(shape []image.Point) (result FootprintTemplate, err error) {
 		}
 	}
 
-	// XXX: Debug sanity check, remove to make code efficient...
-	if err := result.Validate(); err != nil {
-		panic(err)
-	}
-
 	return
 }
 
@@ -109,7 +121,7 @@ func MakeTemplate(shape []image.Point) (result FootprintTemplate, err error) {
 // must be computed and stored explicitly.
 type Footprint map[image.Point]Location
 
-func (t *Space) MakeFootprint(template FootprintTemplate, loc Location) (result Footprint) {
+func (t *Space) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
 	result = map[image.Point]Location{image.Pt(0, 0): loc}
 
 	for _, step := range template.steps {
