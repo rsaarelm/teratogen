@@ -20,6 +20,7 @@ package tile
 
 import (
 	"image"
+	"math"
 	"teratogen/num"
 )
 
@@ -30,10 +31,10 @@ func HexDist(p1, p2 image.Point) int {
 	dx := p2.X - p1.X
 	dy := p2.Y - p1.Y
 
-	if num.Isignum(dx) == num.Isignum(dy) {
-		return num.Imax(num.Iabs(dx), num.Iabs(dy))
+	if math.Signbit(float64(dx)) == math.Signbit(float64(dy)) {
+		return int(math.Max(math.Abs(float64(dx)), math.Abs(float64(dy))))
 	}
-	return num.Iabs(dx) + num.Iabs(dy)
+	return int(math.Abs(float64(dx)) + math.Abs(float64(dy)))
 }
 
 var HexDirs = []image.Point{{-1, -1}, {0, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 0}}

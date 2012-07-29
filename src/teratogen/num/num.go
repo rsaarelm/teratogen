@@ -16,77 +16,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Package num provides miscellaneous numerical utilities.
 package num
 
 import (
 	"math"
 )
 
-func Imax(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func Imin(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func Fmax(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func Fmin(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func Round(x float64) float64 { return math.Floor(x + 0.5) }
-
-func Iabs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func Fsignum(x float64) float64 {
-	switch {
-	case x < 0.0:
-		return -1.0
-	case x > 0.0:
-		return 1.0
-	}
-	return 0.0
-}
-
-func Isignum(x int) int {
-	switch {
-	case x < 0:
-		return -1
-	case x > 0:
-		return 1
-	}
-	return 0
-}
 
 // Base-2 logarithm.
 func Log2(x float64) float64 { return math.Log(x) / math.Log(2.0) }
-
-// Fracf returns the fractional part of f.
-func Fracf(f float64) (frac float64) {
-	_, frac = math.Modf(f)
-	return
-}
 
 // Lerp does linear interpolation between a and b using parameter 0 <= x <= 1.
 func Lerp(a, b float64, x float64) float64 { return a*(1-x) + b*x }
@@ -126,7 +66,7 @@ func NumberOfSetBitsU64(x uint64) (result int) {
 	return
 }
 
-// AbsMod is a modulo operation where -12 modulo 10 is 8, not -2.
+// AbsMod is a modulo operation which maps negative numbers to [0, modulo).
 func AbsMod(x, modulo int) int {
 	if x < 0 {
 		return x%modulo + modulo

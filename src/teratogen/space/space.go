@@ -16,8 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// The space package has tools for handling the portal structure of a
-// continuous, portaled game world.
+// Package space provides tools for working with a game world with portals.
 package space
 
 import (
@@ -71,8 +70,6 @@ func Loc(x, y int8, zone uint16) Location {
 func Port(dx, dy int8, targetZone uint16) Portal {
 	return Portal{dx, dy, targetZone}
 }
-
-type Cell interface{}
 
 type Space struct {
 	portals map[Location]Portal

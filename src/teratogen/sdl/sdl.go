@@ -16,6 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Package sdl provides partial bindings for the SDL multimedia library.
 package sdl
 
 /*
