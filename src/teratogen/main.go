@@ -22,10 +22,9 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
 	"os"
 	"teratogen/archive"
-	"teratogen/gfx"
+	"teratogen/cache"
 	"teratogen/sdl"
 )
 
@@ -59,19 +58,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	ch := cache.New(fs)
 
-	font, err := archive.LoadFont(fs, "assets/04round_bold.ttf", 16.0, 32, 96)
+	font, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 16.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}
 
-	pic, err := archive.LoadPng(fs, "assets/chars.png")
+	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 16, 16, 32), image.Pt(2, 2)})
 
-	sdlPic := gfx.Scaled(sdl.ToSurface(pic), 2, 2)
-	sdlPic.SetColorKey(color.RGBA{0x00, 0xff, 0xff, 0xff})
-	sdlPic.Blit(0, 0, sdl.Video())
-
-	draw.Draw(sdl.Video(), image.Rect(300, 0, 800, 600), pic, image.Pt(0, 0), draw.Over)
+	sprite.Draw(image.Pt(32, 32))
 
 	font.RenderTo32Bit(
 		"Hello, world!",
