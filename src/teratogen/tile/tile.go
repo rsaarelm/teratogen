@@ -35,3 +35,26 @@ func HexDist(p1, p2 image.Point) int {
 	}
 	return num.Iabs(dx) + num.Iabs(dy)
 }
+
+var HexDirs = []image.Point{{-1, -1}, {0, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 0}}
+
+func HexCircumference(radius int) int {
+	if radius == 0 {
+		return 1
+	}
+	return radius * 6
+}
+
+// HexCirclePoint returns a point along the edge of a radius sized hexagon
+// tile "circle" specified by windingIndex. The HexCircumference(radius)
+// consecutive clockwise points on the circle are denoted by consecutive
+// windingIndex values.
+func HexCirclePoint(radius int, windingIndex int) image.Point {
+	if radius == 0 {
+		return image.Pt(0, 0)
+	}
+
+	sector := num.AbsMod(windingIndex, HexCircumference(radius)) / radius
+	offset := num.AbsMod(windingIndex, radius)
+	return HexDirs[sector].Mul(radius).Add(HexDirs[(sector+2)%6].Mul(offset))
+}

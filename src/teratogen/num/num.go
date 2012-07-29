@@ -125,3 +125,11 @@ func NumberOfSetBitsU64(x uint64) (result int) {
 	}
 	return
 }
+
+// AbsMod is a modulo operation where -12 modulo 10 is 8, not -2.
+func AbsMod(x, modulo int) int {
+	if x < 0 {
+		return x%modulo + modulo
+	}
+	return x % modulo
+}

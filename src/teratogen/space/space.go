@@ -21,6 +21,7 @@
 package space
 
 import (
+	"fmt"
 	"image"
 )
 
@@ -34,8 +35,8 @@ type Location struct {
 
 type Portal Location
 
-// Plus returns a location translated by a vector. Does not know about portals.
-func (loc Location) Plus(vec image.Point) Location {
+// Add returns a location translated by a vector. Does not know about portals.
+func (loc Location) Add(vec image.Point) Location {
 	return Location{loc.X + int8(vec.X), loc.Y + int8(vec.Y), loc.Zone}
 }
 
@@ -47,8 +48,16 @@ func (loc Location) Beyond(portal Portal) Location {
 	return loc
 }
 
+func (loc Location) String() string {
+	return fmt.Sprintf("(%d: %d, %d)", loc.Zone, loc.X, loc.Y)
+}
+
 func (loc Portal) IsNull() bool {
 	return loc.X == 0 && loc.Y == 0 && loc.Zone == 0
+}
+
+func (loc Portal) String() string {
+	return fmt.Sprintf("->(%d: %d, %d)", loc.Zone, loc.X, loc.Y)
 }
 
 func NullPortal() Portal {
@@ -78,7 +87,7 @@ func New() *Space {
 // matters; you will probably mostly want to use this with unit length
 // vectors.
 func (t *Space) Offset(loc Location, vec image.Point) (newLoc Location) {
-	return t.Traverse(loc.Plus(vec))
+	return t.Traverse(loc.Add(vec))
 }
 
 func (t *Space) Traverse(loc Location) Location {
