@@ -2,6 +2,7 @@ GOPATH := $(CURDIR)
 
 PKGS = teratogen \
 	teratogen/archive \
+	teratogen/babble \
 	teratogen/cache \
 	teratogen/font \
 	teratogen/fov \
