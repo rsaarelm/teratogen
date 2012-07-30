@@ -25,6 +25,7 @@ import (
 	"os"
 	"teratogen/archive"
 	"teratogen/cache"
+	"teratogen/gfx"
 	"teratogen/sdl"
 )
 
@@ -73,6 +74,15 @@ func main() {
 		"Hello, world!",
 		sdl.Video().MapColor(color.RGBA{128, 255, 128, 255}),
 		32, 32, sdl.Video())
+
+	for y := 0; y < 32; y++ {
+		sdl.FillRect(image.Rect(64, 64+y, 128, 64+y+1),
+			gfx.LerpCol(
+				color.RGBA{0xff, 0x50, 0x50, 0xff},
+				color.RGBA{0x60, 0x30, 0x30, 0xff},
+				float64(y)/32))
+	}
+
 	sdl.Flip()
 
 	for {

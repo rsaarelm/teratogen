@@ -38,6 +38,9 @@ type Surface32Bit interface {
 	GetColor(c32 uint32) color.Color
 }
 
+// Scaled returns a SDL surface where the graphics have been multiplied by an
+// even multiple of dimensions. Useful for doubling or tripling pixel
+// dimensions of small pixel art.
 func Scaled(orig *sdl.Surface, scale image.Point) (result *sdl.Surface) {
 	if scale.X < 1 || scale.Y < 1 {
 		panic("Bad scale dimensions")
@@ -64,6 +67,7 @@ func Scaled(orig *sdl.Surface, scale image.Point) (result *sdl.Surface) {
 	return
 }
 
+// ImageDrawable is a Drawable made from a SDL surface.
 type ImageDrawable struct {
 	Surface *sdl.Surface
 	Rect    image.Rectangle
@@ -81,4 +85,16 @@ func (d ImageDrawable) Bounds() image.Rectangle {
 
 func (d ImageDrawable) String() string {
 	return fmt.Sprintf("ImageDrawable %s", d.Bounds())
+}
+
+// LerpCol returns a linearly interpolated color between the two endpoint
+// colors.
+func LerpCol(c1, c2 color.Color, x float64) color.Color {
+	r1, b1, g1, a1 := c1.RGBA()
+	r2, b2, g2, a2 := c2.RGBA()
+	return color.RGBA{
+		uint8((float64(r1) + float64(r2-r1)*x) / 256),
+		uint8((float64(g1) + float64(g2-g1)*x) / 256),
+		uint8((float64(b1) + float64(b2-b1)*x) / 256),
+		uint8((float64(a1) + float64(a2-a1)*x) / 256)}
 }
