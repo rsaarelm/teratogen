@@ -7,6 +7,7 @@ PKGS = teratogen \
 	teratogen/font \
 	teratogen/fov \
 	teratogen/gfx \
+	teratogen/mapgen \
 	teratogen/num \
 	teratogen/sdl \
 	teratogen/space \
