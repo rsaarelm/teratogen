@@ -92,9 +92,14 @@ func (d ImageDrawable) String() string {
 func LerpCol(c1, c2 color.Color, x float64) color.Color {
 	r1, b1, g1, a1 := c1.RGBA()
 	r2, b2, g2, a2 := c2.RGBA()
+
 	return color.RGBA{
-		uint8((float64(r1) + float64(r2-r1)*x) / 256),
-		uint8((float64(g1) + float64(g2-g1)*x) / 256),
-		uint8((float64(b1) + float64(b2-b1)*x) / 256),
-		uint8((float64(a1) + float64(a2-a1)*x) / 256)}
+		lerpComponent(r1, r2, x),
+		lerpComponent(g1, g2, x),
+		lerpComponent(b1, b2, x),
+		lerpComponent(a1, a2, x)}
+}
+
+func lerpComponent(a, b uint32, x float64) uint8 {
+	return uint8((float64(a) + (float64(b)-float64(a))*x) / 256)
 }
