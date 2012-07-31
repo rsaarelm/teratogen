@@ -35,6 +35,7 @@ import "C"
 import (
 	"errors"
 	"image"
+	"image/color"
 	"io"
 	"io/ioutil"
 	"reflect"
@@ -158,7 +159,8 @@ func (s *Font) render32BitChar(
 // string to a 32-bit buffer with the given color. It returns the width of the
 // string.
 func (s *Font) RenderTo32Bit(
-	str string, color uint32, x, y int, target gfx.Surface32Bit) (xAdvance float64) {
+	str string, col color.Color, x, y int, target gfx.Surface32Bit) (xAdvance float64) {
+	col32 := target.MapColor(col)
 	for _, ch := range str {
 		if !s.valid(ch) {
 			continue
@@ -166,7 +168,7 @@ func (s *Font) RenderTo32Bit(
 
 		g := s.glyphs[int(ch)-s.startChar]
 
-		s.render32BitChar(ch, color, x+int(xAdvance), y, target)
+		s.render32BitChar(ch, col32, x+int(xAdvance), y, target)
 
 		xAdvance += float64(g.xAdvance)
 	}

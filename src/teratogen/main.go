@@ -70,18 +70,25 @@ func main() {
 
 	sprite.Draw(image.Pt(32, 32))
 
-	font.RenderTo32Bit(
-		"Hello, world!",
-		sdl.Video().MapColor(color.RGBA{128, 255, 128, 255}),
-		32, 32, sdl.Video())
-
-	for y := 0; y < 32; y++ {
-		sdl.FillRect(image.Rect(64, 64+y, 128, 64+y+1),
+	for y := 0; y < 24; y++ {
+		sdl.FillRect(image.Rect(64, 64+y, 220, 64+y+1),
 			gfx.LerpCol(
 				color.RGBA{0xff, 0x50, 0x50, 0xff},
 				color.RGBA{0x60, 0x30, 0x30, 0xff},
-				float64(y)/32))
+				float64(y)/24))
 	}
+
+	for _, y := range []int{0, 2} {
+		for _, x := range []int{0, 2} {
+			if x == 2 && y == 2 {
+				continue
+			}
+			font.RenderTo32Bit(
+				"Hello, world!", color.RGBA{0x00, 0x00, 0x00, 0xff}, 70+x, 78+y, sdl.Video())
+		}
+	}
+	font.RenderTo32Bit(
+		"Hello, world!", color.RGBA{0xff, 0xdd, 0xdd, 0xff}, 72, 80, sdl.Video())
 
 	sdl.Flip()
 
