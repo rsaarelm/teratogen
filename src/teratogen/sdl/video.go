@@ -121,19 +121,19 @@ func Flip() {
 	C.SDL_Flip(C.SDL_GetVideoSurface())
 }
 
-func FillRect(rect image.Rectangle, color color.Color) {
+func (s *Surface) FillRect(rect image.Rectangle, color color.Color) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	sdlRect := convertRect(rect)
-	C.SDL_FillRect(C.SDL_GetVideoSurface(), &sdlRect, C.Uint32(Video().MapColor(color)))
+	C.SDL_FillRect(s.ptr, &sdlRect, C.Uint32(s.MapColor(color)))
 }
 
-func Clear(color color.Color) {
+func (s *Surface) Clear(color color.Color) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	C.SDL_FillRect(C.SDL_GetVideoSurface(), nil, C.Uint32(Video().MapColor(color)))
+	C.SDL_FillRect(s.ptr, nil, C.Uint32(s.MapColor(color)))
 }
 
 func NewSurface(w, h int) (s *Surface) {

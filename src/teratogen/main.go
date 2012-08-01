@@ -71,7 +71,7 @@ func main() {
 	sprite.Draw(image.Pt(32, 32))
 
 	for y := 0; y < 24; y++ {
-		sdl.FillRect(image.Rect(64, 64+y, 220, 64+y+1),
+		sdl.Video().FillRect(image.Rect(64, 64+y, 220, 64+y+1),
 			gfx.LerpCol(
 				color.RGBA{0xff, 0x50, 0x50, 0xff},
 				color.RGBA{0x60, 0x30, 0x30, 0xff},
