@@ -121,6 +121,11 @@ func (s *Font) advance(ch rune) (result float64) {
 	return
 }
 
+// Height returns the height in pixels of the lines of text.
+func (s *Font) Height() float64 {
+	return s.glyphHeight
+}
+
 func (s *Font) StringWidth(str string) (width float64) {
 	for _, ch := range str {
 		width += s.advance(ch)
