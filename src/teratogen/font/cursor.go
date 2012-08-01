@@ -55,19 +55,14 @@ type Cursor struct {
 	Edge    Edge
 	Col     color.Color
 	EdgeCol color.Color
-	Scale   int // Edge scaling
 }
 
 func (c *Cursor) Write(p []byte) (n int, err error) {
-	scale := c.Scale
-	if scale == 0 {
-		scale = 1
-	}
 	// edge logic
 	for y := -1; y <= 1; y++ {
 		for x := -1; x <= 1; x++ {
 			if c.Edge.Drawn(x, y) {
-				c.Font.RenderTo32Bit(string(p), c.EdgeCol, c.Pos.X+(x*scale), c.Pos.Y+(y*scale), c.Target)
+				c.Font.RenderTo32Bit(string(p), c.EdgeCol, c.Pos.X+x, c.Pos.Y+y, c.Target)
 			}
 		}
 	}

@@ -62,27 +62,30 @@ func main() {
 	}
 	ch := cache.New(fs)
 
-	f, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 16.0, 32, 96})
+	sdl.SetFrame(sdl.NewSurface(320, 240))
+
+	f, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 8.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}
 
-	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 16, 16, 32), image.Pt(2, 2)})
+	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
 
-	sprite.Draw(image.Pt(32, 32))
+	sprite.Draw(image.Pt(16, 16))
 
-	for y := 0; y < 24; y++ {
-		sdl.Video().FillRect(image.Rect(64, 64+y, 220, 64+y+1),
+	for y := 0; y < 12; y++ {
+		sdl.Frame().FillRect(image.Rect(32, 32+y, 110, 32+y+1),
 			gfx.LerpCol(
 				color.RGBA{0xff, 0x50, 0x50, 0xff},
 				color.RGBA{0x60, 0x30, 0x30, 0xff},
-				float64(y)/24))
+				float64(y)/12))
 	}
 
-	cur := &font.Cursor{f, sdl.Video(), image.Pt(72, 80), font.Emboss, color.RGBA{0xff, 0xdd, 0xdd, 0xff}, color.RGBA{0x22, 0x00, 0x00, 0xff}, 2}
+	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 40), font.Emboss, color.RGBA{0xff, 0xdd, 0xdd, 0xff}, color.RGBA{0x22, 0x00, 0x00, 0xff}}
 
 	fmt.Fprintf(cur, "Hello, world!")
 
+	gfx.BlitX2(sdl.Frame(), sdl.Video())
 	sdl.Flip()
 
 	for {

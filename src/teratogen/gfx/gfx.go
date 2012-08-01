@@ -98,7 +98,7 @@ type ImageDrawable struct {
 
 func (d ImageDrawable) Draw(offset image.Point) {
 	offset = offset.Add(d.Offset)
-	d.Surface.Blit(d.Rect, offset.X, offset.Y, sdl.Video())
+	d.Surface.Blit(d.Rect, offset.X, offset.Y, sdl.Frame())
 }
 
 func (d ImageDrawable) Bounds() image.Rectangle {

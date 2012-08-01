@@ -42,7 +42,7 @@ func New(fs archive.Device) (result *Cache) {
 }
 
 func (c *Cache) GetImage(spec ImageSpec) (result gfx.ImageDrawable, err error) {
-	surface, err := c.getSurface(surfaceSpec{spec.File, spec.Scale})
+	surface, err := c.getSurface(surfaceSpec{spec.File})
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (c *Cache) getSurface(spec surfaceSpec) (result *sdl.Surface, err error) {
 		if err != nil {
 			return
 		}
-		result = gfx.Scaled(sdl.ToSurface(png), spec.Scale)
+		result = sdl.ToSurface(png)
 
 		// XXX: Hardcoding the same colorkey for all images.
 		result.SetColorKey(color.RGBA{0x00, 0xff, 0xff, 0xff})
@@ -80,14 +80,12 @@ func (c *Cache) getSurface(spec surfaceSpec) (result *sdl.Surface, err error) {
 }
 
 type surfaceSpec struct {
-	File  string
-	Scale image.Point
+	File string
 }
 
 type ImageSpec struct {
 	File   string
 	Bounds image.Rectangle
-	Scale  image.Point
 }
 
 type FontSpec struct {

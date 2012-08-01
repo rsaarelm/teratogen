@@ -107,6 +107,20 @@ func (s *Surface) SetColorKey(c color.Color) {
 	C.SDL_SetColorKey(s.ptr, C.SDL_SRCCOLORKEY, C.Uint32(s.MapColor(c)))
 }
 
+var frame *Surface
+
+// SetFrame sets the default frame buffer to draw to.
+func SetFrame(surface *Surface) {
+	frame = surface
+}
+
+func Frame() *Surface {
+	if frame == nil {
+		return Video()
+	}
+	return frame
+}
+
 // Video returns the surface for the base SDL window.
 func Video() *Surface {
 	return &Surface{C.SDL_GetVideoSurface()}
