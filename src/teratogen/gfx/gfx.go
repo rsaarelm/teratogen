@@ -67,6 +67,28 @@ func Scaled(orig *sdl.Surface, scale image.Point) (result *sdl.Surface) {
 	return
 }
 
+func hline2X(src, dest []uint32, n int) {
+	for i, j := 0, 0; i < n; i++ {
+		dest[j] = src[i]
+		j++
+		dest[j] = src[i]
+		j++
+	}
+}
+
+func BlitX2(src, dest Surface32Bit) {
+	srcPix := src.Pixels32()
+	srcPitch := src.Pitch32()
+	destPix := dest.Pixels32()
+	destPitch := dest.Pitch32()
+
+	w := src.Bounds().Dx()
+	for y, ey := 0, src.Bounds().Dy(); y < ey; y++ {
+		hline2X(srcPix[y*srcPitch:], destPix[y*2*destPitch:], w)
+		hline2X(srcPix[y*srcPitch:], destPix[(y*2+1)*destPitch:], w)
+	}
+}
+
 // ImageDrawable is a Drawable made from a SDL surface.
 type ImageDrawable struct {
 	Surface *sdl.Surface
