@@ -25,6 +25,7 @@ import (
 	"os"
 	"teratogen/archive"
 	"teratogen/cache"
+	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
 )
@@ -52,7 +53,7 @@ func initArchive() (fs archive.Device, err error) {
 }
 
 func main() {
-	sdl.Open(800, 600)
+	sdl.Open(640, 480)
 	defer sdl.Close()
 
 	fs, err := initArchive()
@@ -61,7 +62,7 @@ func main() {
 	}
 	ch := cache.New(fs)
 
-	font, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 16.0, 32, 96})
+	f, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 16.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}
@@ -78,17 +79,9 @@ func main() {
 				float64(y)/24))
 	}
 
-	for _, y := range []int{0, 2} {
-		for _, x := range []int{0, 2} {
-			if x == 2 && y == 2 {
-				continue
-			}
-			font.RenderTo32Bit(
-				"Hello, world!", color.RGBA{0x00, 0x00, 0x00, 0xff}, 70+x, 78+y, sdl.Video())
-		}
-	}
-	font.RenderTo32Bit(
-		"Hello, world!", color.RGBA{0xff, 0xdd, 0xdd, 0xff}, 72, 80, sdl.Video())
+	cur := &font.Cursor{f, sdl.Video(), image.Pt(72, 80), font.Emboss, color.RGBA{0xff, 0xdd, 0xdd, 0xff}, color.RGBA{0x22, 0x00, 0x00, 0xff}, 2}
+
+	fmt.Fprintf(cur, "Hello, world!")
 
 	sdl.Flip()
 
