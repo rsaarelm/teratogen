@@ -67,15 +67,6 @@ func Scaled(orig *sdl.Surface, scale image.Point) (result *sdl.Surface) {
 	return
 }
 
-func hline2X(src, dest []uint32, n int) {
-	for i, j := 0, 0; i < n; i++ {
-		dest[j] = src[i]
-		j++
-		dest[j] = src[i]
-		j++
-	}
-}
-
 func BlitX2(src, dest Surface32Bit) {
 	srcPix := src.Pixels32()
 	srcPitch := src.Pitch32()
@@ -86,6 +77,26 @@ func BlitX2(src, dest Surface32Bit) {
 	for y, ey := 0, src.Bounds().Dy(); y < ey; y++ {
 		hline2X(srcPix[y*srcPitch:], destPix[y*2*destPitch:], w)
 		hline2X(srcPix[y*srcPitch:], destPix[(y*2+1)*destPitch:], w)
+	}
+}
+
+func hline2X(src, dest []uint32, n int) {
+	for i, j := 0, 0; i < n; i++ {
+		dest[j] = src[i]
+		j++
+		dest[j] = src[i]
+		j++
+	}
+}
+
+func GradientRect(s *sdl.Surface, rect image.Rectangle, topCol, bottomCol color.Color) {
+	dy := rect.Dy()
+	for y := 0; y < dy; y++ {
+		s.FillRect(image.Rect(rect.Min.X, rect.Min.Y+y, rect.Max.X, rect.Min.Y+y+1),
+			LerpCol(
+				topCol,
+				bottomCol,
+				float64(y)/float64(dy)))
 	}
 }
 

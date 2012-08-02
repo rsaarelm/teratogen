@@ -21,7 +21,6 @@ package main
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"os"
 	"teratogen/archive"
 	"teratogen/cache"
@@ -73,15 +72,9 @@ func main() {
 
 	sprite.Draw(image.Pt(16, 16))
 
-	for y := 0; y < 12; y++ {
-		sdl.Frame().FillRect(image.Rect(32, 32+y, 110, 32+y+1),
-			gfx.LerpCol(
-				gfx.Gold,
-				gfx.ScaleCol(gfx.Gold, 0.5),
-				float64(y)/12))
-	}
+	gfx.GradientRect(sdl.Frame(), image.Rect(32, 32, 110, 44), gfx.Gold, gfx.ScaleCol(gfx.Gold, 0.5))
 
-	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 40), font.Emboss, color.RGBA{0xff, 0xdd, 0xdd, 0xff}, color.RGBA{0x22, 0x00, 0x00, 0xff}}
+	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 40), font.Emboss, gfx.Yellow, gfx.ScaleCol(gfx.Gold, 0.2)}
 
 	fmt.Fprintf(cur, "Hello, world!")
 
