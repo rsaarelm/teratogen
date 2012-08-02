@@ -35,8 +35,8 @@ func RGBA8Bit(col color.Color) (r8, g8, b8, a8 uint8) {
 // LerpCol returns a linearly interpolated color between the two endpoint
 // colors.
 func LerpCol(c1, c2 color.Color, x float64) color.Color {
-	r1, b1, g1, a1 := c1.RGBA()
-	r2, b2, g2, a2 := c2.RGBA()
+	r1, g1, b1, a1 := c1.RGBA()
+	r2, g2, b2, a2 := c2.RGBA()
 
 	return color.RGBA{
 		lerpComponent(r1, r2, x),
