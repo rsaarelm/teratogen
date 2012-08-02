@@ -76,8 +76,8 @@ func main() {
 	for y := 0; y < 12; y++ {
 		sdl.Frame().FillRect(image.Rect(32, 32+y, 110, 32+y+1),
 			gfx.LerpCol(
-				color.RGBA{0xff, 0x50, 0x50, 0xff},
-				color.RGBA{0x60, 0x30, 0x30, 0xff},
+				gfx.Gold,
+				gfx.ScaleCol(gfx.Gold, 0.5),
 				float64(y)/12))
 	}
 

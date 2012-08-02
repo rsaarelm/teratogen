@@ -108,20 +108,3 @@ func (d ImageDrawable) Bounds() image.Rectangle {
 func (d ImageDrawable) String() string {
 	return fmt.Sprintf("ImageDrawable %s", d.Bounds())
 }
-
-// LerpCol returns a linearly interpolated color between the two endpoint
-// colors.
-func LerpCol(c1, c2 color.Color, x float64) color.Color {
-	r1, b1, g1, a1 := c1.RGBA()
-	r2, b2, g2, a2 := c2.RGBA()
-
-	return color.RGBA{
-		lerpComponent(r1, r2, x),
-		lerpComponent(g1, g2, x),
-		lerpComponent(b1, b2, x),
-		lerpComponent(a1, a2, x)}
-}
-
-func lerpComponent(a, b uint32, x float64) uint8 {
-	return uint8((float64(a) + (float64(b)-float64(a))*x) / 256)
-}
