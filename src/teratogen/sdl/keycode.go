@@ -1,3 +1,5 @@
+// +build !windows !darwin
+
 /* keycode.go
 
    Copyright (C) 2012 Risto Saarelma
@@ -17,8 +19,6 @@
 */
 
 package sdl
-
-// +build !windows !darwin
 
 // Hardware keycodes for Linux, also the default for unknown OSes.
 
