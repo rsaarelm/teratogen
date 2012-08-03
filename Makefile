@@ -26,6 +26,9 @@ teratogen:
 test:
 	go test $(PKGS)
 
+benchmark:
+	go test -test.bench '.*' $(PKGS)
+
 fmt:
 	go fmt $(PKGS)
 
