@@ -94,26 +94,6 @@ func BlitX3(src, dest Surface32Bit) {
 	}
 }
 
-func hline2X(src, dest []uint32, n int) {
-	for i, j := 0, 0; i < n; i++ {
-		dest[j] = src[i]
-		j++
-		dest[j] = src[i]
-		j++
-	}
-}
-
-func hline3X(src, dest []uint32, n int) {
-	for i, j := 0, 0; i < n; i++ {
-		dest[j] = src[i]
-		j++
-		dest[j] = src[i]
-		j++
-		dest[j] = src[i]
-		j++
-	}
-}
-
 func GradientRect(s *sdl.Surface, rect image.Rectangle, topCol, bottomCol color.Color) {
 	dy := rect.Dy()
 	for y := 0; y < dy; y++ {
