@@ -66,3 +66,31 @@ func BenchmarkNoZoom2XBlit(b *testing.B) {
 	}
 	b.StopTimer()
 }
+
+func Benchmark3XZoomBlit(b *testing.B) {
+	b.StopTimer()
+	sdl.Open(960, 720)
+	defer sdl.Close()
+	sdl.SetFrame(sdl.NewSurface(320, 240))
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		BlitX3(sdl.Frame(), sdl.Video())
+		sdl.Flip()
+	}
+	b.StopTimer()
+}
+
+func BenchmarkNoZoom3XBlit(b *testing.B) {
+	b.StopTimer()
+	sdl.Open(960, 720)
+	defer sdl.Close()
+	sdl.SetFrame(sdl.NewSurface(960, 720))
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		sdl.Frame().Blit(sdl.Frame().Bounds(), 0, 0, sdl.Video())
+		sdl.Flip()
+	}
+	b.StopTimer()
+}

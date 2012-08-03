@@ -80,8 +80,33 @@ func BlitX2(src, dest Surface32Bit) {
 	}
 }
 
+func BlitX3(src, dest Surface32Bit) {
+	srcPix := src.Pixels32()
+	srcPitch := src.Pitch32()
+	destPix := dest.Pixels32()
+	destPitch := dest.Pitch32()
+
+	w := src.Bounds().Dx()
+	for y, ey := 0, src.Bounds().Dy(); y < ey; y++ {
+		hline3X(srcPix[y*srcPitch:], destPix[y*3*destPitch:], w)
+		hline3X(srcPix[y*srcPitch:], destPix[(y*3+1)*destPitch:], w)
+		hline3X(srcPix[y*srcPitch:], destPix[(y*3+2)*destPitch:], w)
+	}
+}
+
 func hline2X(src, dest []uint32, n int) {
 	for i, j := 0, 0; i < n; i++ {
+		dest[j] = src[i]
+		j++
+		dest[j] = src[i]
+		j++
+	}
+}
+
+func hline3X(src, dest []uint32, n int) {
+	for i, j := 0, 0; i < n; i++ {
+		dest[j] = src[i]
+		j++
 		dest[j] = src[i]
 		j++
 		dest[j] = src[i]
