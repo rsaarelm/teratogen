@@ -137,7 +137,7 @@ func (w *World) TestMap(origin manifold.Location) {
 			w.terrain[origin.Add(image.Pt(x, y))] = WallTerrain
 		}
 	}
-	mapgen.BspRooms(WorldFormer{w, simpleChart(origin)}, bounds)
+	mapgen.BspRooms(WorldFormer{w, simpleChart(origin)}, bounds.Inset(1))
 }
 
 func (w *World) Terrain(loc manifold.Location) TerrainData {
