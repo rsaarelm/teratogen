@@ -1,0 +1,7 @@
+# name: Loop through the points of an image.Rectangle
+# --
+for y := $1.Min.Y; y < $1.Max.Y; y++ {
+	for x := $1.Min.X; x < $1.Max.X; x++ {
+		$0
+	}
+}
