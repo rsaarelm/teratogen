@@ -7,10 +7,10 @@ PKGS = teratogen \
 	teratogen/font \
 	teratogen/fov \
 	teratogen/gfx \
+	teratogen/manifold \
 	teratogen/mapgen \
 	teratogen/num \
 	teratogen/sdl \
-	teratogen/space \
 	teratogen/tile \
 
 # Zip file indexing of the zip catenated to the binary must be fixed with 'zip

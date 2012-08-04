@@ -16,7 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package space
+package manifold
 
 import (
 	"errors"
@@ -117,11 +117,11 @@ func MakeTemplate(shape []image.Point) (result *FootprintTemplate, err error) {
 
 // Footprint describes the locations which a multi-cell object occupies on a
 // map. It maps the points in the body of the object to locations. Since
-// portals can make the space non-euclidean, the mapping is not trivial and
+// portals can make the manifold non-euclidean, the mapping is not trivial and
 // must be computed and stored explicitly.
 type Footprint map[image.Point]Location
 
-func (t *Space) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
+func (t *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
 	result = map[image.Point]Location{image.Pt(0, 0): loc}
 
 	for _, step := range template.steps {

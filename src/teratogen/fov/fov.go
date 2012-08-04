@@ -22,30 +22,30 @@ import (
 	"fmt"
 	"image"
 	"math"
-	"teratogen/space"
+	"teratogen/manifold"
 	"teratogen/tile"
 )
 
 type Fov struct {
-	blocksSight func(space.Location) bool
-	markSeen    func(image.Point, space.Location)
-	spc         *space.Space
+	blocksSight func(manifold.Location) bool
+	markSeen    func(image.Point, manifold.Location)
+	mf          *manifold.Manifold
 }
 
-func New(blocksSightFn func(space.Location) bool,
-	markSeenFn func(image.Point, space.Location),
-	spc *space.Space) *Fov {
-	return &Fov{blocksSightFn, markSeenFn, spc}
+func New(blocksSightFn func(manifold.Location) bool,
+	markSeenFn func(image.Point, manifold.Location),
+	mf *manifold.Manifold) *Fov {
+	return &Fov{blocksSightFn, markSeenFn, mf}
 }
 
 // Run runs a field-of-view computation up to radius distance from the given
 // origin, and calls the MarkSeen callback for all locations it finds visible.
-func (f *Fov) Run(origin space.Location, radius int) {
+func (f *Fov) Run(origin manifold.Location, radius int) {
 	f.markSeen(image.Pt(0, 0), origin)
 	f.process(origin, radius, angle{0, 1}, angle{6, 1})
 }
 
-func (f *Fov) process(origin space.Location, radius int, begin, end angle) {
+func (f *Fov) process(origin manifold.Location, radius int, begin, end angle) {
 	if begin.radius > radius {
 		return
 	}
@@ -62,7 +62,7 @@ func (f *Fov) process(origin space.Location, radius int, begin, end angle) {
 			f.process(origin, radius, a, end)
 			return
 		}
-		f.markSeen(pt, f.spc.Offset(origin, pt))
+		f.markSeen(pt, f.mf.Offset(origin, pt))
 	}
 	// Recurse after finishing the whole arc.
 	if !group.blocksSight {
@@ -75,12 +75,12 @@ func (f *Fov) process(origin space.Location, radius int, begin, end angle) {
 // portal and an identical opaqueness.
 type group struct {
 	blocksSight bool
-	portal      space.Portal
+	portal      manifold.Portal
 }
 
-func (f *Fov) group(origin space.Location, offset image.Point) group {
+func (f *Fov) group(origin manifold.Location, offset image.Point) group {
 	rawLoc := origin.Add(offset)
-	return group{f.blocksSight(f.spc.Traverse(rawLoc)), f.spc.Portal(rawLoc)}
+	return group{f.blocksSight(f.mf.Traverse(rawLoc)), f.mf.Portal(rawLoc)}
 }
 
 type angle struct {

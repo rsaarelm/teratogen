@@ -1,4 +1,4 @@
-/* space_test.go
+/* manifold_test.go
 
    Copyright (C) 2012 Risto Saarelma
 
@@ -16,14 +16,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package space
+package manifold
 
 import (
 	"image"
 	"testing"
 )
 
-func TestSimpleSpace(t *testing.T) {
+func TestSimpleManifold(t *testing.T) {
 	spc := New()
 
 	origin := Loc(0, 0, 1)
@@ -74,7 +74,7 @@ func TestFootprint(t *testing.T) {
 	}
 
 	if template, err := MakeTemplate(goodShape); err == nil {
-		// Test the multi-cell footprint first in basic space.
+		// Test the multi-cell footprint first in basic manifold.
 
 		spc = New()
 

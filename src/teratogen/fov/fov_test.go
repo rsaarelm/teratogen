@@ -20,25 +20,25 @@ package fov
 
 import (
 	"image"
-	"teratogen/space"
+	"teratogen/manifold"
 	"testing"
 )
 
 func TestFov(t *testing.T) {
-	spc := space.New()
+	mf := manifold.New()
 
-	spc.SetPortal(space.Loc(10, 11, 1), space.Port(20, 20, 20))
-	seen := map[image.Point]space.Location{}
+	mf.SetPortal(manifold.Loc(10, 11, 1), manifold.Port(20, 20, 20))
+	seen := map[image.Point]manifold.Location{}
 
 	// Impassable barrier on every zone at x == 11
-	blockFn := func(loc space.Location) bool { return loc.X == 11 }
-	markFn := func(pt image.Point, loc space.Location) {
+	blockFn := func(loc manifold.Location) bool { return loc.X == 11 }
+	markFn := func(pt image.Point, loc manifold.Location) {
 		seen[pt] = loc
 	}
 
-	fov := New(blockFn, markFn, spc)
+	fov := New(blockFn, markFn, mf)
 
-	fov.Run(space.Loc(10, 10, 1), 4)
+	fov.Run(manifold.Loc(10, 10, 1), 4)
 
 	if _, ok := seen[image.Pt(-2, 0)]; !ok {
 		t.Fail()

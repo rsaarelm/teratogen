@@ -1,4 +1,4 @@
-/* space.go
+/* manifold.go
 
    Copyright (C) 2012 Risto Saarelma
 
@@ -16,17 +16,20 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package space provides tools for working with a game world with portals.
-package space
+// Package manifold provides tools for working with a game world with portals.
+// The name "manifold" refers to the topological concept for a structure which
+// looks like regular space when viewed around a specific location, but not
+// when seen as a whole.
+package manifold
 
 import (
 	"fmt"
 	"image"
 )
 
-// A single point in the not-necessarily-Euclidean space. Zone value 0 denotes
-// inactive portals, so it should not be used in any Locations in use. You
-// can't make portals that go to locations in zone 0.
+// A single point in the manifold. Zone value 0 denotes inactive portals, so
+// it should not be used in any Locations in use. You can't make portals that
+// go to locations in zone 0.
 type Location struct {
 	X, Y int8
 	Zone uint16
@@ -72,44 +75,44 @@ func Port(dx, dy int8, targetZone uint16) Portal {
 }
 
 // Chart is a mapping from a two-dimensional Euclidean plane into some set of
-// locations in a portaled space. A field of view of a game character from a
-// specific origin location would produce a view chart for that origin. The
-// name refers to atlases and charts of topological space.
+// locations in a manifold. A field of view of a game character from a
+// specific origin location would produce a chart for that origin. The name
+// refers to atlases and charts of topological manifold.
 type Chart interface {
 	At(pt image.Point) Location
 }
 
-type Space struct {
+type Manifold struct {
 	portals map[Location]Portal
 }
 
-func New() *Space {
-	return &Space{make(map[Location]Portal)}
+func New() *Manifold {
+	return &Manifold{make(map[Location]Portal)}
 }
 
 // Offset returns a portaled location the vector away from the initial one.
 // Only the portal exactly the vector's span away from the initial location
 // matters; you will probably mostly want to use this with unit length
 // vectors.
-func (t *Space) Offset(loc Location, vec image.Point) (newLoc Location) {
-	return t.Traverse(loc.Add(vec))
+func (m *Manifold) Offset(loc Location, vec image.Point) (newLoc Location) {
+	return m.Traverse(loc.Add(vec))
 }
 
-func (t *Space) Traverse(loc Location) Location {
-	return loc.Beyond(t.Portal(loc))
+func (m *Manifold) Traverse(loc Location) Location {
+	return loc.Beyond(m.Portal(loc))
 }
 
-func (t *Space) Portal(loc Location) Portal {
-	if portal, ok := t.portals[loc]; ok {
+func (m *Manifold) Portal(loc Location) Portal {
+	if portal, ok := m.portals[loc]; ok {
 		return portal
 	}
 	return NullPortal()
 }
 
-func (t *Space) SetPortal(loc Location, portal Portal) {
-	t.portals[loc] = portal
+func (m *Manifold) SetPortal(loc Location, portal Portal) {
+	m.portals[loc] = portal
 }
 
-func (t *Space) ClearPortal(loc Location) {
-	delete(t.portals, loc)
+func (m *Manifold) ClearPortal(loc Location) {
+	delete(m.portals, loc)
 }
