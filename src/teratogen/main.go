@@ -72,6 +72,7 @@ func main() {
 
 	w := world.New()
 	w.TestMap(manifold.Location{0, 0, 1})
+	_ = w.GetFov(manifold.Location{0, 0, 1}, 12)
 
 	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
 

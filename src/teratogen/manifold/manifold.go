@@ -82,6 +82,16 @@ type Chart interface {
 	At(pt image.Point) Location
 }
 
+// MapChart is a simple explicit map structure that implements the Chart interface.
+type MapChart map[image.Point]Location
+
+func (s MapChart) At(pt image.Point) Location {
+	if loc, ok := map[image.Point]Location(s)[pt]; ok {
+		return loc
+	}
+	return Location{}
+}
+
 type Manifold struct {
 	portals map[Location]Portal
 }

@@ -21,6 +21,7 @@ package world
 import (
 	"image"
 	"teratogen/cache"
+	"teratogen/fov"
 	"teratogen/manifold"
 	"teratogen/mapgen"
 )
@@ -41,6 +42,22 @@ const (
 	DoorKind
 	GrillKind
 )
+
+func (t TerrainData) BlocksSight() bool {
+	switch t.Kind {
+	case SolidKind, WallKind, DoorKind:
+		return true
+	}
+	return false
+}
+
+func (t TerrainData) BlocksMove() bool {
+	switch t.Kind {
+	case SolidKind, WallKind, GrillKind:
+		return true
+	}
+	return false
+}
 
 const (
 	VoidTerrain Terrain = iota
@@ -63,7 +80,7 @@ func tiles(idxs ...int) (result []cache.ImageSpec) {
 }
 
 var terrainTable = []TerrainData{
-	{tiles(), SolidKind},
+	{tiles(3), SolidKind}, // void terrain, should have some "you shouldn't be seeing this" icon
 	{tiles(0), OpenKind},
 	{tiles(16, 17, 18, 19), WallKind},
 	{tiles(3), DoorKind},
@@ -116,6 +133,24 @@ func New() (world *World) {
 
 func (w *World) TestMap(origin manifold.Location) {
 	mapgen.BspRooms(WorldFormer{w, simpleChart(origin)}, image.Rect(-16, -16, 16, 16))
+}
+
+func (w *World) Ter(loc manifold.Location) TerrainData {
+	if t, ok := w.Terrain[loc]; ok {
+		return terrainTable[t]
+	}
+	return terrainTable[VoidTerrain]
+}
+
+func (w *World) GetFov(origin manifold.Location, radius int) manifold.MapChart {
+	seen := make(map[image.Point]manifold.Location)
+	f := fov.New(
+		func(loc manifold.Location) bool { return w.Ter(loc).BlocksSight() },
+		func(pt image.Point, loc manifold.Location) { seen[pt] = loc },
+		w.Manifold)
+	f.Run(origin, radius)
+
+	return manifold.MapChart(seen)
 }
 
 // simpleChart is a chart that pays no attention to portals in the manifold.
