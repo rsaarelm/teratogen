@@ -26,7 +26,9 @@ import (
 	"teratogen/cache"
 	"teratogen/font"
 	"teratogen/gfx"
+	"teratogen/manifold"
 	"teratogen/sdl"
+	"teratogen/world"
 )
 
 // Set up a file archive that first looks for files in the local physical
@@ -52,7 +54,7 @@ func initArchive() (fs archive.Device, err error) {
 }
 
 func main() {
-	sdl.Open(640, 480)
+	sdl.Open(960, 720)
 	defer sdl.Close()
 
 	fs, err := initArchive()
@@ -68,6 +70,9 @@ func main() {
 		panic(err)
 	}
 
+	w := world.New()
+	w.TestMap(manifold.Location{0, 0, 1})
+
 	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
 
 	sprite.Draw(image.Pt(16, 16))
@@ -78,7 +83,7 @@ func main() {
 
 	fmt.Fprintf(cur, "Hello, world!")
 
-	gfx.BlitX2(sdl.Frame(), sdl.Video())
+	gfx.BlitX3(sdl.Frame(), sdl.Video())
 	sdl.Flip()
 
 	for {
