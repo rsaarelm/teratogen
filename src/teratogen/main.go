@@ -21,6 +21,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"math/rand"
 	"os"
 	"teratogen/archive"
 	"teratogen/cache"
@@ -29,6 +30,7 @@ import (
 	"teratogen/manifold"
 	"teratogen/sdl"
 	"teratogen/world"
+	"time"
 )
 
 // Set up a file archive that first looks for files in the local physical
@@ -54,6 +56,7 @@ func initArchive() (fs archive.Device, err error) {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	sdl.Open(960, 720)
 	defer sdl.Close()
 
@@ -72,15 +75,28 @@ func main() {
 
 	w := world.New()
 	w.TestMap(manifold.Location{0, 0, 1})
-	_ = w.GetFov(manifold.Location{0, 0, 1}, 12)
+	fov := w.GetFov(manifold.Location{0, 0, 1}, 12)
 
-	sprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
+	pcSprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
 
-	sprite.Draw(image.Pt(16, 16))
+	viewBounds := image.Rect(-8, -8, 8, 8)
+	for y := viewBounds.Min.Y; y < viewBounds.Max.Y; y++ {
+		for x := viewBounds.Min.X; x < viewBounds.Max.X; x++ {
+			loc := fov.At(image.Pt(x, y))
+			screenPos := image.Pt(x*8-y*8+64, y*4+x*4+64)
+			if w.Contains(loc) {
+				sprite, _ := ch.GetImage(w.Terrain(loc).Icon[0])
+				sprite.Draw(screenPos)
+			}
+			if x == 0 && y == 0 {
+				pcSprite.Draw(screenPos)
+			}
+		}
+	}
 
-	gfx.GradientRect(sdl.Frame(), image.Rect(32, 32, 110, 44), gfx.Gold, gfx.ScaleCol(gfx.Gold, 0.5))
+	gfx.GradientRect(sdl.Frame(), image.Rect(32, 132, 110, 144), gfx.Gold, gfx.ScaleCol(gfx.Gold, 0.5))
 
-	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 40), font.Emboss, gfx.Yellow, gfx.ScaleCol(gfx.Gold, 0.2)}
+	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 140), font.Emboss, gfx.Yellow, gfx.ScaleCol(gfx.Gold, 0.2)}
 
 	fmt.Fprintf(cur, "Hello, world!")
 
