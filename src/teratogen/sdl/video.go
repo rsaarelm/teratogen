@@ -150,6 +150,15 @@ func (s *Surface) Clear(color color.Color) {
 	C.SDL_FillRect(s.ptr, nil, C.Uint32(s.MapColor(color)))
 }
 
+func (s *Surface) SetClipRect(rect image.Rectangle) {
+	r := convertRect(rect)
+	C.SDL_SetClipRect(s.ptr, &r)
+}
+
+func (s *Surface) ClearClipRect() {
+	C.SDL_SetClipRect(s.ptr, nil)
+}
+
 func NewSurface(w, h int) (s *Surface) {
 	mutex.Lock()
 	defer mutex.Unlock()
