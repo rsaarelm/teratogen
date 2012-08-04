@@ -4,6 +4,7 @@ PKGS = teratogen \
 	teratogen/archive \
 	teratogen/babble \
 	teratogen/cache \
+	teratogen/display \
 	teratogen/font \
 	teratogen/fov \
 	teratogen/gfx \
