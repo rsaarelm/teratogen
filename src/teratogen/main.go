@@ -24,7 +24,7 @@ import (
 	"os"
 	"teratogen/archive"
 	"teratogen/cache"
-	"teratogen/font"
+	"teratogen/display"
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/sdl"
@@ -67,37 +67,14 @@ func main() {
 
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
-	f, err := ch.GetFont(cache.FontSpec{"assets/04round_bold.ttf", 8.0, 32, 96})
-	if err != nil {
-		panic(err)
-	}
-
 	w := world.New()
 	w.TestMap(manifold.Location{0, 0, 1})
-	fov := w.GetFov(manifold.Location{0, 0, 1}, 12)
 
-	pcSprite, _ := ch.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
+	disp := display.New(ch, w)
 
-	viewBounds := image.Rect(-8, -8, 8, 8)
-	for y := viewBounds.Min.Y; y < viewBounds.Max.Y; y++ {
-		for x := viewBounds.Min.X; x < viewBounds.Max.X; x++ {
-			loc := fov.At(image.Pt(x, y))
-			screenPos := image.Pt(x*8-y*8+64, y*4+x*4+64)
-			if w.Contains(loc) {
-				sprite, _ := ch.GetImage(w.Terrain(loc).Icon[0])
-				sprite.Draw(screenPos)
-			}
-			if x == 0 && y == 0 {
-				pcSprite.Draw(screenPos)
-			}
-		}
-	}
-
-	gfx.GradientRect(sdl.Frame(), image.Rect(32, 132, 110, 144), gfx.Gold, gfx.ScaleCol(gfx.Gold, 0.5))
-
-	cur := &font.Cursor{f, sdl.Frame(), image.Pt(36, 140), font.Emboss, gfx.Yellow, gfx.ScaleCol(gfx.Gold, 0.2)}
-
-	fmt.Fprintf(cur, "Hello, world!")
+	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
+	disp.DrawWorld(image.Rect(4, 4, 316, 156))
+	disp.DrawMsg(image.Rect(0, 160, 160, 240))
 
 	gfx.BlitX3(sdl.Frame(), sdl.Video())
 	sdl.Flip()
