@@ -27,14 +27,20 @@ import (
 	"image"
 )
 
-// A single point in the manifold. Zone value 0 denotes inactive portals, so
-// it should not be used in any Locations in use. You can't make portals that
-// go to locations in zone 0.
+// Location is a single point in a manifold. Zone value 0 denotes inactive
+// portals, so it should not be used in any Locations in use. You can't make
+// portals that go to locations in zone 0. By convention, the default value
+// Location{0, 0, 0} means "no place" and can be used as to denote that a
+// result is not a valid location.
 type Location struct {
 	X, Y int8
 	Zone uint16
 }
 
+// Portal has the same structure as a location, but it's X and Y fields
+// indicate relative displacement caused by moving through the portal and the
+// Zone (absolute value, unlike X and Y) indicates the zone where the portal
+// will lead. Portals whose Zone is 0 are treated as inactive.
 type Portal Location
 
 // Add returns a location translated by a vector. Does not know about portals.
@@ -77,7 +83,9 @@ func Port(dx, dy int8, targetZone uint16) Portal {
 // Chart is a mapping from a two-dimensional Euclidean plane into some set of
 // locations in a manifold. A field of view of a game character from a
 // specific origin location would produce a chart for that origin. The name
-// refers to atlases and charts of topological manifold.
+// refers to atlases and charts of topological manifold. All charts map the
+// entire Euclidean plane, use the default {0, 0, 0} location for points that
+// do not map into anything more interesting.
 type Chart interface {
 	At(pt image.Point) Location
 }
