@@ -71,6 +71,14 @@ func Port(dx, dy int8, targetZone uint16) Portal {
 	return Portal{dx, dy, targetZone}
 }
 
+// Chart is a mapping from a two-dimensional Euclidean plane into some set of
+// locations in a portaled space. A field of view of a game character from a
+// specific origin location would produce a view chart for that origin. The
+// name refers to atlases and charts of topological space.
+type Chart interface {
+	At(pt image.Point) Location
+}
+
 type Space struct {
 	portals map[Location]Portal
 }
