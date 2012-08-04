@@ -18,7 +18,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"math/rand"
 	"os"
@@ -59,6 +58,8 @@ func main() {
 	sdl.Open(960, 720)
 	defer sdl.Close()
 
+	sdl.EnableKeyRepeat(sdl.DefaultRepeatDelay, sdl.DefaultRepeatInterval)
+
 	fs, err := initArchive()
 	if err != nil {
 		panic(err)
@@ -82,12 +83,27 @@ func main() {
 	for {
 		switch e := (<-sdl.Events).(type) {
 		case sdl.KeyEvent:
-			fmt.Printf("%s\n", e)
 			if e.Sym == sdl.K_ESCAPE {
 				return
+			}
+			if !e.KeyUp {
+				switch e.Sym {
+				case sdl.K_LEFT:
+					disp.Move(image.Pt(-1, 0))
+				case sdl.K_RIGHT:
+					disp.Move(image.Pt(1, 0))
+				case sdl.K_UP:
+					disp.Move(image.Pt(0, -1))
+				case sdl.K_DOWN:
+					disp.Move(image.Pt(0, 1))
+				}
 			}
 		case sdl.QuitEvent:
 			return
 		}
+
+		disp.DrawWorld(image.Rect(4, 4, 316, 156))
+		gfx.BlitX3(sdl.Frame(), sdl.Video())
+		sdl.Flip()
 	}
 }

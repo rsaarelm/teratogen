@@ -32,16 +32,17 @@ import (
 type Display struct {
 	cache *cache.Cache
 	world *world.World
-	chart manifold.Chart
+	chart *world.FovChart
 }
 
-func New(cache *cache.Cache, world *world.World) (result *Display) {
+func New(c *cache.Cache, w *world.World) (result *Display) {
 	result = new(Display)
-	result.cache = cache
-	result.world = world
+	result.cache = c
+	result.world = w
 
-	// TODO: Proper machinery for the chart
-	result.chart = world.GetFov(manifold.Location{0, 0, 1}, 12)
+	result.chart = world.NewFov(w)
+	// XXX: Magic number fov radius
+	result.chart.DoFov(manifold.Loc(0, 0, 1), 12)
 
 	return
 }
@@ -58,6 +59,13 @@ func ScreenToChart(scrPt image.Point) (chartPt image.Point) {
 	column := int(math.Floor(float64(scrPt.X) / TileW))
 	row := int(math.Floor(float64(scrPt.Y-column*(TileH/2)) / TileH))
 	return image.Pt(column+row, row)
+}
+
+func (d *Display) Move(vec image.Point) {
+	d.chart.Move(vec)
+
+	// XXX: HACK
+	d.chart.DoFov(manifold.Loc(int8(d.chart.RelativePos.X), int8(d.chart.RelativePos.Y), 1), 12)
 }
 
 func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
