@@ -87,14 +87,19 @@ func main() {
 				return
 			}
 			if e.KeyDown {
-				switch e.Sym {
-				case sdl.K_LEFT:
+				// Layout independent keys
+				switch e.FixedSym() {
+				case sdl.K_q:
 					disp.Move(image.Pt(-1, 0))
-				case sdl.K_RIGHT:
-					disp.Move(image.Pt(1, 0))
-				case sdl.K_UP:
+				case sdl.K_w:
+					disp.Move(image.Pt(-1, -1))
+				case sdl.K_e:
 					disp.Move(image.Pt(0, -1))
-				case sdl.K_DOWN:
+				case sdl.K_d:
+					disp.Move(image.Pt(1, 0))
+				case sdl.K_s:
+					disp.Move(image.Pt(1, 1))
+				case sdl.K_a:
 					disp.Move(image.Pt(0, 1))
 				}
 			}
