@@ -24,8 +24,25 @@ import (
 	"teratogen/tile"
 )
 
-type footprintStep struct {
-	parent, pos image.Point
+// Footprint describes the locations which a multi-cell object occupies on a
+// map. It maps the points in the body of the object to locations. Since
+// portals can make the manifold non-euclidean, the mapping is not trivial and
+// must be computed and stored explicitly.
+type Footprint map[image.Point]Location
+
+func (t *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
+	result = map[image.Point]Location{image.Pt(0, 0): loc}
+
+	for _, step := range template.steps {
+		parentLoc, ok := result[step.parent]
+		if !ok {
+			panic("Invalid FootprintTemplate")
+		}
+		vec := step.pos.Sub(step.parent)
+		loc := t.Offset(parentLoc, vec)
+		result[step.pos] = loc
+	}
+	return
 }
 
 // FootprintTemplate is a precomputed structure for efficiently generating
@@ -36,6 +53,10 @@ type footprintStep struct {
 // the entity has partially moved through a portal.
 type FootprintTemplate struct {
 	steps []footprintStep
+}
+
+type footprintStep struct {
+	parent, pos image.Point
 }
 
 func NewTemplate() *FootprintTemplate {
@@ -111,26 +132,5 @@ func MakeTemplate(shape []image.Point) (result *FootprintTemplate, err error) {
 		}
 	}
 
-	return
-}
-
-// Footprint describes the locations which a multi-cell object occupies on a
-// map. It maps the points in the body of the object to locations. Since
-// portals can make the manifold non-euclidean, the mapping is not trivial and
-// must be computed and stored explicitly.
-type Footprint map[image.Point]Location
-
-func (t *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
-	result = map[image.Point]Location{image.Pt(0, 0): loc}
-
-	for _, step := range template.steps {
-		parentLoc, ok := result[step.parent]
-		if !ok {
-			panic("Invalid FootprintTemplate")
-		}
-		vec := step.pos.Sub(step.parent)
-		loc := t.Offset(parentLoc, vec)
-		result[step.pos] = loc
-	}
 	return
 }

@@ -23,6 +23,7 @@ import (
 	"teratogen/fov"
 	"teratogen/manifold"
 	"teratogen/mapgen"
+	"teratogen/spatial"
 )
 
 type Terrain uint8
@@ -92,6 +93,7 @@ var terrainTable = []TerrainData{
 type World struct {
 	Manifold *manifold.Manifold
 	terrain  map[manifold.Location]Terrain
+	spatial  *spatial.Spatial
 }
 
 type WorldFormer struct {
@@ -131,6 +133,7 @@ func New() (world *World) {
 	world = new(World)
 	world.Manifold = manifold.New()
 	world.terrain = make(map[manifold.Location]Terrain)
+	world.spatial = spatial.New()
 	return
 }
 

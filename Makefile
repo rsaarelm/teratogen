@@ -12,6 +12,7 @@ PKGS = teratogen \
 	teratogen/mapgen \
 	teratogen/num \
 	teratogen/sdl \
+	teratogen/spatial \
 	teratogen/tile \
 	teratogen/world \
 
