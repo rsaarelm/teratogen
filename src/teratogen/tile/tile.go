@@ -58,3 +58,80 @@ func HexCirclePoint(radius int, windingIndex int) image.Point {
 	offset := num.AbsMod(windingIndex, radius)
 	return HexDirs[sector].Mul(radius).Add(HexDirs[(sector+2)%6].Mul(offset))
 }
+
+// HexWallType returns the wall tile offset base on the binary mask built from
+// its six neighboring walls. The mask starts at the neighbor at (-1, -1) at
+// bit 0, and proceeds to the rest of the neighbors clockwise from there.
+//
+// A bit 1 indicates a wall-type tile at that neighbor position. The result
+// value is between 0 and 3:
+//
+//     0: Pillar (o)
+//     1: x-axis wall (\)
+//     2: y-axis wall (/)
+//     3: xy-diagonal wall (|)
+func HexWallType(edgeMask int) int {
+	// Table made by going through the 64 combinations by hand and taking a
+	// guess at the best-looking central wall-piece for each. Re-tweak as
+	// needed.
+	//
+	//     00  .    01  #    02  .    03  #    04  .    05  #    06  .    07  #
+	//       .   .    .   .    .   #    .   #    .   .    .   .    .   #    .   #
+	//         *        *        *        *        *        *        *        *
+	//       .   .    .   .    .   .    .   .    .   #    .   #    .   #    .   #
+	//         .        .        .        .        .        .        .        .
+	//
+	//     08  .    09  #    10  .    11  #    12  .    13  #    14  .    15  #
+	//       .   .    .   .    .   #    .   #    .   .    .   .    .   #    .   #
+	//         *        *        *        *        *        *        *        *
+	//       .   .    .   .    .   .    .   .    .   #    .   #    .   #    .   #
+	//         #        #        #        #        #        #        #        #
+	//
+	//     16  .    17  #    18  .    19  #    20  .    21  #    22  .    23  #
+	//       .   .    .   .    .   #    .   #    .   .    .   .    .   #    .   #
+	//         *        *        *        *        *        *        *        *
+	//       #   .    #   .    #   .    #   .    #   #    #   #    #   #    #   #
+	//         .        .        .        .        .        .        .        .
+	//
+	//     24  .    25  #    26  .    27  #    28  .    29  #    30  .    31  #
+	//       .   .    .   .    .   #    .   #    .   .    .   .    .   #    .   #
+	//         *        *        *        *        *        *        *        *
+	//       #   .    #   .    #   .    #   .    #   #    #   #    #   #    #   #
+	//         #        #        #        #        #        #        #        #
+	//
+	//     32  .    33  #    34  .    35  #    36  .    37  #    38  .    39  #
+	//       #   .    #   .    #   #    #   #    #   .    #   .    #   #    #   #
+	//         *        *        *        *        *        *        *        *
+	//       .   .    .   .    .   .    .   .    .   #    .   #    .   #    .   #
+	//         .        .        .        .        .        .        .        .
+	//
+	//     40  .    41  #    42  .    43  #    44  .    45  #    46  .    47  #
+	//       #   .    #   .    #   #    #   #    #   .    #   .    #   #    #   #
+	//         *        *        *        *        *        *        *        *
+	//       .   .    .   .    .   .    .   .    .   #    .   #    .   #    .   #
+	//         #        #        #        #        #        #        #        #
+	//
+	//     48  .    49  #    50  .    51  #    52  .    53  #    54  .    55  #
+	//       #   .    #   .    #   #    #   #    #   .    #   .    #   #    #   #
+	//         *        *        *        *        *        *        *        *
+	//       #   .    #   .    #   .    #   .    #   #    #   #    #   #    #   #
+	//         .        .        .        .        .        .        .        .
+	//
+	//     56  .    57  #    58  .    59  #    60  .    61  #    62  .    63  #
+	//       #   .    #   .    #   #    #   #    #   .    #   .    #   #    #   #
+	//         *        *        *        *        *        *        *        *
+	//       #   .    #   .    #   .    #   .    #   #    #   #    #   #    #   #
+	//         #        #        #        #        #        #        #        #
+	//
+
+	walls := [64]int{
+		0, 0, 2, 2, 1, 1, 0, 0,
+		3, 3, 2, 3, 1, 3, 0, 3,
+		2, 2, 2, 2, 0, 0, 2, 0,
+		2, 3, 2, 0, 0, 0, 2, 2,
+		1, 1, 0, 0, 1, 1, 1, 1,
+		1, 0, 0, 0, 1, 0, 0, 1,
+		0, 0, 2, 2, 1, 0, 0, 0,
+		0, 3, 0, 2, 1, 1, 0, 0}
+	return walls[edgeMask]
+}

@@ -42,6 +42,10 @@ const (
 	GrillKind
 )
 
+func (t TerrainData) ShapesWalls() bool {
+	return t.Kind == WallKind || t.Kind == DoorKind
+}
+
 func (t TerrainData) BlocksSight() bool {
 	switch t.Kind {
 	case SolidKind, WallKind, DoorKind:

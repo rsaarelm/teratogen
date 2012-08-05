@@ -26,6 +26,7 @@ import (
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/sdl"
+	"teratogen/tile"
 	"teratogen/world"
 )
 
@@ -71,7 +72,8 @@ func (d *Display) Move(vec image.Point) {
 func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
 	loc := d.chart.At(chartPos)
 	if d.world.Contains(loc) {
-		sprite, _ := d.cache.GetImage(d.world.Terrain(loc).Icon[0])
+		idx := terrainTileOffset(d.world, d.chart, chartPos)
+		sprite, _ := d.cache.GetImage(d.world.Terrain(loc).Icon[idx])
 		sprite.Draw(scrPos)
 	}
 
@@ -140,4 +142,20 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 		font.None, gfx.Green, gfx.Black}
 
 	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
+}
+
+// terrainTileOffest checks the neighbourhood of a charted tile to see if it
+// needs special formatting. Mostly used to prettify wall tiles.
+func terrainTileOffset(w *world.World, chart manifold.Chart, pos image.Point) int {
+	t := w.Terrain(chart.At(pos))
+	if t.Kind == world.WallKind {
+		edgeMask := 0
+		for i, vec := range tile.HexDirs {
+			if w.Terrain(chart.At(pos.Add(vec))).ShapesWalls() {
+				edgeMask |= 1 << uint8(i)
+			}
+		}
+		return tile.HexWallType(edgeMask)
+	}
+	return 0
 }
