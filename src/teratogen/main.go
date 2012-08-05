@@ -86,7 +86,7 @@ func main() {
 			if e.Sym == sdl.K_ESCAPE {
 				return
 			}
-			if !e.KeyUp {
+			if e.KeyDown {
 				switch e.Sym {
 				case sdl.K_LEFT:
 					disp.Move(image.Pt(-1, 0))

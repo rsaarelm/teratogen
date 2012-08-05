@@ -30,11 +30,11 @@ import (
 )
 
 type KeyEvent struct {
-	Print rune // Printable character
-	Sym   KeySym
-	Code  Scancode
-	Mod   KeyMod
-	KeyUp bool // True if this event was a key being unpressed
+	Print   rune // Printable character
+	Sym     KeySym
+	Code    Scancode
+	Mod     KeyMod
+	KeyDown bool // False if the key is being raised
 }
 
 type MouseEvent struct {
@@ -73,7 +73,7 @@ func (e *event) convert() interface{} {
 			KeySym(keyEvt.keysym.sym),
 			Scancode(keyEvt.keysym.scancode),
 			KeyMod(keyEvt.keysym.mod),
-			e.Type == C.SDL_KEYUP}
+			e.Type == C.SDL_KEYDOWN}
 	case C.SDL_MOUSEMOTION, C.SDL_MOUSEBUTTONUP, C.SDL_MOUSEBUTTONDOWN:
 		motEvt := ((*C.SDL_MouseMotionEvent)(unsafe.Pointer(e)))
 		return MouseEvent{image.Pt(int(motEvt.x), int(motEvt.y)), int8(motEvt.state)}
