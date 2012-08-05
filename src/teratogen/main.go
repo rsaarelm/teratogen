@@ -74,8 +74,8 @@ func main() {
 	disp := display.New(ch, w)
 
 	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
-	disp.DrawWorld(image.Rect(4, 4, 316, 156))
-	disp.DrawMsg(image.Rect(0, 160, 160, 240))
+	disp.DrawWorld(image.Rect(2, 2, 318, 158))
+	disp.DrawMsg(image.Rect(2, 162, 158, 238))
 
 	gfx.BlitX3(sdl.Frame(), sdl.Video())
 	sdl.Flip()
