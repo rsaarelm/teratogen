@@ -23,6 +23,7 @@ import (
 	"image"
 	"image/color"
 	"teratogen/sdl"
+	"unsafe"
 )
 
 type Surface32Bit interface {
@@ -122,4 +123,30 @@ func (d ImageDrawable) Bounds() image.Rectangle {
 
 func (d ImageDrawable) String() string {
 	return fmt.Sprintf("ImageDrawable %s", d.Bounds())
+}
+
+func hline2X(src, dest []uint32, n int) {
+	srcPtr, destPtr := uintptr(unsafe.Pointer(&src[0])), uintptr(unsafe.Pointer(&dest[0]))
+	for n > 0 {
+		*(*uint32)(unsafe.Pointer(destPtr)) = *(*uint32)(unsafe.Pointer(srcPtr))
+		destPtr += 4
+		*(*uint32)(unsafe.Pointer(destPtr)) = *(*uint32)(unsafe.Pointer(srcPtr))
+		destPtr += 4
+		srcPtr += 4
+		n--
+	}
+}
+
+func hline3X(src, dest []uint32, n int) {
+	srcPtr, destPtr := uintptr(unsafe.Pointer(&src[0])), uintptr(unsafe.Pointer(&dest[0]))
+	for n > 0 {
+		*(*uint32)(unsafe.Pointer(destPtr)) = *(*uint32)(unsafe.Pointer(srcPtr))
+		destPtr += 4
+		*(*uint32)(unsafe.Pointer(destPtr)) = *(*uint32)(unsafe.Pointer(srcPtr))
+		destPtr += 4
+		*(*uint32)(unsafe.Pointer(destPtr)) = *(*uint32)(unsafe.Pointer(srcPtr))
+		destPtr += 4
+		srcPtr += 4
+		n--
+	}
 }
