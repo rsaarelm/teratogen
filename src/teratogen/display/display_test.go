@@ -34,9 +34,6 @@ func validPoint(ix, iy int16) bool {
 	tileOffset := image.Pt(rand.Intn(TileW), rand.Intn(TileH))
 	chart3 := ScreenToChart(screen.Add(tileOffset))
 
-	fmt.Println(chart1, screen)
-	fmt.Println(chart2)
-	fmt.Println(chart3, tileOffset)
 	if chart1 != chart3 {
 		fmt.Println(tileOffset)
 		return false
