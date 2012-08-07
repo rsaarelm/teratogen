@@ -19,76 +19,11 @@ package world
 
 import (
 	"image"
-	"teratogen/cache"
 	"teratogen/fov"
 	"teratogen/manifold"
 	"teratogen/mapgen"
 	"teratogen/spatial"
 )
-
-type Terrain uint8
-
-type TerrainData struct {
-	Icon []cache.ImageSpec
-	Kind TerrainKind
-}
-
-type TerrainKind uint8
-
-const (
-	SolidKind TerrainKind = iota
-	WallKind
-	OpenKind
-	DoorKind
-	GrillKind
-)
-
-func (t TerrainData) ShapesWalls() bool {
-	return t.Kind == WallKind || t.Kind == DoorKind
-}
-
-func (t TerrainData) BlocksSight() bool {
-	switch t.Kind {
-	case SolidKind, WallKind, DoorKind:
-		return true
-	}
-	return false
-}
-
-func (t TerrainData) BlocksMove() bool {
-	switch t.Kind {
-	case SolidKind, WallKind, GrillKind:
-		return true
-	}
-	return false
-}
-
-const (
-	VoidTerrain Terrain = iota
-	FloorTerrain
-	WallTerrain
-	DoorTerrain
-)
-
-func tile(idx int) cache.ImageSpec {
-	x, y := idx%16, idx/16
-	const dim = 8
-	return cache.ImageSpec{"assets/tiles.png", image.Rect(x*dim, y*dim, x*dim+dim, y*dim+dim)}
-}
-
-func tiles(idxs ...int) (result []cache.ImageSpec) {
-	for _, n := range idxs {
-		result = append(result, tile(n))
-	}
-	return
-}
-
-var terrainTable = []TerrainData{
-	{tiles(3), SolidKind}, // void terrain, should have some "you shouldn't be seeing this" icon
-	{tiles(0), OpenKind},
-	{tiles(16, 17, 18, 19), WallKind},
-	{tiles(3), DoorKind},
-}
 
 type World struct {
 	Manifold *manifold.Manifold
