@@ -89,17 +89,6 @@ func (w *World) Terrain(loc manifold.Location) TerrainData {
 	return terrainTable[VoidTerrain]
 }
 
-func (w *World) GetFov(origin manifold.Location, radius int) manifold.MapChart {
-	seen := make(map[image.Point]manifold.Location)
-	f := fov.New(
-		func(loc manifold.Location) bool { return w.Terrain(loc).BlocksSight() },
-		func(pt image.Point, loc manifold.Location) { seen[pt] = loc },
-		w.Manifold)
-	f.Run(origin, radius)
-
-	return manifold.MapChart(seen)
-}
-
 func (w *World) Contains(loc manifold.Location) bool {
 	_, ok := w.terrain[loc]
 	return ok
