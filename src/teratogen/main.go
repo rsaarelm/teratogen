@@ -26,6 +26,7 @@ import (
 	"teratogen/display"
 	"teratogen/gfx"
 	"teratogen/manifold"
+	"teratogen/mob"
 	"teratogen/sdl"
 	"teratogen/world"
 	"time"
@@ -69,7 +70,14 @@ func main() {
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
 	w := world.New()
-	w.TestMap(manifold.Location{0, 0, 1})
+	origin := manifold.Location{0, 0, 1}
+	w.TestMap(origin)
+	bounds := image.Rect(-16, -16, 16, 16)
+	for i := 0; i < 32; i++ {
+		pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
+		m := mob.New(w, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
+		m.Place(origin.Add(pos))
+	}
 
 	disp := display.New(ch, w)
 

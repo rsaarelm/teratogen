@@ -19,7 +19,9 @@ package world
 
 import (
 	"image"
+	"teratogen/entity"
 	"teratogen/fov"
+	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/mapgen"
 	"teratogen/spatial"
@@ -28,7 +30,12 @@ import (
 type World struct {
 	Manifold *manifold.Manifold
 	terrain  map[manifold.Location]Terrain
-	spatial  *spatial.Spatial
+	Spatial  *spatial.Spatial
+
+	Player interface {
+		gfx.Spritable
+		entity.Pos
+	}
 }
 
 type WorldFormer struct {
@@ -68,7 +75,7 @@ func New() (world *World) {
 	world = new(World)
 	world.Manifold = manifold.New()
 	world.terrain = make(map[manifold.Location]Terrain)
-	world.spatial = spatial.New()
+	world.Spatial = spatial.New()
 	return
 }
 

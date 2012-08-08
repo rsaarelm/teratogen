@@ -42,6 +42,13 @@ import (
 	"unsafe"
 )
 
+type Spec struct {
+	File      string
+	Height    float64
+	BeginChar int
+	NumChars  int
+}
+
 type glyph struct {
 	x0, y0, x1, y1       uint16
 	xOff, yOff, xAdvance float32

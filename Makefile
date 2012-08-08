@@ -5,12 +5,14 @@ PKGS = teratogen \
 	teratogen/babble \
 	teratogen/cache \
 	teratogen/display \
+	teratogen/entity \
 	teratogen/font \
 	teratogen/fov \
 	teratogen/gfx \
 	teratogen/kernel \
 	teratogen/manifold \
 	teratogen/mapgen \
+	teratogen/mob \
 	teratogen/num \
 	teratogen/sdl \
 	teratogen/spatial \

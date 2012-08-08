@@ -150,3 +150,21 @@ func hline3X(src, dest []uint32, n int) {
 		n--
 	}
 }
+
+type ImageSpec struct {
+	File   string
+	Bounds image.Rectangle
+}
+
+// Context is a interface for Spritable objects to get UI level resources to
+// turn their abstract representation data into actual drawable assets such as
+// bitmap surface handles.
+type Context interface {
+	// GetDrawable converts an ImageSpec into a Drawable object, probably by
+	// fetching it from some sort of cache.
+	GetDrawable(spec ImageSpec) Drawable
+}
+
+type Drawable interface {
+	Draw(offset image.Point)
+}

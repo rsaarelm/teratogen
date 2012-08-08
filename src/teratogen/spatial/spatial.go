@@ -22,28 +22,26 @@ import (
 	"teratogen/manifold"
 )
 
-type Entity interface {
-	Footprint(loc manifold.Location) manifold.Footprint
-}
-
 type Spatial struct {
-	placement map[Entity]manifold.Footprint
+	placement map[interface{}]manifold.Footprint
 	sites     map[manifold.Location]siteSet
 }
 
 func New() (result *Spatial) {
 	result = new(Spatial)
-	result.placement = make(map[Entity]manifold.Footprint)
+	result.placement = make(map[interface{}]manifold.Footprint)
 	result.sites = make(map[manifold.Location]siteSet)
 	return
 }
 
-func (s *Spatial) Add(e Entity, loc manifold.Location) {
+// AddFootprints adds an entity with a custom, multi-cell footprint to the
+// spatial index.
+func (s *Spatial) AddFootprint(
+	e interface{}, footprint manifold.Footprint) {
 	if _, ok := s.placement[e]; ok {
 		panic("Adding same entity multiple times to Spatial")
 	}
 
-	footprint := e.Footprint(loc)
 	s.placement[e] = footprint
 
 	for offset, siteLoc := range footprint {
@@ -52,7 +50,12 @@ func (s *Spatial) Add(e Entity, loc manifold.Location) {
 	}
 }
 
-func (s *Spatial) Remove(e Entity) {
+// Add adds an entity with a default single-cell footprint at loc.
+func (s *Spatial) Add(e interface{}, loc manifold.Location) {
+	s.AddFootprint(e, manifold.Footprint{image.Pt(0, 0): loc})
+}
+
+func (s *Spatial) Remove(e interface{}) {
 	footprint, ok := s.placement[e]
 	if !ok {
 		panic("Removing an unknown entity from Spatial")
@@ -93,6 +96,6 @@ func (s *Spatial) initSite(loc manifold.Location) {
 type siteSet map[OffsetEntity]bool
 
 type OffsetEntity struct {
-	Entity Entity
+	Entity interface{}
 	Offset image.Point
 }

@@ -22,6 +22,7 @@ import (
 	"image"
 	"math"
 	"teratogen/cache"
+	"teratogen/entity"
 	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/manifold"
@@ -31,9 +32,10 @@ import (
 )
 
 type Display struct {
-	cache *cache.Cache
-	world *world.World
-	chart *world.FovChart
+	cache       *cache.Cache
+	world       *world.World
+	chart       *world.FovChart
+	chartOrigin image.Point
 }
 
 func New(c *cache.Cache, w *world.World) (result *Display) {
@@ -73,16 +75,45 @@ func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
 	loc := d.chart.At(chartPos)
 	if d.world.Contains(loc) {
 		idx := terrainTileOffset(d.world, d.chart, chartPos)
-		sprite, _ := d.cache.GetImage(d.world.Terrain(loc).Icon[idx])
+		sprite := d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx])
 		sprite.Draw(scrPos)
 	}
 
 	// XXX: Totally hacked player sprite placement, replace with proper entity
 	// sprites.
 	if chartPos == image.Pt(0, 0) {
-		pcSprite, _ := d.cache.GetImage(cache.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
+		pcSprite := d.cache.GetDrawable(gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
 		pcSprite.Draw(scrPos)
 	}
+}
+
+func (d *Display) collectSprites(
+	sprites gfx.SpriteBatch,
+	chartPos image.Point) gfx.SpriteBatch {
+	loc := d.chart.At(chartPos)
+
+	// Collect terrain tile sprite.
+	if d.world.Contains(loc) {
+		idx := terrainTileOffset(d.world, d.chart, chartPos)
+		sprites = append(sprites, gfx.Sprite{
+			Layer:    entity.TerrainLayer,
+			Drawable: d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx]),
+			Offset:   d.chartToScreenPos(chartPos)})
+	}
+
+	// Collect dynamic object sprites.
+	for _, oe := range d.world.Spatial.Get(loc) {
+		spritable := oe.Entity.(gfx.Spritable)
+		if spritable == nil {
+			continue
+		}
+		objChartPos := chartPos.Sub(oe.Offset)
+		sprites = append(
+			sprites,
+			spritable.Sprite(d.cache, d.chartToScreenPos(objChartPos)))
+	}
+
+	return sprites
 }
 
 func corners(rect image.Rectangle) []image.Point {
@@ -112,21 +143,34 @@ func ChartArea(screenArea image.Rectangle) image.Rectangle {
 	return image.Rect(minX, minY, maxX+1, maxY+1)
 }
 
+func (d *Display) chartToScreenPos(chartPos image.Point) image.Point {
+	return ChartToScreen(chartPos).Add(d.chartOrigin)
+}
+
 func (d *Display) DrawWorld(bounds image.Rectangle) {
 	sdl.Frame().SetClipRect(bounds)
 	defer sdl.Frame().ClearClipRect()
 	sdl.Frame().Clear(gfx.Black)
 
 	chartBounds := ChartArea(bounds)
-	chartOrigin := centerOrigin(bounds)
+	d.chartOrigin = centerOrigin(bounds)
+
+	sprites := gfx.SpriteBatch{}
+
 	for y := chartBounds.Min.Y; y < chartBounds.Max.Y; y++ {
 		for x := chartBounds.Min.X; x < chartBounds.Max.X; x++ {
-			chartPos := image.Pt(x, y)
-			screenPos := ChartToScreen(chartPos).Add(chartOrigin)
-
-			d.drawCell(chartPos, screenPos)
+			sprites = d.collectSprites(sprites, image.Pt(x, y))
 		}
 	}
+
+	// XXX: Hack to show up a fake player avatar.
+	sprites = append(sprites, gfx.Sprite{
+		Layer:    entity.MobLayer,
+		Drawable: d.cache.GetDrawable(gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)}),
+		Offset:   d.chartToScreenPos(image.Pt(0, 0))})
+
+	sprites.Sort()
+	sprites.Draw()
 }
 
 func (d *Display) DrawMsg(bounds image.Rectangle) {
@@ -134,7 +178,7 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 	defer sdl.Frame().ClearClipRect()
 	sdl.Frame().Clear(gfx.Black)
 
-	f, err := d.cache.GetFont(cache.FontSpec{"assets/04round.ttf", 8.0, 32, 96})
+	f, err := d.cache.GetFont(font.Spec{"assets/04round_bold.ttf", 8.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}

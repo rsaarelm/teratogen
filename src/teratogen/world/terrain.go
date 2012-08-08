@@ -19,13 +19,13 @@ package world
 
 import (
 	"image"
-	"teratogen/cache"
+	"teratogen/gfx"
 )
 
 type Terrain uint8
 
 type TerrainData struct {
-	Icon []cache.ImageSpec
+	Icon []gfx.ImageSpec
 	Kind TerrainKind
 }
 
@@ -66,13 +66,13 @@ const (
 	DoorTerrain
 )
 
-func tile(idx int) cache.ImageSpec {
+func tile(idx int) gfx.ImageSpec {
 	x, y := idx%16, idx/16
 	const dim = 8
-	return cache.ImageSpec{"assets/tiles.png", image.Rect(x*dim, y*dim, x*dim+dim, y*dim+dim)}
+	return gfx.ImageSpec{"assets/tiles.png", image.Rect(x*dim, y*dim, x*dim+dim, y*dim+dim)}
 }
 
-func tiles(idxs ...int) (result []cache.ImageSpec) {
+func tiles(idxs ...int) (result []gfx.ImageSpec) {
 	for _, n := range idxs {
 		result = append(result, tile(n))
 	}

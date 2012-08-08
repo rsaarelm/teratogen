@@ -29,26 +29,31 @@ import (
 type Cache struct {
 	fs       archive.Device
 	surfaces map[surfaceSpec]*sdl.Surface
-	fonts    map[FontSpec]*font.Font
+	fonts    map[font.Spec]*font.Font
 }
 
 func New(fs archive.Device) (result *Cache) {
 	result = new(Cache)
 	result.fs = fs
 	result.surfaces = make(map[surfaceSpec]*sdl.Surface)
-	result.fonts = make(map[FontSpec]*font.Font)
+	result.fonts = make(map[font.Spec]*font.Font)
 	return
 }
 
-func (c *Cache) GetImage(spec ImageSpec) (result gfx.ImageDrawable, err error) {
-	surface, err := c.getSurface(surfaceSpec{spec.File})
-	if err != nil {
-		return
-	}
-	return gfx.ImageDrawable{surface, spec.Bounds, image.Pt(0, 0)}, nil
+func (c *Cache) CheckImageSpec(spec gfx.ImageSpec) error {
+	_, err := c.getSurface(surfaceSpec{spec.File})
+	return err
 }
 
-func (c *Cache) GetFont(spec FontSpec) (result *font.Font, err error) {
+func (c *Cache) GetDrawable(spec gfx.ImageSpec) gfx.Drawable {
+	surface, err := c.getSurface(surfaceSpec{spec.File})
+	if err != nil {
+		panic(err)
+	}
+	return gfx.ImageDrawable{surface, spec.Bounds, image.Pt(0, 0)}
+}
+
+func (c *Cache) GetFont(spec font.Spec) (result *font.Font, err error) {
 	result, ok := c.fonts[spec]
 	if !ok {
 		result, err = archive.LoadFont(c.fs, spec.File, spec.Height, spec.BeginChar, spec.NumChars)
@@ -80,16 +85,4 @@ func (c *Cache) getSurface(spec surfaceSpec) (result *sdl.Surface, err error) {
 
 type surfaceSpec struct {
 	File string
-}
-
-type ImageSpec struct {
-	File   string
-	Bounds image.Rectangle
-}
-
-type FontSpec struct {
-	File      string
-	Height    float64
-	BeginChar int
-	NumChars  int
 }
