@@ -19,7 +19,7 @@
 package sdl
 
 /*
-#cgo pkg-config: sdl
+#cgo LDFLAGS: -lSDL
 #include <SDL/SDL.h>
 */
 import "C"
