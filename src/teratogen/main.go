@@ -56,8 +56,8 @@ func initArchive() (fs archive.Device, err error) {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	sdl.Open(960, 720)
-	defer sdl.Close()
+	go sdl.Run(960, 720)
+	defer sdl.Stop()
 
 	sdl.EnableKeyRepeat(sdl.DefaultRepeatDelay, sdl.DefaultRepeatInterval)
 

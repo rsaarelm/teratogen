@@ -55,9 +55,6 @@ type event struct {
 }
 
 func (e *event) poll() bool {
-	mutex.Lock()
-	defer mutex.Unlock()
-
 	return C.SDL_PollEvent((*C.SDL_Event)(unsafe.Pointer(e))) != 0
 }
 
@@ -89,6 +86,7 @@ func (e *event) convert() interface{} {
 var Events = make(chan interface{})
 
 func eventLoop() {
+	defer C.SDL_Quit()
 	e := &event{}
 	for {
 		if !e.poll() {
@@ -98,9 +96,10 @@ func eventLoop() {
 		if evt := e.convert(); evt != nil {
 			Events <- evt
 		}
+		select {
+		case _ = <-stop:
+			return
+		default:
+		}
 	}
-}
-
-func init() {
-	go eventLoop()
 }

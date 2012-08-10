@@ -32,11 +32,10 @@ import (
 
 var mutex sync.Mutex
 
-// Open starts a windowed SDL application.
-func Open(width, height int) {
+// Run initializes an SDL application and starts an event loop. You probably
+// want to run it in a goroutine.
+func Run(width, height int) {
 	mutex.Lock()
-	defer mutex.Unlock()
-
 	initFlags := int64(C.SDL_INIT_VIDEO)
 	screenFlags := 0
 
@@ -50,14 +49,16 @@ func Open(width, height int) {
 		panic(getError())
 	}
 	C.SDL_EnableUNICODE(1)
+	mutex.Unlock()
+
+	eventLoop()
 }
 
-// Close exits the SDL application.
-func Close() {
-	mutex.Lock()
-	defer mutex.Unlock()
+var stop = make(chan bool, 1)
 
-	C.SDL_Quit()
+// Stop stops a running SDL application.
+func Stop() {
+	stop <- true
 }
 
 func IsKeyDown(key KeySym) bool {
