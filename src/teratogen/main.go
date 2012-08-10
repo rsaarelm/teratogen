@@ -59,8 +59,6 @@ func main() {
 	go sdl.Run(960, 720)
 	defer sdl.Stop()
 
-	sdl.EnableKeyRepeat(sdl.DefaultRepeatDelay, sdl.DefaultRepeatInterval)
-
 	fs, err := initArchive()
 	if err != nil {
 		panic(err)

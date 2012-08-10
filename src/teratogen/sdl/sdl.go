@@ -49,6 +49,7 @@ func Run(width, height int) {
 		panic(getError())
 	}
 	C.SDL_EnableUNICODE(1)
+	C.SDL_EnableKeyRepeat(C.SDL_DEFAULT_REPEAT_DELAY, C.SDL_DEFAULT_REPEAT_INTERVAL)
 	mutex.Unlock()
 
 	eventLoop()
@@ -74,13 +75,6 @@ func IsKeyDown(key KeySym) bool {
 	result := (*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(keys)) + uintptr(key)))
 
 	return *result != 0
-}
-
-const DefaultRepeatDelay = C.SDL_DEFAULT_REPEAT_DELAY
-const DefaultRepeatInterval = C.SDL_DEFAULT_REPEAT_INTERVAL
-
-func EnableKeyRepeat(delay int, interval int) (ok bool) {
-	return int(C.SDL_EnableKeyRepeat(C.int(delay), C.int(interval))) == 0
 }
 
 func getError() string {
