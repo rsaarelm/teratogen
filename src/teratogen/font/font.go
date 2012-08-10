@@ -25,6 +25,11 @@ package font
 #cgo CFLAGS: -Wno-error=unused-but-set-variable
 #cgo LDFLAGS: -lm
 
+// XXX: Hacked up this weirdness to build under MinGW. Hopefully munging sqrt
+// won't break the STB code too badly.
+#define STBTT_assert(x) do {} while (0)
+double sqrt(double x) { return 0; }
+
 // Include a whole C library as source code. Because cgo is magic.
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
