@@ -20,9 +20,8 @@ package mod
 import (
 	"encoding/binary"
 	"io"
+	"unsafe"
 )
-
-const internalFreq = 16574 // http://www.eblong.com/zarf/blorb/mod-spec.txt
 
 type sampleHeader struct {
 	Name         [22]byte
@@ -66,30 +65,17 @@ func (s Sample) Sample8(offset int) int8 {
 	if len(s.Wave) == 0 {
 		return 0
 	}
-	if offset >= len(s.Wave) {
-		if s.RepeatLength > 0 {
+	if s.RepeatLength > 2 {
+		if offset >= s.RepeatStart+s.RepeatLength {
 			offset -= s.RepeatStart
-			offset %= len(s.Wave) - s.RepeatStart
+			offset %= s.RepeatLength
 			offset += s.RepeatStart
-		} else {
-			return 0
 		}
-	}
-	return s.Wave[offset]
-}
-
-func (s Sample) ResampleLen(freq int) int {
-	if freq == 0 {
+	} else if offset >= len(s.Wave) {
 		return 0
 	}
-	return len(s.Wave) * internalFreq / freq
-}
 
-func (s Sample) Resample(freq int, out []int8) {
-	resLen := s.ResampleLen(freq)
-	for i := 0; i < resLen; i++ {
-		out[i] = s.Wave[i*len(s.Wave)/resLen]
-	}
+	return s.Wave[offset]
 }
 
 type Mod struct {
@@ -99,9 +85,90 @@ type Mod struct {
 	Patterns     []Pattern
 }
 
-func (m *Mod) Sample(t float64) (x float64) {
-	// TODO
-	return 0
+func pitchOffset(samplingRate int, pitch int, offset int) int {
+	const magicModNum = 7093789. / 2
+	return int(float64(offset) * (magicModNum / float64(samplingRate)) / float64(pitch))
+}
+
+// Player returns a reader that contains the bytes of the mod's wave data.
+func (m *Mod) Player(samplingRate int) io.Reader {
+	return &modPlayer{Mod: m, Rate: samplingRate}
+}
+
+const numChans = 4
+
+type modPlayer struct {
+	Mod  *Mod
+	Rate int
+
+	playPos    int
+	instrument [numChans]struct {
+		sample byte
+		offset int
+		pitch  int
+	}
+}
+
+func (mp *modPlayer) Read(p []byte) (n int, err error) {
+	for i, _ := range p {
+		next, nerr := mp.NextSample()
+		if nerr != nil {
+			err = nerr
+			return
+		}
+		bitEquivalentByte := *(*byte)(unsafe.Pointer(&next))
+		p[i] = bitEquivalentByte
+		n++
+	}
+	return
+}
+
+func (mp *modPlayer) NextSample() (s int8, err error) {
+	if mp.playPos >= mp.length() {
+		err = io.EOF
+		return
+	}
+
+	if mp.playPos%mp.bytesPerRow() == 0 {
+		for i, ch := range mp.currentRow() {
+			if ch.Sample() != 0 {
+				mp.instrument[i].sample = ch.Sample()
+				mp.instrument[i].offset = 0
+				mp.instrument[i].pitch = ch.Period()
+			}
+		}
+	}
+
+	var mix int
+
+	for i, inst := range mp.instrument {
+		if inst.sample != 0 {
+			sample := mp.Mod.Samples[inst.sample-1].Sample8(pitchOffset(mp.Rate, inst.pitch, inst.offset))
+			mix += int(sample)
+			mp.instrument[i].offset++
+		}
+	}
+
+	s = int8(mix / numChans)
+	mp.playPos++
+
+	return
+}
+
+func (mp *modPlayer) bytesPerRow() int {
+	// Mods play at 125 BPM, with four rows per beat, so this thing operates
+	// at 8.3 Hz.
+
+	return int(float64(mp.Rate) / 8.3)
+}
+
+func (mp *modPlayer) length() int {
+	return mp.Mod.Length * 64 * mp.bytesPerRow()
+}
+
+func (mp *modPlayer) currentRow() Division {
+	idx := mp.playPos / mp.bytesPerRow()
+	return mp.Mod.Patterns[mp.Mod.PatternTable[idx/64]][idx%64]
 }
 
 func Decode(r io.Reader) (result *Mod, err error) {
@@ -143,7 +210,7 @@ func Decode(r io.Reader) (result *Mod, err error) {
 			Name:         string(sampleHeaders[i].Name[:]),
 			RepeatStart:  int(sampleHeaders[i].RepeatStart) * 2,
 			RepeatLength: int(sampleHeaders[i].RepeatLength) * 2}
-		result.Samples[i].Wave = make([]int8, sampleHeaders[i].Length*2)
+		result.Samples[i].Wave = make([]int8, int(sampleHeaders[i].Length)*2)
 		binary.Read(r, binary.BigEndian, &result.Samples[i].Wave)
 	}
 
