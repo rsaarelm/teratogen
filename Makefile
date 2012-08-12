@@ -13,6 +13,7 @@ PKGS = teratogen \
 	teratogen/manifold \
 	teratogen/mapgen \
 	teratogen/mob \
+	teratogen/music/mod \
 	teratogen/num \
 	teratogen/sdl \
 	teratogen/spatial \
