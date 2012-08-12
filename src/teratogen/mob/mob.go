@@ -19,6 +19,7 @@ package mob
 
 import (
 	"image"
+	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/world"
@@ -68,7 +69,8 @@ func (m *Mob) Place(loc manifold.Location) {
 		m.Remove()
 	}
 	m.loc = loc
-	m.world.Spatial.Add(m, loc)
+	m.world.Spatial.Add(m, m.loc)
+	m.placed = true
 }
 
 func (m *Mob) Remove() {
@@ -76,4 +78,20 @@ func (m *Mob) Remove() {
 		m.world.Spatial.Remove(m)
 		m.placed = false
 	}
+}
+
+func (m *Mob) Fits(loc manifold.Location) bool {
+	if m.world.Terrain(loc).BlocksMove() {
+		return false
+	}
+	for _, oe := range m.world.Spatial.At(loc) {
+		if b := oe.Entity.(entity.BlockMove); oe.Entity != m && b != nil && b.BlocksMove() {
+			return false
+		}
+	}
+	return true
+}
+
+func (m *Mob) BlocksMove() bool {
+	return true
 }

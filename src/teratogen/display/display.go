@@ -45,7 +45,7 @@ func New(c *cache.Cache, w *world.World) (result *Display) {
 
 	result.chart = world.NewFov(w)
 	// XXX: Magic number fov radius
-	result.chart.DoFov(manifold.Loc(0, 0, 1), 12)
+	result.chart.DoFov(result.world.Player.Loc(), 12)
 
 	return
 }
@@ -65,10 +65,14 @@ func ScreenToChart(scrPt image.Point) (chartPt image.Point) {
 }
 
 func (d *Display) Move(vec image.Point) {
-	d.chart.Move(vec)
+	pc := d.world.Player
+	newLoc := d.world.Manifold.Offset(pc.Loc(), vec)
 
-	// XXX: HACK
-	d.chart.DoFov(manifold.Loc(int8(d.chart.RelativePos.X), int8(d.chart.RelativePos.Y), 1), 12)
+	if pc.Fits(newLoc) {
+		pc.Place(newLoc)
+		d.chart.Move(vec)
+		d.chart.DoFov(newLoc, 12)
+	}
 }
 
 func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
@@ -77,13 +81,6 @@ func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
 		idx := terrainTileOffset(d.world, d.chart, chartPos)
 		sprite := d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx])
 		sprite.Draw(scrPos)
-	}
-
-	// XXX: Totally hacked player sprite placement, replace with proper entity
-	// sprites.
-	if chartPos == image.Pt(0, 0) {
-		pcSprite := d.cache.GetDrawable(gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)})
-		pcSprite.Draw(scrPos)
 	}
 }
 
@@ -102,7 +99,7 @@ func (d *Display) collectSprites(
 	}
 
 	// Collect dynamic object sprites.
-	for _, oe := range d.world.Spatial.Get(loc) {
+	for _, oe := range d.world.Spatial.At(loc) {
 		spritable := oe.Entity.(gfx.Spritable)
 		if spritable == nil {
 			continue

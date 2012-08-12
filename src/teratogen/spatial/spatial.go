@@ -61,6 +61,7 @@ func (s *Spatial) Remove(e interface{}) {
 		panic("Removing an unknown entity from Spatial")
 	}
 
+top:
 	for _, loc := range footprint {
 		site := s.sites[loc]
 		for sited, _ := range site {
@@ -69,14 +70,15 @@ func (s *Spatial) Remove(e interface{}) {
 				if len(site) == 0 {
 					delete(s.sites, loc)
 				}
-				break
+				continue top
 			}
 		}
 		panic("Entity not found on site belonging to footprint.")
 	}
+	delete(s.placement, e)
 }
 
-func (s *Spatial) Get(loc manifold.Location) (result []OffsetEntity) {
+func (s *Spatial) At(loc manifold.Location) (result []OffsetEntity) {
 	site, ok := s.sites[loc]
 	if !ok {
 		return

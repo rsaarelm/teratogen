@@ -34,3 +34,7 @@ type Pos interface {
 	Remove()
 	Fits(loc manifold.Location) bool
 }
+
+type BlockMove interface {
+	BlocksMove() bool
+}
