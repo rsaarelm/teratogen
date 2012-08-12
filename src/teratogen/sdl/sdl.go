@@ -36,7 +36,7 @@ var mutex sync.Mutex
 // want to run it in a goroutine.
 func Run(width, height int) {
 	mutex.Lock()
-	initFlags := int64(C.SDL_INIT_VIDEO)
+	initFlags := int64(C.SDL_INIT_VIDEO) | int64(C.SDL_INIT_AUDIO)
 	screenFlags := 0
 
 	if C.SDL_Init(C.Uint32(initFlags)) == C.int(-1) {
@@ -50,6 +50,9 @@ func Run(width, height int) {
 	}
 	C.SDL_EnableUNICODE(1)
 	C.SDL_EnableKeyRepeat(C.SDL_DEFAULT_REPEAT_DELAY, C.SDL_DEFAULT_REPEAT_INTERVAL)
+
+	initAudio()
+
 	mutex.Unlock()
 
 	eventLoop()
