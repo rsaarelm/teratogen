@@ -30,12 +30,37 @@ import (
 	"unsafe"
 )
 
+var stop = make(chan bool)
+
+var coord = make(chan bool)
+
+var runLevel = off
+
+const (
+	off = iota
+	stopped
+	running
+)
+
 var mutex sync.Mutex
 
-// Run initializes an SDL application and starts an event loop. You probably
-// want to run it in a goroutine.
+// Run starts a SDL application.
 func Run(width, height int) {
-	mutex.Lock()
+	if runLevel != off {
+		panic("Tried to run two instances of SDL")
+	}
+	runLevel = running
+
+	go mainLoop(width, height)
+	// Synchronize, make sure that SDL initialized before returning.
+	<-coord
+}
+
+func mainLoop(width, height int) {
+	// SDL window must be created in the same thread where the events are
+	// polled. Hence this stuff must be in a separate goroutine along with the
+	// event loop.
+
 	initFlags := int64(C.SDL_INIT_VIDEO) | int64(C.SDL_INIT_AUDIO)
 	screenFlags := 0
 
@@ -53,16 +78,28 @@ func Run(width, height int) {
 
 	initAudio()
 
-	mutex.Unlock()
+	// Synchronize with Run function.
+	coord <- true
 
 	eventLoop()
-}
+	C.SDL_Quit()
 
-var stop = make(chan bool, 1)
+	// Synchronize with Stop function.
+	coord <- true
+	runLevel = off
+}
 
 // Stop stops a running SDL application.
 func Stop() {
-	stop <- true
+	runLevel = stopped
+	// Drain events while waiting for coordination signal for stopping.
+	for {
+		select {
+		case <-Events:
+		case <-coord:
+			return
+		}
+	}
 }
 
 func IsKeyDown(key KeySym) bool {

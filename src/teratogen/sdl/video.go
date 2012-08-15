@@ -35,8 +35,7 @@ type Surface struct {
 	ptr *C.SDL_Surface
 }
 
-// Pixels32 is the same as Pixels, except that it returns an array of 32-bit
-// values. This is convenient for pixel manipulation of 32-bit color surfaces.
+// Pixels32 maps an array of 32-bit values to the pixels of a 32-bit surface.
 func (s *Surface) Pixels32() (result []uint32) {
 	size := int(s.ptr.pitch) * int(s.ptr.h) / 4
 

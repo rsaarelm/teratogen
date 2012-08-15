@@ -56,7 +56,7 @@ func initArchive() (fs archive.Device, err error) {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	go sdl.Run(960, 720)
+	sdl.Run(960, 720)
 	defer sdl.Stop()
 
 	fs, err := initArchive()

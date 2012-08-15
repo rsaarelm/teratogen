@@ -18,14 +18,13 @@
 package kernel
 
 import (
-	"fmt"
 	"testing"
 )
 
 type countdownActor int
 
 func (c countdownActor) Update(k Kernel) {
-	fmt.Println(c)
+	//println(c)
 	if c > 0 {
 		k.Add(c - 1)
 	}

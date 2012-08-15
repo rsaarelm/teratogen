@@ -26,8 +26,8 @@ import (
 
 func BenchmarkNoZoomBlit(b *testing.B) {
 	b.StopTimer()
-	sdl.Open(320, 240)
-	defer sdl.Close()
+	sdl.Run(320, 240)
+	defer sdl.Stop()
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
 	b.StartTimer()
@@ -40,8 +40,8 @@ func BenchmarkNoZoomBlit(b *testing.B) {
 
 func Benchmark2XZoomBlit(b *testing.B) {
 	b.StopTimer()
-	sdl.Open(640, 480)
-	defer sdl.Close()
+	sdl.Run(640, 480)
+	defer sdl.Stop()
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
 	b.StartTimer()
@@ -54,8 +54,8 @@ func Benchmark2XZoomBlit(b *testing.B) {
 
 func BenchmarkNoZoom2XBlit(b *testing.B) {
 	b.StopTimer()
-	sdl.Open(640, 480)
-	defer sdl.Close()
+	sdl.Run(640, 480)
+	defer sdl.Stop()
 	sdl.SetFrame(sdl.NewSurface(640, 480))
 
 	b.StartTimer()
@@ -68,8 +68,8 @@ func BenchmarkNoZoom2XBlit(b *testing.B) {
 
 func Benchmark3XZoomBlit(b *testing.B) {
 	b.StopTimer()
-	sdl.Open(960, 720)
-	defer sdl.Close()
+	sdl.Run(960, 720)
+	defer sdl.Stop()
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
 	b.StartTimer()
@@ -82,8 +82,8 @@ func Benchmark3XZoomBlit(b *testing.B) {
 
 func BenchmarkNoZoom3XBlit(b *testing.B) {
 	b.StopTimer()
-	sdl.Open(960, 720)
-	defer sdl.Close()
+	sdl.Run(960, 720)
+	defer sdl.Stop()
 	sdl.SetFrame(sdl.NewSurface(960, 720))
 
 	b.StartTimer()

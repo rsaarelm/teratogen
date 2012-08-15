@@ -86,20 +86,14 @@ func (e *event) convert() interface{} {
 var Events = make(chan interface{})
 
 func eventLoop() {
-	defer C.SDL_Quit()
 	e := &event{}
-	for {
+	for runLevel == running {
 		if !e.poll() {
 			time.Sleep(10 * 1e6)
 			continue
 		}
 		if evt := e.convert(); evt != nil {
 			Events <- evt
-		}
-		select {
-		case _ = <-stop:
-			return
-		default:
 		}
 	}
 }

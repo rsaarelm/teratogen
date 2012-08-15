@@ -56,6 +56,4 @@ func TestFov(t *testing.T) {
 	} else {
 		t.Fail()
 	}
-
-	//	fov := Fov
 }
