@@ -45,6 +45,15 @@ func (s *Surface) Pixels32() (result []uint32) {
 	return
 }
 
+func (s *Surface) Pixels8() (result []uint8) {
+	size := int(s.ptr.pitch) * int(s.ptr.h)
+
+	result = []uint8{}
+	header := (*reflect.SliceHeader)(unsafe.Pointer(&result))
+	*header = reflect.SliceHeader{uintptr(s.ptr.pixels), size, size}
+	return
+}
+
 func (s *Surface) ColorModel() color.Model {
 	return color.RGBAModel
 }
@@ -157,6 +166,29 @@ func (s *Surface) ClearClipRect() {
 	C.SDL_SetClipRect(s.ptr, nil)
 }
 
+func (s *Surface) IsPalettized() bool {
+	return s.ptr.format.BitsPerPixel == 8
+}
+
+type Palette []struct {
+	R, G, B byte
+	Unused  byte
+}
+
+func MakePalette(colors []color.Color) (result Palette) {
+	result = make(Palette, len(colors))
+	for i, _ := range result {
+		r, g, b, _ := colors[i].RGBA()
+		result[i].R, result[i].G, result[i].B = byte(r>>8), byte(g>>8), byte(b>>8)
+	}
+	return
+}
+
+func (s *Surface) SetColors(pal Palette) {
+	colPtr := (*C.SDL_Color)(unsafe.Pointer(&pal[0]))
+	C.SDL_SetPalette(s.ptr, C.SDL_LOGPAL, colPtr, 0, C.int(len(pal)))
+}
+
 func NewSurface(w, h int) (s *Surface) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -177,5 +209,15 @@ func ToSurface(img image.Image) (s *Surface) {
 	s = NewSurface(img.Bounds().Dx(), img.Bounds().Dy())
 	//s.Set(0, 0, color.RGBA{0xff, 0xff, 0xff, 0xff})
 	draw.Draw(s, s.Bounds(), img, img.Bounds().Min, draw.Over)
+	return
+}
+
+func NewPaletteSurface(w, h int) (s *Surface) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	ptr := C.SDL_CreateRGBSurface(0, C.int(w), C.int(h), 8, 0, 0, 0, 0)
+	s = &Surface{ptr}
+	runtime.SetFinalizer(s, func(s *Surface) { C.SDL_FreeSurface(s.ptr) })
 	return
 }
