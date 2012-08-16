@@ -1,0 +1,7 @@
+# name: Loop through a rectangle of arbitrary expressions
+# --
+for y := $1; y < $2; y++ {
+	for x := $3; x < $4; x++ {
+		$0
+	}
+}
