@@ -177,6 +177,12 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 		font.None, gfx.Green, gfx.Black}
 
 	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
+
+	portrait := gfx.Sprite{
+		Layer:    1000,
+		Drawable: d.cache.GetDrawable(gfx.ImageSpec{"assets/chars.png", image.Rect(0, 104, 24, 128)}),
+		Offset:   image.Pt(0, 216)}
+	portrait.Draw()
 }
 
 // terrainTileOffest checks the neighbourhood of a charted tile to see if it

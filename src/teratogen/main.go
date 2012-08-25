@@ -81,7 +81,7 @@ func main() {
 		}
 	}
 
-	pc := mob.New(w, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)}})
+	pc := mob.New(w, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 16, 8, 24)}})
 
 found:
 	for {
