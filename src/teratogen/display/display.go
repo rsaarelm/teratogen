@@ -160,12 +160,6 @@ func (d *Display) DrawWorld(bounds image.Rectangle) {
 		}
 	}
 
-	// XXX: Hack to show up a fake player avatar.
-	sprites = append(sprites, gfx.Sprite{
-		Layer:    entity.MobLayer,
-		Drawable: d.cache.GetDrawable(gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)}),
-		Offset:   d.chartToScreenPos(image.Pt(0, 0))})
-
 	sprites.Sort()
 	sprites.Draw()
 }
