@@ -23,6 +23,7 @@ import (
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/world"
+	"time"
 )
 
 type Mob struct {
@@ -54,10 +55,16 @@ func (m *Mob) Icon() gfx.ImageSpec {
 }
 
 func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
+	// Add bob animation to animate creatures.
+	bob := image.Pt(0, 0)
+	if time.Now().Nanosecond()%500e6 < 250e6 {
+		bob = image.Pt(0, -1)
+	}
+
 	return gfx.Sprite{
 		Layer:    1000,
 		Drawable: context.GetDrawable(m.icon),
-		Offset:   offset}
+		Offset:   offset.Add(bob)}
 }
 
 func (m *Mob) Loc() manifold.Location {
