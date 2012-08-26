@@ -169,7 +169,7 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 	defer sdl.Frame().ClearClipRect()
 	sdl.Frame().Clear(gfx.Black)
 
-	f, err := d.cache.GetFont(font.Spec{"assets/04round_bold.ttf", 8.0, 32, 96})
+	f, err := d.cache.GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}
