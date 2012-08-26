@@ -22,8 +22,10 @@ import (
 	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/manifold"
+	"teratogen/num"
 	"teratogen/world"
 	"time"
+	"unsafe"
 )
 
 type Mob struct {
@@ -54,17 +56,26 @@ func (m *Mob) Icon() gfx.ImageSpec {
 	return m.icon
 }
 
-func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
-	// Add bob animation to animate creatures.
-	bob := image.Pt(0, 0)
-	if time.Now().Nanosecond()%500e6 < 250e6 {
-		bob = image.Pt(0, -1)
+// bob returns the motion offset for the idle animation of the mob's sprite.
+func (m *Mob) bob() image.Point {
+	t := time.Now().UnixNano()
+
+	// Give different mobs persistent random phases to their bob with noise
+	// generated from the mob's pointer value.
+	t += int64(1e9 * num.Noise(int(uintptr(unsafe.Pointer(m)))))
+
+	if t%500e6 < 250e6 {
+		return image.Pt(0, -1)
 	}
 
+	return image.Pt(0, 0)
+}
+
+func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
 	return gfx.Sprite{
 		Layer:    1000,
 		Drawable: context.GetDrawable(m.icon),
-		Offset:   offset.Add(bob)}
+		Offset:   offset.Add(m.bob())}
 }
 
 func (m *Mob) Loc() manifold.Location {

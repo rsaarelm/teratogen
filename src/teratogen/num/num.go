@@ -72,3 +72,11 @@ func AbsMod(x, modulo int) int {
 	}
 	return x % modulo
 }
+
+// Noise generates pseudorandom noise values. From Hugo Elias,
+// http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+func Noise(seed int) float64 {
+	seed = (seed << 13) ^ seed
+	return (1.0 -
+		float64((seed*(seed*seed*15731+789221)+1376312589)&0x7fffffff)/1073741824.0)
+}
