@@ -100,30 +100,34 @@ found:
 	disp := display.New(ch, w)
 
 	for {
-		switch e := (<-sdl.Events).(type) {
-		case sdl.KeyEvent:
-			if e.Sym == sdl.K_ESCAPE {
+		select {
+		case evt := <-sdl.Events:
+			switch e := evt.(type) {
+			case sdl.KeyEvent:
+				if e.Sym == sdl.K_ESCAPE {
+					return
+				}
+				if e.KeyDown {
+					// Layout independent keys
+					switch e.FixedSym() {
+					case sdl.K_q:
+						disp.Move(image.Pt(-1, 0))
+					case sdl.K_w:
+						disp.Move(image.Pt(-1, -1))
+					case sdl.K_e:
+						disp.Move(image.Pt(0, -1))
+					case sdl.K_d:
+						disp.Move(image.Pt(1, 0))
+					case sdl.K_s:
+						disp.Move(image.Pt(1, 1))
+					case sdl.K_a:
+						disp.Move(image.Pt(0, 1))
+					}
+				}
+			case sdl.QuitEvent:
 				return
 			}
-			if e.KeyDown {
-				// Layout independent keys
-				switch e.FixedSym() {
-				case sdl.K_q:
-					disp.Move(image.Pt(-1, 0))
-				case sdl.K_w:
-					disp.Move(image.Pt(-1, -1))
-				case sdl.K_e:
-					disp.Move(image.Pt(0, -1))
-				case sdl.K_d:
-					disp.Move(image.Pt(1, 0))
-				case sdl.K_s:
-					disp.Move(image.Pt(1, 1))
-				case sdl.K_a:
-					disp.Move(image.Pt(0, 1))
-				}
-			}
-		case sdl.QuitEvent:
-			return
+		default:
 		}
 
 		gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
