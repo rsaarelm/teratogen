@@ -1,6 +1,7 @@
 GOPATH := $(CURDIR)
 
 PKGS = teratogen \
+	teratogen/app \
 	teratogen/archive \
 	teratogen/babble \
 	teratogen/cache \
@@ -15,6 +16,7 @@ PKGS = teratogen \
 	teratogen/mob \
 	teratogen/music/mod \
 	teratogen/num \
+	teratogen/screen \
 	teratogen/sdl \
 	teratogen/ser \
 	teratogen/spatial \
