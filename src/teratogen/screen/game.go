@@ -21,6 +21,7 @@ import (
 	"image"
 	"math/rand"
 	"teratogen/app"
+	"teratogen/data"
 	"teratogen/display"
 	"teratogen/gfx"
 	"teratogen/manifold"
@@ -30,13 +31,16 @@ import (
 	"time"
 )
 
-func GameScreen() (gs *gameState) {
-	return new(gameState)
+func GameScreen(pcSelect int) (gs *gameState) {
+	gs = new(gameState)
+	gs.pcSelect = pcSelect
+	return
 }
 
 type gameState struct {
-	world *world.World
-	disp  *display.Display
+	world    *world.World
+	disp     *display.Display
+	pcSelect int
 }
 
 func (gs *gameState) Enter() {
@@ -57,7 +61,7 @@ func (gs *gameState) Enter() {
 		}
 	}
 
-	pc := mob.New(gs.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 16, 8, 24)}})
+	pc := mob.New(gs.world, &data.PcSpec[gs.pcSelect])
 
 found:
 	for {
@@ -79,10 +83,12 @@ found:
 func (gs *gameState) Exit() {}
 
 func (gs *gameState) Draw() {
+	sdl.Frame().Clear(gfx.Black)
 	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
 	gs.disp.DrawWorld(image.Rect(4, 4, 316, 156))
 	gs.disp.DrawMsg(image.Rect(2, 162, 158, 238))
 
+	app.Cache().GetDrawable(data.PcPortrait[gs.pcSelect]).Draw(image.Pt(0, 216))
 }
 
 func (gs *gameState) Update(timeElapsed int64) {

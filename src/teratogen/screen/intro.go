@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"image"
 	"teratogen/app"
+	"teratogen/data"
 	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
@@ -31,6 +32,7 @@ func IntroScreen() (is *introState) {
 }
 
 type introState struct {
+	pcSelect int
 }
 
 func (is *introState) Enter() {}
@@ -44,6 +46,11 @@ func (is *introState) Draw() {
 	}
 	cur := &font.Cursor{f, sdl.Frame(), image.Pt(0, 10), font.None, gfx.Green, gfx.Black}
 	fmt.Fprintf(cur, "TERATOGEN")
+
+	app.Cache().GetDrawable(data.PcPortrait[is.pcSelect]).Draw(image.Pt(0, 216))
+
+	cur.Pos = image.Pt(24, 224)
+	fmt.Fprintf(cur, data.PcDescr[is.pcSelect])
 }
 
 func (is *introState) Update(timeElapsed int64) {
@@ -55,8 +62,15 @@ func (is *introState) Update(timeElapsed int64) {
 				if e.Sym == sdl.K_ESCAPE {
 					app.Get().PopState()
 				} else {
-					app.Get().PopState()
-					app.Get().PushState(GameScreen())
+					switch e.FixedSym() {
+					case sdl.K_n, sdl.K_RETURN, sdl.K_SPACE, sdl.K_KP_ENTER:
+						app.Get().PopState()
+						app.Get().PushState(GameScreen(is.pcSelect))
+					case sdl.K_q, sdl.K_a, sdl.K_LEFT, sdl.K_KP4:
+						is.pcSelect = (is.pcSelect + data.NumClasses() - 1) % data.NumClasses()
+					case sdl.K_e, sdl.K_d, sdl.K_RIGHT, sdl.K_KP6:
+						is.pcSelect = (is.pcSelect + 1) % data.NumClasses()
+					}
 				}
 			}
 		case sdl.QuitEvent:
