@@ -19,7 +19,6 @@ package cache
 
 import (
 	"image"
-	"image/color"
 	"teratogen/archive"
 	"teratogen/font"
 	"teratogen/gfx"
@@ -76,7 +75,7 @@ func (c *Cache) getSurface(spec surfaceSpec) (result *sdl.Surface, err error) {
 		result = sdl.ToSurface(png)
 
 		// XXX: Hardcoding the same colorkey for all images.
-		result.SetColorKey(color.RGBA{0x00, 0xff, 0xff, 0xff})
+		result.SetColorKey(gfx.Cyan)
 
 		c.surfaces[spec] = result
 	}
