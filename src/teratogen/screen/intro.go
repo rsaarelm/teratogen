@@ -27,18 +27,18 @@ import (
 	"teratogen/sdl"
 )
 
-func IntroScreen() (is *introState) {
-	return new(introState)
+func Intro() (is *intro) {
+	return new(intro)
 }
 
-type introState struct {
+type intro struct {
 	pcSelect int
 }
 
-func (is *introState) Enter() {}
-func (is *introState) Exit()  {}
+func (is *intro) Enter() {}
+func (is *intro) Exit()  {}
 
-func (is *introState) Draw() {
+func (is *intro) Draw() {
 	sdl.Frame().Clear(gfx.Black)
 	f, err := app.Cache().GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	if err != nil {
@@ -53,7 +53,7 @@ func (is *introState) Draw() {
 	fmt.Fprintf(cur, data.PcDescr[is.pcSelect])
 }
 
-func (is *introState) Update(timeElapsed int64) {
+func (is *intro) Update(timeElapsed int64) {
 	select {
 	case evt := <-sdl.Events:
 		switch e := evt.(type) {
@@ -64,8 +64,7 @@ func (is *introState) Update(timeElapsed int64) {
 				} else {
 					switch e.FixedSym() {
 					case sdl.K_n, sdl.K_RETURN, sdl.K_SPACE, sdl.K_KP_ENTER:
-						app.Get().PopState()
-						app.Get().PushState(GameScreen(is.pcSelect))
+						app.Get().PushState(Game(is.pcSelect))
 					case sdl.K_q, sdl.K_a, sdl.K_LEFT, sdl.K_KP4:
 						is.pcSelect = (is.pcSelect + data.NumClasses() - 1) % data.NumClasses()
 					case sdl.K_e, sdl.K_d, sdl.K_RIGHT, sdl.K_KP6:

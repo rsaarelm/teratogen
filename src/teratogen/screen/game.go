@@ -31,19 +31,19 @@ import (
 	"time"
 )
 
-func GameScreen(pcSelect int) (gs *gameState) {
-	gs = new(gameState)
+func Game(pcSelect int) (gs *game) {
+	gs = new(game)
 	gs.pcSelect = pcSelect
 	return
 }
 
-type gameState struct {
+type game struct {
 	world    *world.World
 	disp     *display.Display
 	pcSelect int
 }
 
-func (gs *gameState) Enter() {
+func (gs *game) Enter() {
 	rand.Seed(time.Now().UnixNano())
 
 	gs.world = world.New()
@@ -80,9 +80,9 @@ found:
 	gs.disp = display.New(app.Cache(), gs.world)
 }
 
-func (gs *gameState) Exit() {}
+func (gs *game) Exit() {}
 
-func (gs *gameState) Draw() {
+func (gs *game) Draw() {
 	sdl.Frame().Clear(gfx.Black)
 	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
 	gs.disp.DrawWorld(image.Rect(4, 4, 316, 156))
@@ -91,7 +91,7 @@ func (gs *gameState) Draw() {
 	app.Cache().GetDrawable(data.PcPortrait[gs.pcSelect]).Draw(image.Pt(0, 216))
 }
 
-func (gs *gameState) Update(timeElapsed int64) {
+func (gs *game) Update(timeElapsed int64) {
 	select {
 	case evt := <-sdl.Events:
 		switch e := evt.(type) {
@@ -99,7 +99,6 @@ func (gs *gameState) Update(timeElapsed int64) {
 			if e.KeyDown {
 				if e.Sym == sdl.K_ESCAPE {
 					app.Get().PopState()
-					app.Get().PushState(IntroScreen())
 				}
 
 				// Layout independent keys

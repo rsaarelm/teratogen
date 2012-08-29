@@ -24,6 +24,6 @@ import (
 
 func main() {
 	a := app.Get()
-	a.PushState(screen.IntroScreen())
+	a.PushState(screen.Intro())
 	a.Run()
 }
