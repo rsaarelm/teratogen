@@ -55,6 +55,11 @@ func (s *Spatial) Add(e interface{}, loc manifold.Location) {
 	s.AddFootprint(e, manifold.Footprint{image.Pt(0, 0): loc})
 }
 
+func (s *Spatial) Contains(e interface{}) bool {
+	_, ok := s.placement[e]
+	return ok
+}
+
 func (s *Spatial) Remove(e interface{}) {
 	footprint, ok := s.placement[e]
 	if !ok {
