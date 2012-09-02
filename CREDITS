@@ -1,0 +1,24 @@
+Design, code and graphics Copyright (C) 2009-2012 Risto Saarelma
+
+Assets and libraries
+--------------------
+
+BMMini font by BitmapMania (bitmapmania.m78.com)
+STB TrueType library by Sean Barrett
+Simple DirectMedia Layer by Sam Lantinga and the SDL community
+Go programming language and development tools by Google
+
+Influences
+----------
+
+Rogue, by Toy, Wichman and Arnold, for the original gameplay concept.
+
+Oryx LOFI fantasy tileset for the 8x8 tileset style.
+
+Jeff Lait's Jacob's Matrix and subsequent games for the portal-based game
+map architecture.
+
+Bug reports
+-----------
+
+DarkGod, Xecutor
