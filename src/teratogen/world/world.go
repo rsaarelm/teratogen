@@ -20,7 +20,6 @@ package world
 import (
 	"image"
 	"teratogen/entity"
-	"teratogen/fov"
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/mapgen"
@@ -35,6 +34,7 @@ type World struct {
 	Player interface {
 		gfx.Spritable
 		entity.Pos
+		entity.Fov
 	}
 }
 
@@ -106,40 +106,4 @@ type simpleChart manifold.Location
 
 func (s simpleChart) At(pt image.Point) manifold.Location {
 	return manifold.Location(s).Add(pt)
-}
-
-type FovChart struct {
-	RelativePos image.Point
-	world       *World
-	chart       map[image.Point]manifold.Location
-}
-
-func NewFov(world *World) (result *FovChart) {
-	result = new(FovChart)
-	result.world = world
-	result.chart = make(map[image.Point]manifold.Location)
-	return
-}
-
-func (fc *FovChart) Move(vec image.Point) {
-	fc.RelativePos = fc.RelativePos.Add(vec)
-}
-
-func (fc *FovChart) At(pt image.Point) manifold.Location {
-	if loc, ok := fc.chart[pt.Add(fc.RelativePos)]; ok {
-		return loc
-	}
-	return manifold.Location{}
-}
-
-func (fc *FovChart) Mark(pt image.Point, loc manifold.Location) {
-	fc.chart[pt.Add(fc.RelativePos)] = loc
-}
-
-func (fc *FovChart) DoFov(origin manifold.Location, radius int) {
-	f := fov.New(
-		func(loc manifold.Location) bool { return fc.world.Terrain(loc).BlocksSight() },
-		func(pt image.Point, loc manifold.Location) { fc.Mark(pt, loc) },
-		fc.world.Manifold)
-	f.Run(origin, radius)
 }

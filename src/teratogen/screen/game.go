@@ -20,6 +20,7 @@ package screen
 import (
 	"image"
 	"math/rand"
+	"teratogen/action"
 	"teratogen/app"
 	"teratogen/data"
 	"teratogen/display"
@@ -39,6 +40,7 @@ func Game(pcSelect int) (gs *game) {
 
 type game struct {
 	world    *world.World
+	action   *action.Action
 	disp     *display.Display
 	pcSelect int
 }
@@ -47,6 +49,7 @@ func (gs *game) Enter() {
 	rand.Seed(time.Now().UnixNano())
 
 	gs.world = world.New()
+	gs.action = action.New(gs.world)
 
 	origin := manifold.Location{0, 0, 1}
 	gs.world.TestMap(origin)
@@ -57,11 +60,11 @@ func (gs *game) Enter() {
 		m := mob.New(gs.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
 		loc := origin.Add(pos)
 		if m.Fits(loc) {
-			m.Place(loc)
+			gs.action.Place(m, loc)
 		}
 	}
 
-	pc := mob.New(gs.world, &data.PcSpec[gs.pcSelect])
+	pc := mob.NewPC(gs.world, &data.PcSpec[gs.pcSelect])
 
 found:
 	for {
@@ -69,7 +72,7 @@ found:
 			pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
 			loc := origin.Add(pos)
 			if pc.Fits(loc) {
-				pc.Place(loc)
+				gs.action.Place(pc, loc)
 				gs.world.Player = pc
 				break found
 			}
@@ -92,6 +95,7 @@ func (gs *game) Draw() {
 }
 
 func (gs *game) Update(timeElapsed int64) {
+	pc := gs.world.Player
 	select {
 	case evt := <-sdl.Events:
 		switch e := evt.(type) {
@@ -104,17 +108,17 @@ func (gs *game) Update(timeElapsed int64) {
 				// Layout independent keys
 				switch e.FixedSym() {
 				case sdl.K_q:
-					gs.disp.Move(image.Pt(-1, 0))
+					gs.action.Move(pc, image.Pt(-1, 0))
 				case sdl.K_w:
-					gs.disp.Move(image.Pt(-1, -1))
+					gs.action.Move(pc, image.Pt(-1, -1))
 				case sdl.K_e:
-					gs.disp.Move(image.Pt(0, -1))
+					gs.action.Move(pc, image.Pt(0, -1))
 				case sdl.K_d:
-					gs.disp.Move(image.Pt(1, 0))
+					gs.action.Move(pc, image.Pt(1, 0))
 				case sdl.K_s:
-					gs.disp.Move(image.Pt(1, 1))
+					gs.action.Move(pc, image.Pt(1, 1))
 				case sdl.K_a:
-					gs.disp.Move(image.Pt(0, 1))
+					gs.action.Move(pc, image.Pt(0, 1))
 				}
 			}
 		case sdl.QuitEvent:

@@ -34,7 +34,6 @@ import (
 type Display struct {
 	cache       *cache.Cache
 	world       *world.World
-	chart       *world.FovChart
 	chartOrigin image.Point
 }
 
@@ -42,10 +41,6 @@ func New(c *cache.Cache, w *world.World) (result *Display) {
 	result = new(Display)
 	result.cache = c
 	result.world = w
-
-	result.chart = world.NewFov(w)
-	// XXX: Magic number fov radius
-	result.chart.DoFov(result.world.Player.Loc(), 12)
 
 	return
 }
@@ -64,21 +59,14 @@ func ScreenToChart(scrPt image.Point) (chartPt image.Point) {
 	return image.Pt(column+row, row)
 }
 
-func (d *Display) Move(vec image.Point) {
-	pc := d.world.Player
-	newLoc := d.world.Manifold.Offset(pc.Loc(), vec)
-
-	if pc.Fits(newLoc) {
-		pc.Place(newLoc)
-		d.chart.Move(vec)
-		d.chart.DoFov(newLoc, 12)
-	}
+func (d *Display) chart() manifold.Chart {
+	return d.world.Player.FovChart()
 }
 
 func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
-	loc := d.chart.At(chartPos)
+	loc := d.chart().At(chartPos)
 	if d.world.Contains(loc) {
-		idx := terrainTileOffset(d.world, d.chart, chartPos)
+		idx := terrainTileOffset(d.world, d.chart(), chartPos)
 		sprite := d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx])
 		sprite.Draw(scrPos)
 	}
@@ -87,11 +75,11 @@ func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
 func (d *Display) collectSprites(
 	sprites gfx.SpriteBatch,
 	chartPos image.Point) gfx.SpriteBatch {
-	loc := d.chart.At(chartPos)
+	loc := d.chart().At(chartPos)
 
 	// Collect terrain tile sprite.
 	if d.world.Contains(loc) {
-		idx := terrainTileOffset(d.world, d.chart, chartPos)
+		idx := terrainTileOffset(d.world, d.chart(), chartPos)
 		sprites = append(sprites, gfx.Sprite{
 			Layer:    entity.TerrainLayer,
 			Drawable: d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx]),

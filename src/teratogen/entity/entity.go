@@ -18,6 +18,7 @@
 package entity
 
 import (
+	"image"
 	"teratogen/manifold"
 )
 
@@ -28,13 +29,30 @@ const (
 	MobLayer     = 30
 )
 
-type Pos interface {
+type Located interface {
 	Loc() manifold.Location
+}
+
+// Pos is an entity that has a location and can be moved.
+type Pos interface {
+	Located
 	Place(loc manifold.Location)
 	Remove()
 	Fits(loc manifold.Location) bool
 }
 
+// BlockMove is an entity that can block movement.
 type BlockMove interface {
 	BlocksMove() bool
 }
+
+// Fov is a field of view component, it means an entity can remember the
+// surroundings it has seen in a manifold chart.
+type Fov interface {
+	FovChart() manifold.Chart
+	MoveFovOrigin(vec image.Point)
+	MarkFov(pt image.Point, loc manifold.Location)
+}
+
+// Entity type is just an alias for interface{} for more explicit notation.
+type Entity interface{}

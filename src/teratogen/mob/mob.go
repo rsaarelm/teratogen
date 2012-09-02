@@ -35,6 +35,18 @@ type Mob struct {
 	placed bool
 }
 
+type PC struct {
+	*Mob
+	*Fov
+}
+
+func NewPC(w *world.World, spec *Spec) (result *PC) {
+	result = new(PC)
+	result.Mob = New(w, spec)
+	result.Fov = NewFov()
+	return
+}
+
 type Spec struct {
 	Icon gfx.ImageSpec
 }
@@ -112,4 +124,14 @@ func (m *Mob) Fits(loc manifold.Location) bool {
 
 func (m *Mob) BlocksMove() bool {
 	return true
+}
+
+func (m *Mob) Move(vec image.Point) bool {
+	newLoc := m.world.Manifold.Offset(m.Loc(), vec)
+
+	if m.Fits(newLoc) {
+		m.Place(newLoc)
+		return true
+	}
+	return false
 }
