@@ -108,17 +108,17 @@ func (gs *game) Update(timeElapsed int64) {
 				// Layout independent keys
 				switch e.FixedSym() {
 				case sdl.K_q:
-					gs.action.Move(pc, image.Pt(-1, 0))
+					gs.action.AttackMove(pc, image.Pt(-1, 0))
 				case sdl.K_w:
-					gs.action.Move(pc, image.Pt(-1, -1))
+					gs.action.AttackMove(pc, image.Pt(-1, -1))
 				case sdl.K_e:
-					gs.action.Move(pc, image.Pt(0, -1))
+					gs.action.AttackMove(pc, image.Pt(0, -1))
 				case sdl.K_d:
-					gs.action.Move(pc, image.Pt(1, 0))
+					gs.action.AttackMove(pc, image.Pt(1, 0))
 				case sdl.K_s:
-					gs.action.Move(pc, image.Pt(1, 1))
+					gs.action.AttackMove(pc, image.Pt(1, 1))
 				case sdl.K_a:
-					gs.action.Move(pc, image.Pt(0, 1))
+					gs.action.AttackMove(pc, image.Pt(0, 1))
 				}
 			}
 		case sdl.QuitEvent:

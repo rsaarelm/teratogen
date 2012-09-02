@@ -38,6 +38,46 @@ type fovvable interface {
 	entity.Fov
 }
 
+func (a *Action) Footprint(obj entity.Entity, loc manifold.Location) manifold.Footprint {
+	if ft, ok := obj.(entity.Footprint); ok {
+		// Big entities with a complex footprint.
+		return a.World.Manifold.MakeFootprint(ft.Footprint(), loc)
+	}
+	// Entities with a simple one-cell footprint.
+	return manifold.Footprint{image.Pt(0, 0): loc}
+}
+
+func (a *Action) AttackMove(obj entity.Pos, vec image.Point) {
+	newLoc := a.World.Manifold.Offset(obj.Loc(), vec)
+	footprint := a.Footprint(obj, newLoc)
+
+	for _, loc := range footprint {
+		for _, oe := range a.World.Spatial.At(loc) {
+			hit := oe.Entity
+			if hit == obj {
+				// Ignore self-intersect
+				continue
+			}
+			if a.EnemyOf(obj, hit) {
+				a.Attack(obj, hit)
+				return
+			}
+		}
+	}
+	a.Move(obj, vec)
+}
+
+func (a *Action) EnemyOf(obj1, obj2 entity.Entity) bool {
+	// TODO better
+	return obj1 != obj2
+}
+
+func (a *Action) Attack(attacker, target entity.Entity) {
+	// TODO better
+	// Just straight up kill the target.
+	a.World.Spatial.Remove(target)
+}
+
 func (a *Action) Move(obj entity.Pos, vec image.Point) {
 	newLoc := a.World.Manifold.Offset(obj.Loc(), vec)
 

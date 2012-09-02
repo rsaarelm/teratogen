@@ -54,5 +54,9 @@ type Fov interface {
 	MarkFov(pt image.Point, loc manifold.Location)
 }
 
+type Footprint interface {
+	Footprint() *manifold.FootprintTemplate
+}
+
 // Entity type is just an alias for interface{} for more explicit notation.
 type Entity interface{}
