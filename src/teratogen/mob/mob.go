@@ -60,6 +60,7 @@ func New(w *world.World, spec *Spec) (result *Mob) {
 func (m *Mob) Init(w *world.World, spec *Spec) {
 	m.world = w
 	m.icon = spec.Icon
+	w.AddActor(m)
 }
 
 func (m *Mob) DrawLayer() int {

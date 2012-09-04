@@ -19,9 +19,11 @@ package action
 
 import (
 	"image"
+	"math/rand"
 	"teratogen/entity"
 	"teratogen/fov"
 	"teratogen/manifold"
+	"teratogen/tile"
 	"teratogen/world"
 )
 
@@ -107,4 +109,20 @@ func (a *Action) DoFov(obj entity.Entity) {
 			a.World.Manifold)
 		fv.Run(f.Loc(), radius)
 	}
+}
+
+func (a *Action) RunAI() {
+	for actor := a.World.NextActor(); actor != nil; actor = a.World.NextActor() {
+		if entity.Equal(actor, a.World.Player) {
+			continue
+		}
+		if p, ok := actor.(entity.Pos); ok {
+			a.AttackMove(p, tile.HexDirs[rand.Intn(6)])
+		}
+	}
+}
+
+func (a *Action) EndTurn() {
+	a.RunAI()
+	a.World.EndTurn()
 }

@@ -60,6 +60,12 @@ func (s *Spatial) Contains(e interface{}) bool {
 	return ok
 }
 
+func (s *Spatial) ForEach(fn func(interface{})) {
+	for e, _ := range s.placement {
+		fn(e)
+	}
+}
+
 func (s *Spatial) Remove(e interface{}) {
 	footprint, ok := s.placement[e]
 	if !ok {

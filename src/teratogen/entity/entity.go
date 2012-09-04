@@ -19,6 +19,7 @@ package entity
 
 import (
 	"image"
+	"reflect"
 	"teratogen/manifold"
 )
 
@@ -60,3 +61,15 @@ type Footprint interface {
 
 // Entity type is just an alias for interface{} for more explicit notation.
 type Entity interface{}
+
+// Id gives the pointer-based identity for an entity that can be used to see
+// if two entities are the same.
+func Id(obj interface{}) uintptr {
+	return reflect.ValueOf(obj).Pointer()
+}
+
+// Equal returns true if two entities are the same. The comparison uses their
+// memory addresses.
+func Equal(obj1, obj2 interface{}) bool {
+	return Id(obj1) == Id(obj2)
+}

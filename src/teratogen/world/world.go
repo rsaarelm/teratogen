@@ -30,6 +30,10 @@ type World struct {
 	Manifold *manifold.Manifold
 	terrain  map[manifold.Location]Terrain
 	Spatial  *spatial.Spatial
+	// Actor queue for the current frame
+	actors []entity.Entity
+	// Actor queue for the next frame
+	nextActors []entity.Entity
 
 	Player interface {
 		gfx.Spritable
@@ -76,6 +80,8 @@ func New() (world *World) {
 	world.Manifold = manifold.New()
 	world.terrain = make(map[manifold.Location]Terrain)
 	world.Spatial = spatial.New()
+	world.actors = []entity.Entity{}
+	world.nextActors = []entity.Entity{}
 	return
 }
 
@@ -87,6 +93,13 @@ func (w *World) TestMap(origin manifold.Location) {
 		}
 	}
 	mapgen.BspRooms(WorldFormer{w, simpleChart(origin)}, bounds.Inset(1))
+}
+
+// simpleChart is a chart that pays no attention to portals in the manifold.
+type simpleChart manifold.Location
+
+func (s simpleChart) At(pt image.Point) manifold.Location {
+	return manifold.Location(s).Add(pt)
 }
 
 func (w *World) Terrain(loc manifold.Location) TerrainData {
@@ -101,9 +114,38 @@ func (w *World) Contains(loc manifold.Location) bool {
 	return ok
 }
 
-// simpleChart is a chart that pays no attention to portals in the manifold.
-type simpleChart manifold.Location
+func (w *World) AddActor(obj entity.Entity) {
+	w.actors = append(w.actors, obj)
+}
 
-func (s simpleChart) At(pt image.Point) manifold.Location {
-	return manifold.Location(s).Add(pt)
+func (w *World) IsAlive(obj entity.Entity) bool {
+	return w.Spatial.Contains(obj)
+}
+
+// NextActor returns the next living actor that has still to act this turn.
+func (w *World) NextActor() entity.Entity {
+	if len(w.actors) == 0 {
+		return nil
+	}
+	actor := w.actors[0]
+	w.actors = w.actors[1:]
+	if !w.IsAlive(actor) {
+		// Drop actors that don't exist in the world.
+		return w.NextActor()
+	}
+	// Otherwise move the actor to the back of the queue and return it.
+	w.nextActors = append(w.nextActors, actor)
+	return actor
+}
+
+// EndTurn refreshes the actor queue for a new game turn.
+func (w *World) EndTurn() {
+	// Add remaining live actors to the next actor queue.
+	for _, a := range w.actors {
+		if w.IsAlive(a) {
+			w.nextActors = append(w.nextActors, a)
+		}
+	}
+	w.actors = w.nextActors
+	w.nextActors = []entity.Entity{}
 }

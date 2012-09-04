@@ -109,16 +109,24 @@ func (gs *game) Update(timeElapsed int64) {
 				switch e.FixedSym() {
 				case sdl.K_q:
 					gs.action.AttackMove(pc, image.Pt(-1, 0))
+					gs.action.EndTurn()
 				case sdl.K_w:
 					gs.action.AttackMove(pc, image.Pt(-1, -1))
+					gs.action.EndTurn()
 				case sdl.K_e:
 					gs.action.AttackMove(pc, image.Pt(0, -1))
+					gs.action.EndTurn()
 				case sdl.K_d:
 					gs.action.AttackMove(pc, image.Pt(1, 0))
+					gs.action.EndTurn()
 				case sdl.K_s:
 					gs.action.AttackMove(pc, image.Pt(1, 1))
+					gs.action.EndTurn()
 				case sdl.K_a:
 					gs.action.AttackMove(pc, image.Pt(0, 1))
+					gs.action.EndTurn()
+				case sdl.K_SPACE:
+					gs.action.EndTurn()
 				}
 			}
 		case sdl.QuitEvent:
