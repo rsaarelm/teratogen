@@ -36,14 +36,14 @@ type Mob struct {
 }
 
 type PC struct {
-	*Mob
-	*Fov
+	Mob
+	Fov
 }
 
 func NewPC(w *world.World, spec *Spec) (result *PC) {
 	result = new(PC)
-	result.Mob = New(w, spec)
-	result.Fov = NewFov()
+	result.Mob.Init(w, spec)
+	result.Fov.Init()
 	return
 }
 
@@ -53,11 +53,13 @@ type Spec struct {
 
 func New(w *world.World, spec *Spec) (result *Mob) {
 	result = new(Mob)
-	result.world = w
-
-	result.icon = spec.Icon
-
+	result.Init(w, spec)
 	return
+}
+
+func (m *Mob) Init(w *world.World, spec *Spec) {
+	m.world = w
+	m.icon = spec.Icon
 }
 
 func (m *Mob) DrawLayer() int {

@@ -30,8 +30,12 @@ type Fov struct {
 
 func NewFov() (result *Fov) {
 	result = new(Fov)
-	result.chart = make(map[image.Point]manifold.Location)
+	result.Init()
 	return
+}
+
+func (f *Fov) Init() {
+	f.chart = make(map[image.Point]manifold.Location)
 }
 
 // Use a separate type for the chart since chart's main method name "At" is
