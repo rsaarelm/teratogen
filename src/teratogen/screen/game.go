@@ -29,7 +29,6 @@ import (
 	"teratogen/mob"
 	"teratogen/sdl"
 	"teratogen/world"
-	"time"
 )
 
 func Game(pcSelect int) (gs *game) {
@@ -46,8 +45,6 @@ type game struct {
 }
 
 func (gs *game) Enter() {
-	rand.Seed(time.Now().UnixNano())
-
 	gs.world = world.New()
 	gs.action = action.New(gs.world)
 

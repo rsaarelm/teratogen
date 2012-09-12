@@ -20,6 +20,7 @@ package screen
 import (
 	"fmt"
 	"image"
+	"math/rand"
 	"teratogen/app"
 	"teratogen/data"
 	"teratogen/font"
@@ -27,18 +28,20 @@ import (
 	"teratogen/sdl"
 )
 
-func Intro() (is *intro) {
-	return new(intro)
+func Intro() (in *intro) {
+	in = new(intro)
+	in.pcSelect = rand.Intn(data.NumClasses())
+	return
 }
 
 type intro struct {
 	pcSelect int
 }
 
-func (is *intro) Enter() {}
-func (is *intro) Exit()  {}
+func (in *intro) Enter() {}
+func (in *intro) Exit()  {}
 
-func (is *intro) Draw() {
+func (in *intro) Draw() {
 	sdl.Frame().Clear(gfx.Black)
 	f, err := app.Cache().GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	if err != nil {
@@ -47,13 +50,13 @@ func (is *intro) Draw() {
 	cur := &font.Cursor{f, sdl.Frame(), image.Pt(0, 10), font.None, gfx.Green, gfx.Black}
 	fmt.Fprintf(cur, "TERATOGEN")
 
-	app.Cache().GetDrawable(data.PcPortrait[is.pcSelect]).Draw(image.Pt(0, 216))
+	app.Cache().GetDrawable(data.PcPortrait[in.pcSelect]).Draw(image.Pt(0, 216))
 
 	cur.Pos = image.Pt(24, 224)
-	fmt.Fprintf(cur, data.PcDescr[is.pcSelect])
+	fmt.Fprintf(cur, data.PcDescr[in.pcSelect])
 }
 
-func (is *intro) Update(timeElapsed int64) {
+func (in *intro) Update(timeElapsed int64) {
 	select {
 	case evt := <-sdl.Events:
 		switch e := evt.(type) {
@@ -64,11 +67,11 @@ func (is *intro) Update(timeElapsed int64) {
 				} else {
 					switch e.FixedSym() {
 					case sdl.K_n, sdl.K_RETURN, sdl.K_SPACE, sdl.K_KP_ENTER:
-						app.Get().PushState(Game(is.pcSelect))
+						app.Get().PushState(Game(in.pcSelect))
 					case sdl.K_q, sdl.K_a, sdl.K_LEFT, sdl.K_KP4:
-						is.pcSelect = (is.pcSelect + data.NumClasses() - 1) % data.NumClasses()
+						in.pcSelect = (in.pcSelect + data.NumClasses() - 1) % data.NumClasses()
 					case sdl.K_e, sdl.K_d, sdl.K_RIGHT, sdl.K_KP6:
-						is.pcSelect = (is.pcSelect + 1) % data.NumClasses()
+						in.pcSelect = (in.pcSelect + 1) % data.NumClasses()
 					}
 				}
 			}

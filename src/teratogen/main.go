@@ -18,11 +18,15 @@
 package main
 
 import (
+	"math/rand"
 	"teratogen/app"
 	"teratogen/screen"
+	"time"
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	a := app.Get()
 	a.PushState(screen.Intro())
 	a.Run()
