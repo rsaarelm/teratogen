@@ -19,7 +19,6 @@ package entity
 
 import (
 	"image"
-	"reflect"
 	"teratogen/manifold"
 )
 
@@ -29,18 +28,6 @@ const (
 	ItemLayer    = 20
 	MobLayer     = 30
 )
-
-type Located interface {
-	Loc() manifold.Location
-}
-
-// Pos is an entity that has a location and can be moved.
-type Pos interface {
-	Located
-	Place(loc manifold.Location)
-	Remove()
-	Fits(loc manifold.Location) bool
-}
 
 // BlockMove is an entity that can block movement.
 type BlockMove interface {
@@ -61,15 +48,3 @@ type Footprint interface {
 
 // Entity type is just an alias for interface{} for more explicit notation.
 type Entity interface{}
-
-// Id gives the pointer-based identity for an entity that can be used to see
-// if two entities are the same.
-func Id(obj interface{}) uintptr {
-	return reflect.ValueOf(obj).Pointer()
-}
-
-// Equal returns true if two entities are the same. The comparison uses their
-// memory addresses.
-func Equal(obj1, obj2 interface{}) bool {
-	return Id(obj1) == Id(obj2)
-}

@@ -37,7 +37,6 @@ type World struct {
 
 	Player interface {
 		gfx.Spritable
-		entity.Pos
 		entity.Fov
 	}
 }

@@ -56,7 +56,7 @@ func (gs *game) Enter() {
 		pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
 		m := mob.New(gs.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
 		loc := origin.Add(pos)
-		if m.Fits(loc) {
+		if gs.action.Fits(m, loc) {
 			gs.action.Place(m, loc)
 		}
 	}
@@ -68,7 +68,7 @@ found:
 		for i := 0; i < 64; i++ {
 			pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
 			loc := origin.Add(pos)
-			if pc.Fits(loc) {
+			if gs.action.Fits(pc, loc) {
 				gs.action.Place(pc, loc)
 				gs.world.Player = pc
 				break found
@@ -92,6 +92,10 @@ func (gs *game) Draw() {
 }
 
 func (gs *game) Update(timeElapsed int64) {
+	if gs.action.IsGameOver() {
+		app.Get().PopState()
+	}
+
 	pc := gs.world.Player
 	select {
 	case evt := <-sdl.Events:

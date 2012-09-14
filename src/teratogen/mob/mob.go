@@ -19,7 +19,6 @@ package mob
 
 import (
 	"image"
-	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/manifold"
 	"teratogen/num"
@@ -93,48 +92,6 @@ func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
 		Offset:   offset.Add(m.bob())}
 }
 
-func (m *Mob) Loc() manifold.Location {
-	return m.loc
-}
-
-func (m *Mob) Place(loc manifold.Location) {
-	if m.placed {
-		m.Remove()
-	}
-	m.loc = loc
-	m.world.Spatial.Add(m, m.loc)
-	m.placed = true
-}
-
-func (m *Mob) Remove() {
-	if m.placed {
-		m.world.Spatial.Remove(m)
-		m.placed = false
-	}
-}
-
-func (m *Mob) Fits(loc manifold.Location) bool {
-	if m.world.Terrain(loc).BlocksMove() {
-		return false
-	}
-	for _, oe := range m.world.Spatial.At(loc) {
-		if b := oe.Entity.(entity.BlockMove); oe.Entity != m && b != nil && b.BlocksMove() {
-			return false
-		}
-	}
-	return true
-}
-
 func (m *Mob) BlocksMove() bool {
 	return true
-}
-
-func (m *Mob) Move(vec image.Point) bool {
-	newLoc := m.world.Manifold.Offset(m.Loc(), vec)
-
-	if m.Fits(newLoc) {
-		m.Place(newLoc)
-		return true
-	}
-	return false
 }

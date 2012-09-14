@@ -60,6 +60,10 @@ func (s *Spatial) Contains(e interface{}) bool {
 	return ok
 }
 
+func (s *Spatial) Loc(e interface{}) manifold.Location {
+	return s.placement[e][image.Pt(0, 0)]
+}
+
 func (s *Spatial) ForEach(fn func(interface{})) {
 	for e, _ := range s.placement {
 		fn(e)

@@ -23,6 +23,7 @@ import (
 	"teratogen/entity"
 	"teratogen/fov"
 	"teratogen/manifold"
+	"teratogen/mob"
 	"teratogen/tile"
 	"teratogen/world"
 )
@@ -36,7 +37,6 @@ func New(w *world.World) *Action {
 }
 
 type fovvable interface {
-	entity.Located
 	entity.Fov
 }
 
@@ -49,8 +49,8 @@ func (a *Action) Footprint(obj entity.Entity, loc manifold.Location) manifold.Fo
 	return manifold.Footprint{image.Pt(0, 0): loc}
 }
 
-func (a *Action) AttackMove(obj entity.Pos, vec image.Point) {
-	newLoc := a.World.Manifold.Offset(obj.Loc(), vec)
+func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
+	newLoc := a.World.Manifold.Offset(a.Loc(obj), vec)
 	footprint := a.Footprint(obj, newLoc)
 
 	for _, loc := range footprint {
@@ -80,10 +80,27 @@ func (a *Action) Attack(attacker, target entity.Entity) {
 	a.World.Spatial.Remove(target)
 }
 
-func (a *Action) Move(obj entity.Pos, vec image.Point) {
-	newLoc := a.World.Manifold.Offset(obj.Loc(), vec)
+func (a *Action) Loc(obj entity.Entity) manifold.Location {
+	return a.World.Spatial.Loc(obj)
+}
 
-	if obj.Fits(newLoc) {
+func (a *Action) Fits(obj entity.Entity, loc manifold.Location) bool {
+	// TODO: handle footprint stuff.
+	if a.World.Terrain(loc).BlocksMove() {
+		return false
+	}
+	for _, oe := range a.World.Spatial.At(loc) {
+		if b := oe.Entity.(entity.BlockMove); oe.Entity != obj && b != nil && b.BlocksMove() {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *Action) Move(obj entity.Entity, vec image.Point) {
+	newLoc := a.World.Manifold.Offset(a.Loc(obj), vec)
+
+	if a.Fits(obj, newLoc) {
 		if f, ok := obj.(entity.Fov); ok {
 			f.MoveFovOrigin(vec)
 		}
@@ -91,11 +108,17 @@ func (a *Action) Move(obj entity.Pos, vec image.Point) {
 	}
 }
 
-func (a *Action) Place(obj entity.Pos, loc manifold.Location) {
-	obj.Place(loc)
+func (a *Action) Place(obj entity.Entity, loc manifold.Location) {
+	if a.World.Spatial.Contains(obj) {
+		a.World.Spatial.Remove(obj)
+	}
+	a.World.Spatial.Add(obj, loc)
 
 	if f, ok := obj.(fovvable); ok {
 		a.DoFov(f)
+	}
+	if !a.World.IsAlive(obj) {
+		panic("Placed obj not shown alive")
 	}
 }
 
@@ -107,22 +130,25 @@ func (a *Action) DoFov(obj entity.Entity) {
 			func(loc manifold.Location) bool { return a.World.Terrain(loc).BlocksSight() },
 			func(pt image.Point, loc manifold.Location) { f.MarkFov(pt, loc) },
 			a.World.Manifold)
-		fv.Run(f.Loc(), radius)
+		fv.Run(a.Loc(obj), radius)
 	}
 }
 
 func (a *Action) RunAI() {
 	for actor := a.World.NextActor(); actor != nil; actor = a.World.NextActor() {
-		if entity.Equal(actor, a.World.Player) {
+		if actor == a.World.Player {
 			continue
 		}
-		if p, ok := actor.(entity.Pos); ok {
-			a.AttackMove(p, tile.HexDirs[rand.Intn(6)])
-		}
+		a.AttackMove(actor, tile.HexDirs[rand.Intn(6)])
 	}
 }
 
 func (a *Action) EndTurn() {
 	a.RunAI()
 	a.World.EndTurn()
+}
+
+func (a *Action) IsGameOver() bool {
+	obj, _ := a.World.Player.(*mob.PC)
+	return !a.World.IsAlive(obj)
 }
