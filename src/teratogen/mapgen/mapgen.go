@@ -159,7 +159,13 @@ func (w wall) Halves(parent image.Rectangle) (left, right image.Rectangle) {
 func makeSplitWall(bounds image.Rectangle) wall {
 	vertWeight := int(math.Max(0, float64(bounds.Dx()-3)))
 	horzWeight := int(math.Max(0, float64(bounds.Dy()-3)))
-	isVertical := rand.Intn(vertWeight+horzWeight) < vertWeight
+
+	isVertical := false
+	if horzWeight > 0 && vertWeight > 0 {
+		isVertical = rand.Intn(vertWeight+horzWeight) < vertWeight
+	} else if vertWeight > 0 {
+		isVertical = true
+	}
 
 	if isVertical {
 		offset := rand.Intn(bounds.Dx()-2) + 1
