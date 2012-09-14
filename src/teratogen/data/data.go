@@ -32,9 +32,9 @@ var PcPortrait = []gfx.ImageSpec{
 }
 
 var PcDescr = []string{
-	"MECHANIST: Machine empath",
-	"BIOROID: Synthetic living weapon",
-	"WARPER: Entropic incater",
+	"MECHANIST",
+	"BIOROID",
+	"WARPER",
 }
 
 func NumClasses() int {
