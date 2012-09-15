@@ -19,13 +19,13 @@ package screen
 
 import (
 	"image"
-	"math/rand"
 	"teratogen/action"
 	"teratogen/app"
 	"teratogen/data"
 	"teratogen/display"
 	"teratogen/gfx"
 	"teratogen/manifold"
+	"teratogen/mapgen"
 	"teratogen/mob"
 	"teratogen/sdl"
 	"teratogen/world"
@@ -41,43 +41,20 @@ type game struct {
 	world    *world.World
 	action   *action.Action
 	disp     *display.Display
+	mapgen   *mapgen.Mapgen
 	pcSelect int
 }
 
 func (gs *game) Enter() {
 	gs.world = world.New()
 	gs.action = action.New(gs.world)
+	gs.mapgen = mapgen.New(gs.world)
+	gs.disp = display.New(app.Cache(), gs.world)
 
 	origin := manifold.Location{0, 0, 1}
-	gs.world.TestMap(origin)
-
-	bounds := image.Rect(-16, -16, 16, 16)
-	for i := 0; i < 32; i++ {
-		pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
-		m := mob.New(gs.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
-		loc := origin.Add(pos)
-		if gs.action.Fits(m, loc) {
-			gs.action.Place(m, loc)
-		}
-	}
-
-	pc := mob.NewPC(gs.world, &data.PcSpec[gs.pcSelect])
-
-found:
-	for {
-		for i := 0; i < 64; i++ {
-			pos := image.Pt(rand.Intn(bounds.Dx())+bounds.Min.X, rand.Intn(bounds.Dy())+bounds.Min.Y)
-			loc := origin.Add(pos)
-			if gs.action.Fits(pc, loc) {
-				gs.action.Place(pc, loc)
-				gs.world.Player = pc
-				break found
-			}
-		}
-		panic("Can't place player")
-	}
-
-	gs.disp = display.New(app.Cache(), gs.world)
+	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec[gs.pcSelect])
+	gs.mapgen.TestMap(origin)
+	gs.action.DoFov(gs.world.Player)
 }
 
 func (gs *game) Exit() {}

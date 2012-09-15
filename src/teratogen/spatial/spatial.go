@@ -19,16 +19,19 @@ package spatial
 
 import (
 	"image"
+	"teratogen/entity"
 	"teratogen/manifold"
 )
 
 type Spatial struct {
+	manifold  *manifold.Manifold
 	placement map[interface{}]manifold.Footprint
 	sites     map[manifold.Location]siteSet
 }
 
-func New() (result *Spatial) {
+func New(m *manifold.Manifold) (result *Spatial) {
 	result = new(Spatial)
+	result.manifold = m
 	result.placement = make(map[interface{}]manifold.Footprint)
 	result.sites = make(map[manifold.Location]siteSet)
 	return
@@ -39,7 +42,7 @@ func New() (result *Spatial) {
 func (s *Spatial) AddFootprint(
 	e interface{}, footprint manifold.Footprint) {
 	if _, ok := s.placement[e]; ok {
-		panic("Adding same entity multiple times to Spatial")
+		s.Remove(e)
 	}
 
 	s.placement[e] = footprint
@@ -50,9 +53,19 @@ func (s *Spatial) AddFootprint(
 	}
 }
 
-// Add adds an entity with a default single-cell footprint at loc.
+// Add adds an entity with a default single-cell footprint at loc. Entities
+// that implement the entity.Footprint interface will get an extended
+// footprint.
 func (s *Spatial) Add(e interface{}, loc manifold.Location) {
-	s.AddFootprint(e, manifold.Footprint{image.Pt(0, 0): loc})
+	s.AddFootprint(e, s.EntityFootprint(e, loc))
+}
+
+func (s *Spatial) EntityFootprint(e interface{}, loc manifold.Location) manifold.Footprint {
+	foot := manifold.Footprint{image.Pt(0, 0): loc}
+	if ft, ok := e.(entity.Footprint); ok {
+		foot = s.manifold.MakeFootprint(ft.Footprint(), loc)
+	}
+	return foot
 }
 
 func (s *Spatial) Contains(e interface{}) bool {

@@ -37,6 +37,7 @@ const (
 	OpenKind
 	DoorKind
 	GrillKind
+	StairKind
 )
 
 func (t TerrainData) ShapesWalls() bool {
@@ -64,6 +65,7 @@ const (
 	FloorTerrain
 	WallTerrain
 	DoorTerrain
+	StairTerrain
 )
 
 func tile(idx int) gfx.ImageSpec {
@@ -84,4 +86,5 @@ var terrainTable = []TerrainData{
 	{tiles(0), OpenKind},
 	{tiles(16, 17, 18, 19), WallKind},
 	{tiles(3), DoorKind},
+	{tiles(4), StairKind},
 }

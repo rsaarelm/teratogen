@@ -18,11 +18,9 @@
 package world
 
 import (
-	"image"
 	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/manifold"
-	"teratogen/mapgen"
 	"teratogen/spatial"
 )
 
@@ -41,64 +39,14 @@ type World struct {
 	}
 }
 
-type WorldFormer struct {
-	world *World
-	chart manifold.Chart
-}
-
-func (w WorldFormer) At(p image.Point) mapgen.Terrain {
-	loc := w.chart.At(p)
-	if t, ok := w.world.terrain[loc]; ok {
-		switch t {
-		case WallTerrain:
-			return mapgen.Solid
-		case FloorTerrain:
-			return mapgen.Open
-		case DoorTerrain:
-			return mapgen.Doorway
-		}
-	}
-
-	return mapgen.Solid
-}
-
-func (w WorldFormer) Set(p image.Point, t mapgen.Terrain) {
-	loc := w.chart.At(p)
-	switch t {
-	case mapgen.Solid:
-		w.world.terrain[loc] = WallTerrain
-	case mapgen.Open:
-		w.world.terrain[loc] = FloorTerrain
-	case mapgen.Doorway:
-		w.world.terrain[loc] = DoorTerrain
-	}
-}
-
 func New() (world *World) {
 	world = new(World)
 	world.Manifold = manifold.New()
 	world.terrain = make(map[manifold.Location]Terrain)
-	world.Spatial = spatial.New()
+	world.Spatial = spatial.New(world.Manifold)
 	world.actors = []entity.Entity{}
 	world.nextActors = []entity.Entity{}
 	return
-}
-
-func (w *World) TestMap(origin manifold.Location) {
-	bounds := image.Rect(-16, -16, 16, 16)
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			w.terrain[origin.Add(image.Pt(x, y))] = WallTerrain
-		}
-	}
-	mapgen.BspRooms(WorldFormer{w, simpleChart(origin)}, bounds.Inset(1))
-}
-
-// simpleChart is a chart that pays no attention to portals in the manifold.
-type simpleChart manifold.Location
-
-func (s simpleChart) At(pt image.Point) manifold.Location {
-	return manifold.Location(s).Add(pt)
 }
 
 func (w *World) Terrain(loc manifold.Location) TerrainData {
@@ -106,6 +54,10 @@ func (w *World) Terrain(loc manifold.Location) TerrainData {
 		return terrainTable[t]
 	}
 	return terrainTable[VoidTerrain]
+}
+
+func (w *World) SetTerrain(loc manifold.Location, t Terrain) {
+	w.terrain[loc] = t
 }
 
 func (w *World) Contains(loc manifold.Location) bool {
@@ -147,4 +99,18 @@ func (w *World) EndTurn() {
 	}
 	w.actors = w.nextActors
 	w.nextActors = []entity.Entity{}
+}
+
+func (w *World) Fits(obj entity.Entity, loc manifold.Location) bool {
+	for _, footLoc := range w.Spatial.EntityFootprint(obj, loc) {
+		if w.Terrain(footLoc).BlocksMove() {
+			return false
+		}
+		for _, oe := range w.Spatial.At(footLoc) {
+			if b, ok := oe.Entity.(entity.BlockMove); oe.Entity != obj && ok && b.BlocksMove() {
+				return false
+			}
+		}
+	}
+	return true
 }

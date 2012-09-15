@@ -18,172 +18,102 @@
 package mapgen
 
 import (
+	"errors"
 	"image"
-	"math"
 	"math/rand"
+	"teratogen/entity"
+	"teratogen/gfx"
+	"teratogen/manifold"
+	"teratogen/mob"
+	"teratogen/world"
 )
 
-type Terrain int
-
-const (
-	Solid Terrain = iota
-	Open
-	Doorway
-)
-
-type Former interface {
-	At(p image.Point) Terrain
-	Set(p image.Point, t Terrain)
+type Mapgen struct {
+	world   *world.World
+	chart   manifold.Chart
+	openSet map[manifold.Location]bool
 }
 
-// BspRooms builds an indoor rooms style map using a binary split tree
-// algorithm.
-func BspRooms(t Former, bounds image.Rectangle) {
-	const extraDoorChance = 1.0 / 128
+func New(w *world.World) *Mapgen {
+	return &Mapgen{world: w}
+}
 
-	bsp(t, bounds)
-
-	// Put some extra doorways on the map to make the structure more
-	// interesting; the standard minimal connectivity-ensuring doors produce
-	// no cycles, which makes the map less interesting for gameplay.
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			pt := image.Pt(x, y)
-			if isDoorSite(t, pt) && rand.Float64() < extraDoorChance {
-				t.Set(pt, Doorway)
-			}
+func (m *Mapgen) TestMap(start manifold.Location) {
+	m.init(start)
+	for y := -17; y < 17; y++ {
+		for x := -17; x < 17; x++ {
+			m.setTerrain(image.Pt(x, y), world.WallTerrain)
 		}
 	}
-}
 
-func bsp(t Former, bounds image.Rectangle) {
-	if bounds.Dx() < 1 || bounds.Dy() < 1 {
-		return
+	bounds := image.Rect(-16, -16, 16, 16)
+	m.bspRooms(bounds)
+	m.extraDoors(bounds)
+
+	m.spawn(m.world.Player, start)
+
+	for i := 0; i < 32; i++ {
+		spawnLoc := m.randomLoc()
+		spawnMob := mob.New(m.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
+		m.spawn(spawnMob, spawnLoc)
 	}
 
-	const minArea = 8
-	const maxArea = 96
-
-	area := bounds.Dx() * bounds.Dy()
-
-	if rand.Float64()*float64(maxArea-minArea)+float64(minArea) < float64(area) {
-		splitRoom(t, bounds)
-		return
-	}
-
-	digRoom(t, bounds)
+	m.world.SetTerrain(m.randomLoc(), world.StairTerrain)
 }
 
-func isDoorSite(t Former, pt image.Point) bool {
-	if t.At(pt) != Solid {
-		return false
-	}
-
-	up := t.At(pt.Add(image.Pt(0, -1)))
-	down := t.At(pt.Add(image.Pt(0, 1)))
-	left := t.At(pt.Add(image.Pt(-1, 0)))
-	right := t.At(pt.Add(image.Pt(1, 0)))
-
-	if up != down || left != right {
-		return false
-	}
-
-	return (up == Open && left == Solid) || (up == Solid && left == Open)
+func (m *Mapgen) init(start manifold.Location) {
+	m.chart = simpleChart(start)
+	m.openSet = map[manifold.Location]bool{}
 }
 
-func splitRoom(t Former, bounds image.Rectangle) {
-	wall := makeSplitWall(bounds)
-	left, right := wall.Halves(bounds)
-	BspRooms(t, left)
-	BspRooms(t, right)
-
-	doorSites := wall.DoorSites(t)
-	t.Set(doorSites[rand.Intn(len(doorSites))], Doorway)
-}
-
-type wall struct {
-	Begin, End image.Point
-}
-
-func (w wall) IsVertical() bool {
-	return w.Begin.X == w.End.X
-}
-
-func (w wall) Length() int {
-	if w.IsVertical() {
-		return w.End.Y - w.Begin.Y
-	}
-	return w.End.X - w.Begin.X
-}
-
-func (w wall) Dir() image.Point {
-	if w.IsVertical() {
-		return image.Pt(0, 1)
-	}
-	return image.Pt(1, 0)
-}
-
-func (w wall) Sides() (left, right image.Point) {
-	if w.IsVertical() {
-		return image.Pt(-1, 0), image.Pt(1, 0)
-	}
-	return image.Pt(0, -1), image.Pt(0, 1)
-}
-
-// DoorSites returns points along the wall which are suitable for placing a
-// doorway. Such points are ones which have open space on both of their sides.
-func (w wall) DoorSites(t Former) (result []image.Point) {
-	result = []image.Point{}
-	for pt := w.Begin; pt != w.End; pt = pt.Add(w.Dir()) {
-		left, right := w.Sides()
-		if t.At(pt.Add(left)) == Open && t.At(pt.Add(right)) == Open {
-			result = append(result, pt)
-		}
-	}
-	return
-}
-
-func (w wall) Halves(parent image.Rectangle) (left, right image.Rectangle) {
-	if w.IsVertical() {
-		left = image.Rect(parent.Min.X, parent.Min.Y, w.Begin.X, parent.Max.Y)
-		right = image.Rect(w.Begin.X+1, parent.Min.Y, parent.Max.X, parent.Max.Y)
+func (m *Mapgen) setOpen(loc manifold.Location, isOpen bool) {
+	if isOpen {
+		m.openSet[loc] = true
 	} else {
-		left = image.Rect(parent.Min.X, parent.Min.Y, parent.Max.X, w.Begin.Y)
-		right = image.Rect(parent.Min.X, w.Begin.Y+1, parent.Max.X, parent.Max.Y)
+		delete(m.openSet, loc)
+	}
+}
+
+func (m *Mapgen) randomLoc() (loc manifold.Location) {
+	// XXX: O(n) time.
+	n := rand.Intn(len(m.openSet))
+	for k, _ := range m.openSet {
+		loc = k
+		n--
+		if n < 0 {
+			break
+		}
 	}
 	return
 }
 
-// makeSplitWall picks a wall to split a room with, and returns a
-// specification of the wall.
-func makeSplitWall(bounds image.Rectangle) wall {
-	vertWeight := int(math.Max(0, float64(bounds.Dx()-3)))
-	horzWeight := int(math.Max(0, float64(bounds.Dy()-3)))
-
-	isVertical := false
-	if horzWeight > 0 && vertWeight > 0 {
-		isVertical = rand.Intn(vertWeight+horzWeight) < vertWeight
-	} else if vertWeight > 0 {
-		isVertical = true
+func (m *Mapgen) spawn(obj entity.Entity, loc manifold.Location) error {
+	if !m.world.Fits(obj, loc) {
+		return errors.New("Spawn won't fit")
 	}
 
-	if isVertical {
-		offset := rand.Intn(bounds.Dx()-2) + 1
-		return wall{
-			image.Pt(bounds.Min.X+offset, bounds.Min.Y),
-			image.Pt(bounds.Min.X+offset, bounds.Max.Y)}
-	}
+	m.world.Spatial.Add(obj, loc)
 
-	offset := rand.Intn(bounds.Dy()-2) + 1
-	return wall{
-		image.Pt(bounds.Min.X, bounds.Min.Y+offset),
-		image.Pt(bounds.Max.X, bounds.Min.Y+offset)}
-}
-
-func digRoom(t Former, bounds image.Rectangle) {
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			t.Set(image.Pt(x, y), Open)
+	// Remove the points from the open set if the entity blocks movement.
+	if b, ok := obj.(entity.BlockMove); ok && b.BlocksMove() {
+		for _, footLoc := range m.world.Spatial.EntityFootprint(obj, loc) {
+			m.setOpen(footLoc, false)
 		}
 	}
+	return nil
+}
+
+func (m *Mapgen) terrain(pt image.Point) world.TerrainData {
+	return m.world.Terrain(m.chart.At(pt))
+}
+
+func (m *Mapgen) setTerrain(pt image.Point, t world.Terrain) {
+	m.world.SetTerrain(m.chart.At(pt), t)
+}
+
+// simpleChart is a chart that pays no attention to portals in the manifold.
+type simpleChart manifold.Location
+
+func (s simpleChart) At(pt image.Point) manifold.Location {
+	return manifold.Location(s).Add(pt)
 }

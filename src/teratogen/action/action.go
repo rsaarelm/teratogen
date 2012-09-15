@@ -33,7 +33,7 @@ type Action struct {
 }
 
 func New(w *world.World) *Action {
-	return &Action{w}
+	return &Action{world: w}
 }
 
 type fovvable interface {
@@ -84,23 +84,10 @@ func (a *Action) Loc(obj entity.Entity) manifold.Location {
 	return a.world.Spatial.Loc(obj)
 }
 
-func (a *Action) Fits(obj entity.Entity, loc manifold.Location) bool {
-	// TODO: handle footprint stuff.
-	if a.world.Terrain(loc).BlocksMove() {
-		return false
-	}
-	for _, oe := range a.world.Spatial.At(loc) {
-		if b := oe.Entity.(entity.BlockMove); oe.Entity != obj && b != nil && b.BlocksMove() {
-			return false
-		}
-	}
-	return true
-}
-
 func (a *Action) Move(obj entity.Entity, vec image.Point) {
 	newLoc := a.world.Manifold.Offset(a.Loc(obj), vec)
 
-	if a.Fits(obj, newLoc) {
+	if a.world.Fits(obj, newLoc) {
 		if f, ok := obj.(entity.Fov); ok {
 			f.MoveFovOrigin(vec)
 		}
