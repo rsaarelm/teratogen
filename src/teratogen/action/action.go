@@ -29,7 +29,7 @@ import (
 )
 
 type Action struct {
-	World *world.World
+	world *world.World
 }
 
 func New(w *world.World) *Action {
@@ -43,18 +43,18 @@ type fovvable interface {
 func (a *Action) Footprint(obj entity.Entity, loc manifold.Location) manifold.Footprint {
 	if ft, ok := obj.(entity.Footprint); ok {
 		// Big entities with a complex footprint.
-		return a.World.Manifold.MakeFootprint(ft.Footprint(), loc)
+		return a.world.Manifold.MakeFootprint(ft.Footprint(), loc)
 	}
 	// Entities with a simple one-cell footprint.
 	return manifold.Footprint{image.Pt(0, 0): loc}
 }
 
 func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
-	newLoc := a.World.Manifold.Offset(a.Loc(obj), vec)
+	newLoc := a.world.Manifold.Offset(a.Loc(obj), vec)
 	footprint := a.Footprint(obj, newLoc)
 
 	for _, loc := range footprint {
-		for _, oe := range a.World.Spatial.At(loc) {
+		for _, oe := range a.world.Spatial.At(loc) {
 			hit := oe.Entity
 			if hit == obj {
 				// Ignore self-intersect
@@ -77,19 +77,19 @@ func (a *Action) EnemyOf(obj1, obj2 entity.Entity) bool {
 func (a *Action) Attack(attacker, target entity.Entity) {
 	// TODO better
 	// Just straight up kill the target.
-	a.World.Spatial.Remove(target)
+	a.world.Spatial.Remove(target)
 }
 
 func (a *Action) Loc(obj entity.Entity) manifold.Location {
-	return a.World.Spatial.Loc(obj)
+	return a.world.Spatial.Loc(obj)
 }
 
 func (a *Action) Fits(obj entity.Entity, loc manifold.Location) bool {
 	// TODO: handle footprint stuff.
-	if a.World.Terrain(loc).BlocksMove() {
+	if a.world.Terrain(loc).BlocksMove() {
 		return false
 	}
-	for _, oe := range a.World.Spatial.At(loc) {
+	for _, oe := range a.world.Spatial.At(loc) {
 		if b := oe.Entity.(entity.BlockMove); oe.Entity != obj && b != nil && b.BlocksMove() {
 			return false
 		}
@@ -98,7 +98,7 @@ func (a *Action) Fits(obj entity.Entity, loc manifold.Location) bool {
 }
 
 func (a *Action) Move(obj entity.Entity, vec image.Point) {
-	newLoc := a.World.Manifold.Offset(a.Loc(obj), vec)
+	newLoc := a.world.Manifold.Offset(a.Loc(obj), vec)
 
 	if a.Fits(obj, newLoc) {
 		if f, ok := obj.(entity.Fov); ok {
@@ -109,15 +109,15 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 }
 
 func (a *Action) Place(obj entity.Entity, loc manifold.Location) {
-	if a.World.Spatial.Contains(obj) {
-		a.World.Spatial.Remove(obj)
+	if a.world.Spatial.Contains(obj) {
+		a.world.Spatial.Remove(obj)
 	}
-	a.World.Spatial.Add(obj, loc)
+	a.world.Spatial.Add(obj, loc)
 
 	if f, ok := obj.(fovvable); ok {
 		a.DoFov(f)
 	}
-	if !a.World.IsAlive(obj) {
+	if !a.world.IsAlive(obj) {
 		panic("Placed obj not shown alive")
 	}
 }
@@ -127,16 +127,16 @@ func (a *Action) DoFov(obj entity.Entity) {
 	const radius = 12
 	if f, ok := obj.(fovvable); ok {
 		fv := fov.New(
-			func(loc manifold.Location) bool { return a.World.Terrain(loc).BlocksSight() },
+			func(loc manifold.Location) bool { return a.world.Terrain(loc).BlocksSight() },
 			func(pt image.Point, loc manifold.Location) { f.MarkFov(pt, loc) },
-			a.World.Manifold)
+			a.world.Manifold)
 		fv.Run(a.Loc(obj), radius)
 	}
 }
 
 func (a *Action) RunAI() {
-	for actor := a.World.NextActor(); actor != nil; actor = a.World.NextActor() {
-		if actor == a.World.Player {
+	for actor := a.world.NextActor(); actor != nil; actor = a.world.NextActor() {
+		if actor == a.world.Player {
 			continue
 		}
 		a.AttackMove(actor, tile.HexDirs[rand.Intn(6)])
@@ -145,10 +145,10 @@ func (a *Action) RunAI() {
 
 func (a *Action) EndTurn() {
 	a.RunAI()
-	a.World.EndTurn()
+	a.world.EndTurn()
 }
 
 func (a *Action) IsGameOver() bool {
-	obj, _ := a.World.Player.(*mob.PC)
-	return !a.World.IsAlive(obj)
+	obj, _ := a.world.Player.(*mob.PC)
+	return !a.world.IsAlive(obj)
 }
