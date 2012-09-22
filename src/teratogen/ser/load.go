@@ -89,6 +89,10 @@ func (lo *loader) TagPointer(obj interface{}) {
 	lo.seenObjects[stalePtr] = nil
 }
 
+func (lo *loader) StoreGob(obj interface{}) {
+	gobLoad(obj, lo.input)
+}
+
 func (lo *loader) visitSingle(obj interface{}) {
 	switch obj.(type) {
 	case *bool, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16,

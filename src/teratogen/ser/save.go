@@ -74,6 +74,10 @@ func (s *saver) TagPointer(obj interface{}) {
 	s.seenObjects[v.Pointer()] = v.Interface()
 }
 
+func (s *saver) StoreGob(value interface{}) {
+	gobSave(value, s.output)
+}
+
 func (s *saver) visitSingle(obj interface{}) {
 	switch obj.(type) {
 	case *bool, *int, *int8, *int16, *int32, *int64, *uint, *uint8, *uint16,

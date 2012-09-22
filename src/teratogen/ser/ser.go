@@ -49,6 +49,12 @@ type Archive interface {
 	// This method may be deprecated in favor of just using Visit once Visit
 	// becomes sufficiently smart to deal with pointers.
 	TagPointer(ptr interface{})
+
+	// StoreGob uses the gob facility to store simple structured data. The
+	// data mustn't contain pointers that are used anywhere else, since gob
+	// will flatten everything. May be deprecated once the visit method gets
+	// smarter.
+	StoreGob(value interface{})
 }
 
 type base struct {
