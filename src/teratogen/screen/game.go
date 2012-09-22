@@ -24,7 +24,6 @@ import (
 	"teratogen/data"
 	"teratogen/display"
 	"teratogen/gfx"
-	"teratogen/manifold"
 	"teratogen/mapgen"
 	"teratogen/mob"
 	"teratogen/sdl"
@@ -47,14 +46,12 @@ type game struct {
 
 func (gs *game) Enter() {
 	gs.world = world.New()
-	gs.action = action.New(gs.world)
 	gs.mapgen = mapgen.New(gs.world)
+	gs.action = action.New(gs.world, gs.mapgen)
 	gs.disp = display.New(app.Cache(), gs.world)
 
-	origin := manifold.Location{0, 0, 1}
 	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec[gs.pcSelect])
-	gs.mapgen.TestMap(origin)
-	gs.action.DoFov(gs.world.Player)
+	gs.action.NextLevel()
 }
 
 func (gs *game) Exit() {}

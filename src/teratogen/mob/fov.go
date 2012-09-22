@@ -61,3 +61,7 @@ func (f *Fov) MarkFov(pt image.Point, loc manifold.Location) {
 func (f *Fov) MoveFovOrigin(vec image.Point) {
 	f.relativePos = f.relativePos.Add(vec)
 }
+
+func (f *Fov) ClearFov() {
+	f.Init()
+}

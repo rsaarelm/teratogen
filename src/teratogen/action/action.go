@@ -23,17 +23,19 @@ import (
 	"teratogen/entity"
 	"teratogen/fov"
 	"teratogen/manifold"
+	"teratogen/mapgen"
 	"teratogen/mob"
 	"teratogen/tile"
 	"teratogen/world"
 )
 
 type Action struct {
-	world *world.World
+	world  *world.World
+	mapgen *mapgen.Mapgen
 }
 
-func New(w *world.World) *Action {
-	return &Action{world: w}
+func New(w *world.World, m *mapgen.Mapgen) *Action {
+	return &Action{world: w, mapgen: m}
 }
 
 type fovvable interface {
@@ -95,17 +97,26 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 	}
 }
 
+// Place puts an entity in a specific location and performs any necessary
+// further actions that should follow after the entity entering the location.
 func (a *Action) Place(obj entity.Entity, loc manifold.Location) {
 	if a.world.Spatial.Contains(obj) {
 		a.world.Spatial.Remove(obj)
 	}
 	a.world.Spatial.Add(obj, loc)
+	if !a.world.IsAlive(obj) {
+		panic("Placed obj not shown alive")
+	}
 
 	if f, ok := obj.(fovvable); ok {
 		a.DoFov(f)
 	}
-	if !a.world.IsAlive(obj) {
-		panic("Placed obj not shown alive")
+
+	for _, footLoc := range a.world.Spatial.EntityFootprint(obj, loc) {
+		if obj == a.world.Player && a.world.Terrain(footLoc).Kind == world.StairKind {
+			// Player stepping on a stair, go to next level.
+			a.NextLevel()
+		}
 	}
 }
 
@@ -138,4 +149,17 @@ func (a *Action) EndTurn() {
 func (a *Action) IsGameOver() bool {
 	obj, _ := a.world.Player.(*mob.PC)
 	return !a.world.IsAlive(obj)
+}
+
+// NextLevel clears out the current level and moves the player to the next one.
+func (a *Action) NextLevel() {
+	a.world.Floor++
+	a.world.Clear()
+	if f, ok := a.world.Player.(fovvable); ok {
+		f.ClearFov()
+	}
+
+	origin := manifold.Location{0, 0, 1}
+	a.mapgen.TestMap(origin)
+	a.DoFov(a.world.Player)
 }

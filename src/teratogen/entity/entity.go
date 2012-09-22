@@ -40,6 +40,7 @@ type Fov interface {
 	FovChart() manifold.Chart
 	MoveFovOrigin(vec image.Point)
 	MarkFov(pt image.Point, loc manifold.Location)
+	ClearFov()
 }
 
 type Footprint interface {

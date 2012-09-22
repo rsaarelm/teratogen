@@ -28,6 +28,7 @@ type World struct {
 	Manifold *manifold.Manifold
 	terrain  map[manifold.Location]Terrain
 	Spatial  *spatial.Spatial
+	Floor    int
 	// Actor queue for the current frame
 	actors []entity.Entity
 	// Actor queue for the next frame
@@ -58,6 +59,15 @@ func (w *World) Terrain(loc manifold.Location) TerrainData {
 
 func (w *World) SetTerrain(loc manifold.Location, t Terrain) {
 	w.terrain[loc] = t
+}
+
+func (w *World) ClearTerrain() {
+	w.terrain = make(map[manifold.Location]Terrain)
+}
+
+func (w *World) Clear() {
+	w.ClearTerrain()
+	w.Spatial.Clear()
 }
 
 func (w *World) Contains(loc manifold.Location) bool {

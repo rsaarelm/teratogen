@@ -31,10 +31,18 @@ type Spatial struct {
 
 func New(m *manifold.Manifold) (result *Spatial) {
 	result = new(Spatial)
-	result.manifold = m
-	result.placement = make(map[interface{}]manifold.Footprint)
-	result.sites = make(map[manifold.Location]siteSet)
+	result.Init(m)
 	return
+}
+
+func (s *Spatial) Init(m *manifold.Manifold) {
+	s.manifold = m
+	s.placement = make(map[interface{}]manifold.Footprint)
+	s.sites = make(map[manifold.Location]siteSet)
+}
+
+func (s *Spatial) Clear() {
+	s.Init(s.manifold)
 }
 
 // AddFootprints adds an entity with a custom, multi-cell footprint to the
