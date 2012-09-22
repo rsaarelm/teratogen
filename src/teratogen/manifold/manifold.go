@@ -27,10 +27,10 @@ import (
 )
 
 // Location is a single point in a manifold. Zone value 0 denotes inactive
-// portals, so it should not be used in any Locations in use. You can't make
-// portals that go to locations in zone 0. By convention, the default value
-// Location{0, 0, 0} means "no place" and can be used as to denote that a
-// result is not a valid location.
+// portals. Since this means you can't make portals that go to locations in
+// zone 0, you should never have actual locations in zone 0. By convention,
+// the default value Location{0, 0, 0} means "no place" and can be used to
+// denote an invalid location.
 type Location struct {
 	X, Y int8
 	Zone uint16
@@ -59,22 +59,22 @@ func (loc Location) String() string {
 	return fmt.Sprintf("(%d: %d, %d)", loc.Zone, loc.X, loc.Y)
 }
 
-func (loc Portal) IsNull() bool {
-	return loc.X == 0 && loc.Y == 0 && loc.Zone == 0
-}
-
 func (loc Portal) String() string {
 	return fmt.Sprintf("->(%d: %d, %d)", loc.Zone, loc.X, loc.Y)
 }
 
+// NullPortal returns the default value for a portal that doesn't go anywhere.
+// It is used to represent a location not having a portal.
 func NullPortal() Portal {
 	return Portal{}
 }
 
+// Loc is a convenience function for creating location values.
 func Loc(x, y int8, zone uint16) Location {
 	return Location{x, y, zone}
 }
 
+// Port is a convenience function for creating portal values.
 func Port(dx, dy int8, targetZone uint16) Portal {
 	return Portal{dx, dy, targetZone}
 }
@@ -83,8 +83,8 @@ func Port(dx, dy int8, targetZone uint16) Portal {
 // locations in a manifold. A field of view of a game character from a
 // specific origin location would produce a chart for that origin. The name
 // refers to atlases and charts of topological manifold. All charts map the
-// entire Euclidean plane, use the default {0, 0, 0} location for points that
-// do not map into anything more interesting.
+// entire Euclidean plane. The default {0, 0, 0} location value is used for
+// "undefined" points, such as points outside a field of view.
 type Chart interface {
 	At(pt image.Point) Location
 }
@@ -115,10 +115,14 @@ func (m *Manifold) Offset(loc Location, vec image.Point) (newLoc Location) {
 	return m.Traverse(loc.Add(vec))
 }
 
+// Traverse returns the location beyond a portal at the argument location, if
+// there is a portal, otherwise it returns the argument location.
 func (m *Manifold) Traverse(loc Location) Location {
 	return loc.Beyond(m.Portal(loc))
 }
 
+// Portal returns the portal at the argument location. A null portal will be
+// returned for locations that do not have an explicit portal.
 func (m *Manifold) Portal(loc Location) Portal {
 	if portal, ok := m.portals[loc]; ok {
 		return portal
@@ -126,10 +130,13 @@ func (m *Manifold) Portal(loc Location) Portal {
 	return NullPortal()
 }
 
+// SetPortal sets the portal at the given location. If the portal value equals
+// NullPortal, the explicit portal will be cleared from the manifold data
+// structure.
 func (m *Manifold) SetPortal(loc Location, portal Portal) {
-	m.portals[loc] = portal
-}
-
-func (m *Manifold) ClearPortal(loc Location) {
-	delete(m.portals, loc)
+	if portal == NullPortal() {
+		delete(m.portals, loc)
+	} else {
+		m.portals[loc] = portal
+	}
 }

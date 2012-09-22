@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package app provides a singleton toplevel game application wrapper.
 package app
 
 import (
@@ -26,18 +27,18 @@ import (
 // App is the toplevel object of an interactive game application. It handles
 // different application state objects, maintaining the framerate.
 type App interface {
-	// Run runs the App until the app has no AppStates.
+	// Run runs the App until the app has no States.
 	Run()
 	Stop()
 
-	TopState() AppState
-	PushState(as AppState)
+	TopState() State
+	PushState(as State)
 	PopState()
 }
 
 type app struct {
 	nanosecondsPerFrame int64
-	states              []AppState
+	states              []State
 }
 
 func (a *app) Run() {
@@ -82,14 +83,14 @@ func (a *app) Stop() {
 	}
 }
 
-func (a *app) TopState() AppState {
+func (a *app) TopState() State {
 	if len(a.states) == 0 {
 		return nil
 	}
 	return a.states[len(a.states)-1]
 }
 
-func (a *app) PushState(as AppState) {
+func (a *app) PushState(as State) {
 	a.states = append(a.states, as)
 	as.Enter()
 }
@@ -103,6 +104,7 @@ func (a *app) PopState() {
 
 var globalApp App = nil
 
+// Get returns the singleton App instance.
 func Get() App {
 	if globalApp == nil {
 		globalApp = initApp()
@@ -116,12 +118,14 @@ func initApp() App {
 
 	a := &app{}
 	a.nanosecondsPerFrame = 33e6
-	a.states = []AppState{}
+	a.states = []State{}
 
 	return a
 }
 
-type AppState interface {
+// State represents a single application state, such as an intro screen or a
+// gameplay screen.
+type State interface {
 	Enter()
 	Exit()
 	Draw()

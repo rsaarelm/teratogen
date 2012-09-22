@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package tile provides utility functions for hexagon tile maps.
 package tile
 
 import (
@@ -38,6 +39,8 @@ func HexDist(p1, p2 image.Point) int {
 
 var HexDirs = []image.Point{{-1, -1}, {0, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 0}}
 
+// HexCircumference returns the number of distinct hexagons at exactly radius
+// distance from origin.
 func HexCircumference(radius int) int {
 	if radius == 0 {
 		return 1

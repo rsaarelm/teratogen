@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package action defines the system for performing complex operations on the
+// game world, such as game character behavior.
 package action
 
 import (

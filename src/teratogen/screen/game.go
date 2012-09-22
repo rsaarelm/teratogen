@@ -30,10 +30,10 @@ import (
 	"teratogen/world"
 )
 
-func Game(pcSelect int) (gs *game) {
-	gs = new(game)
+func Game(pcSelect int) app.State {
+	gs := new(game)
 	gs.pcSelect = pcSelect
-	return
+	return gs
 }
 
 type game struct {

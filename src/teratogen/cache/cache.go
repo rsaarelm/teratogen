@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package cache provides in-memory storage structures for static assets such
+// as images.
 package cache
 
 import (

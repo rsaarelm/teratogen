@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package fov implements a field-of-view algorithm for manifold maps.
 package fov
 
 import (
@@ -38,7 +39,9 @@ func New(blocksSightFn func(manifold.Location) bool,
 }
 
 // Run runs a field-of-view computation up to radius distance from the given
-// origin, and calls the MarkSeen callback for all locations it finds visible.
+// origin, and calls the fov object's markSeenFn callback for all locations it
+// finds visible. The blocksSightFn callback of fov object is used to
+// determine locations that block visibility.
 func (f *Fov) Run(origin manifold.Location, radius int) {
 	f.markSeen(image.Pt(0, 0), origin)
 	f.process(origin, radius, angle{0, 1}, angle{6, 1})

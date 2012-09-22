@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package screen defines the toplevel application states for Teratogen.
 package screen
 
 import (
@@ -28,10 +29,10 @@ import (
 	"teratogen/sdl"
 )
 
-func Intro() (in *intro) {
-	in = new(intro)
+func Intro() app.State {
+	in := new(intro)
 	in.pcSelect = rand.Intn(data.NumClasses())
-	return
+	return in
 }
 
 type intro struct {

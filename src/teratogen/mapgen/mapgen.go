@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+// Package mapgen defines the system for generating new game levels and
+// populating them with entities.
 package mapgen
 
 import (

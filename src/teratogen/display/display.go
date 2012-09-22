@@ -110,7 +110,7 @@ func centerOrigin(screenArea image.Rectangle) (screenPos image.Point) {
 	return screenArea.Min.Add(screenArea.Size().Div(2)).Sub(image.Pt(TileW/2, TileH/2))
 }
 
-// chartArea returns the smallest rectangle containing all chart positions
+// ChartArea returns the smallest rectangle containing all chart positions
 // that can get drawn in the given screen rectangle, if chart position (0, 0)
 // is at the center of the screen rectangle.
 func ChartArea(screenArea image.Rectangle) image.Rectangle {
