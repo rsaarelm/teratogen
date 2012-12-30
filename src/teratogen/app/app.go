@@ -68,7 +68,7 @@ func (a *app) Run() {
 		}
 
 		a.TopState().Draw()
-		gfx.BlitX3(sdl.Frame(), sdl.Video())
+		gfx.BlitX2(sdl.Frame(), sdl.Video())
 		sdl.Flip()
 
 		a.TopState().Update(nUpdates * a.nanosecondsPerFrame)
@@ -113,7 +113,7 @@ func Get() App {
 }
 
 func initApp() App {
-	sdl.Run(960, 720)
+	sdl.Run(640, 480)
 	sdl.SetFrame(sdl.NewSurface(320, 240))
 
 	a := &app{}
