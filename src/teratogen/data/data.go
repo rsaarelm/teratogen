@@ -33,7 +33,7 @@ var PcPortrait = []gfx.ImageSpec{
 
 var PcDescr = []string{
 	"MECHANIST",
-	"BIOROID",
+	"HYBRID",
 	"WARPER",
 }
 
