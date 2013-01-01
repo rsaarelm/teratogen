@@ -21,9 +21,7 @@ package screen
 import (
 	"fmt"
 	"image"
-	"math/rand"
 	"teratogen/app"
-	"teratogen/data"
 	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
@@ -31,12 +29,10 @@ import (
 
 func Intro() app.State {
 	in := new(intro)
-	in.pcSelect = rand.Intn(data.NumClasses())
 	return in
 }
 
 type intro struct {
-	pcSelect int
 }
 
 func (in *intro) Enter() {}
@@ -50,11 +46,6 @@ func (in *intro) Draw() {
 	}
 	cur := &font.Cursor{f, sdl.Frame(), image.Pt(0, 10), font.None, gfx.Green, gfx.Black}
 	fmt.Fprintf(cur, "TERATOGEN")
-
-	app.Cache().GetDrawable(data.PcPortrait[in.pcSelect]).Draw(image.Pt(0, 216))
-
-	cur.Pos = image.Pt(24, 224)
-	fmt.Fprintf(cur, data.PcDescr[in.pcSelect])
 }
 
 func (in *intro) Update(timeElapsed int64) {
@@ -68,11 +59,7 @@ func (in *intro) Update(timeElapsed int64) {
 				} else {
 					switch e.FixedSym() {
 					case sdl.K_n, sdl.K_RETURN, sdl.K_SPACE, sdl.K_KP_ENTER:
-						app.Get().PushState(Game(in.pcSelect))
-					case sdl.K_q, sdl.K_a, sdl.K_LEFT, sdl.K_KP4:
-						in.pcSelect = (in.pcSelect + data.NumClasses() - 1) % data.NumClasses()
-					case sdl.K_e, sdl.K_d, sdl.K_RIGHT, sdl.K_KP6:
-						in.pcSelect = (in.pcSelect + 1) % data.NumClasses()
+						app.Get().PushState(Game())
 					}
 				}
 			}

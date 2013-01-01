@@ -25,24 +25,4 @@ import (
 	"teratogen/mob"
 )
 
-var PcPortrait = []gfx.ImageSpec{
-	{"assets/chars.png", image.Rect(0, 104, 24, 128)},
-	{"assets/chars.png", image.Rect(24, 104, 48, 128)},
-	{"assets/chars.png", image.Rect(48, 104, 72, 128)},
-}
-
-var PcDescr = []string{
-	"MECHANIST",
-	"HYBRID",
-	"WARPER",
-}
-
-func NumClasses() int {
-	return len(PcPortrait)
-}
-
-var PcSpec = []mob.Spec{
-	{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 16, 8, 24)}},
-	{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 16, 16, 24)}},
-	{gfx.ImageSpec{"assets/chars.png", image.Rect(16, 16, 24, 24)}},
-}
+var PcSpec = mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)}}

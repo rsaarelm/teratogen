@@ -30,18 +30,16 @@ import (
 	"teratogen/world"
 )
 
-func Game(pcSelect int) app.State {
+func Game() app.State {
 	gs := new(game)
-	gs.pcSelect = pcSelect
 	return gs
 }
 
 type game struct {
-	world    *world.World
-	action   *action.Action
-	disp     *display.Display
-	mapgen   *mapgen.Mapgen
-	pcSelect int
+	world  *world.World
+	action *action.Action
+	disp   *display.Display
+	mapgen *mapgen.Mapgen
 }
 
 func (gs *game) Enter() {
@@ -50,7 +48,7 @@ func (gs *game) Enter() {
 	gs.action = action.New(gs.world, gs.mapgen)
 	gs.disp = display.New(app.Cache(), gs.world)
 
-	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec[gs.pcSelect])
+	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
 	gs.action.NextLevel()
 }
 
@@ -61,8 +59,6 @@ func (gs *game) Draw() {
 	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
 	gs.disp.DrawWorld(image.Rect(4, 4, 316, 156))
 	gs.disp.DrawMsg(image.Rect(2, 162, 158, 238))
-
-	app.Cache().GetDrawable(data.PcPortrait[gs.pcSelect]).Draw(image.Pt(0, 216))
 }
 
 func (gs *game) Update(timeElapsed int64) {
