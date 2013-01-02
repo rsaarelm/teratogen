@@ -52,7 +52,7 @@ func (m *Mapgen) TestMap(start manifold.Location) {
 	m.bspRooms(bounds)
 	m.extraDoors(bounds)
 
-	m.spawn(m.world.Player, start)
+	m.spawn(m.world.Player, m.randomLoc())
 
 	for i := 0; i < 32; i++ {
 		spawnLoc := m.randomLoc()
