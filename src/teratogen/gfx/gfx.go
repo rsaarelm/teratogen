@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"teratogen/num"
 	"teratogen/sdl"
 	"unsafe"
 )
@@ -167,4 +168,8 @@ type Context interface {
 
 type Drawable interface {
 	Draw(offset image.Point)
+}
+
+func Line(s *sdl.Surface, p1, p2 image.Point, col color.Color) {
+	num.BresenhamLine(func(p image.Point) { s.Set(p.X, p.Y, col) }, p1, p2)
 }

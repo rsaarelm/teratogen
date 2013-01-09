@@ -19,6 +19,7 @@
 package num
 
 import (
+	"image"
 	"math"
 )
 
@@ -79,4 +80,63 @@ func Noise(seed int) float64 {
 	seed = (seed << 13) ^ seed
 	return (1.0 -
 		float64((seed*(seed*seed*15731+789221)+1376312589)&0x7fffffff)/1073741824.0)
+}
+
+// SignI return -1 for negative, 0 for zero and 1 for positive integer values.
+func SignI(x int) int {
+	if x < 0 {
+		return -1
+	} else if x > 0 {
+		return 1
+	}
+	return 0
+}
+
+func AbsI(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// BresenhamLine traces a line from p1 to p2 using Bresenham's line drawing
+// algorithm and calls the callback function for each point along the line.
+func BresenhamLine(cb func(image.Point), p1, p2 image.Point) {
+	data := line(p1, p2)
+	err := 0
+	pos := p1
+	for i := 0; i <= data.DMajor; i++ {
+		cb(pos)
+		err += data.DMinor
+		if (2 * err) >= data.DMajor {
+			pos = pos.Add(data.SideAxis)
+			err -= data.DMajor
+		}
+		pos = pos.Add(data.MainAxis)
+	}
+}
+
+type lineData struct {
+	DMajor   int
+	DMinor   int
+	MainAxis image.Point
+	SideAxis image.Point
+}
+
+func line(p1, p2 image.Point) (result lineData) {
+	dx, dy := p2.X-p1.X, p2.Y-p1.Y
+	signX, signY := SignI(dx), SignI(dy)
+	absDx, absDy := AbsI(dx), AbsI(dy)
+	if absDx > absDy {
+		result.DMajor = absDx
+		result.DMinor = absDy
+		result.MainAxis = image.Pt(signX, 0)
+		result.SideAxis = image.Pt(0, signY)
+	} else {
+		result.DMajor = absDy
+		result.DMinor = absDx
+		result.MainAxis = image.Pt(0, signY)
+		result.SideAxis = image.Pt(signX, 0)
+	}
+	return
 }
