@@ -46,7 +46,7 @@ func TestSimpleManifold(t *testing.T) {
 		t.Fail()
 	}
 
-	spc.ClearPortal(Loc(1, 0, 1))
+	spc.SetPortal(Loc(1, 0, 1), NullPortal())
 
 	if spc.Offset(origin, image.Pt(1, 0)) != Loc(1, 0, 1) {
 		t.Fail()
