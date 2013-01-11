@@ -1,0 +1,5 @@
+#!/bin/sh
+
+DIR=$(dirname $0)
+$DIR/testfmt.sh
+$DIR/unittest.sh
