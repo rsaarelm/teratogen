@@ -25,8 +25,8 @@ import (
 	"teratogen/entity"
 	"teratogen/font"
 	"teratogen/gfx"
-	"teratogen/manifold"
 	"teratogen/sdl"
+	"teratogen/space"
 	"teratogen/tile"
 	"teratogen/world"
 )
@@ -59,7 +59,7 @@ func ScreenToChart(scrPt image.Point) (chartPt image.Point) {
 	return image.Pt(column+row, row)
 }
 
-func (d *Display) chart() manifold.Chart {
+func (d *Display) chart() space.Chart {
 	return d.world.Player.FovChart()
 }
 
@@ -169,7 +169,7 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 
 // terrainTileOffest checks the neighbourhood of a charted tile to see if it
 // needs special formatting. Mostly used to prettify wall tiles.
-func terrainTileOffset(w *world.World, chart manifold.Chart, pos image.Point) int {
+func terrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
 	t := w.Terrain(chart.At(pos))
 	if t.Kind == world.WallKind {
 		edgeMask := 0

@@ -21,8 +21,8 @@ package mob
 import (
 	"image"
 	"teratogen/gfx"
-	"teratogen/manifold"
 	"teratogen/num"
+	"teratogen/space"
 	"teratogen/world"
 	"time"
 	"unsafe"
@@ -30,7 +30,7 @@ import (
 
 type Mob struct {
 	icon   gfx.ImageSpec
-	loc    manifold.Location
+	loc    space.Location
 	world  *world.World
 	placed bool
 }

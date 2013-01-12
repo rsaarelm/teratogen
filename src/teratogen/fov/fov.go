@@ -22,19 +22,19 @@ import (
 	"fmt"
 	"image"
 	"math"
-	"teratogen/manifold"
+	"teratogen/space"
 	"teratogen/tile"
 )
 
 type Fov struct {
-	blocksSight func(manifold.Location) bool
-	markSeen    func(image.Point, manifold.Location)
-	mf          *manifold.Manifold
+	blocksSight func(space.Location) bool
+	markSeen    func(image.Point, space.Location)
+	mf          *space.Manifold
 }
 
-func New(blocksSightFn func(manifold.Location) bool,
-	markSeenFn func(image.Point, manifold.Location),
-	mf *manifold.Manifold) *Fov {
+func New(blocksSightFn func(space.Location) bool,
+	markSeenFn func(image.Point, space.Location),
+	mf *space.Manifold) *Fov {
 	return &Fov{blocksSightFn, markSeenFn, mf}
 }
 
@@ -42,12 +42,12 @@ func New(blocksSightFn func(manifold.Location) bool,
 // origin, and calls the fov object's markSeenFn callback for all locations it
 // finds visible. The blocksSightFn callback of fov object is used to
 // determine locations that block visibility.
-func (f *Fov) Run(origin manifold.Location, radius int) {
+func (f *Fov) Run(origin space.Location, radius int) {
 	f.markSeen(image.Pt(0, 0), origin)
 	f.process(origin, radius, angle{0, 1}, angle{6, 1})
 }
 
-func (f *Fov) process(origin manifold.Location, radius int, begin, end angle) {
+func (f *Fov) process(origin space.Location, radius int, begin, end angle) {
 	if begin.radius > radius {
 		return
 	}
@@ -77,10 +77,10 @@ func (f *Fov) process(origin manifold.Location, radius int, begin, end angle) {
 // portal and an identical opaqueness.
 type group struct {
 	blocksSight bool
-	portal      manifold.Portal
+	portal      space.Portal
 }
 
-func (f *Fov) group(origin manifold.Location, offset image.Point) group {
+func (f *Fov) group(origin space.Location, offset image.Point) group {
 	rawLoc := origin.Add(offset)
 	return group{f.blocksSight(f.mf.Traverse(rawLoc)), f.mf.Portal(rawLoc)}
 }

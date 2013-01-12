@@ -22,13 +22,13 @@ package world
 import (
 	"teratogen/entity"
 	"teratogen/gfx"
-	"teratogen/manifold"
+	"teratogen/space"
 	"teratogen/spatial"
 )
 
 type World struct {
-	Manifold *manifold.Manifold
-	terrain  map[manifold.Location]Terrain
+	Manifold *space.Manifold
+	terrain  map[space.Location]Terrain
 	Spatial  *spatial.Spatial
 	Floor    int
 	// Actor queue for the current frame
@@ -44,27 +44,27 @@ type World struct {
 
 func New() (world *World) {
 	world = new(World)
-	world.Manifold = manifold.New()
-	world.terrain = make(map[manifold.Location]Terrain)
+	world.Manifold = space.New()
+	world.terrain = make(map[space.Location]Terrain)
 	world.Spatial = spatial.New(world.Manifold)
 	world.actors = []entity.Entity{}
 	world.nextActors = []entity.Entity{}
 	return
 }
 
-func (w *World) Terrain(loc manifold.Location) TerrainData {
+func (w *World) Terrain(loc space.Location) TerrainData {
 	if t, ok := w.terrain[loc]; ok {
 		return terrainTable[t]
 	}
 	return terrainTable[VoidTerrain]
 }
 
-func (w *World) SetTerrain(loc manifold.Location, t Terrain) {
+func (w *World) SetTerrain(loc space.Location, t Terrain) {
 	w.terrain[loc] = t
 }
 
 func (w *World) ClearTerrain() {
-	w.terrain = make(map[manifold.Location]Terrain)
+	w.terrain = make(map[space.Location]Terrain)
 }
 
 func (w *World) Clear() {
@@ -72,7 +72,7 @@ func (w *World) Clear() {
 	w.Spatial.Clear()
 }
 
-func (w *World) Contains(loc manifold.Location) bool {
+func (w *World) Contains(loc space.Location) bool {
 	_, ok := w.terrain[loc]
 	return ok
 }
@@ -113,7 +113,7 @@ func (w *World) EndTurn() {
 	w.nextActors = []entity.Entity{}
 }
 
-func (w *World) Fits(obj entity.Entity, loc manifold.Location) bool {
+func (w *World) Fits(obj entity.Entity, loc space.Location) bool {
 	for _, footLoc := range w.Spatial.EntityFootprint(obj, loc) {
 		if w.Terrain(footLoc).BlocksMove() {
 			return false

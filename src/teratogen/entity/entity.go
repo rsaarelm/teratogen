@@ -21,7 +21,7 @@ package entity
 
 import (
 	"image"
-	"teratogen/manifold"
+	"teratogen/space"
 )
 
 const (
@@ -39,14 +39,14 @@ type BlockMove interface {
 // Fov is a field of view component, it means an entity can remember the
 // surroundings it has seen in a manifold chart.
 type Fov interface {
-	FovChart() manifold.Chart
+	FovChart() space.Chart
 	MoveFovOrigin(vec image.Point)
-	MarkFov(pt image.Point, loc manifold.Location)
+	MarkFov(pt image.Point, loc space.Location)
 	ClearFov()
 }
 
 type Footprint interface {
-	Footprint() *manifold.FootprintTemplate
+	Footprint() *space.FootprintTemplate
 }
 
 // Entity type is just an alias for interface{} for more explicit notation.

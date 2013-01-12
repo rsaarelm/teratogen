@@ -19,13 +19,13 @@ package mob
 
 import (
 	"image"
-	"teratogen/manifold"
+	"teratogen/space"
 )
 
 // A field of view for mobs.
 type Fov struct {
 	relativePos image.Point
-	chart       map[image.Point]manifold.Location
+	chart       map[image.Point]space.Location
 }
 
 func NewFov() (result *Fov) {
@@ -35,7 +35,7 @@ func NewFov() (result *Fov) {
 }
 
 func (f *Fov) Init() {
-	f.chart = make(map[image.Point]manifold.Location)
+	f.chart = make(map[image.Point]space.Location)
 }
 
 // Use a separate type for the chart since chart's main method name "At" is
@@ -43,18 +43,18 @@ func (f *Fov) Init() {
 
 type fovChart Fov
 
-func (f *fovChart) At(pt image.Point) manifold.Location {
+func (f *fovChart) At(pt image.Point) space.Location {
 	if loc, ok := f.chart[pt.Add(f.relativePos)]; ok {
 		return loc
 	}
-	return manifold.Location{}
+	return space.Location{}
 }
 
-func (f *Fov) FovChart() manifold.Chart {
+func (f *Fov) FovChart() space.Chart {
 	return (*fovChart)(f)
 }
 
-func (f *Fov) MarkFov(pt image.Point, loc manifold.Location) {
+func (f *Fov) MarkFov(pt image.Point, loc space.Location) {
 	f.chart[pt.Add(f.relativePos)] = loc
 }
 

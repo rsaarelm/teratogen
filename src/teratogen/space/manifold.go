@@ -15,22 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package manifold provides tools for working with a game world with portals.
-// The name "manifold" refers to the topological concept for a structure which
-// looks like regular space when viewed around a specific location, but not
-// when seen as a whole.
-package manifold
+// Package space provides tools for working with a game world with portals.
+package space
 
 import (
 	"fmt"
 	"image"
 )
 
-// Location is a single point in a manifold. Zone value 0 denotes inactive
-// portals. Since this means you can't make portals that go to locations in
-// zone 0, you should never have actual locations in zone 0. By convention,
-// the default value Location{0, 0, 0} means "no place" and can be used to
-// denote an invalid location.
+// Location is a single point in space. Zone value 0 denotes inactive portals.
+// Since this means you can't make portals that go to locations in zone 0, you
+// should never have actual locations in zone 0. By convention, the default
+// value Location{0, 0, 0} means "no place" and can be used to denote an
+// invalid location.
 type Location struct {
 	X, Y int8
 	Zone uint16
@@ -99,6 +96,10 @@ func (s MapChart) At(pt image.Point) Location {
 	return Location{}
 }
 
+// Manifold is the collection of portals that defines the structure of a game
+// space. The name "manifold" refers to the topological concept for a
+// structure which looks like regular space when viewed around a specific
+// location, but not when seen as a whole.
 type Manifold struct {
 	portals map[Location]Portal
 }

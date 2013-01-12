@@ -12,7 +12,6 @@ PKGS = teratogen \
 	teratogen/fov \
 	teratogen/gfx \
 	teratogen/kernel \
-	teratogen/manifold \
 	teratogen/mapgen \
 	teratogen/mob \
 	teratogen/music/mod \
@@ -20,6 +19,7 @@ PKGS = teratogen \
 	teratogen/screen \
 	teratogen/sdl \
 	teratogen/ser \
+	teratogen/space \
 	teratogen/spatial \
 	teratogen/tile \
 	teratogen/world \

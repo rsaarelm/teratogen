@@ -21,35 +21,35 @@ package spatial
 import (
 	"image"
 	"teratogen/entity"
-	"teratogen/manifold"
+	"teratogen/space"
 )
 
 type Spatial struct {
-	manifold  *manifold.Manifold
-	placement map[interface{}]manifold.Footprint
-	sites     map[manifold.Location]siteSet
+	space     *space.Manifold
+	placement map[interface{}]space.Footprint
+	sites     map[space.Location]siteSet
 }
 
-func New(m *manifold.Manifold) (result *Spatial) {
+func New(m *space.Manifold) (result *Spatial) {
 	result = new(Spatial)
 	result.Init(m)
 	return
 }
 
-func (s *Spatial) Init(m *manifold.Manifold) {
-	s.manifold = m
-	s.placement = make(map[interface{}]manifold.Footprint)
-	s.sites = make(map[manifold.Location]siteSet)
+func (s *Spatial) Init(m *space.Manifold) {
+	s.space = m
+	s.placement = make(map[interface{}]space.Footprint)
+	s.sites = make(map[space.Location]siteSet)
 }
 
 func (s *Spatial) Clear() {
-	s.Init(s.manifold)
+	s.Init(s.space)
 }
 
 // AddFootprints adds an entity with a custom, multi-cell footprint to the
 // spatial index.
 func (s *Spatial) AddFootprint(
-	e interface{}, footprint manifold.Footprint) {
+	e interface{}, footprint space.Footprint) {
 	if _, ok := s.placement[e]; ok {
 		s.Remove(e)
 	}
@@ -65,14 +65,14 @@ func (s *Spatial) AddFootprint(
 // Add adds an entity with a default single-cell footprint at loc. Entities
 // that implement the entity.Footprint interface will get an extended
 // footprint.
-func (s *Spatial) Add(e interface{}, loc manifold.Location) {
+func (s *Spatial) Add(e interface{}, loc space.Location) {
 	s.AddFootprint(e, s.EntityFootprint(e, loc))
 }
 
-func (s *Spatial) EntityFootprint(e interface{}, loc manifold.Location) manifold.Footprint {
-	foot := manifold.Footprint{image.Pt(0, 0): loc}
+func (s *Spatial) EntityFootprint(e interface{}, loc space.Location) space.Footprint {
+	foot := space.Footprint{image.Pt(0, 0): loc}
 	if ft, ok := e.(entity.Footprint); ok {
-		foot = s.manifold.MakeFootprint(ft.Footprint(), loc)
+		foot = s.space.MakeFootprint(ft.Footprint(), loc)
 	}
 	return foot
 }
@@ -82,7 +82,7 @@ func (s *Spatial) Contains(e interface{}) bool {
 	return ok
 }
 
-func (s *Spatial) Loc(e interface{}) manifold.Location {
+func (s *Spatial) Loc(e interface{}) space.Location {
 	return s.placement[e][image.Pt(0, 0)]
 }
 
@@ -115,7 +115,7 @@ top:
 	delete(s.placement, e)
 }
 
-func (s *Spatial) At(loc manifold.Location) (result []OffsetEntity) {
+func (s *Spatial) At(loc space.Location) (result []OffsetEntity) {
 	site, ok := s.sites[loc]
 	if !ok {
 		return
@@ -126,7 +126,7 @@ func (s *Spatial) At(loc manifold.Location) (result []OffsetEntity) {
 	return
 }
 
-func (s *Spatial) initSite(loc manifold.Location) {
+func (s *Spatial) initSite(loc space.Location) {
 	if _, ok := s.sites[loc]; !ok {
 		s.sites[loc] = make(siteSet)
 	}

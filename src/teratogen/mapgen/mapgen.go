@@ -25,22 +25,22 @@ import (
 	"math/rand"
 	"teratogen/entity"
 	"teratogen/gfx"
-	"teratogen/manifold"
 	"teratogen/mob"
+	"teratogen/space"
 	"teratogen/world"
 )
 
 type Mapgen struct {
 	world   *world.World
-	chart   manifold.Chart
-	openSet map[manifold.Location]bool
+	chart   space.Chart
+	openSet map[space.Location]bool
 }
 
 func New(w *world.World) *Mapgen {
 	return &Mapgen{world: w}
 }
 
-func (m *Mapgen) TestMap(start manifold.Location) {
+func (m *Mapgen) TestMap(start space.Location) {
 	m.init(start)
 	for y := -17; y < 17; y++ {
 		for x := -17; x < 17; x++ {
@@ -63,12 +63,12 @@ func (m *Mapgen) TestMap(start manifold.Location) {
 	m.world.SetTerrain(m.randomLoc(), world.StairTerrain)
 }
 
-func (m *Mapgen) init(start manifold.Location) {
+func (m *Mapgen) init(start space.Location) {
 	m.chart = simpleChart(start)
-	m.openSet = map[manifold.Location]bool{}
+	m.openSet = map[space.Location]bool{}
 }
 
-func (m *Mapgen) setOpen(loc manifold.Location, isOpen bool) {
+func (m *Mapgen) setOpen(loc space.Location, isOpen bool) {
 	if isOpen {
 		m.openSet[loc] = true
 	} else {
@@ -76,7 +76,7 @@ func (m *Mapgen) setOpen(loc manifold.Location, isOpen bool) {
 	}
 }
 
-func (m *Mapgen) randomLoc() (loc manifold.Location) {
+func (m *Mapgen) randomLoc() (loc space.Location) {
 	// XXX: O(n) time.
 	n := rand.Intn(len(m.openSet))
 	for k, _ := range m.openSet {
@@ -89,7 +89,7 @@ func (m *Mapgen) randomLoc() (loc manifold.Location) {
 	return
 }
 
-func (m *Mapgen) spawn(obj entity.Entity, loc manifold.Location) error {
+func (m *Mapgen) spawn(obj entity.Entity, loc space.Location) error {
 	if !m.world.Fits(obj, loc) {
 		return errors.New("Spawn won't fit")
 	}
@@ -114,8 +114,8 @@ func (m *Mapgen) setTerrain(pt image.Point, t world.Terrain) {
 }
 
 // simpleChart is a chart that pays no attention to portals in the manifold.
-type simpleChart manifold.Location
+type simpleChart space.Location
 
-func (s simpleChart) At(pt image.Point) manifold.Location {
-	return manifold.Location(s).Add(pt)
+func (s simpleChart) At(pt image.Point) space.Location {
+	return space.Location(s).Add(pt)
 }

@@ -24,9 +24,9 @@ import (
 	"math/rand"
 	"teratogen/entity"
 	"teratogen/fov"
-	"teratogen/manifold"
 	"teratogen/mapgen"
 	"teratogen/mob"
+	"teratogen/space"
 	"teratogen/tile"
 	"teratogen/world"
 )
@@ -44,13 +44,13 @@ type fovvable interface {
 	entity.Fov
 }
 
-func (a *Action) Footprint(obj entity.Entity, loc manifold.Location) manifold.Footprint {
+func (a *Action) Footprint(obj entity.Entity, loc space.Location) space.Footprint {
 	if ft, ok := obj.(entity.Footprint); ok {
 		// Big entities with a complex footprint.
 		return a.world.Manifold.MakeFootprint(ft.Footprint(), loc)
 	}
 	// Entities with a simple one-cell footprint.
-	return manifold.Footprint{image.Pt(0, 0): loc}
+	return space.Footprint{image.Pt(0, 0): loc}
 }
 
 func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
@@ -84,7 +84,7 @@ func (a *Action) Attack(attacker, target entity.Entity) {
 	a.world.Spatial.Remove(target)
 }
 
-func (a *Action) Loc(obj entity.Entity) manifold.Location {
+func (a *Action) Loc(obj entity.Entity) space.Location {
 	return a.world.Spatial.Loc(obj)
 }
 
@@ -101,7 +101,7 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 
 // Place puts an entity in a specific location and performs any necessary
 // further actions that should follow after the entity entering the location.
-func (a *Action) Place(obj entity.Entity, loc manifold.Location) {
+func (a *Action) Place(obj entity.Entity, loc space.Location) {
 	if a.world.Spatial.Contains(obj) {
 		a.world.Spatial.Remove(obj)
 	}
@@ -127,8 +127,8 @@ func (a *Action) DoFov(obj entity.Entity) {
 	const radius = 12
 	if f, ok := obj.(fovvable); ok {
 		fv := fov.New(
-			func(loc manifold.Location) bool { return a.world.Terrain(loc).BlocksSight() },
-			func(pt image.Point, loc manifold.Location) { f.MarkFov(pt, loc) },
+			func(loc space.Location) bool { return a.world.Terrain(loc).BlocksSight() },
+			func(pt image.Point, loc space.Location) { f.MarkFov(pt, loc) },
 			a.world.Manifold)
 		fv.Run(a.Loc(obj), radius)
 	}
@@ -161,7 +161,7 @@ func (a *Action) NextLevel() {
 		f.ClearFov()
 	}
 
-	origin := manifold.Location{0, 0, 1}
+	origin := space.Location{0, 0, 1}
 	a.mapgen.TestMap(origin)
 	a.DoFov(a.world.Player)
 }
