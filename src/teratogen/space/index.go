@@ -1,4 +1,4 @@
-// spatial.go
+// index.go
 //
 // Copyright (C) 2012 Risto Saarelma
 //
@@ -15,39 +15,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package spatial provides spatial indexing for entities in a manifold.
-package spatial
+package space
 
 import (
 	"image"
-	"teratogen/space"
 )
 
-type Spatial struct {
-	placement map[interface{}]space.Footprint
-	sites     map[space.Location]siteSet
+// Index is a spatial index for indexing single and multi cell entities in
+// space.
+type Index struct {
+	placement map[interface{}]Footprint
+	sites     map[Location]siteSet
 }
 
-func New() (result *Spatial) {
-	result = new(Spatial)
+func NewIndex() (result *Index) {
+	result = new(Index)
 	result.Init()
 	return
 }
 
-func (s *Spatial) Init() {
-	s.placement = make(map[interface{}]space.Footprint)
-	s.sites = make(map[space.Location]siteSet)
+func (s *Index) Init() {
+	s.placement = make(map[interface{}]Footprint)
+	s.sites = make(map[Location]siteSet)
 }
 
-func (s *Spatial) Clear() {
+func (s *Index) Clear() {
 	s.Init()
 }
 
 // Place places an entity with a custom, multi-cell footprint to the spatial
 // index. If the entity has been previously placed in the index, it is removed
 // before being placed into the new location.
-func (s *Spatial) Place(
-	e interface{}, footprint space.Footprint) {
+func (s *Index) Place(
+	e interface{}, footprint Footprint) {
 	if _, ok := s.placement[e]; ok {
 		s.Remove(e)
 	}
@@ -60,25 +60,25 @@ func (s *Spatial) Place(
 	}
 }
 
-func (s *Spatial) Contains(e interface{}) bool {
+func (s *Index) Contains(e interface{}) bool {
 	_, ok := s.placement[e]
 	return ok
 }
 
-func (s *Spatial) Loc(e interface{}) space.Location {
+func (s *Index) Loc(e interface{}) Location {
 	return s.placement[e][image.Pt(0, 0)]
 }
 
-func (s *Spatial) ForEach(fn func(interface{})) {
+func (s *Index) ForEach(fn func(interface{})) {
 	for e, _ := range s.placement {
 		fn(e)
 	}
 }
 
-func (s *Spatial) Remove(e interface{}) {
+func (s *Index) Remove(e interface{}) {
 	footprint, ok := s.placement[e]
 	if !ok {
-		panic("Removing an unknown entity from Spatial")
+		panic("Removing an unknown entity from spatial index")
 	}
 
 top:
@@ -98,7 +98,7 @@ top:
 	delete(s.placement, e)
 }
 
-func (s *Spatial) At(loc space.Location) (result []OffsetEntity) {
+func (s *Index) At(loc Location) (result []OffsetEntity) {
 	site, ok := s.sites[loc]
 	if !ok {
 		return
@@ -109,7 +109,7 @@ func (s *Spatial) At(loc space.Location) (result []OffsetEntity) {
 	return
 }
 
-func (s *Spatial) initSite(loc space.Location) {
+func (s *Index) initSite(loc Location) {
 	if _, ok := s.sites[loc]; !ok {
 		s.sites[loc] = make(siteSet)
 	}

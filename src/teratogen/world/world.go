@@ -23,13 +23,12 @@ import (
 	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/space"
-	"teratogen/spatial"
 )
 
 type World struct {
 	Manifold *space.Manifold
 	terrain  map[space.Location]Terrain
-	Spatial  *spatial.Spatial
+	Spatial  *space.Index
 	Floor    int
 	// Actor queue for the current frame
 	actors []entity.Entity
@@ -46,7 +45,7 @@ func New() (world *World) {
 	world = new(World)
 	world.Manifold = space.NewManifold()
 	world.terrain = make(map[space.Location]Terrain)
-	world.Spatial = spatial.New()
+	world.Spatial = space.NewIndex()
 	world.actors = []entity.Entity{}
 	world.nextActors = []entity.Entity{}
 	return
