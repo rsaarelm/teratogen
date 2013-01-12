@@ -45,9 +45,5 @@ type Fov interface {
 	ClearFov()
 }
 
-type Footprint interface {
-	Footprint() *space.FootprintTemplate
-}
-
 // Entity type is just an alias for interface{} for more explicit notation.
 type Entity interface{}

@@ -24,7 +24,7 @@ import (
 )
 
 func TestFov(t *testing.T) {
-	mf := space.New()
+	mf := space.NewManifold()
 
 	mf.SetPortal(space.Loc(10, 11, 1), space.Port(20, 20, 20))
 	seen := map[image.Point]space.Location{}

@@ -44,9 +44,9 @@ type World struct {
 
 func New() (world *World) {
 	world = new(World)
-	world.Manifold = space.New()
+	world.Manifold = space.NewManifold()
 	world.terrain = make(map[space.Location]Terrain)
-	world.Spatial = spatial.New(world.Manifold)
+	world.Spatial = spatial.New()
 	world.actors = []entity.Entity{}
 	world.nextActors = []entity.Entity{}
 	return
@@ -114,7 +114,7 @@ func (w *World) EndTurn() {
 }
 
 func (w *World) Fits(obj entity.Entity, loc space.Location) bool {
-	for _, footLoc := range w.Spatial.EntityFootprint(obj, loc) {
+	for _, footLoc := range w.Manifold.FootprintFor(obj, loc) {
 		if w.Terrain(footLoc).BlocksMove() {
 			return false
 		}
@@ -125,4 +125,9 @@ func (w *World) Fits(obj entity.Entity, loc space.Location) bool {
 		}
 	}
 	return true
+}
+
+// Place places an entity into a location in the game space.
+func (w *World) Place(obj entity.Entity, loc space.Location) {
+	w.Spatial.Place(obj, w.Manifold.FootprintFor(obj, loc))
 }

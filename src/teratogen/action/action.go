@@ -45,12 +45,7 @@ type fovvable interface {
 }
 
 func (a *Action) Footprint(obj entity.Entity, loc space.Location) space.Footprint {
-	if ft, ok := obj.(entity.Footprint); ok {
-		// Big entities with a complex footprint.
-		return a.world.Manifold.MakeFootprint(ft.Footprint(), loc)
-	}
-	// Entities with a simple one-cell footprint.
-	return space.Footprint{image.Pt(0, 0): loc}
+	return a.world.Manifold.FootprintFor(obj, loc)
 }
 
 func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
@@ -102,10 +97,7 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 // Place puts an entity in a specific location and performs any necessary
 // further actions that should follow after the entity entering the location.
 func (a *Action) Place(obj entity.Entity, loc space.Location) {
-	if a.world.Spatial.Contains(obj) {
-		a.world.Spatial.Remove(obj)
-	}
-	a.world.Spatial.Add(obj, loc)
+	a.world.Place(obj, loc)
 	if !a.world.IsAlive(obj) {
 		panic("Placed obj not shown alive")
 	}
@@ -114,7 +106,7 @@ func (a *Action) Place(obj entity.Entity, loc space.Location) {
 		a.DoFov(f)
 	}
 
-	for _, footLoc := range a.world.Spatial.EntityFootprint(obj, loc) {
+	for _, footLoc := range a.Footprint(obj, loc) {
 		if obj == a.world.Player && a.world.Terrain(footLoc).Kind == world.StairKind {
 			// Player stepping on a stair, go to next level.
 			a.NextLevel()

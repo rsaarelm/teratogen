@@ -30,7 +30,7 @@ import (
 // must be computed and stored explicitly.
 type Footprint map[image.Point]Location
 
-func (t *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
+func (m *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (result Footprint) {
 	result = map[image.Point]Location{image.Pt(0, 0): loc}
 
 	for _, step := range template.steps {
@@ -39,7 +39,7 @@ func (t *Manifold) MakeFootprint(template *FootprintTemplate, loc Location) (res
 			panic("Invalid FootprintTemplate")
 		}
 		vec := step.pos.Sub(step.parent)
-		loc := t.Offset(parentLoc, vec)
+		loc := m.Offset(parentLoc, vec)
 		result[step.pos] = loc
 	}
 	return
@@ -132,5 +132,22 @@ func MakeTemplate(shape []image.Point) (result *FootprintTemplate, err error) {
 		}
 	}
 
+	return
+}
+
+// Footprintable is an interface for objects that can provide a footprint
+// template for themselves.
+type Footprintable interface {
+	Footprint() *FootprintTemplate
+}
+
+// FootprintFor generates a single-cell footprint at loc for non-footprintable
+// entities and an expanded footprint originating at loc for entities that
+// implement the Footprintable interface.
+func (m *Manifold) FootprintFor(e interface{}, loc Location) (result Footprint) {
+	result = Footprint{image.Pt(0, 0): loc}
+	if ft, ok := e.(Footprintable); ok {
+		result = m.MakeFootprint(ft.Footprint(), loc)
+	}
 	return
 }

@@ -104,7 +104,7 @@ type Manifold struct {
 	portals map[Location]Portal
 }
 
-func New() *Manifold {
+func NewManifold() *Manifold {
 	return &Manifold{make(map[Location]Portal)}
 }
 

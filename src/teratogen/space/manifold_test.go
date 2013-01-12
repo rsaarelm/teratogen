@@ -23,7 +23,7 @@ import (
 )
 
 func TestSimpleManifold(t *testing.T) {
-	spc := New()
+	spc := NewManifold()
 
 	origin := Loc(0, 0, 1)
 
@@ -54,7 +54,7 @@ func TestSimpleManifold(t *testing.T) {
 }
 
 func TestFootprint(t *testing.T) {
-	spc := New()
+	spc := NewManifold()
 
 	emptyShape := []image.Point{}
 	goodShape := []image.Point{{1, 0}, {3, 0}, {0, 1}, {-1, 0}, {1, 1}, {2, 0}}
@@ -75,7 +75,7 @@ func TestFootprint(t *testing.T) {
 	if template, err := MakeTemplate(goodShape); err == nil {
 		// Test the multi-cell footprint first in basic manifold.
 
-		spc = New()
+		spc = NewManifold()
 
 		footprint := spc.MakeFootprint(template, Loc(0, 0, 1))
 		if footprint[image.Pt(2, 0)] != Loc(2, 0, 1) {

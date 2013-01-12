@@ -20,35 +20,33 @@ package spatial
 
 import (
 	"image"
-	"teratogen/entity"
 	"teratogen/space"
 )
 
 type Spatial struct {
-	space     *space.Manifold
 	placement map[interface{}]space.Footprint
 	sites     map[space.Location]siteSet
 }
 
-func New(m *space.Manifold) (result *Spatial) {
+func New() (result *Spatial) {
 	result = new(Spatial)
-	result.Init(m)
+	result.Init()
 	return
 }
 
-func (s *Spatial) Init(m *space.Manifold) {
-	s.space = m
+func (s *Spatial) Init() {
 	s.placement = make(map[interface{}]space.Footprint)
 	s.sites = make(map[space.Location]siteSet)
 }
 
 func (s *Spatial) Clear() {
-	s.Init(s.space)
+	s.Init()
 }
 
-// AddFootprints adds an entity with a custom, multi-cell footprint to the
-// spatial index.
-func (s *Spatial) AddFootprint(
+// Place places an entity with a custom, multi-cell footprint to the spatial
+// index. If the entity has been previously placed in the index, it is removed
+// before being placed into the new location.
+func (s *Spatial) Place(
 	e interface{}, footprint space.Footprint) {
 	if _, ok := s.placement[e]; ok {
 		s.Remove(e)
@@ -60,21 +58,6 @@ func (s *Spatial) AddFootprint(
 		s.initSite(siteLoc)
 		s.sites[siteLoc][OffsetEntity{e, offset}] = true
 	}
-}
-
-// Add adds an entity with a default single-cell footprint at loc. Entities
-// that implement the entity.Footprint interface will get an extended
-// footprint.
-func (s *Spatial) Add(e interface{}, loc space.Location) {
-	s.AddFootprint(e, s.EntityFootprint(e, loc))
-}
-
-func (s *Spatial) EntityFootprint(e interface{}, loc space.Location) space.Footprint {
-	foot := space.Footprint{image.Pt(0, 0): loc}
-	if ft, ok := e.(entity.Footprint); ok {
-		foot = s.space.MakeFootprint(ft.Footprint(), loc)
-	}
-	return foot
 }
 
 func (s *Spatial) Contains(e interface{}) bool {

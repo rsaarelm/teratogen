@@ -94,11 +94,11 @@ func (m *Mapgen) spawn(obj entity.Entity, loc space.Location) error {
 		return errors.New("Spawn won't fit")
 	}
 
-	m.world.Spatial.Add(obj, loc)
+	m.world.Place(obj, loc)
 
 	// Remove the points from the open set if the entity blocks movement.
 	if b, ok := obj.(entity.BlockMove); ok && b.BlocksMove() {
-		for _, footLoc := range m.world.Spatial.EntityFootprint(obj, loc) {
+		for _, footLoc := range m.world.Manifold.FootprintFor(obj, loc) {
 			m.setOpen(footLoc, false)
 		}
 	}
