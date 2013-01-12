@@ -20,116 +20,26 @@ package display
 import (
 	"fmt"
 	"image"
-	"math"
 	"teratogen/cache"
-	"teratogen/entity"
+	"teratogen/display/view"
 	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
-	"teratogen/space"
-	"teratogen/tile"
 	"teratogen/world"
 )
 
 type Display struct {
 	cache       *cache.Cache
-	world       *world.World
+	view        *view.View
 	chartOrigin image.Point
 }
 
 func New(c *cache.Cache, w *world.World) (result *Display) {
 	result = new(Display)
 	result.cache = c
-	result.world = w
+	result.view = view.New(c, w)
 
 	return
-}
-
-const TileW = 8
-const TileH = 8
-
-func ChartToScreen(chartPt image.Point) (scrPt image.Point) {
-	return image.Pt(chartPt.X*TileW-chartPt.Y*TileW,
-		chartPt.X*TileH/2+chartPt.Y*TileH/2)
-}
-
-func ScreenToChart(scrPt image.Point) (chartPt image.Point) {
-	column := int(math.Floor(float64(scrPt.X) / TileW))
-	row := int(math.Floor(float64(scrPt.Y-column*(TileH/2)) / TileH))
-	return image.Pt(column+row, row)
-}
-
-func (d *Display) chart() space.Chart {
-	return d.world.Player.FovChart()
-}
-
-func (d *Display) drawCell(chartPos image.Point, scrPos image.Point) {
-	loc := d.chart().At(chartPos)
-	if d.world.Contains(loc) {
-		idx := terrainTileOffset(d.world, d.chart(), chartPos)
-		sprite := d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx])
-		sprite.Draw(scrPos)
-	}
-}
-
-func (d *Display) collectSprites(
-	sprites gfx.SpriteBatch,
-	chartPos image.Point) gfx.SpriteBatch {
-	loc := d.chart().At(chartPos)
-
-	// Collect terrain tile sprite.
-	if d.world.Contains(loc) {
-		idx := terrainTileOffset(d.world, d.chart(), chartPos)
-		sprites = append(sprites, gfx.Sprite{
-			Layer:    entity.TerrainLayer,
-			Drawable: d.cache.GetDrawable(d.world.Terrain(loc).Icon[idx]),
-			Offset:   d.chartToScreenPos(chartPos)})
-	}
-
-	// Collect dynamic object sprites.
-	for _, oe := range d.world.Spatial.At(loc) {
-		spritable := oe.Entity.(gfx.Spritable)
-		if spritable == nil {
-			continue
-		}
-		objChartPos := chartPos.Sub(oe.Offset)
-		sprites = append(
-			sprites,
-			spritable.Sprite(d.cache, d.chartToScreenPos(objChartPos)))
-	}
-
-	return sprites
-}
-
-func corners(rect image.Rectangle) []image.Point {
-	return []image.Point{rect.Min, rect.Max,
-		{rect.Min.X, rect.Max.Y}, {rect.Max.X, rect.Min.Y}}
-}
-
-func centerOrigin(screenArea image.Rectangle) (screenPos image.Point) {
-	return screenArea.Min.Add(screenArea.Size().Div(2)).Sub(image.Pt(TileW/2, TileH/2))
-}
-
-// ChartArea returns the smallest rectangle containing all chart positions
-// that can get drawn in the given screen rectangle, if chart position (0, 0)
-// is at the center of the screen rectangle.
-func ChartArea(screenArea image.Rectangle) image.Rectangle {
-	scrOrigin := centerOrigin(screenArea)
-	minX, minY := math.MaxInt32, math.MaxInt32
-	maxX, maxY := math.MinInt32, math.MinInt32
-	for _, pt := range corners(screenArea.Sub(scrOrigin)) {
-		chartPos := ScreenToChart(pt)
-		minX = int(math.Min(float64(chartPos.X), float64(minX)))
-		minY = int(math.Min(float64(chartPos.Y), float64(minY)))
-		maxX = int(math.Max(float64(chartPos.X), float64(maxX)))
-		maxY = int(math.Max(float64(chartPos.Y), float64(maxY)))
-	}
-
-	return image.Rect(minX, minY, maxX+1, maxY+1)
-}
-
-func (d *Display) chartToScreenPos(chartPos image.Point) image.Point {
-	return ChartToScreen(chartPos).Add(d.chartOrigin)
 }
 
 func (d *Display) DrawWorld(bounds image.Rectangle) {
@@ -137,16 +47,9 @@ func (d *Display) DrawWorld(bounds image.Rectangle) {
 	defer sdl.Frame().ClearClipRect()
 	sdl.Frame().Clear(gfx.Black)
 
-	chartBounds := ChartArea(bounds)
-	d.chartOrigin = centerOrigin(bounds)
-
 	sprites := gfx.SpriteBatch{}
 
-	for y := chartBounds.Min.Y; y < chartBounds.Max.Y; y++ {
-		for x := chartBounds.Min.X; x < chartBounds.Max.X; x++ {
-			sprites = d.collectSprites(sprites, image.Pt(x, y))
-		}
-	}
+	sprites = d.view.CollectSprites(sprites, bounds)
 
 	sprites.Sort()
 	sprites.Draw()
@@ -165,20 +68,4 @@ func (d *Display) DrawMsg(bounds image.Rectangle) {
 		font.None, gfx.Green, gfx.Black}
 
 	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
-}
-
-// terrainTileOffest checks the neighbourhood of a charted tile to see if it
-// needs special formatting. Mostly used to prettify wall tiles.
-func terrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
-	t := w.Terrain(chart.At(pos))
-	if t.Kind == world.WallKind {
-		edgeMask := 0
-		for i, vec := range tile.HexDirs {
-			if w.Terrain(chart.At(pos.Add(vec))).ShapesWalls() {
-				edgeMask |= 1 << uint8(i)
-			}
-		}
-		return tile.HexWallType(edgeMask)
-	}
-	return 0
 }

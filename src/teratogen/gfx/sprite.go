@@ -66,7 +66,8 @@ func (s SpriteBatch) Sort() {
 	sort.Sort(s)
 }
 
-// Draw draws a SpriteBatch that is assumed to be sorted. Duplicate sprites are skipped.
+// Draw draws a SpriteBatch that is assumed to be sorted. Duplicate sprites
+// are skipped.
 func (s SpriteBatch) Draw() {
 	if len(s) == 0 {
 		return

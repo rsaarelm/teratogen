@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"image"
 	"math/rand"
+	"teratogen/display/util"
 	"testing"
 	"testing/quick"
 )
@@ -28,11 +29,11 @@ import (
 func validPoint(ix, iy int16) bool {
 	x, y := int(ix), int(iy)
 	chart1 := image.Pt(x, y)
-	screen := ChartToScreen(chart1)
-	chart2 := ScreenToChart(screen)
+	screen := util.ChartToScreen(chart1)
+	chart2 := util.ScreenToChart(screen)
 	// All points within tile rect should fall into chart.
-	tileOffset := image.Pt(rand.Intn(TileW), rand.Intn(TileH))
-	chart3 := ScreenToChart(screen.Add(tileOffset))
+	tileOffset := image.Pt(rand.Intn(util.TileW), rand.Intn(util.TileH))
+	chart3 := util.ScreenToChart(screen.Add(tileOffset))
 
 	if chart1 != chart3 {
 		fmt.Println(tileOffset)
