@@ -29,6 +29,8 @@ import (
 const TileW = 8
 const TileH = 8
 
+var HalfTile = image.Pt(TileW/2, TileH/2)
+
 // ChartToScreen maps a point in the game tile coordinates into screen pixel
 // coordinates that indicate where the tile should be drawn.
 func ChartToScreen(chartPt image.Point) (scrPt image.Point) {

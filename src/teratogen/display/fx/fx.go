@@ -22,6 +22,9 @@ package fx
 import (
 	"image"
 	"teratogen/display/anim"
+	"teratogen/display/util"
+	"teratogen/gfx"
+	"teratogen/sdl"
 	"teratogen/space"
 	"teratogen/world"
 )
@@ -65,7 +68,25 @@ func (f *Fx) SpaceMsgf(loc space.Location, format string, a ...interface{}) {
 
 // Beam generates a projectile beam effect in the game world.
 func (f *Fx) Beam(origin space.Location, dir image.Point, length int, kind BeamKind) {
+	// Make a footprint for the beam shape.
+	shape := []image.Point{image.Pt(0, 0)}
+	for i := 0; i < length; i++ {
+		shape = append(shape, shape[len(shape)-1].Add(dir))
+	}
+	footprint := space.FootprintFromPoints(f.world.Manifold, origin, shape)
 
+	screenVec := util.ChartToScreen(shape[len(shape)-1])
+
+	// TODO: Different beam types.
+
+	f.anim.Add(
+		anim.Func(func(t int64, offset image.Point) {
+			gfx.Line(
+				sdl.Frame(),
+				offset.Add(util.HalfTile),
+				offset.Add(util.HalfTile).Add(screenVec),
+				gfx.LerpCol(gfx.Gold, gfx.Black, float64(t)/float64(.5e9)))
+		}), footprint, .2e9)
 }
 
 // Blast generates an explosion effect in the game world.
