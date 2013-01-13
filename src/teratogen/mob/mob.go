@@ -20,6 +20,7 @@ package mob
 
 import (
 	"image"
+	"teratogen/display/util"
 	"teratogen/gfx"
 	"teratogen/num"
 	"teratogen/space"
@@ -88,7 +89,7 @@ func (m *Mob) bob() image.Point {
 
 func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
 	return gfx.Sprite{
-		Layer:    1000,
+		Layer:    util.MobLayer,
 		Offset:   offset.Add(m.bob()),
 		Drawable: context.GetDrawable(m.icon)}
 }

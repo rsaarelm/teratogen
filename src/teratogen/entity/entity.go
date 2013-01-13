@@ -24,13 +24,6 @@ import (
 	"teratogen/space"
 )
 
-const (
-	TerrainLayer = 0
-	DecalLayer   = 10
-	ItemLayer    = 20
-	MobLayer     = 30
-)
-
 // BlockMove is an entity that can block movement.
 type BlockMove interface {
 	BlocksMove() bool

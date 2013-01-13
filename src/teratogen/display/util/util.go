@@ -89,3 +89,11 @@ func TerrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
 	}
 	return 0
 }
+
+const (
+	TerrainLayer = 0
+	DecalLayer   = 10
+	ItemLayer    = 20
+	MobLayer     = 30
+	AnimLayer    = 100
+)

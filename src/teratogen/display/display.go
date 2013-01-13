@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"image"
 	"teratogen/cache"
+	"teratogen/display/anim"
 	"teratogen/display/view"
 	"teratogen/font"
 	"teratogen/gfx"
@@ -30,6 +31,7 @@ import (
 
 type Display struct {
 	cache       *cache.Cache
+	Anim        *anim.Anim
 	view        *view.View
 	chartOrigin image.Point
 }
@@ -37,8 +39,8 @@ type Display struct {
 func New(c *cache.Cache, w *world.World) (result *Display) {
 	result = new(Display)
 	result.cache = c
-	result.view = view.New(c, w)
-
+	result.Anim = anim.New()
+	result.view = view.New(c, w, result.Anim)
 	return
 }
 

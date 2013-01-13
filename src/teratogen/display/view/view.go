@@ -21,8 +21,8 @@ package view
 import (
 	"image"
 	"teratogen/cache"
+	"teratogen/display/anim"
 	"teratogen/display/util"
-	"teratogen/entity"
 	"teratogen/gfx"
 	"teratogen/space"
 	"teratogen/world"
@@ -31,12 +31,14 @@ import (
 type View struct {
 	cache *cache.Cache
 	world *world.World
+	anim  *anim.Anim
 }
 
-func New(c *cache.Cache, w *world.World) (result *View) {
+func New(c *cache.Cache, w *world.World, a *anim.Anim) (result *View) {
 	result = new(View)
 	result.cache = c
 	result.world = w
+	result.anim = a
 	return
 }
 
@@ -49,13 +51,14 @@ func (v *View) collectSpritesAt(
 	chartPos image.Point,
 	screenOffset image.Point) gfx.SpriteBatch {
 	loc := v.chart().At(chartPos)
+	offset := util.ChartToScreen(chartPos).Add(screenOffset)
 
 	// Collect terrain tile sprite.
 	if v.world.Contains(loc) {
 		idx := util.TerrainTileOffset(v.world, v.chart(), chartPos)
 		sprites = append(sprites, gfx.Sprite{
-			Layer:    entity.TerrainLayer,
-			Offset:   util.ChartToScreen(chartPos).Add(screenOffset),
+			Layer:    util.TerrainLayer,
+			Offset:   offset,
 			Drawable: v.cache.GetDrawable(v.world.Terrain(loc).Icon[idx])})
 	}
 
@@ -71,6 +74,8 @@ func (v *View) collectSpritesAt(
 			spritable.Sprite(v.cache,
 				util.ChartToScreen(objChartPos).Add(screenOffset)))
 	}
+
+	sprites = v.anim.CollectSpritesAt(sprites, loc, offset, util.AnimLayer)
 
 	return sprites
 }
