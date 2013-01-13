@@ -8,6 +8,7 @@ PKGS = teratogen \
 	teratogen/cache \
 	teratogen/display \
 	teratogen/display/anim \
+	teratogen/display/fx \
 	teratogen/display/util \
 	teratogen/display/view \
 	teratogen/entity \

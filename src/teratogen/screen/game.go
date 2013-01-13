@@ -23,6 +23,7 @@ import (
 	"teratogen/app"
 	"teratogen/data"
 	"teratogen/display"
+	"teratogen/display/fx"
 	"teratogen/gfx"
 	"teratogen/mapgen"
 	"teratogen/mob"
@@ -39,6 +40,7 @@ func Game() app.State {
 type game struct {
 	world  *world.World
 	query  *query.Query
+	fx     *fx.Fx
 	action *action.Action
 	disp   *display.Display
 	mapgen *mapgen.Mapgen
@@ -48,8 +50,9 @@ func (gs *game) Enter() {
 	gs.world = world.New()
 	gs.query = query.New(gs.world)
 	gs.mapgen = mapgen.New(gs.world)
-	gs.action = action.New(gs.world, gs.mapgen, gs.query)
 	gs.disp = display.New(app.Cache(), gs.world)
+	gs.fx = fx.New(gs.disp.Anim, gs.world)
+	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
 	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
 	gs.action.NextLevel()

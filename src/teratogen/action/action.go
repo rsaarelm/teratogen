@@ -22,6 +22,7 @@ package action
 import (
 	"image"
 	"math/rand"
+	"teratogen/display/fx"
 	"teratogen/entity"
 	"teratogen/fov"
 	"teratogen/mapgen"
@@ -35,10 +36,11 @@ type Action struct {
 	world  *world.World
 	mapgen *mapgen.Mapgen
 	query  *query.Query
+	fx     *fx.Fx
 }
 
-func New(w *world.World, m *mapgen.Mapgen, q *query.Query) *Action {
-	return &Action{world: w, mapgen: m, query: q}
+func New(w *world.World, m *mapgen.Mapgen, q *query.Query, f *fx.Fx) *Action {
+	return &Action{world: w, mapgen: m, query: q, fx: f}
 }
 
 type fovvable interface {
