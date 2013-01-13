@@ -84,6 +84,11 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 	}
 }
 
+func (a *Action) Shoot(obj entity.Entity, vec image.Point) {
+	// TODO: Determine how far it goes, what it hits...
+	a.fx.Beam(a.query.Loc(obj), vec, 1, fx.GunBeam)
+}
+
 // Place puts an entity in a specific location and performs any necessary
 // further actions that should follow after the entity entering the location.
 func (a *Action) Place(obj entity.Entity, loc space.Location) {

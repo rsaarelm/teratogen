@@ -29,6 +29,7 @@ import (
 	"teratogen/mob"
 	"teratogen/query"
 	"teratogen/sdl"
+	"teratogen/tile"
 	"teratogen/world"
 )
 
@@ -72,6 +73,24 @@ func (gs *game) Update(timeElapsed int64) {
 		app.Get().PopState()
 	}
 
+	// Convenience maps for the directional keys.
+
+	moveKeys := map[sdl.KeySym]image.Point{
+		sdl.K_w: tile.HexDirs[0],
+		sdl.K_e: tile.HexDirs[1],
+		sdl.K_d: tile.HexDirs[2],
+		sdl.K_s: tile.HexDirs[3],
+		sdl.K_a: tile.HexDirs[4],
+		sdl.K_q: tile.HexDirs[5]}
+
+	shootKeys := map[sdl.KeySym]image.Point{
+		sdl.K_i: tile.HexDirs[0],
+		sdl.K_o: tile.HexDirs[1],
+		sdl.K_l: tile.HexDirs[2],
+		sdl.K_k: tile.HexDirs[3],
+		sdl.K_j: tile.HexDirs[4],
+		sdl.K_u: tile.HexDirs[5]}
+
 	pc := gs.world.Player
 	select {
 	case evt := <-sdl.Events:
@@ -80,28 +99,23 @@ func (gs *game) Update(timeElapsed int64) {
 			if e.KeyDown {
 				if e.Sym == sdl.K_ESCAPE {
 					app.Get().PopState()
+					break
+				}
+
+				if dir, ok := moveKeys[e.FixedSym()]; ok {
+					gs.action.AttackMove(pc, dir)
+					gs.action.EndTurn()
+					break
+				}
+
+				if dir, ok := shootKeys[e.FixedSym()]; ok {
+					gs.action.Shoot(pc, dir)
+					gs.action.EndTurn()
+					break
 				}
 
 				// Layout independent keys
 				switch e.FixedSym() {
-				case sdl.K_q:
-					gs.action.AttackMove(pc, image.Pt(-1, 0))
-					gs.action.EndTurn()
-				case sdl.K_w:
-					gs.action.AttackMove(pc, image.Pt(-1, -1))
-					gs.action.EndTurn()
-				case sdl.K_e:
-					gs.action.AttackMove(pc, image.Pt(0, -1))
-					gs.action.EndTurn()
-				case sdl.K_d:
-					gs.action.AttackMove(pc, image.Pt(1, 0))
-					gs.action.EndTurn()
-				case sdl.K_s:
-					gs.action.AttackMove(pc, image.Pt(1, 1))
-					gs.action.EndTurn()
-				case sdl.K_a:
-					gs.action.AttackMove(pc, image.Pt(0, 1))
-					gs.action.EndTurn()
 				case sdl.K_SPACE:
 					gs.action.EndTurn()
 				}
