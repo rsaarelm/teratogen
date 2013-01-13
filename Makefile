@@ -47,6 +47,12 @@ fmt:
 run: teratogen
 	./teratogen
 
+SERVERPORT=6060
+
+doc:
+	@echo "Documentation server now running at http://localhost:$(SERVERPORT)/"
+	godoc -http=":$(SERVERPORT)"
+
 clean:
 	go clean
 
