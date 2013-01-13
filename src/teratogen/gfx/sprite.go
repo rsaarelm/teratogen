@@ -29,8 +29,8 @@ type Spritable interface {
 
 type Sprite struct {
 	Layer    int
-	Drawable Drawable
 	Offset   image.Point
+	Drawable Drawable
 }
 
 func (s Sprite) Draw() {

@@ -55,8 +55,8 @@ func (v *View) collectSpritesAt(
 		idx := util.TerrainTileOffset(v.world, v.chart(), chartPos)
 		sprites = append(sprites, gfx.Sprite{
 			Layer:    entity.TerrainLayer,
-			Drawable: v.cache.GetDrawable(v.world.Terrain(loc).Icon[idx]),
-			Offset:   util.ChartToScreen(chartPos).Add(screenOffset)})
+			Offset:   util.ChartToScreen(chartPos).Add(screenOffset),
+			Drawable: v.cache.GetDrawable(v.world.Terrain(loc).Icon[idx])})
 	}
 
 	// Collect dynamic object sprites.

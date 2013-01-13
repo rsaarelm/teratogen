@@ -89,8 +89,8 @@ func (m *Mob) bob() image.Point {
 func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
 	return gfx.Sprite{
 		Layer:    1000,
-		Drawable: context.GetDrawable(m.icon),
-		Offset:   offset.Add(m.bob())}
+		Offset:   offset.Add(m.bob()),
+		Drawable: context.GetDrawable(m.icon)}
 }
 
 func (m *Mob) BlocksMove() bool {
