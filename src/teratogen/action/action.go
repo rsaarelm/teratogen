@@ -25,7 +25,7 @@ import (
 	"teratogen/entity"
 	"teratogen/fov"
 	"teratogen/mapgen"
-	"teratogen/mob"
+	"teratogen/query"
 	"teratogen/space"
 	"teratogen/tile"
 	"teratogen/world"
@@ -34,23 +34,20 @@ import (
 type Action struct {
 	world  *world.World
 	mapgen *mapgen.Mapgen
+	query  *query.Query
 }
 
-func New(w *world.World, m *mapgen.Mapgen) *Action {
-	return &Action{world: w, mapgen: m}
+func New(w *world.World, m *mapgen.Mapgen, q *query.Query) *Action {
+	return &Action{world: w, mapgen: m, query: q}
 }
 
 type fovvable interface {
 	entity.Fov
 }
 
-func (a *Action) Footprint(obj entity.Entity, loc space.Location) space.Footprint {
-	return a.world.Manifold.FootprintFor(obj, loc)
-}
-
 func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
-	newLoc := a.world.Manifold.Offset(a.Loc(obj), vec)
-	footprint := a.Footprint(obj, newLoc)
+	newLoc := a.world.Manifold.Offset(a.query.Loc(obj), vec)
+	footprint := a.query.Footprint(obj, newLoc)
 
 	for _, loc := range footprint {
 		for _, oe := range a.world.Spatial.At(loc) {
@@ -59,7 +56,7 @@ func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
 				// Ignore self-intersect
 				continue
 			}
-			if a.EnemyOf(obj, hit) {
+			if a.query.EnemyOf(obj, hit) {
 				a.Attack(obj, hit)
 				return
 			}
@@ -68,23 +65,14 @@ func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
 	a.Move(obj, vec)
 }
 
-func (a *Action) EnemyOf(obj1, obj2 entity.Entity) bool {
-	// TODO better
-	return obj1 != obj2
-}
-
 func (a *Action) Attack(attacker, target entity.Entity) {
 	// TODO better
 	// Just straight up kill the target.
 	a.world.Spatial.Remove(target)
 }
 
-func (a *Action) Loc(obj entity.Entity) space.Location {
-	return a.world.Spatial.Loc(obj)
-}
-
 func (a *Action) Move(obj entity.Entity, vec image.Point) {
-	newLoc := a.world.Manifold.Offset(a.Loc(obj), vec)
+	newLoc := a.world.Manifold.Offset(a.query.Loc(obj), vec)
 
 	if a.world.Fits(obj, newLoc) {
 		if f, ok := obj.(entity.Fov); ok {
@@ -106,7 +94,7 @@ func (a *Action) Place(obj entity.Entity, loc space.Location) {
 		a.DoFov(f)
 	}
 
-	for _, footLoc := range a.Footprint(obj, loc) {
+	for _, footLoc := range a.query.Footprint(obj, loc) {
 		if obj == a.world.Player && a.world.Terrain(footLoc).Kind == world.StairKind {
 			// Player stepping on a stair, go to next level.
 			a.NextLevel()
@@ -122,7 +110,7 @@ func (a *Action) DoFov(obj entity.Entity) {
 			func(loc space.Location) bool { return a.world.Terrain(loc).BlocksSight() },
 			func(pt image.Point, loc space.Location) { f.MarkFov(pt, loc) },
 			a.world.Manifold)
-		fv.Run(a.Loc(obj), radius)
+		fv.Run(a.query.Loc(obj), radius)
 	}
 }
 
@@ -138,11 +126,6 @@ func (a *Action) RunAI() {
 func (a *Action) EndTurn() {
 	a.RunAI()
 	a.world.EndTurn()
-}
-
-func (a *Action) IsGameOver() bool {
-	obj, _ := a.world.Player.(*mob.PC)
-	return !a.world.IsAlive(obj)
 }
 
 // NextLevel clears out the current level and moves the player to the next one.

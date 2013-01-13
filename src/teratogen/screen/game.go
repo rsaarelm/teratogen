@@ -26,6 +26,7 @@ import (
 	"teratogen/gfx"
 	"teratogen/mapgen"
 	"teratogen/mob"
+	"teratogen/query"
 	"teratogen/sdl"
 	"teratogen/world"
 )
@@ -37,6 +38,7 @@ func Game() app.State {
 
 type game struct {
 	world  *world.World
+	query  *query.Query
 	action *action.Action
 	disp   *display.Display
 	mapgen *mapgen.Mapgen
@@ -44,8 +46,9 @@ type game struct {
 
 func (gs *game) Enter() {
 	gs.world = world.New()
+	gs.query = query.New(gs.world)
 	gs.mapgen = mapgen.New(gs.world)
-	gs.action = action.New(gs.world, gs.mapgen)
+	gs.action = action.New(gs.world, gs.mapgen, gs.query)
 	gs.disp = display.New(app.Cache(), gs.world)
 
 	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
@@ -62,7 +65,7 @@ func (gs *game) Draw() {
 }
 
 func (gs *game) Update(timeElapsed int64) {
-	if gs.action.IsGameOver() {
+	if gs.query.IsGameOver() {
 		app.Get().PopState()
 	}
 
