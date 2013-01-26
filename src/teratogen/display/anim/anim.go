@@ -21,6 +21,7 @@ package anim
 
 import (
 	"image"
+	"teratogen/cache"
 	"teratogen/display/util"
 	"teratogen/gfx"
 	"teratogen/space"
@@ -108,4 +109,34 @@ func (a *Anim) CollectSpritesAt(
 			gfx.Sprite{layer, screenPos, animStore.CurrentFrame()})
 	}
 	return sprites
+}
+
+type Cycle struct {
+	TimePerFrame int64
+	Frames       []gfx.Drawable
+	Loops        bool
+}
+
+func (c Cycle) Frame(t int64) gfx.Drawable {
+	if c.TimePerFrame <= 0 {
+		panic("Invalid Cycle")
+	}
+	idx := int(t / c.TimePerFrame)
+	if idx >= len(c.Frames) {
+		if c.Loops {
+			idx %= len(c.Frames)
+		} else {
+			idx = len(c.Frames) - 1
+		}
+	}
+	return c.Frames[idx]
+}
+
+func NewCycle(c *cache.Cache, timePerFrame int64, loops bool, frameSpecs []gfx.ImageSpec) Cycle {
+	var frames []gfx.Drawable
+	for _, spec := range frameSpecs {
+		frames = append(frames, c.GetDrawable(spec))
+	}
+
+	return Cycle{timePerFrame, frames, loops}
 }
