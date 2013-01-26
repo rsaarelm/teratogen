@@ -169,3 +169,8 @@ func (f Footprint) String() (result string) {
 	}
 	return
 }
+
+// SimpleFootprint creates a simple single-cell footprint.
+func SimpleFootprint(loc Location) (result Footprint) {
+	return Footprint{image.Pt(0, 0): loc}
+}
