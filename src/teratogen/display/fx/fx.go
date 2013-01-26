@@ -42,11 +42,11 @@ const (
 type BlastKind uint8
 
 const (
-	SparkBlast BlastKind = iota
-	SmokeBlast
-	SmallExplodeBlast
-	LargeExplodeBlast
-	WarpBlast
+	SmallExplosion BlastKind = iota
+	LargeExplosion
+	Sparks
+	BloodSquib
+	Smoke
 )
 
 type Fx struct {
@@ -95,18 +95,36 @@ func (f *Fx) Beam(origin space.Location, dir image.Point, length int, kind BeamK
 // Blast generates an explosion effect in the game world.
 func (f *Fx) Blast(loc space.Location, kind BlastKind) {
 	switch kind {
-	case SmallExplodeBlast:
+	case SmallExplosion:
 		frames := anim.NewCycle(f.cache, .1e9, false, util.SmallIcons(util.Items, 32, 33, 34, 35))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .4e9)
-	case LargeExplodeBlast:
+	case LargeExplosion:
 		frames := anim.NewCycle(f.cache, .10e9, false, util.LargeIcons(util.Items, 5, 6, 7, 8, 9))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .5e9)
+	case Sparks:
+		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 36, 37, 38))
+		f.anim.Add(
+			anim.Func(func(t int64, offset image.Point) {
+				frames.Frame(t).Draw(offset)
+			}), space.SimpleFootprint(loc), .21e9)
+	case BloodSquib:
+		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 39, 40, 41))
+		f.anim.Add(
+			anim.Func(func(t int64, offset image.Point) {
+				frames.Frame(t).Draw(offset)
+			}), space.SimpleFootprint(loc), .21e9)
+	case Smoke:
+		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 42, 43, 44))
+		f.anim.Add(
+			anim.Func(func(t int64, offset image.Point) {
+				frames.Frame(t).Draw(offset)
+			}), space.SimpleFootprint(loc), .21e9)
 	default:
 		println("Unknown blast kind ", kind)
 		return

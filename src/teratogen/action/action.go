@@ -70,6 +70,9 @@ func (a *Action) Attack(attacker, target entity.Entity) {
 func (a *Action) Damage(target entity.Entity, amount int) {
 	if mob, ok := target.(entity.Stats); ok {
 		mob.Damage(amount)
+		if amount > 0 {
+			a.fx.Blast(a.query.Loc(target), fx.BloodSquib)
+		}
 		if mob.Health() <= 0 {
 			// Target died.
 			// Extra logic hooks here.

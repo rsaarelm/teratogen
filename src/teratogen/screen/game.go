@@ -124,10 +124,10 @@ func (gs *game) Update(timeElapsed int64) {
 				case sdl.K_SPACE:
 					gs.action.EndTurn()
 				case sdl.K_b:
-					gs.fx.Blast(gs.query.Loc(pc), fx.SmallExplodeBlast)
+					gs.fx.Blast(gs.query.Loc(pc), fx.SmallExplosion)
 					gs.action.Damage(gs.world.Player, 1)
 				case sdl.K_n:
-					gs.fx.Blast(gs.query.Loc(pc), fx.LargeExplodeBlast)
+					gs.fx.Blast(gs.query.Loc(pc), fx.LargeExplosion)
 				}
 			}
 		case sdl.QuitEvent:
