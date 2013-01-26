@@ -43,10 +43,6 @@ func New(w *world.World, m *mapgen.Mapgen, q *query.Query, f *fx.Fx) *Action {
 	return &Action{world: w, mapgen: m, query: q, fx: f}
 }
 
-type fovvable interface {
-	entity.Fov
-}
-
 func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
 	newLoc := a.world.Manifold.Offset(a.query.Loc(obj), vec)
 	footprint := a.query.Footprint(obj, newLoc)
@@ -106,7 +102,7 @@ func (a *Action) Place(obj entity.Entity, loc space.Location) {
 		panic("Placed obj not shown alive")
 	}
 
-	if f, ok := obj.(fovvable); ok {
+	if f, ok := obj.(entity.Fov); ok {
 		a.DoFov(f)
 	}
 
@@ -121,7 +117,7 @@ func (a *Action) Place(obj entity.Entity, loc space.Location) {
 func (a *Action) DoFov(obj entity.Entity) {
 	// TODO: Parametrisable radius
 	const radius = 12
-	if f, ok := obj.(fovvable); ok {
+	if f, ok := obj.(entity.Fov); ok {
 		fv := fov.New(
 			func(loc space.Location) bool { return a.world.Terrain(loc).BlocksSight() },
 			func(pt image.Point, loc space.Location) { f.MarkFov(pt, loc) },
@@ -148,7 +144,7 @@ func (a *Action) EndTurn() {
 func (a *Action) NextLevel() {
 	a.world.Floor++
 	a.world.Clear()
-	if f, ok := a.world.Player.(fovvable); ok {
+	if f, ok := a.world.Player.(entity.Fov); ok {
 		f.ClearFov()
 	}
 
