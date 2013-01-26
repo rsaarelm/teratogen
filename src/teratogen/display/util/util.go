@@ -106,10 +106,28 @@ func SmallIcon(sheet string, idx int) gfx.ImageSpec {
 	return gfx.SubImage(sheet, smallIconRect(idx))
 }
 
+// SmallIcons works like SmallIcon but produces multiple images.
+func SmallIcons(sheet string, indices ...int) []gfx.ImageSpec {
+	result := []gfx.ImageSpec{}
+	for _, idx := range indices {
+		result = append(result, SmallIcon(sheet, idx))
+	}
+	return result
+}
+
 // LargeIcon returns a sevel-cell icon (basically 3x3 small icons) from the
 // given icon sheet counting indexes from left to right and top to bottom. The
 // icon will be offseted so that it's draw position corresponds to its central
 // cell.
 func LargeIcon(sheet string, idx int) gfx.ImageSpec {
 	return gfx.OffsetSubImage(sheet, largeIconRect(idx), image.Pt(-TileW, -TileH))
+}
+
+// LargeIcons works like LargeIcon but produces multiple images.
+func LargeIcons(sheet string, indices ...int) []gfx.ImageSpec {
+	result := []gfx.ImageSpec{}
+	for _, idx := range indices {
+		result = append(result, LargeIcon(sheet, idx))
+	}
+	return result
 }

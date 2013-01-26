@@ -68,17 +68,10 @@ const (
 	StairTerrain
 )
 
-func tiles(idxs ...int) (result []gfx.ImageSpec) {
-	for _, n := range idxs {
-		result = append(result, util.SmallIcon(util.Tiles, n))
-	}
-	return
-}
-
 var terrainTable = []TerrainData{
-	{tiles(3), SolidKind}, // void terrain, should have some "you shouldn't be seeing this" icon
-	{tiles(0), OpenKind},
-	{tiles(16, 17, 18, 19), WallKind},
-	{tiles(3), DoorKind},
-	{tiles(4), StairKind},
+	{util.SmallIcons(util.Tiles, 3), SolidKind}, // void terrain, should have some "you shouldn't be seeing this" icon
+	{util.SmallIcons(util.Tiles, 0), OpenKind},
+	{util.SmallIcons(util.Tiles, 16, 17, 18, 19), WallKind},
+	{util.SmallIcons(util.Tiles, 3), DoorKind},
+	{util.SmallIcons(util.Tiles, 4), StairKind},
 }
