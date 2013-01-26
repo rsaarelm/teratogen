@@ -18,7 +18,7 @@
 package world
 
 import (
-	"image"
+	"teratogen/display/util"
 	"teratogen/gfx"
 )
 
@@ -68,15 +68,9 @@ const (
 	StairTerrain
 )
 
-func tile(idx int) gfx.ImageSpec {
-	x, y := idx%16, idx/16
-	const dim = 8
-	return gfx.ImageSpec{"assets/tiles.png", image.Rect(x*dim, y*dim, x*dim+dim, y*dim+dim)}
-}
-
 func tiles(idxs ...int) (result []gfx.ImageSpec) {
 	for _, n := range idxs {
-		result = append(result, tile(n))
+		result = append(result, util.SmallIcon(util.Tiles, n))
 	}
 	return
 }

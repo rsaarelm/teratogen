@@ -92,9 +92,11 @@ func (f *Fx) Beam(origin space.Location, dir image.Point, length int, kind BeamK
 }
 
 var smallBlast = []gfx.ImageSpec{
-	{"assets/items.png", image.Rect(0, 16, 8, 24)},
-	{"assets/items.png", image.Rect(8, 16, 16, 24)},
-	{"assets/items.png", image.Rect(16, 16, 24, 24)}}
+	util.SmallIcon(util.Items, 32),
+	util.SmallIcon(util.Items, 33),
+	util.SmallIcon(util.Items, 34),
+	util.SmallIcon(util.Items, 35),
+}
 
 // Blast generates an explosion effect in the game world.
 func (f *Fx) Blast(loc space.Location, kind BlastKind) {
@@ -109,8 +111,10 @@ func (f *Fx) Blast(loc space.Location, kind BlastKind) {
 				frames[0].Draw(offset)
 			} else if t < .2e9 {
 				frames[1].Draw(offset)
-			} else {
+			} else if t < .3e9 {
 				frames[2].Draw(offset)
+			} else {
+				frames[3].Draw(offset)
 			}
-		}), space.SimpleFootprint(loc), .3e9)
+		}), space.SimpleFootprint(loc), .4e9)
 }

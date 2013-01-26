@@ -155,6 +155,15 @@ func hline3X(src, dest []uint32, n int) {
 type ImageSpec struct {
 	File   string
 	Bounds image.Rectangle
+	Offset image.Point
+}
+
+func SubImage(file string, bounds image.Rectangle) ImageSpec {
+	return ImageSpec{file, bounds, image.Pt(0, 0)}
+}
+
+func OffsetSubImage(file string, bounds image.Rectangle, offset image.Point) ImageSpec {
+	return ImageSpec{file, bounds, offset}
 }
 
 // Context is a interface for Spritable objects to get UI level resources to

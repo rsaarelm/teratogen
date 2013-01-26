@@ -25,6 +25,7 @@ import (
 	"teratogen/display/util"
 	"teratogen/gfx"
 	"teratogen/space"
+	"teratogen/tile"
 	"teratogen/world"
 )
 
@@ -55,7 +56,7 @@ func (v *View) collectSpritesAt(
 
 	// Collect terrain tile sprite.
 	if v.world.Contains(loc) {
-		idx := util.TerrainTileOffset(v.world, v.chart(), chartPos)
+		idx := TerrainTileOffset(v.world, v.chart(), chartPos)
 		sprites = append(sprites, gfx.Sprite{
 			Layer:    util.TerrainLayer,
 			Offset:   offset,
@@ -98,4 +99,20 @@ func (v *View) CollectSprites(
 	}
 
 	return sprites
+}
+
+// TerrainTileOffest checks the neighbourhood of a charted tile to see if it
+// needs special formatting. Mostly used to prettify wall tiles.
+func TerrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
+	t := w.Terrain(chart.At(pos))
+	if t.Kind == world.WallKind {
+		edgeMask := 0
+		for i, vec := range tile.HexDirs {
+			if w.Terrain(chart.At(pos.Add(vec))).ShapesWalls() {
+				edgeMask |= 1 << uint8(i)
+			}
+		}
+		return tile.HexWallType(edgeMask)
+	}
+	return 0
 }

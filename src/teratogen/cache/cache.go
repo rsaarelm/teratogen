@@ -51,7 +51,7 @@ func (c *Cache) GetDrawable(spec gfx.ImageSpec) gfx.Drawable {
 	if err != nil {
 		panic(err)
 	}
-	return gfx.ImageDrawable{surface, spec.Bounds, image.Pt(0, 0)}
+	return gfx.ImageDrawable{surface, spec.Bounds, spec.Offset}
 }
 
 func (c *Cache) GetFont(spec font.Spec) (result *font.Font, err error) {

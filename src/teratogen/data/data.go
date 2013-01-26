@@ -20,9 +20,8 @@
 package data
 
 import (
-	"image"
-	"teratogen/gfx"
+	"teratogen/display/util"
 	"teratogen/mob"
 )
 
-var PcSpec = mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(0, 8, 8, 16)}}
+var PcSpec = mob.Spec{util.SmallIcon(util.Chars, 16)}

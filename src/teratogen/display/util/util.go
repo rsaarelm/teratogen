@@ -21,13 +21,27 @@ package util
 import (
 	"image"
 	"math"
-	"teratogen/space"
-	"teratogen/tile"
-	"teratogen/world"
+	"teratogen/gfx"
 )
 
-const TileW = 8
-const TileH = 8
+const (
+	TerrainLayer = 0
+	DecalLayer   = 10
+	ItemLayer    = 20
+	MobLayer     = 30
+	AnimLayer    = 100
+)
+
+const (
+	TileW = 8
+	TileH = 8
+)
+
+const (
+	Tiles = "assets/tiles.png"
+	Chars = "assets/chars.png"
+	Items = "assets/items.png"
+)
 
 var HalfTile = image.Pt(TileW/2, TileH/2)
 
@@ -76,26 +90,26 @@ func ChartArea(screenArea image.Rectangle) image.Rectangle {
 	return image.Rect(minX, minY, maxX+1, maxY+1)
 }
 
-// TerrainTileOffest checks the neighbourhood of a charted tile to see if it
-// needs special formatting. Mostly used to prettify wall tiles.
-func TerrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
-	t := w.Terrain(chart.At(pos))
-	if t.Kind == world.WallKind {
-		edgeMask := 0
-		for i, vec := range tile.HexDirs {
-			if w.Terrain(chart.At(pos.Add(vec))).ShapesWalls() {
-				edgeMask |= 1 << uint8(i)
-			}
-		}
-		return tile.HexWallType(edgeMask)
-	}
-	return 0
+func smallIconRect(idx int) image.Rectangle {
+	x, y := (idx%16)*TileW, (idx/16)*TileH
+	return image.Rect(x, y, x+TileW, y+TileH)
 }
 
-const (
-	TerrainLayer = 0
-	DecalLayer   = 10
-	ItemLayer    = 20
-	MobLayer     = 30
-	AnimLayer    = 100
-)
+func largeIconRect(idx int) image.Rectangle {
+	x, y := (idx%5)*TileW*3, (idx/5)*TileH*3
+	return image.Rect(x, y, x+TileW*3, y+TileH*3)
+}
+
+// SmallIcon returns a single-cell icon from the given icon sheet counting
+// indexes from left to right and from top to bottom.
+func SmallIcon(sheet string, idx int) gfx.ImageSpec {
+	return gfx.SubImage(sheet, smallIconRect(idx))
+}
+
+// LargeIcon returns a sevel-cell icon (basically 3x3 small icons) from the
+// given icon sheet counting indexes from left to right and top to bottom. The
+// icon will be offseted so that it's draw position corresponds to its central
+// cell.
+func LargeIcon(sheet string, idx int) gfx.ImageSpec {
+	return gfx.OffsetSubImage(sheet, largeIconRect(idx), image.Pt(-TileW, -TileH))
+}

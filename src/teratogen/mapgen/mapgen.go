@@ -23,8 +23,8 @@ import (
 	"errors"
 	"image"
 	"math/rand"
+	"teratogen/display/util"
 	"teratogen/entity"
-	"teratogen/gfx"
 	"teratogen/mob"
 	"teratogen/space"
 	"teratogen/world"
@@ -56,7 +56,7 @@ func (m *Mapgen) TestMap(start space.Location) {
 
 	for i := 0; i < 32; i++ {
 		spawnLoc := m.randomLoc()
-		spawnMob := mob.New(m.world, &mob.Spec{gfx.ImageSpec{"assets/chars.png", image.Rect(8, 0, 16, 8)}})
+		spawnMob := mob.New(m.world, &mob.Spec{util.SmallIcon(util.Chars, 1)})
 		m.spawn(spawnMob, spawnLoc)
 	}
 
