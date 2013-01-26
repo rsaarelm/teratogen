@@ -102,11 +102,11 @@ func (f *Fx) Blast(loc space.Location, kind BlastKind) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .4e9)
 	case LargeExplodeBlast:
-		frames := anim.NewCycle(f.cache, .15e9, false, util.LargeIcons(util.Items, 5, 6, 7))
+		frames := anim.NewCycle(f.cache, .10e9, false, util.LargeIcons(util.Items, 5, 6, 7, 8, 9))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
-			}), space.SimpleFootprint(loc), .4e9)
+			}), space.SimpleFootprint(loc), .5e9)
 	default:
 		println("Unknown blast kind ", kind)
 		return
