@@ -131,7 +131,12 @@ func (a *Action) RunAI() {
 		if actor == a.world.Player {
 			continue
 		}
-		a.AttackMove(actor, tile.HexDirs[rand.Intn(6)])
+
+		moveDir := tile.HexDirs[rand.Intn(6)]
+		if enemy, found := a.query.ClosestEnemy(actor); found {
+			moveDir = tile.HexVecToDir(enemy.Offset)
+		}
+		a.AttackMove(actor, moveDir)
 	}
 }
 

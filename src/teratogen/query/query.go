@@ -20,9 +20,12 @@
 package query
 
 import (
+	"image"
 	"teratogen/entity"
+	"teratogen/fov"
 	"teratogen/mob"
 	"teratogen/space"
+	"teratogen/tile"
 	"teratogen/world"
 )
 
@@ -50,4 +53,37 @@ func (q *Query) Loc(obj entity.Entity) space.Location {
 func (q *Query) IsGameOver() bool {
 	obj, _ := q.world.Player.(*mob.PC)
 	return !q.world.IsAlive(obj)
+}
+
+func (q *Query) VisibleEntities(loc space.Location, radius int) []space.OffsetEntity {
+	seen := map[space.OffsetEntity]bool{}
+	fv := fov.New(
+		func(loc space.Location) bool { return q.world.Terrain(loc).BlocksSight() },
+		func(pt image.Point, loc space.Location) {
+			for _, oe := range q.world.Spatial.At(loc) {
+				seen[space.OffsetEntity{oe.Entity, pt.Add(oe.Offset)}] = true
+			}
+		},
+		q.world.Manifold)
+	fv.Run(loc, radius)
+
+	result := []space.OffsetEntity{}
+	for oe, _ := range seen {
+		result = append(result, oe)
+	}
+	return result
+}
+
+func (q *Query) ClosestEnemy(obj entity.Entity) (result space.OffsetEntity, found bool) {
+	// TODO: Different sight radii
+	radius := 4
+	for _, oe := range q.VisibleEntities(q.Loc(obj), radius) {
+		if q.EnemyOf(obj, oe.Entity) {
+			if !found || tile.HexLength(oe.Offset) < tile.HexLength(result.Offset) {
+				result = oe
+				found = true
+			}
+		}
+	}
+	return
 }
