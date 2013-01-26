@@ -76,12 +76,12 @@ func (gs *game) Update(timeElapsed int64) {
 	// Convenience maps for the directional keys.
 
 	moveKeys := map[sdl.KeySym]image.Point{
-		sdl.K_w: tile.HexDirs[0],
-		sdl.K_e: tile.HexDirs[1],
-		sdl.K_d: tile.HexDirs[2],
-		sdl.K_s: tile.HexDirs[3],
-		sdl.K_a: tile.HexDirs[4],
-		sdl.K_q: tile.HexDirs[5]}
+		sdl.K_e: tile.HexDirs[0],
+		sdl.K_r: tile.HexDirs[1],
+		sdl.K_f: tile.HexDirs[2],
+		sdl.K_d: tile.HexDirs[3],
+		sdl.K_s: tile.HexDirs[4],
+		sdl.K_w: tile.HexDirs[5]}
 
 	shootKeys := map[sdl.KeySym]image.Point{
 		sdl.K_i: tile.HexDirs[0],
