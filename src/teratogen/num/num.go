@@ -47,6 +47,15 @@ func Clamp(min, max, x float64) float64 {
 	return x
 }
 
+func ClampI(min, max, x int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
+}
+
 // InvSqrt approximates the inverse square root of x very quickly.
 func InvSqrt(x float64) float64 {
 	const sqrtMagic64 = 0x5FE6EC85E7DE30DA
@@ -97,6 +106,20 @@ func AbsI(x int) int {
 		return -x
 	}
 	return x
+}
+
+func MinI(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func MaxI(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
 }
 
 // BresenhamLine traces a line from p1 to p2 using Bresenham's line drawing
