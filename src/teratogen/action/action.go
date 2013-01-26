@@ -68,9 +68,18 @@ func (a *Action) AttackMove(obj entity.Entity, vec image.Point) {
 }
 
 func (a *Action) Attack(attacker, target entity.Entity) {
-	// TODO better
-	// Just straight up kill the target.
-	a.world.Spatial.Remove(target)
+	a.Damage(target, 1)
+}
+
+func (a *Action) Damage(target entity.Entity, amount int) {
+	if mob, ok := target.(entity.Stats); ok {
+		mob.Damage(amount)
+		if mob.Health() <= 0 {
+			// Target died.
+			// Extra logic hooks here.
+			a.world.Spatial.Remove(target)
+		}
+	}
 }
 
 func (a *Action) Move(obj entity.Entity, vec image.Point) {

@@ -126,6 +126,7 @@ func (gs *game) Update(timeElapsed int64) {
 					gs.action.EndTurn()
 				case sdl.K_b:
 					gs.fx.Blast(gs.query.Loc(pc), fx.SmallExplodeBlast)
+					gs.action.Damage(gs.world.Player, 1)
 				case sdl.K_n:
 					gs.fx.Blast(gs.query.Loc(pc), fx.LargeExplodeBlast)
 				}

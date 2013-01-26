@@ -51,17 +51,3 @@ func (q *Query) IsGameOver() bool {
 	obj, _ := q.world.Player.(*mob.PC)
 	return !q.world.IsAlive(obj)
 }
-
-func (q *Query) Health(obj entity.Entity) int {
-	if mob, ok := obj.(*mob.Mob); ok {
-		return mob.Health
-	}
-	return 0
-}
-
-func (q *Query) Shields(obj entity.Entity) int {
-	if mob, ok := obj.(*mob.Mob); ok {
-		return mob.Shields
-	}
-	return 0
-}

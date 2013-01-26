@@ -34,9 +34,9 @@ type Mob struct {
 	loc       space.Location
 	world     *world.World
 	placed    bool
-	Health    int
-	MaxHealth int
-	Shields   int
+	health    int
+	maxHealth int
+	shield    int
 }
 
 type PC struct {
@@ -65,8 +65,8 @@ func New(w *world.World, spec *Spec) (result *Mob) {
 func (m *Mob) Init(w *world.World, spec *Spec) {
 	m.world = w
 	m.icon = spec.Icon
-	m.Health = spec.MaxHealth
-	m.MaxHealth = spec.MaxHealth
+	m.health = spec.MaxHealth
+	m.maxHealth = spec.MaxHealth
 	w.AddActor(m)
 }
 
@@ -102,4 +102,34 @@ func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
 
 func (m *Mob) BlocksMove() bool {
 	return true
+}
+
+func (m *Mob) Health() int { return m.health }
+
+func (m *Mob) MaxHealth() int { return m.maxHealth }
+
+func (m *Mob) Shield() int { return m.shield }
+
+func (m *Mob) Damage(amount int) {
+	amountLeft := amount
+
+	if m.shield > 0 {
+		shieldDamage := num.MinI(m.shield, amountLeft)
+		m.shield -= shieldDamage
+		amountLeft -= shieldDamage
+
+		// Freebie damage reduction from destroying shields. Only really
+		// massive damage penetrates on the same turn.
+		amountLeft = num.MaxI(0, amountLeft-3)
+	}
+
+	m.health = num.MaxI(0, m.health-amountLeft)
+}
+
+func (m *Mob) AddHealth(amount int) {
+	m.health = num.ClampI(0, m.maxHealth, m.health+amount)
+}
+
+func (m *Mob) AddShield(amount int) {
+	m.shield = num.MaxI(0, m.shield+amount)
 }

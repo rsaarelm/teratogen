@@ -38,5 +38,15 @@ type Fov interface {
 	ClearFov()
 }
 
+// Stats are the interface for active entities that fight and get hurt.
+type Stats interface {
+	Health() int
+	MaxHealth() int
+	Shield() int
+	Damage(amount int)
+	AddHealth(amount int)
+	AddShield(amount int)
+}
+
 // Entity type is just an alias for interface{} for more explicit notation.
 type Entity interface{}

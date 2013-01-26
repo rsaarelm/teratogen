@@ -24,9 +24,9 @@ import (
 	"image"
 	"teratogen/cache"
 	"teratogen/display/util"
+	"teratogen/entity"
 	"teratogen/font"
 	"teratogen/gfx"
-	"teratogen/mob"
 	"teratogen/sdl"
 	"teratogen/world"
 )
@@ -63,10 +63,10 @@ func (h *Hud) drawHealth(bounds image.Rectangle) {
 	shield := h.cache.GetDrawable(util.SmallIcon(util.Items, 25))
 	halfShield := h.cache.GetDrawable(util.SmallIcon(util.Items, 26))
 
-	pc, _ := h.world.Player.(*mob.PC)
+	pc, _ := h.world.Player.(entity.Stats)
 	offset := bounds.Min
-	for i := 0; i < pc.MaxHealth; i += 2 {
-		n := pc.Health - i
+	for i := 0; i < pc.MaxHealth(); i += 2 {
+		n := pc.Health() - i
 		if n > 1 {
 			heart.Draw(offset)
 		} else if n > 0 {
@@ -76,8 +76,8 @@ func (h *Hud) drawHealth(bounds image.Rectangle) {
 		}
 		offset = offset.Add(image.Pt(util.TileW, 0))
 	}
-	for i := 0; i < pc.Shields; i += 2 {
-		n := pc.Shields - i
+	for i := 0; i < pc.Shield(); i += 2 {
+		n := pc.Shield() - i
 		if n > 1 {
 			shield.Draw(offset)
 		} else {
