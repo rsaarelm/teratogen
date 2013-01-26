@@ -30,10 +30,13 @@ import (
 )
 
 type Mob struct {
-	icon   gfx.ImageSpec
-	loc    space.Location
-	world  *world.World
-	placed bool
+	icon      gfx.ImageSpec
+	loc       space.Location
+	world     *world.World
+	placed    bool
+	Health    int
+	MaxHealth int
+	Shields   int
 }
 
 type PC struct {
@@ -49,7 +52,8 @@ func NewPC(w *world.World, spec *Spec) (result *PC) {
 }
 
 type Spec struct {
-	Icon gfx.ImageSpec
+	Icon      gfx.ImageSpec
+	MaxHealth int
 }
 
 func New(w *world.World, spec *Spec) (result *Mob) {
@@ -61,6 +65,8 @@ func New(w *world.World, spec *Spec) (result *Mob) {
 func (m *Mob) Init(w *world.World, spec *Spec) {
 	m.world = w
 	m.icon = spec.Icon
+	m.Health = spec.MaxHealth
+	m.MaxHealth = spec.MaxHealth
 	w.AddActor(m)
 }
 

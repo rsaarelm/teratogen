@@ -56,7 +56,7 @@ func (m *Mapgen) TestMap(start space.Location) {
 
 	for i := 0; i < 32; i++ {
 		spawnLoc := m.randomLoc()
-		spawnMob := mob.New(m.world, &mob.Spec{util.SmallIcon(util.Chars, 1)})
+		spawnMob := mob.New(m.world, &mob.Spec{util.SmallIcon(util.Chars, 1), 2})
 		m.spawn(spawnMob, spawnLoc)
 	}
 

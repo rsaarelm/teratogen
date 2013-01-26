@@ -23,8 +23,10 @@ import (
 	"fmt"
 	"image"
 	"teratogen/cache"
+	"teratogen/display/util"
 	"teratogen/font"
 	"teratogen/gfx"
+	"teratogen/mob"
 	"teratogen/sdl"
 	"teratogen/world"
 )
@@ -50,4 +52,37 @@ func (h *Hud) Draw(bounds image.Rectangle) {
 		font.None, gfx.Yellow, gfx.Black}
 
 	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
+
+	h.drawHealth(image.Rectangle{bounds.Min.Add(image.Pt(0, 8)), bounds.Max})
+}
+
+func (h *Hud) drawHealth(bounds image.Rectangle) {
+	heart := h.cache.GetDrawable(util.SmallIcon(util.Items, 22))
+	halfHeart := h.cache.GetDrawable(util.SmallIcon(util.Items, 23))
+	noHeart := h.cache.GetDrawable(util.SmallIcon(util.Items, 24))
+	shield := h.cache.GetDrawable(util.SmallIcon(util.Items, 25))
+	halfShield := h.cache.GetDrawable(util.SmallIcon(util.Items, 26))
+
+	pc, _ := h.world.Player.(*mob.PC)
+	offset := bounds.Min
+	for i := 0; i < pc.MaxHealth; i += 2 {
+		n := pc.Health - i
+		if n > 1 {
+			heart.Draw(offset)
+		} else if n > 0 {
+			halfHeart.Draw(offset)
+		} else {
+			noHeart.Draw(offset)
+		}
+		offset = offset.Add(image.Pt(util.TileW, 0))
+	}
+	for i := 0; i < pc.Shields; i += 2 {
+		n := pc.Shields - i
+		if n > 1 {
+			shield.Draw(offset)
+		} else {
+			halfShield.Draw(offset)
+		}
+		offset = offset.Add(image.Pt(util.TileW, 0))
+	}
 }

@@ -24,4 +24,4 @@ import (
 	"teratogen/mob"
 )
 
-var PcSpec = mob.Spec{util.SmallIcon(util.Chars, 16)}
+var PcSpec = mob.Spec{util.SmallIcon(util.Chars, 16), 6}
