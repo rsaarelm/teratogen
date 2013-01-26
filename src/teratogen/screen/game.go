@@ -52,7 +52,7 @@ func (gs *game) Enter() {
 	gs.query = query.New(gs.world)
 	gs.mapgen = mapgen.New(gs.world)
 	gs.disp = display.New(app.Cache(), gs.world)
-	gs.fx = fx.New(gs.disp.Anim, gs.world)
+	gs.fx = fx.New(app.Cache(), gs.disp.Anim, gs.world)
 	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
 	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
@@ -118,6 +118,8 @@ func (gs *game) Update(timeElapsed int64) {
 				switch e.FixedSym() {
 				case sdl.K_SPACE:
 					gs.action.EndTurn()
+				case sdl.K_b:
+					gs.fx.Blast(gs.query.Loc(pc), fx.ExplodeBlast)
 				}
 			}
 		case sdl.QuitEvent:

@@ -21,6 +21,7 @@ package fx
 
 import (
 	"image"
+	"teratogen/cache"
 	"teratogen/display/anim"
 	"teratogen/display/util"
 	"teratogen/gfx"
@@ -48,12 +49,13 @@ const (
 )
 
 type Fx struct {
+	cache *cache.Cache
 	anim  *anim.Anim
 	world *world.World
 }
 
-func New(a *anim.Anim, w *world.World) *Fx {
-	return &Fx{anim: a, world: w}
+func New(c *cache.Cache, a *anim.Anim, w *world.World) *Fx {
+	return &Fx{cache: c, anim: a, world: w}
 }
 
 // Msgf prints a formatted message to the 
@@ -89,7 +91,26 @@ func (f *Fx) Beam(origin space.Location, dir image.Point, length int, kind BeamK
 		}), footprint, .2e9)
 }
 
+var smallBlast = []gfx.ImageSpec{
+	{"assets/items.png", image.Rect(0, 16, 8, 24)},
+	{"assets/items.png", image.Rect(8, 16, 16, 24)},
+	{"assets/items.png", image.Rect(16, 16, 24, 24)}}
+
 // Blast generates an explosion effect in the game world.
 func (f *Fx) Blast(loc space.Location, kind BlastKind) {
-	// TODO
+	var frames []gfx.Drawable
+	for _, spec := range smallBlast {
+		frames = append(frames, f.cache.GetDrawable(spec))
+	}
+
+	f.anim.Add(
+		anim.Func(func(t int64, offset image.Point) {
+			if t < .1e9 {
+				frames[0].Draw(offset)
+			} else if t < .2e9 {
+				frames[1].Draw(offset)
+			} else {
+				frames[2].Draw(offset)
+			}
+		}), space.SimpleFootprint(loc), .3e9)
 }
