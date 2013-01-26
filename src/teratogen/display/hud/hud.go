@@ -1,6 +1,6 @@
-// display.go
+// hud.go
 //
-// Copyright (C) 2012 Risto Saarelma
+// Copyright (C) 2013 Risto Saarelma
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,59 +15,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package display
+// Package hud handles displaying onscreen status readouts and messages during
+// gameplay.
+package hud
 
 import (
 	"fmt"
 	"image"
 	"teratogen/cache"
-	"teratogen/display/anim"
-	"teratogen/display/view"
 	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
 	"teratogen/world"
 )
 
-type Display struct {
-	cache       *cache.Cache
-	Anim        *anim.Anim
-	view        *view.View
-	chartOrigin image.Point
+type Hud struct {
+	cache *cache.Cache
+	world *world.World
 }
 
-func New(c *cache.Cache, w *world.World) (result *Display) {
-	result = new(Display)
-	result.cache = c
-	result.Anim = anim.New()
-	result.view = view.New(c, w, result.Anim)
-	return
+func New(c *cache.Cache, w *world.World) *Hud {
+	return &Hud{cache: c, world: w}
 }
 
-func (d *Display) DrawWorld(bounds image.Rectangle) {
+func (h *Hud) Draw(bounds image.Rectangle) {
 	sdl.Frame().SetClipRect(bounds)
 	defer sdl.Frame().ClearClipRect()
-	sdl.Frame().Clear(gfx.Black)
 
-	sprites := gfx.SpriteBatch{}
-
-	sprites = d.view.CollectSprites(sprites, bounds)
-
-	sprites.Sort()
-	sprites.Draw()
-}
-
-func (d *Display) DrawMsg(bounds image.Rectangle) {
-	sdl.Frame().SetClipRect(bounds)
-	defer sdl.Frame().ClearClipRect()
-	sdl.Frame().Clear(gfx.Black)
-
-	f, err := d.cache.GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
+	f, err := h.cache.GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	if err != nil {
 		panic(err)
 	}
 	cur := &font.Cursor{f, sdl.Frame(), bounds.Min.Add(image.Pt(0, int(f.Height()))),
-		font.None, gfx.Green, gfx.Black}
+		font.None, gfx.Yellow, gfx.Black}
 
 	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
 }

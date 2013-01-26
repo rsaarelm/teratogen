@@ -22,8 +22,10 @@ import (
 	"teratogen/action"
 	"teratogen/app"
 	"teratogen/data"
-	"teratogen/display"
+	"teratogen/display/anim"
 	"teratogen/display/fx"
+	"teratogen/display/hud"
+	"teratogen/display/view"
 	"teratogen/gfx"
 	"teratogen/mapgen"
 	"teratogen/mob"
@@ -41,18 +43,22 @@ func Game() app.State {
 type game struct {
 	world  *world.World
 	query  *query.Query
+	hud    *hud.Hud
+	view   *view.View
+	anim   *anim.Anim
 	fx     *fx.Fx
 	action *action.Action
-	disp   *display.Display
 	mapgen *mapgen.Mapgen
 }
 
 func (gs *game) Enter() {
 	gs.world = world.New()
 	gs.query = query.New(gs.world)
+	gs.hud = hud.New(app.Cache(), gs.world)
+	gs.anim = anim.New()
+	gs.view = view.New(app.Cache(), gs.world, gs.anim)
 	gs.mapgen = mapgen.New(gs.world)
-	gs.disp = display.New(app.Cache(), gs.world)
-	gs.fx = fx.New(app.Cache(), gs.disp.Anim, gs.world)
+	gs.fx = fx.New(app.Cache(), gs.anim, gs.world)
 	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
 	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
@@ -64,8 +70,8 @@ func (gs *game) Exit() {}
 func (gs *game) Draw() {
 	sdl.Frame().Clear(gfx.Black)
 	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
-	gs.disp.DrawWorld(image.Rect(4, 4, 316, 156))
-	gs.disp.DrawMsg(image.Rect(2, 162, 158, 238))
+	gs.view.Draw(image.Rect(4, 4, 316, 156))
+	gs.hud.Draw(image.Rect(0, 0, 320, 240))
 }
 
 func (gs *game) Update(timeElapsed int64) {

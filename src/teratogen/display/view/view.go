@@ -24,6 +24,7 @@ import (
 	"teratogen/display/anim"
 	"teratogen/display/util"
 	"teratogen/gfx"
+	"teratogen/sdl"
 	"teratogen/space"
 	"teratogen/tile"
 	"teratogen/world"
@@ -79,6 +80,17 @@ func (v *View) collectSpritesAt(
 	sprites = v.anim.CollectSpritesAt(sprites, loc, offset, util.AnimLayer)
 
 	return sprites
+}
+
+func (v *View) Draw(bounds image.Rectangle) {
+	sdl.Frame().SetClipRect(bounds)
+	defer sdl.Frame().ClearClipRect()
+	sdl.Frame().Clear(gfx.Black)
+
+	sprites := gfx.SpriteBatch{}
+	sprites = v.CollectSprites(sprites, bounds)
+	sprites.Sort()
+	sprites.Draw()
 }
 
 // CollectSprites collects all the sprites in the visible world chart into the
