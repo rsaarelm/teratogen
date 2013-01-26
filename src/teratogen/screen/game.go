@@ -61,7 +61,10 @@ func (gs *game) Enter() {
 	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
 	gs.world.SetPlayer(factory.Spawn(factory.Player, gs.world))
-	gs.action.NextLevel()
+	startLoc := gs.action.CreateNextFloor()
+	gs.world.Place(gs.world.Player, startLoc)
+	gs.action.DoFov(gs.world.Player)
+	gs.action.CreateNextFloor()
 }
 
 func (gs *game) Exit() {}

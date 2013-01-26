@@ -141,3 +141,7 @@ func (m *Manifold) SetPortal(loc Location, portal Portal) {
 		m.portals[loc] = portal
 	}
 }
+
+func (m *Manifold) SetPortalTo(loc, targetLoc Location) {
+	m.SetPortal(loc, Port(targetLoc.X-loc.X, targetLoc.Y-loc.Y, targetLoc.Zone))
+}

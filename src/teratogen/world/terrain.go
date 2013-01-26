@@ -73,5 +73,5 @@ var terrainTable = []TerrainData{
 	{util.SmallIcons(util.Tiles, 0), OpenKind},
 	{util.SmallIcons(util.Tiles, 16, 17, 18, 19), WallKind},
 	{util.SmallIcons(util.Tiles, 3), DoorKind},
-	{util.SmallIcons(util.Tiles, 4), StairKind},
+	{util.SmallIcons(util.Tiles, 39), StairKind},
 }

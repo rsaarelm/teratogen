@@ -110,9 +110,9 @@ func (a *Action) Place(obj entity.Entity, loc space.Location) {
 	}
 
 	for _, footLoc := range a.query.Footprint(obj, loc) {
-		if obj == a.world.Player && a.world.Terrain(footLoc).Kind == world.StairKind {
-			// Player stepping on a stair, go to next level.
-			a.NextLevel()
+		if obj == a.world.Player && footLoc.Zone == a.world.FloorExit.Zone {
+			// Player has entered the lowest level, generate a new one.
+			a.CreateNextFloor()
 		}
 	}
 }
@@ -148,15 +148,17 @@ func (a *Action) EndTurn() {
 	a.world.EndTurn()
 }
 
-// NextLevel clears out the current level and moves the player to the next one.
-func (a *Action) NextLevel() {
-	a.world.Floor++
-	a.world.Clear()
-	if f, ok := a.world.Player.(entity.Fov); ok {
-		f.ClearFov()
-	}
+// CreateNextFloor creates the next level. Should be called when the player
+// enters the level where the entrance to this level will be.
+func (a *Action) CreateNextFloor() space.Location {
+	depth := int(a.world.FloorExit.Zone)
+	entrance, exit := a.mapgen.TestMap(space.Location{0, 0, uint16(depth + 1)}, depth)
+	a.world.Manifold.SetPortalTo(a.world.FloorExit, entrance)
+	a.world.FloorExit = exit
 
-	origin := space.Location{0, 0, 1}
-	a.mapgen.TestMap(origin, a.world.Floor)
+	// Reset player's FOV to get rid of the old level crap.
+	a.world.Player.ClearFov()
 	a.DoFov(a.world.Player)
+
+	return entrance
 }

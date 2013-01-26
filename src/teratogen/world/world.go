@@ -30,6 +30,8 @@ type World struct {
 	terrain  map[space.Location]Terrain
 	Spatial  *space.Index
 	Floor    int
+	// Exit location from the last floor map generated
+	FloorExit space.Location
 	// Actor queue for the current frame
 	actors []entity.Entity
 	// Actor queue for the next frame

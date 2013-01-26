@@ -39,7 +39,7 @@ func New(w *world.World) *Mapgen {
 	return &Mapgen{world: w}
 }
 
-func (m *Mapgen) TestMap(start space.Location, depth int) {
+func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Location) {
 	m.init(start)
 	for y := -17; y < 17; y++ {
 		for x := -17; x < 17; x++ {
@@ -51,7 +51,27 @@ func (m *Mapgen) TestMap(start space.Location, depth int) {
 	m.bspRooms(bounds)
 	m.extraDoors(bounds)
 
-	m.spawn(m.world.Player, m.randomLoc())
+	for nTries := 128; nTries >= 0; nTries-- {
+		if nTries == 0 {
+			panic("Couldn't place exit enclosure")
+		}
+		loc := m.randomLoc()
+		if m.isExitEnclosure(loc) {
+			exit = m.world.Manifold.Offset(loc, image.Pt(1, 0))
+			break
+		}
+	}
+
+	for nTries := 128; nTries >= 0; nTries-- {
+		if nTries == 0 {
+			panic("Couldn't place entry enclosure")
+		}
+		loc := m.randomLoc()
+		if loc != exit && m.isEntryEnclosure(loc) {
+			entry = m.world.Manifold.Offset(loc, image.Pt(-1, 0))
+			break
+		}
+	}
 
 	for i := 0; i < 32; i++ {
 		spawnLoc := m.randomLoc()
@@ -59,7 +79,8 @@ func (m *Mapgen) TestMap(start space.Location, depth int) {
 		m.spawn(spawnMob, spawnLoc)
 	}
 
-	m.world.SetTerrain(m.randomLoc(), world.StairTerrain)
+	m.world.SetTerrain(entry, world.StairTerrain)
+	return
 }
 
 func (m *Mapgen) init(start space.Location) {
@@ -110,6 +131,39 @@ func (m *Mapgen) terrain(pt image.Point) world.TerrainData {
 
 func (m *Mapgen) setTerrain(pt image.Point, t world.Terrain) {
 	m.world.SetTerrain(m.chart.At(pt), t)
+}
+
+func (m *Mapgen) checkSurroundings(loc space.Location, mustBeOpen, mustBeClosed []image.Point) bool {
+	for _, offset := range mustBeOpen {
+		if _, ok := m.openSet[m.world.Manifold.Offset(loc, offset)]; !ok {
+			return false
+		}
+	}
+
+	for _, offset := range mustBeClosed {
+		if _, ok := m.openSet[m.world.Manifold.Offset(loc, offset)]; ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (m *Mapgen) isExitEnclosure(open space.Location) bool {
+	// Look for a suitable enclosure site in the positive x direction from the
+	// open location.
+
+	// Don't care if the actual site is open or blocked, it will be replaced
+	// with a portal to the next level anyway.
+	return m.checkSurroundings(open,
+		[]image.Point{{0, 0}},
+		[]image.Point{{1, -1}, {2, 0}, {2, 1}, {1, 1}})
+}
+
+func (m *Mapgen) isEntryEnclosure(open space.Location) bool {
+	return m.checkSurroundings(open,
+		[]image.Point{{0, 0}},
+		[]image.Point{{-2, -1}, {-2, 0}, {-1, 1}, {-1, -1}})
 }
 
 // simpleChart is a chart that pays no attention to portals in the manifold.
