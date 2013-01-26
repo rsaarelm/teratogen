@@ -130,3 +130,10 @@ func (w *World) Fits(obj entity.Entity, loc space.Location) bool {
 func (w *World) Place(obj entity.Entity, loc space.Location) {
 	w.Spatial.Place(obj, w.Manifold.FootprintFor(obj, loc))
 }
+
+func (w *World) SetPlayer(player entity.Entity) {
+	w.Player = player.(interface {
+		gfx.Spritable
+		entity.Fov
+	})
+}

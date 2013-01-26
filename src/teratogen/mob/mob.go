@@ -44,7 +44,7 @@ type PC struct {
 	Fov
 }
 
-func NewPC(w *world.World, spec *Spec) (result *PC) {
+func NewPC(w *world.World, spec Spec) (result *PC) {
 	result = new(PC)
 	result.Mob.Init(w, spec)
 	result.Fov.Init()
@@ -56,13 +56,13 @@ type Spec struct {
 	MaxHealth int
 }
 
-func New(w *world.World, spec *Spec) (result *Mob) {
+func New(w *world.World, spec Spec) (result *Mob) {
 	result = new(Mob)
 	result.Init(w, spec)
 	return
 }
 
-func (m *Mob) Init(w *world.World, spec *Spec) {
+func (m *Mob) Init(w *world.World, spec Spec) {
 	m.world = w
 	m.icon = spec.Icon
 	m.health = spec.MaxHealth

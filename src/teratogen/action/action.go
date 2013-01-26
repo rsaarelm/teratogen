@@ -154,6 +154,6 @@ func (a *Action) NextLevel() {
 	}
 
 	origin := space.Location{0, 0, 1}
-	a.mapgen.TestMap(origin)
+	a.mapgen.TestMap(origin, a.world.Floor)
 	a.DoFov(a.world.Player)
 }

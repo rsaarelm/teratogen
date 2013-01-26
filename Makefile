@@ -12,6 +12,7 @@ PKGS = teratogen \
 	teratogen/display/util \
 	teratogen/display/view \
 	teratogen/entity \
+	teratogen/factory \
 	teratogen/font \
 	teratogen/fov \
 	teratogen/gfx \

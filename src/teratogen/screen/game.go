@@ -21,14 +21,13 @@ import (
 	"image"
 	"teratogen/action"
 	"teratogen/app"
-	"teratogen/data"
 	"teratogen/display/anim"
 	"teratogen/display/fx"
 	"teratogen/display/hud"
 	"teratogen/display/view"
+	"teratogen/factory"
 	"teratogen/gfx"
 	"teratogen/mapgen"
-	"teratogen/mob"
 	"teratogen/query"
 	"teratogen/sdl"
 	"teratogen/tile"
@@ -61,7 +60,7 @@ func (gs *game) Enter() {
 	gs.fx = fx.New(app.Cache(), gs.anim, gs.world)
 	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
-	gs.world.Player = mob.NewPC(gs.world, &data.PcSpec)
+	gs.world.SetPlayer(factory.Spawn(factory.Player, gs.world))
 	gs.action.NextLevel()
 }
 

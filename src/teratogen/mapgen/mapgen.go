@@ -23,9 +23,8 @@ import (
 	"errors"
 	"image"
 	"math/rand"
-	"teratogen/display/util"
 	"teratogen/entity"
-	"teratogen/mob"
+	"teratogen/factory"
 	"teratogen/space"
 	"teratogen/world"
 )
@@ -40,7 +39,7 @@ func New(w *world.World) *Mapgen {
 	return &Mapgen{world: w}
 }
 
-func (m *Mapgen) TestMap(start space.Location) {
+func (m *Mapgen) TestMap(start space.Location, depth int) {
 	m.init(start)
 	for y := -17; y < 17; y++ {
 		for x := -17; x < 17; x++ {
@@ -56,7 +55,7 @@ func (m *Mapgen) TestMap(start space.Location) {
 
 	for i := 0; i < 32; i++ {
 		spawnLoc := m.randomLoc()
-		spawnMob := mob.New(m.world, &mob.Spec{util.SmallIcon(util.Chars, 1), 2})
+		spawnMob := factory.RandomMonster(depth, m.world)
 		m.spawn(spawnMob, spawnLoc)
 	}
 
