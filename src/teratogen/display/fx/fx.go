@@ -44,7 +44,8 @@ type BlastKind uint8
 const (
 	SparkBlast BlastKind = iota
 	SmokeBlast
-	ExplodeBlast
+	SmallExplodeBlast
+	LargeExplodeBlast
 	WarpBlast
 )
 
@@ -100,21 +101,22 @@ var smallBlast = []gfx.ImageSpec{
 
 // Blast generates an explosion effect in the game world.
 func (f *Fx) Blast(loc space.Location, kind BlastKind) {
-	var frames []gfx.Drawable
-	for _, spec := range smallBlast {
-		frames = append(frames, f.cache.GetDrawable(spec))
+	switch kind {
+	case SmallExplodeBlast:
+		frames := anim.NewCycle(f.cache, .1e9, false, util.SmallIcons(util.Items, 32, 33, 34, 35))
+		f.anim.Add(
+			anim.Func(func(t int64, offset image.Point) {
+				frames.Frame(t).Draw(offset)
+			}), space.SimpleFootprint(loc), .4e9)
+	case LargeExplodeBlast:
+		frames := anim.NewCycle(f.cache, .15e9, false, util.LargeIcons(util.Items, 5, 6, 7))
+		f.anim.Add(
+			anim.Func(func(t int64, offset image.Point) {
+				frames.Frame(t).Draw(offset)
+			}), space.SimpleFootprint(loc), .4e9)
+	default:
+		println("Unknown blast kind ", kind)
+		return
 	}
 
-	f.anim.Add(
-		anim.Func(func(t int64, offset image.Point) {
-			if t < .1e9 {
-				frames[0].Draw(offset)
-			} else if t < .2e9 {
-				frames[1].Draw(offset)
-			} else if t < .3e9 {
-				frames[2].Draw(offset)
-			} else {
-				frames[3].Draw(offset)
-			}
-		}), space.SimpleFootprint(loc), .4e9)
 }
