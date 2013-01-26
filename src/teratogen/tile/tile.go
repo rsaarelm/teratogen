@@ -28,13 +28,15 @@ import (
 
 // HexDist returns the hexagonal distance between two points.
 func HexDist(p1, p2 image.Point) int {
-	dx := p2.X - p1.X
-	dy := p2.Y - p1.Y
+	return HexLength(p2.Sub(p1))
+}
 
-	if math.Signbit(float64(dx)) == math.Signbit(float64(dy)) {
-		return int(math.Max(math.Abs(float64(dx)), math.Abs(float64(dy))))
+// HexLength returns the length in hexes of a vector on a hex map.
+func HexLength(vec image.Point) int {
+	if math.Signbit(float64(vec.X)) == math.Signbit(float64(vec.Y)) {
+		return int(math.Max(math.Abs(float64(vec.X)), math.Abs(float64(vec.Y))))
 	}
-	return int(math.Abs(float64(dx)) + math.Abs(float64(dy)))
+	return int(math.Abs(float64(vec.X)) + math.Abs(float64(vec.Y)))
 }
 
 var HexDirs = []image.Point{{-1, -1}, {0, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 0}}
@@ -137,4 +139,38 @@ func HexWallType(edgeMask int) int {
 		0, 0, 2, 2, 1, 0, 0, 0,
 		0, 3, 0, 2, 1, 1, 0, 0}
 	return walls[edgeMask]
+}
+
+// HexVecToDir returns the unit length hex direction that matches the given
+// hex coordinate vector best.
+func HexVecToDir(vec image.Point) image.Point {
+	switch hexadecant(float64(vec.X), float64(vec.Y)) {
+	case 14, 15:
+		return HexDirs[0]
+	case 0, 1, 2, 3:
+		return HexDirs[1]
+	case 4, 5:
+		return HexDirs[2]
+	case 6, 7:
+		return HexDirs[3]
+	case 8, 9, 10, 11:
+		return HexDirs[4]
+	case 12, 13:
+		return HexDirs[5]
+	}
+	panic("Bad hexadecant")
+	return image.Pt(0, 0)
+}
+
+// Hexadecant determines the 1/16th sector of a circle a point in the XY plane
+// points towards. Sector 0 is clockwise from the y-axis, and subsequent
+// sectors are clockwise from there. The origin point is handled in the same
+// way as in math.Atan2.
+func hexadecant(x, y float64) int {
+	const hexadecantWidth = math.Pi / 8.0
+	radian := math.Atan2(x, -y)
+	if radian < 0 {
+		radian += 2.0 * math.Pi
+	}
+	return int(math.Floor(radian / hexadecantWidth))
 }
