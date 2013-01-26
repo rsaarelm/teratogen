@@ -54,7 +54,7 @@ func monster(icon gfx.ImageSpec, health int) spawnFunc {
 }
 
 var spawns = map[string]spawn{
-	"player":     {0, 0, pc(icon(16), 6)},
+	"player":     {0, 0, pc(icon(16), 20)},
 	"zombie":     {30, 0, monster(icon(1), 2)},
 	"dog-thing":  {40, 0, monster(icon(2), 1)},
 	"spitter":    {15, 2, monster(icon(3), 2)},
