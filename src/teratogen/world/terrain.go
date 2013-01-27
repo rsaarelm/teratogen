@@ -37,7 +37,6 @@ const (
 	OpenKind
 	DoorKind
 	GrillKind
-	StairKind
 )
 
 func (t TerrainData) ShapesWalls() bool {
@@ -60,6 +59,14 @@ func (t TerrainData) BlocksMove() bool {
 	return false
 }
 
+func (t TerrainData) BlocksShot() bool {
+	switch t.Kind {
+	case SolidKind, WallKind, DoorKind:
+		return true
+	}
+	return false
+}
+
 const (
 	VoidTerrain Terrain = iota
 	FloorTerrain
@@ -73,5 +80,5 @@ var terrainTable = []TerrainData{
 	{util.SmallIcons(util.Tiles, 0), OpenKind},
 	{util.SmallIcons(util.Tiles, 16, 17, 18, 19), WallKind},
 	{util.SmallIcons(util.Tiles, 3), DoorKind},
-	{util.SmallIcons(util.Tiles, 39), StairKind},
+	{util.SmallIcons(util.Tiles, 39), OpenKind},
 }

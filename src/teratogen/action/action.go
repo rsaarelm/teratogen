@@ -93,8 +93,30 @@ func (a *Action) Move(obj entity.Entity, vec image.Point) {
 }
 
 func (a *Action) Shoot(obj entity.Entity, vec image.Point) {
-	// TODO: Determine how far it goes, what it hits...
-	a.fx.Beam(a.query.Loc(obj), vec, 6, fx.GunBeam)
+	dist := 6
+	damageAmount := 2
+
+	loc := a.query.Loc(obj)
+	// Trace the firing line
+	for i := 0; i < dist; i++ {
+		loc = a.world.Manifold.Offset(loc, vec)
+		if a.world.Terrain(loc).BlocksShot() {
+			dist = i + 1
+			a.fx.Blast(loc, fx.Sparks)
+			break
+		}
+
+		if len(a.world.Spatial.At(loc)) > 0 {
+			dist = i + 1
+			break
+		}
+	}
+
+	for _, oe := range a.world.Spatial.At(loc) {
+		a.Damage(oe.Entity, damageAmount)
+	}
+
+	a.fx.Beam(a.query.Loc(obj), vec, dist, fx.GunBeam)
 }
 
 // Place puts an entity in a specific location and performs any necessary
