@@ -135,15 +135,19 @@ func MakeTemplate(shape []image.Point) (result *FootprintTemplate, err error) {
 	return
 }
 
+func ForceTemplate(shape []image.Point) *FootprintTemplate {
+	result, ok := MakeTemplate(shape)
+	if ok != nil {
+		panic("Bad footprint shape")
+	}
+	return result
+}
+
 // FootprintFromPoints is a convenience method that builds a footprint
 // directly from a set of points. It panics if the point shape cannot be
 // converted into a footprint template.
 func FootprintFromPoints(m *Manifold, loc Location, shape []image.Point) Footprint {
-	template, err := MakeTemplate(shape)
-	if err != nil {
-		panic("Bad footprint shape.")
-	}
-	return m.MakeFootprint(template, loc)
+	return m.MakeFootprint(ForceTemplate(shape), loc)
 }
 
 // Footprintable is an interface for objects that can provide a footprint

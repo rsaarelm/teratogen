@@ -37,6 +37,7 @@ type Mob struct {
 	health    int
 	maxHealth int
 	shield    int
+	isBig     bool
 }
 
 type PC struct {
@@ -54,6 +55,7 @@ func NewPC(w *world.World, spec Spec) (result *PC) {
 type Spec struct {
 	Icon      gfx.ImageSpec
 	MaxHealth int
+	IsBig     bool
 }
 
 func New(w *world.World, spec Spec) (result *Mob) {
@@ -67,11 +69,8 @@ func (m *Mob) Init(w *world.World, spec Spec) {
 	m.icon = spec.Icon
 	m.health = spec.MaxHealth
 	m.maxHealth = spec.MaxHealth
+	m.isBig = spec.IsBig
 	w.AddActor(m)
-}
-
-func (m *Mob) DrawLayer() int {
-	return 1000
 }
 
 func (m *Mob) Icon() gfx.ImageSpec {
@@ -132,4 +131,20 @@ func (m *Mob) AddHealth(amount int) {
 
 func (m *Mob) AddShield(amount int) {
 	m.shield = num.MaxI(0, m.shield+amount)
+}
+
+var bigFootprint = space.ForceTemplate([]image.Point{
+	{0, 0},
+	{-1, -1},
+	{0, -1},
+	{1, 0},
+	{1, 1},
+	{0, 1},
+	{-1, 0}})
+
+func (m *Mob) Footprint() *space.FootprintTemplate {
+	if m.isBig {
+		return bigFootprint
+	}
+	return space.NewTemplate()
 }

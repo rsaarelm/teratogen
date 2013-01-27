@@ -36,31 +36,43 @@ type spawn struct {
 }
 
 func genPC(w *world.World) entity.Entity {
-	return mob.NewPC(w, mob.Spec{util.SmallIcon(util.Chars, 16), 6})
+	return mob.NewPC(w, mob.Spec{Icon: util.SmallIcon(util.Chars, 16), MaxHealth: 6})
 }
 
 func icon(idx int) gfx.ImageSpec { return util.SmallIcon(util.Chars, idx) }
 
+func largeIcon(idx int) gfx.ImageSpec { return util.LargeIcon(util.Chars, idx) }
+
 func pc(icon gfx.ImageSpec, health int) spawnFunc {
 	return spawnFunc(func(w *world.World) entity.Entity {
-		return mob.NewPC(w, mob.Spec{icon, health})
+		return mob.NewPC(w, mob.Spec{Icon: icon, MaxHealth: health})
 	})
 }
 
 func monster(icon gfx.ImageSpec, health int) spawnFunc {
 	return spawnFunc(func(w *world.World) entity.Entity {
-		return mob.New(w, mob.Spec{icon, health})
+		return mob.New(w, mob.Spec{Icon: icon, MaxHealth: health})
+	})
+}
+
+func largeMonster(icon gfx.ImageSpec, health int) spawnFunc {
+	return spawnFunc(func(w *world.World) entity.Entity {
+		return mob.New(w, mob.Spec{Icon: icon, MaxHealth: health, IsBig: true})
 	})
 }
 
 var spawns = map[string]spawn{
-	"player":     {0, 0, pc(icon(16), 20)},
-	"zombie":     {30, 0, monster(icon(1), 2)},
-	"dog-thing":  {40, 0, monster(icon(2), 1)},
-	"spitter":    {15, 2, monster(icon(3), 2)},
-	"cyclops":    {15, 2, monster(icon(6), 2)},
-	"death ooze": {15, 3, monster(icon(7), 4)},
-	"bear":       {3, 0, monster(icon(23), 4)},
+	"player":             {0, 0, pc(icon(16), 20)},
+	"zombie":             {30, 0, monster(icon(1), 2)},
+	"dog-thing":          {40, 0, monster(icon(2), 1)},
+	"spitter":            {15, 2, monster(icon(3), 2)},
+	"cyclops":            {15, 2, monster(icon(6), 2)},
+	"death ooze":         {15, 3, monster(icon(7), 4)},
+	"bear":               {3, 0, monster(icon(23), 4)},
+	"master abomination": {10, 0, largeMonster(largeIcon(5), 10)},
+	"dominator-537":      {10, 0, largeMonster(largeIcon(6), 10)},
+	"void devourer":      {10, 0, largeMonster(largeIcon(7), 10)},
+	"viscera guardian":   {10, 0, largeMonster(largeIcon(8), 10)},
 }
 
 const (
