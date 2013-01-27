@@ -29,11 +29,17 @@ import (
 	"teratogen/gfx"
 	"teratogen/sdl"
 	"teratogen/world"
+	"time"
 )
+
+const timeToReadLetter = .05e9
 
 type Hud struct {
 	cache *cache.Cache
 	world *world.World
+
+	msgs       []string
+	msgExpires int64
 }
 
 func New(c *cache.Cache, w *world.World) *Hud {
@@ -41,19 +47,20 @@ func New(c *cache.Cache, w *world.World) *Hud {
 }
 
 func (h *Hud) Draw(bounds image.Rectangle) {
+	h.update()
+
 	sdl.Frame().SetClipRect(bounds)
 	defer sdl.Frame().ClearClipRect()
 
-	f, err := h.cache.GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
-	if err != nil {
-		panic(err)
+	for lineY, str := range h.msgs {
+		cur := &font.Cursor{util.Font(), sdl.Frame(),
+			bounds.Min.Add(image.Pt(0, (lineY+1)*int(util.Font().Height()))),
+			font.Round, gfx.Khaki, gfx.Black}
+
+		fmt.Fprintf(cur, str)
 	}
-	cur := &font.Cursor{f, sdl.Frame(), bounds.Min.Add(image.Pt(0, int(f.Height()))),
-		font.None, gfx.Yellow, gfx.Black}
 
-	fmt.Fprintf(cur, "Heavy boxes perform quick waltzes and jigs.")
-
-	h.drawHealth(image.Rectangle{bounds.Min.Add(image.Pt(0, 8)), bounds.Max})
+	h.drawHealth(image.Rectangle{image.Pt(bounds.Min.X, bounds.Max.Y-8), bounds.Max})
 }
 
 func (h *Hud) drawHealth(bounds image.Rectangle) {
@@ -84,5 +91,33 @@ func (h *Hud) drawHealth(bounds image.Rectangle) {
 			halfShield.Draw(offset)
 		}
 		offset = offset.Add(image.Pt(util.TileW, 0))
+	}
+}
+
+func (h *Hud) Msg(str string) {
+	h.msgs = append(h.msgs, str)
+	if len(h.msgs) == 1 {
+		h.setExpires()
+	}
+}
+
+func (h *Hud) update() {
+	t := time.Now().UnixNano()
+	if len(h.msgs) > 0 {
+		if t >= h.msgExpires {
+			// Assume the oldest message is read and remove it.
+			h.msgs = h.msgs[1:len(h.msgs)]
+			h.setExpires()
+		}
+	}
+}
+
+func (h *Hud) setExpires() {
+	if len(h.msgs) > 0 {
+		delay := timeToReadLetter * int64(len(h.msgs[0]))
+		if delay < 1e9 {
+			delay = 1e9
+		}
+		h.msgExpires = time.Now().UnixNano() + delay
 	}
 }
