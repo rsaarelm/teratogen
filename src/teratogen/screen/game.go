@@ -53,11 +53,11 @@ type game struct {
 func (gs *game) Enter() {
 	gs.world = world.New()
 	gs.query = query.New(gs.world)
-	gs.hud = hud.New(app.Cache(), gs.world)
+	gs.hud = hud.New(gs.world)
 	gs.anim = anim.New()
-	gs.view = view.New(app.Cache(), gs.world, gs.anim)
+	gs.view = view.New(gs.world, gs.anim)
 	gs.mapgen = mapgen.New(gs.world)
-	gs.fx = fx.New(app.Cache(), gs.anim, gs.world)
+	gs.fx = fx.New(gs.anim, gs.world)
 	gs.action = action.New(gs.world, gs.mapgen, gs.query, gs.fx)
 
 	gs.world.SetPlayer(factory.Spawn(factory.Player, gs.world))

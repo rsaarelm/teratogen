@@ -21,7 +21,7 @@ package anim
 
 import (
 	"image"
-	"teratogen/cache"
+	"teratogen/app"
 	"teratogen/display/util"
 	"teratogen/gfx"
 	"teratogen/space"
@@ -132,10 +132,10 @@ func (c Cycle) Frame(t int64) gfx.Drawable {
 	return c.Frames[idx]
 }
 
-func NewCycle(c *cache.Cache, timePerFrame int64, loops bool, frameSpecs []gfx.ImageSpec) Cycle {
+func NewCycle(timePerFrame int64, loops bool, frameSpecs []gfx.ImageSpec) Cycle {
 	var frames []gfx.Drawable
 	for _, spec := range frameSpecs {
-		frames = append(frames, c.GetDrawable(spec))
+		frames = append(frames, app.Cache().GetDrawable(spec))
 	}
 
 	return Cycle{timePerFrame, frames, loops}

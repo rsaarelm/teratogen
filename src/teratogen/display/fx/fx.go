@@ -21,7 +21,6 @@ package fx
 
 import (
 	"image"
-	"teratogen/cache"
 	"teratogen/display/anim"
 	"teratogen/display/util"
 	"teratogen/gfx"
@@ -50,13 +49,12 @@ const (
 )
 
 type Fx struct {
-	cache *cache.Cache
 	anim  *anim.Anim
 	world *world.World
 }
 
-func New(c *cache.Cache, a *anim.Anim, w *world.World) *Fx {
-	return &Fx{cache: c, anim: a, world: w}
+func New(a *anim.Anim, w *world.World) *Fx {
+	return &Fx{anim: a, world: w}
 }
 
 // Msgf prints a formatted message to the 
@@ -96,31 +94,31 @@ func (f *Fx) Beam(origin space.Location, dir image.Point, length int, kind BeamK
 func (f *Fx) Blast(loc space.Location, kind BlastKind) {
 	switch kind {
 	case SmallExplosion:
-		frames := anim.NewCycle(f.cache, .1e9, false, util.SmallIcons(util.Items, 32, 33, 34, 35))
+		frames := anim.NewCycle(.1e9, false, util.SmallIcons(util.Items, 32, 33, 34, 35))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .4e9)
 	case LargeExplosion:
-		frames := anim.NewCycle(f.cache, .10e9, false, util.LargeIcons(util.Items, 5, 6, 7, 8, 9))
+		frames := anim.NewCycle(.10e9, false, util.LargeIcons(util.Items, 5, 6, 7, 8, 9))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .5e9)
 	case Sparks:
-		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 36, 37, 38))
+		frames := anim.NewCycle(.07e9, false, util.SmallIcons(util.Items, 36, 37, 38))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .21e9)
 	case BloodSquib:
-		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 39, 40, 41))
+		frames := anim.NewCycle(.07e9, false, util.SmallIcons(util.Items, 39, 40, 41))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)
 			}), space.SimpleFootprint(loc), .21e9)
 	case Smoke:
-		frames := anim.NewCycle(f.cache, .07e9, false, util.SmallIcons(util.Items, 42, 43, 44))
+		frames := anim.NewCycle(.07e9, false, util.SmallIcons(util.Items, 42, 43, 44))
 		f.anim.Add(
 			anim.Func(func(t int64, offset image.Point) {
 				frames.Frame(t).Draw(offset)

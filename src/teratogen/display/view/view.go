@@ -20,7 +20,7 @@ package view
 
 import (
 	"image"
-	"teratogen/cache"
+	"teratogen/app"
 	"teratogen/display/anim"
 	"teratogen/display/util"
 	"teratogen/gfx"
@@ -31,14 +31,12 @@ import (
 )
 
 type View struct {
-	cache *cache.Cache
 	world *world.World
 	anim  *anim.Anim
 }
 
-func New(c *cache.Cache, w *world.World, a *anim.Anim) (result *View) {
+func New(w *world.World, a *anim.Anim) (result *View) {
 	result = new(View)
-	result.cache = c
 	result.world = w
 	result.anim = a
 	return
@@ -61,7 +59,7 @@ func (v *View) collectSpritesAt(
 		sprites = append(sprites, gfx.Sprite{
 			Layer:    util.TerrainLayer,
 			Offset:   offset,
-			Drawable: v.cache.GetDrawable(v.world.Terrain(loc).Icon[idx])})
+			Drawable: app.Cache().GetDrawable(v.world.Terrain(loc).Icon[idx])})
 	}
 
 	// Collect dynamic object sprites.
@@ -73,7 +71,7 @@ func (v *View) collectSpritesAt(
 		objChartPos := chartPos.Sub(oe.Offset)
 		sprites = append(
 			sprites,
-			spritable.Sprite(v.cache,
+			spritable.Sprite(app.Cache(),
 				util.ChartToScreen(objChartPos).Add(screenOffset)))
 	}
 

@@ -22,7 +22,7 @@ package hud
 import (
 	"fmt"
 	"image"
-	"teratogen/cache"
+	"teratogen/app"
 	"teratogen/display/util"
 	"teratogen/entity"
 	"teratogen/font"
@@ -35,15 +35,14 @@ import (
 const timeToReadLetter = .05e9
 
 type Hud struct {
-	cache *cache.Cache
 	world *world.World
 
 	msgs       []string
 	msgExpires int64
 }
 
-func New(c *cache.Cache, w *world.World) *Hud {
-	return &Hud{cache: c, world: w}
+func New(w *world.World) *Hud {
+	return &Hud{world: w}
 }
 
 func (h *Hud) Draw(bounds image.Rectangle) {
@@ -64,11 +63,11 @@ func (h *Hud) Draw(bounds image.Rectangle) {
 }
 
 func (h *Hud) drawHealth(bounds image.Rectangle) {
-	heart := h.cache.GetDrawable(util.SmallIcon(util.Items, 22))
-	halfHeart := h.cache.GetDrawable(util.SmallIcon(util.Items, 23))
-	noHeart := h.cache.GetDrawable(util.SmallIcon(util.Items, 24))
-	shield := h.cache.GetDrawable(util.SmallIcon(util.Items, 25))
-	halfShield := h.cache.GetDrawable(util.SmallIcon(util.Items, 26))
+	heart := app.Cache().GetDrawable(util.SmallIcon(util.Items, 22))
+	halfHeart := app.Cache().GetDrawable(util.SmallIcon(util.Items, 23))
+	noHeart := app.Cache().GetDrawable(util.SmallIcon(util.Items, 24))
+	shield := app.Cache().GetDrawable(util.SmallIcon(util.Items, 25))
+	halfShield := app.Cache().GetDrawable(util.SmallIcon(util.Items, 26))
 
 	pc, _ := h.world.Player.(entity.Stats)
 	offset := bounds.Min
