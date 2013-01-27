@@ -27,6 +27,7 @@ PKGS = teratogen \
 	teratogen/ser \
 	teratogen/space \
 	teratogen/tile \
+	teratogen/typography \
 	teratogen/world \
 
 # Zip file indexing of the zip catenated to the binary must be fixed with 'zip

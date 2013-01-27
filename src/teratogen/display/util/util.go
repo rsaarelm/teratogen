@@ -21,9 +21,9 @@ package util
 import (
 	"image"
 	"math"
-	"teratogen/app"
 	"teratogen/font"
 	"teratogen/gfx"
+	"teratogen/typography"
 )
 
 const (
@@ -134,12 +134,12 @@ func LargeIcons(sheet string, indices ...int) []gfx.ImageSpec {
 	return result
 }
 
-var defaultFont *font.Font = nil
+var defaultStyle *typography.Style = nil
 
-func Font() *font.Font {
-	if defaultFont == nil {
-		defaultFont = app.Cache().GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
+func TextStyle() *typography.Style {
+	if defaultStyle == nil {
+		defaultStyle = typography.NewStyle(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	}
 
-	return defaultFont
+	return defaultStyle
 }

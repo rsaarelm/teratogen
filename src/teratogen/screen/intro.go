@@ -19,11 +19,9 @@
 package screen
 
 import (
-	"fmt"
 	"image"
 	"teratogen/app"
 	"teratogen/display/util"
-	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
 )
@@ -41,8 +39,7 @@ func (in *intro) Exit()  {}
 
 func (in *intro) Draw() {
 	sdl.Frame().Clear(gfx.Black)
-	cur := &font.Cursor{util.Font(), sdl.Frame(), image.Pt(0, 10), font.None, gfx.Green, gfx.Black}
-	fmt.Fprintf(cur, "TERATOGEN")
+	util.TextStyle().ForeColor(gfx.Green).Render("TERATOGEN", image.Pt(0, 10))
 }
 
 func (in *intro) Update(timeElapsed int64) {

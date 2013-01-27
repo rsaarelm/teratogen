@@ -20,14 +20,13 @@
 package hud
 
 import (
-	"fmt"
 	"image"
 	"teratogen/app"
 	"teratogen/display/util"
 	"teratogen/entity"
-	"teratogen/font"
 	"teratogen/gfx"
 	"teratogen/sdl"
+	"teratogen/typography"
 	"teratogen/world"
 	"time"
 )
@@ -51,12 +50,11 @@ func (h *Hud) Draw(bounds image.Rectangle) {
 	sdl.Frame().SetClipRect(bounds)
 	defer sdl.Frame().ClearClipRect()
 
-	for lineY, str := range h.msgs {
-		cur := &font.Cursor{util.Font(), sdl.Frame(),
-			bounds.Min.Add(image.Pt(0, (lineY+1)*int(util.Font().Height()))),
-			font.Round, gfx.Khaki, gfx.Black}
+	style := util.TextStyle().ForeColor(gfx.Khaki).Edge(typography.Round)
 
-		fmt.Fprintf(cur, str)
+	for lineY, str := range h.msgs {
+		pos := bounds.Min.Add(image.Pt(0, (lineY+1)*int(style.LineHeight())))
+		style.Render(str, pos)
 	}
 
 	h.drawHealth(image.Rectangle{image.Pt(bounds.Min.X, bounds.Max.Y-8), bounds.Max})
