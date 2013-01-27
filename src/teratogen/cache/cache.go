@@ -54,7 +54,7 @@ func (c *Cache) GetDrawable(spec gfx.ImageSpec) gfx.Drawable {
 	return gfx.ImageDrawable{surface, spec.Bounds, spec.Offset}
 }
 
-func (c *Cache) GetFont(spec font.Spec) (result *font.Font, err error) {
+func (c *Cache) TryGetFont(spec font.Spec) (result *font.Font, err error) {
 	result, ok := c.fonts[spec]
 	if !ok {
 		result, err = archive.LoadFont(c.fs, spec.File, spec.Height, spec.BeginChar, spec.NumChars)
@@ -62,6 +62,14 @@ func (c *Cache) GetFont(spec font.Spec) (result *font.Font, err error) {
 			return
 		}
 		c.fonts[spec] = result
+	}
+	return
+}
+
+func (c *Cache) GetFont(spec font.Spec) (result *font.Font) {
+	var err error
+	if result, err = c.TryGetFont(spec); err != nil {
+		panic(err)
 	}
 	return
 }

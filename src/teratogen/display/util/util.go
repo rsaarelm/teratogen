@@ -138,11 +138,7 @@ var defaultFont *font.Font = nil
 
 func Font() *font.Font {
 	if defaultFont == nil {
-		var err error
-		defaultFont, err = app.Cache().GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
-		if err != nil {
-			panic(err)
-		}
+		defaultFont = app.Cache().GetFont(font.Spec{"assets/BMmini.ttf", 8.0, 32, 96})
 	}
 
 	return defaultFont
