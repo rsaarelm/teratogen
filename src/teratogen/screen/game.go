@@ -71,8 +71,7 @@ func (gs *game) Exit() {}
 
 func (gs *game) Draw() {
 	sdl.Frame().Clear(gfx.Black)
-	gfx.GradientRect(sdl.Frame(), image.Rect(0, 0, 320, 160), gfx.Green, gfx.ScaleCol(gfx.Green, 0.2))
-	gs.view.Draw(image.Rect(4, 4, 316, 156))
+	gs.view.Draw(image.Rect(0, 0, 320, 240))
 	gs.hud.Draw(image.Rect(0, 0, 320, 240))
 }
 
