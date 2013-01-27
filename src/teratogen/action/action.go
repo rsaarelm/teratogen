@@ -148,6 +148,21 @@ func (a *Action) EndTurn() {
 	a.world.EndTurn()
 }
 
+func (a *Action) CleanupPreviousLevel() {
+	// Reset player's FOV to get rid of the old level crap.
+	a.world.Player.ClearFov()
+	a.DoFov(a.world.Player)
+
+	filter := func(loc space.Location) bool { return loc.Zone < a.query.Loc(a.world.Player).Zone }
+
+	a.world.RemoveTerrain(filter)
+	a.world.Spatial.ForEach(func(obj interface{}) {
+		if filter(a.query.Loc(obj)) {
+			a.world.Spatial.Remove(obj)
+		}
+	})
+}
+
 // CreateNextFloor creates the next level. Should be called when the player
 // enters the level where the entrance to this level will be.
 func (a *Action) CreateNextFloor() space.Location {
@@ -155,10 +170,6 @@ func (a *Action) CreateNextFloor() space.Location {
 	entrance, exit := a.mapgen.TestMap(space.Location{0, 0, uint16(depth + 1)}, depth)
 	a.world.Manifold.SetPortalTo(a.world.FloorExit, entrance)
 	a.world.FloorExit = exit
-
-	// Reset player's FOV to get rid of the old level crap.
-	a.world.Player.ClearFov()
-	a.DoFov(a.world.Player)
-
+	a.CleanupPreviousLevel()
 	return entrance
 }

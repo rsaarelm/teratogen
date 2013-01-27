@@ -139,3 +139,11 @@ func (w *World) SetPlayer(player entity.Entity) {
 		entity.Fov
 	})
 }
+
+func (w *World) RemoveTerrain(pred func(space.Location) bool) {
+	for loc, _ := range w.terrain {
+		if pred(loc) {
+			delete(w.terrain, loc)
+		}
+	}
+}
