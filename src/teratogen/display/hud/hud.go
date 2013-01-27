@@ -52,7 +52,14 @@ func (h *Hud) Draw(bounds image.Rectangle) {
 
 	style := util.TextStyle().ForeColor(gfx.Khaki).Edge(typography.Round)
 
-	for lineY, str := range h.msgs {
+	lines := []string{}
+	for _, str := range h.msgs {
+		for _, line := range typography.SplitToLines(util.TextStyle(), str, float64(bounds.Dx())) {
+			lines = append(lines, line)
+		}
+	}
+
+	for lineY, str := range lines {
 		pos := bounds.Min.Add(image.Pt(0, (lineY+1)*int(style.LineHeight())))
 		style.Render(str, pos)
 	}
