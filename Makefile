@@ -1,6 +1,8 @@
 GOPATH := $(CURDIR)
 
-PKGS = teratogen \
+PKGS = \
+	gen-version \
+	teratogen \
 	teratogen/action \
 	teratogen/app \
 	teratogen/archive \
@@ -33,6 +35,7 @@ PKGS = teratogen \
 # Zip file indexing of the zip catenated to the binary must be fixed with 'zip
 # -A' so that Go's zip library will read it.
 teratogen:
+	go run src/gen-version/gen-version.go
 	go build teratogen
 	strip teratogen
 	rm -f assets.zip
@@ -60,5 +63,6 @@ doc:
 
 clean:
 	go clean
+	rm -f assets.zip
 
 .PHONY: teratogen run clean test

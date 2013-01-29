@@ -39,7 +39,9 @@ func (in *intro) Exit()  {}
 
 func (in *intro) Draw() {
 	sdl.Frame().Clear(gfx.Black)
-	util.TextStyle().ForeColor(gfx.Green).Render("TERATOGEN", image.Pt(0, 10))
+	sty := util.TextStyle().ForeColor(gfx.Green)
+	sty.Render("TERATOGEN", image.Pt(0, 10))
+	sty.Render("version "+app.Version, image.Pt(0, 240))
 }
 
 func (in *intro) Update(timeElapsed int64) {
