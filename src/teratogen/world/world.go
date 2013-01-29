@@ -128,6 +128,18 @@ func (w *World) Fits(obj entity.Entity, loc space.Location) bool {
 	return true
 }
 
+func (w *World) IsBlocked(loc space.Location) bool {
+	if w.Terrain(loc).BlocksMove() {
+		return true
+	}
+	for _, oe := range w.Spatial.At(loc) {
+		if b, ok := oe.Entity.(entity.BlockMove); ok && b.BlocksMove() {
+			return true
+		}
+	}
+	return false
+}
+
 // Place places an entity into a location in the game space.
 func (w *World) Place(obj entity.Entity, loc space.Location) {
 	w.Spatial.Place(obj, w.Manifold.FootprintFor(obj, loc))

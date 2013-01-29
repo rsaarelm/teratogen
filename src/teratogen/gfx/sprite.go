@@ -24,7 +24,7 @@ import (
 )
 
 type Spritable interface {
-	Sprite(context Context, offset image.Point) Sprite
+	Sprite(offset image.Point) Sprite
 }
 
 type Sprite struct {

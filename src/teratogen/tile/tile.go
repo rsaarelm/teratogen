@@ -141,6 +141,20 @@ func HexWallType(edgeMask int) int {
 	return walls[edgeMask]
 }
 
+func IsoWallType(edgeMask int) int {
+	ne := edgeMask&2 != 0
+	nw := edgeMask&32 != 0
+
+	if ne && nw {
+		return 0
+	} else if nw {
+		return 1
+	} else if ne {
+		return 2
+	}
+	return 3
+}
+
 // HexVecToDir returns the unit length hex direction that matches the given
 // hex coordinate vector best.
 func HexVecToDir(vec image.Point) image.Point {

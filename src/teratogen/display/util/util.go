@@ -27,11 +27,10 @@ import (
 )
 
 const (
-	TerrainLayer = 0
-	DecalLayer   = 10
-	ItemLayer    = 20
-	MobLayer     = 30
-	AnimLayer    = 100
+	BaseViewZ         = 0
+	ViewLayersPerZ    = 4
+	EntityLayerOffset = 2
+	AnimLayer         = 1000
 )
 
 const (
@@ -102,6 +101,11 @@ func largeIconRect(idx int) image.Rectangle {
 	return image.Rect(x, y, x+TileW*3, y+TileH*3)
 }
 
+func isoIconRect(idx int) image.Rectangle {
+	x, y := (idx%16)*TileW*2, (idx/16)*TileH*2
+	return image.Rect(x, y, x+TileW*2, y+TileH*2)
+}
+
 // SmallIcon returns a single-cell icon from the given icon sheet counting
 // indexes from left to right and from top to bottom.
 func SmallIcon(sheet string, idx int) gfx.ImageSpec {
@@ -130,6 +134,18 @@ func LargeIcons(sheet string, indices ...int) []gfx.ImageSpec {
 	result := []gfx.ImageSpec{}
 	for _, idx := range indices {
 		result = append(result, LargeIcon(sheet, idx))
+	}
+	return result
+}
+
+func IsoIcon(sheet string, idx int) gfx.ImageSpec {
+	return gfx.OffsetSubImage(sheet, isoIconRect(idx), image.Pt(-TileW/2, -TileH/2))
+}
+
+func IsoIcons(sheet string, indices ...int) []gfx.ImageSpec {
+	result := []gfx.ImageSpec{}
+	for _, idx := range indices {
+		result = append(result, IsoIcon(sheet, idx))
 	}
 	return result
 }

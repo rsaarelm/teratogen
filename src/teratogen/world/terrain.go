@@ -75,10 +75,14 @@ const (
 	StairTerrain
 )
 
+func GetTerrainData(t Terrain) TerrainData {
+	return terrainTable[t]
+}
+
 var terrainTable = []TerrainData{
 	{util.SmallIcons(util.Tiles, 3), SolidKind}, // void terrain, should have some "you shouldn't be seeing this" icon
-	{util.SmallIcons(util.Tiles, 0), OpenKind},
-	{util.SmallIcons(util.Tiles, 16, 17, 18, 19), WallKind},
-	{util.SmallIcons(util.Tiles, 3), DoorKind},
-	{util.SmallIcons(util.Tiles, 39), OpenKind},
+	{util.IsoIcons(util.Tiles, 5), OpenKind},
+	{util.IsoIcons(util.Tiles, 1, 2, 3, 4), WallKind},
+	{util.IsoIcons(util.Tiles, 7, 8, 9, 7), DoorKind},
+	{util.IsoIcons(util.Tiles, 6), OpenKind},
 }

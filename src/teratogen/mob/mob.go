@@ -20,6 +20,7 @@ package mob
 
 import (
 	"image"
+	"teratogen/app"
 	"teratogen/display/util"
 	"teratogen/gfx"
 	"teratogen/num"
@@ -92,11 +93,18 @@ func (m *Mob) bob() image.Point {
 	return image.Pt(0, 0)
 }
 
-func (m *Mob) Sprite(context gfx.Context, offset image.Point) gfx.Sprite {
+func (m *Mob) Sprite(offset image.Point) gfx.Sprite {
+	// XXX: Hacky way to pass adjust parameter to make big mobs get drawn by
+	// their frontmost point. Layer is assumed to be a delta, the view system
+	// will adjust it into the correct Z level.
+	layer := 0
+	if m.isBig {
+		layer += 2 * util.ViewLayersPerZ
+	}
 	return gfx.Sprite{
-		Layer:    util.MobLayer,
+		Layer:    layer,
 		Offset:   offset.Add(m.bob()),
-		Drawable: context.GetDrawable(m.icon)}
+		Drawable: app.Cache().GetDrawable(m.icon)}
 }
 
 func (m *Mob) BlocksMove() bool {

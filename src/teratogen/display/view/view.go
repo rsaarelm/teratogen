@@ -46,20 +46,38 @@ func (v *View) chart() space.Chart {
 	return v.world.Player.FovChart()
 }
 
+func zLine(p image.Point) int {
+	return (p.X + p.Y) * util.ViewLayersPerZ
+}
+
 func (v *View) collectSpritesAt(
 	sprites gfx.SpriteBatch,
 	chartPos image.Point,
 	screenOffset image.Point) gfx.SpriteBatch {
 	loc := v.chart().At(chartPos)
+
+	// XXX: This is a hack. Should have a robust function that maps locs to
+	// relative Z levels.
+	depthChange := int(loc.Zone - v.chart().At(image.Pt(0, 0)).Zone)
+	screenOffset = screenOffset.Add(image.Pt(0, util.TileH*depthChange))
+
 	offset := util.ChartToScreen(chartPos).Add(screenOffset)
 
 	// Collect terrain tile sprite.
 	if v.world.Contains(loc) {
 		idx := TerrainTileOffset(v.world, v.chart(), chartPos)
+
+		terrain := v.world.Terrain(loc)
+		// Hack: Don't draw doors when someone is standing in the doorway.
+		if terrain.Kind == world.DoorKind && v.world.IsBlocked(loc) {
+			terrain = world.GetTerrainData(world.FloorTerrain)
+			idx = 0
+		}
+
 		sprites = append(sprites, gfx.Sprite{
-			Layer:    util.TerrainLayer,
+			Layer:    zLine(chartPos),
 			Offset:   offset,
-			Drawable: app.Cache().GetDrawable(v.world.Terrain(loc).Icon[idx])})
+			Drawable: app.Cache().GetDrawable(terrain.Icon[idx])})
 	}
 
 	// Collect dynamic object sprites.
@@ -69,10 +87,12 @@ func (v *View) collectSpritesAt(
 			continue
 		}
 		objChartPos := chartPos.Sub(oe.Offset)
-		sprites = append(
-			sprites,
-			spritable.Sprite(app.Cache(),
-				util.ChartToScreen(objChartPos).Add(screenOffset)))
+		sprite := spritable.Sprite(util.ChartToScreen(objChartPos).Add(screenOffset))
+		// Entities will put an adjustment in their sprite layer value if they
+		// are multi-tile ones and need to be sorted with a higher layer
+		// value.
+		sprite.Layer += zLine(objChartPos) + util.EntityLayerOffset
+		sprites = append(sprites, sprite)
 	}
 
 	sprites = v.anim.CollectSpritesAt(sprites, loc, offset, util.AnimLayer)
@@ -115,14 +135,14 @@ func (v *View) CollectSprites(
 // needs special formatting. Mostly used to prettify wall tiles.
 func TerrainTileOffset(w *world.World, chart space.Chart, pos image.Point) int {
 	t := w.Terrain(chart.At(pos))
-	if t.Kind == world.WallKind {
+	if t.Kind == world.WallKind || t.Kind == world.DoorKind {
 		edgeMask := 0
 		for i, vec := range tile.HexDirs {
 			if w.Terrain(chart.At(pos.Add(vec))).ShapesWalls() {
 				edgeMask |= 1 << uint8(i)
 			}
 		}
-		return tile.HexWallType(edgeMask)
+		return tile.IsoWallType(edgeMask)
 	}
 	return 0
 }
