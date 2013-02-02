@@ -24,7 +24,6 @@ import (
 	"image"
 	"math/rand"
 	"teratogen/entity"
-	"teratogen/factory"
 	"teratogen/space"
 	"teratogen/world"
 )
@@ -40,47 +39,54 @@ func New(w *world.World) *Mapgen {
 }
 
 func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Location) {
-	m.init(start)
-	for y := -17; y < 17; y++ {
-		for x := -17; x < 17; x++ {
-			m.setTerrain(image.Pt(x, y), world.WallTerrain)
-		}
-	}
-
-	bounds := image.Rect(-16, -16, 16, 16)
-	m.bspRooms(bounds)
-	m.extraDoors(bounds)
-
-	for nTries := 128; nTries >= 0; nTries-- {
-		if nTries == 0 {
-			panic("Couldn't place exit enclosure")
-		}
-		loc := m.randomLoc()
-		if m.isExitEnclosure(loc) {
-			exit = m.world.Manifold.Offset(loc, image.Pt(1, 0))
+	ok := false
+	// Try several times until you get one where all slots are filled.
+	for i := 0; i < 64; i++ {
+		entry, exit, ok = m.tryBuild(start, depth)
+		if ok {
 			break
 		}
 	}
-
-	for nTries := 128; nTries >= 0; nTries-- {
-		if nTries == 0 {
-			panic("Couldn't place entry enclosure")
-		}
-		loc := m.randomLoc()
-		if loc != exit && m.isEntryEnclosure(loc) {
-			entry = m.world.Manifold.Offset(loc, image.Pt(-1, 0))
-			break
-		}
+	if !ok {
+		panic("Couldn't generate map")
 	}
-
-	for i := 0; i < 32; i++ {
-		spawnLoc := m.randomLoc()
-		spawnMob := factory.RandomMonster(depth, m.world)
-		m.spawn(spawnMob, spawnLoc)
-	}
-
-	m.world.SetTerrain(entry, world.StairTerrain)
 	return
+}
+
+func (m *Mapgen) tryBuild(start space.Location, depth int) (entry, exit space.Location, ok bool) {
+	cg := NewChunkGraph()
+
+	// Set boundaries
+	edgeChunk := Chunks()[0] // Solid block
+	for i := -5; i <= 5; i++ {
+		cg.PlaceDummyChunk(image.Pt(i, -5), edgeChunk)
+		cg.PlaceDummyChunk(image.Pt(i, 5), edgeChunk)
+		cg.PlaceDummyChunk(image.Pt(-5, i), edgeChunk)
+		cg.PlaceDummyChunk(image.Pt(5, i), edgeChunk)
+	}
+
+	// Entrance vault
+	cg.PlaceChunk(image.Pt(0, 0), Chunks()[1])
+
+	for {
+		edge := cg.OpenSlots()
+		if len(edge) == 0 {
+			break
+		}
+
+		slot := edge[rand.Intn(len(edge))]
+		chunks := cg.FittingChunks(slot, Chunks())
+
+		if len(chunks) == 0 {
+			ok = false
+			return
+		}
+		cg.PlaceChunk(slot, chunks[rand.Intn(len(chunks))])
+	}
+
+	cg.Chunks().Place(m.world, start)
+	// TODO place exit
+	return start, space.Location{}, true
 }
 
 func (m *Mapgen) init(start space.Location) {
