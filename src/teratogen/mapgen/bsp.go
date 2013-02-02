@@ -78,6 +78,10 @@ func (m *Mapgen) digRoom(bounds image.Rectangle) {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			pos := image.Pt(x, y)
 			m.setTerrain(pos, world.FloorTerrain)
+			if rand.Intn(16) == 0 {
+				m.setTerrain(pos, world.BarrelTerrain+
+					world.Terrain(rand.Intn(int(world.PlantTerrain)+1-int(world.BarrelTerrain))))
+			}
 			m.setOpen(m.chart.At(pos), true)
 		}
 	}

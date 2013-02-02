@@ -37,6 +37,7 @@ const (
 	OpenKind
 	DoorKind
 	GrillKind
+	ObstacleKind
 )
 
 func (t TerrainData) ShapesWalls() bool {
@@ -53,7 +54,7 @@ func (t TerrainData) BlocksSight() bool {
 
 func (t TerrainData) BlocksMove() bool {
 	switch t.Kind {
-	case SolidKind, WallKind, GrillKind:
+	case SolidKind, WallKind, GrillKind, ObstacleKind:
 		return true
 	}
 	return false
@@ -61,7 +62,7 @@ func (t TerrainData) BlocksMove() bool {
 
 func (t TerrainData) BlocksShot() bool {
 	switch t.Kind {
-	case SolidKind, WallKind, DoorKind:
+	case SolidKind, WallKind, DoorKind, ObstacleKind:
 		return true
 	}
 	return false
@@ -73,6 +74,12 @@ const (
 	WallTerrain
 	DoorTerrain
 	StairTerrain
+
+	BarrelTerrain
+	ShelfTerrain
+	ChairTerrain
+	CounterTerrain
+	PlantTerrain
 )
 
 func GetTerrainData(t Terrain) TerrainData {
@@ -85,4 +92,10 @@ var terrainTable = []TerrainData{
 	{util.IsoIcons(util.Tiles, 1, 2, 3, 4), WallKind},
 	{util.IsoIcons(util.Tiles, 7, 8, 9, 7), DoorKind},
 	{util.IsoIcons(util.Tiles, 6), OpenKind},
+
+	{util.IsoIcons(util.Tiles, 10), ObstacleKind},
+	{util.IsoIcons(util.Tiles, 11), GrillKind},
+	{util.IsoIcons(util.Tiles, 12), OpenKind},
+	{util.IsoIcons(util.Tiles, 13), GrillKind},
+	{util.IsoIcons(util.Tiles, 14), OpenKind},
 }
