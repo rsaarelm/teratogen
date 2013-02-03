@@ -39,5 +39,16 @@ the game run as fast as you can hit the keys.
 - The game assets are embedded into the game executable by packing them into a
 .zip file and catenating the .zip file into the executable.
 
+Tricky things:
+
+- The sources of randomness should be controllable in the architecture. The
+game uses psedorandom number generators that are fully deterministic once
+their seed value is known. Other available sources of partial randomness are
+the bit values of the memory addresses of objects and the iteration orders for
+the built-in map data structures. Algorithms that use pseudorandomness should
+not rely on either. The design ideal is that the game will play exactly the
+same every time when run with the same random number seed and the same user
+input.
+
 */
 package main
