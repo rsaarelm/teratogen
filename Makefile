@@ -1,6 +1,7 @@
 GOPATH := $(CURDIR)
 
 PKGS = \
+	github.com/nsf/termbox-go \
 	gen-version \
 	teratogen \
 	teratogen/action \
