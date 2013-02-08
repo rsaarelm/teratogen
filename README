@@ -1,1 +1,29 @@
 Survival horror roguelike, Copyright (C) 2009-2012 Risto Saarelma
+
+How to build on Linux
+---------------------
+
+- Install the Go programming language and the SDL library using your favourite
+  package management system.
+
+- Run make
+
+- Run ./bin/teratogen
+
+How to build on Windows
+-----------------------
+
+- Download the Go programming language from <http://golang.org/doc/install>
+  and install it.
+
+- Install the MinGW GCC compiler from
+  <http://www.mingw.org/wiki/Getting_Started>. You need this to compile the C
+  interface to SDL.
+
+- Install MinGW development libraries for SDL from
+  <http://www.libsdl.org/download-1.2.php> and copy the bin/, include/ and
+  lib/ directories from the package into your MinGW install directory.
+
+- Run build.bat
+
+- Run teratogen.exe
