@@ -1,6 +1,7 @@
 GOPATH := $(CURDIR)
 
 PKGS = \
+	chunkdemo \
 	github.com/nsf/termbox-go \
 	gen-version \
 	teratogen \
@@ -21,6 +22,7 @@ PKGS = \
 	teratogen/gfx \
 	teratogen/kernel \
 	teratogen/mapgen \
+	teratogen/mapgen/chunk \
 	teratogen/mob \
 	teratogen/music/mod \
 	teratogen/num \
