@@ -1,39 +1,6 @@
 GOPATH := $(CURDIR)
 
-PKGS = \
-	chunkdemo \
-	github.com/nsf/termbox-go \
-	gen-version \
-	teratogen \
-	teratogen/action \
-	teratogen/app \
-	teratogen/archive \
-	teratogen/babble \
-	teratogen/cache \
-	teratogen/display/anim \
-	teratogen/display/fx \
-	teratogen/display/hud \
-	teratogen/display/util \
-	teratogen/display/view \
-	teratogen/entity \
-	teratogen/factory \
-	teratogen/font \
-	teratogen/fov \
-	teratogen/gfx \
-	teratogen/kernel \
-	teratogen/mapgen \
-	teratogen/mapgen/chunk \
-	teratogen/mob \
-	teratogen/music/mod \
-	teratogen/num \
-	teratogen/query \
-	teratogen/screen \
-	teratogen/sdl \
-	teratogen/ser \
-	teratogen/space \
-	teratogen/tile \
-	teratogen/typography \
-	teratogen/world \
+PKGS := $(shell cd src; find * -path github.com -prune -o -name \*.go -printf "%h\n" | sort | uniq)
 
 # Zip file indexing of the zip catenated to the binary must be fixed with 'zip
 # -A' so that Go's zip library will read it.
