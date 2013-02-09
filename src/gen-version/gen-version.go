@@ -56,4 +56,5 @@ package app
 const Version = "%s"
 `, ver)
 	f.Close()
+	fmt.Println(ver) // For command-line use
 }

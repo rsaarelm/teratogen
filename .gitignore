@@ -2,3 +2,4 @@
 /src/teratogen/app/version.go
 /bin/
 /pkg/
+/dist/

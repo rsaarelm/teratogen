@@ -7,11 +7,6 @@ PKGS := $(shell cd src; find * -path github.com -prune -o -name \*.go -printf "%
 bin/teratogen: bin/gen-version
 	bin/gen-version
 	go install teratogen
-	strip $@
-	rm -f assets.zip
-	zip -r assets.zip assets/
-	cat assets.zip >> $@
-	zip -A $@
 
 bin/gen-version:
 	go install gen-version
@@ -27,11 +22,30 @@ bin/teratogen.exe: bin/gen-version
 	rm -f $@
 	bin/gen-version
 	wine go install -ldflags -Hwindowsgui teratogen
-	strip $@
+
+dist: bin/teratogen
+	mkdir -p dist/
+	cp bin/teratogen .
+	strip teratogen
 	rm -f assets.zip
 	zip -r assets.zip assets/
-	cat assets.zip >> $@
-	zip -A $@
+	cat assets.zip >> teratogen
+	zip -A teratogen
+	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-linux_$$(uname -m).zip teratogen
+	rm teratogen
+
+windist: bin/teratogen.exe
+	mkdir -p dist/
+	cp bin/teratogen.exe .
+	strip teratogen.exe
+	rm -f assets.zip
+	zip -r assets.zip assets/
+	cat assets.zip >> teratogen.exe
+	zip -A teratogen.exe
+	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-win32.zip teratogen.exe
+	rm teratogen.exe
+
+alldist: dist windist
 
 test:
 	go test $(PKGS)
@@ -55,6 +69,7 @@ clean:
 	go clean
 	rm -rf pkg/
 	rm -rf bin/
+	rm -rf dist/
 	rm -f assets.zip
 
-.PHONY: bin/teratogen bin/gen-version bin/teratogen.exe run clean test
+.PHONY: bin/teratogen bin/gen-version bin/teratogen.exe dist windist run clean test
