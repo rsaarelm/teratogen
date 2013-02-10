@@ -4,12 +4,11 @@ PKGS := $(shell cd src; find * -path github.com -prune -o -name \*.go -printf "%
 
 # Zip file indexing of the zip catenated to the binary must be fixed with 'zip
 # -A' so that Go's zip library will read it.
-bin/teratogen: bin/gen-version
-	bin/gen-version
+bin/teratogen: gen-version
 	go install teratogen
 
-bin/gen-version:
-	go install gen-version
+gen-version:
+	go run src/gen-version/gen-version.go
 
 # To make Teratogen buildable with Wine:
 # - Have Go installed on the Wine drive, and have C:\go\bin in Wine's cmd
@@ -18,9 +17,8 @@ bin/gen-version:
 #   Wine's cmd path.
 # - Have the MinGW SDL development package's bin/, lib/ and include/
 #   directories in C:\MinGW on the Wine drive.
-bin/teratogen.exe: bin/gen-version
+bin/teratogen.exe: gen-version
 	rm -f $@
-	bin/gen-version
 	wine go install -ldflags -Hwindowsgui teratogen
 
 dist: bin/teratogen
@@ -42,8 +40,9 @@ windist: bin/teratogen.exe
 	zip -r assets.zip assets/
 	cat assets.zip >> teratogen.exe
 	zip -A teratogen.exe
-	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-$$(wine go env GOOS)$$(wine go env GOARCH).zip teratogen.exe
-	rm teratogen.exe
+	cp tools/win/$$(wine go env GOARCH)/SDL.dll .
+	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-$$(wine go env GOOS)$$(wine go env GOARCH).zip teratogen.exe SDL.dll
+	rm teratogen.exe SDL.dll
 
 alldist: dist windist
 
@@ -72,4 +71,4 @@ clean:
 	rm -rf dist/
 	rm -f assets.zip
 
-.PHONY: bin/teratogen bin/gen-version bin/teratogen.exe dist windist run clean test
+.PHONY: bin/teratogen gen-version bin/teratogen.exe dist windist run clean test
