@@ -23,7 +23,7 @@ import (
 )
 
 func parseChunk(t *testing.T, asciiMap string) *Chunk {
-	result, err := ParseChunk(ParseSpec{"|.", '*'}, asciiMap)
+	result, err := Parse(ParseSpec{"|.", '*'}, asciiMap)
 	if err != nil {
 		t.Fatal("Parsing chunk failed:", err)
 	}

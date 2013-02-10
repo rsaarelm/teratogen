@@ -58,7 +58,7 @@ func (c *Chunk) RotatedCW() *Chunk {
 		str += "\n"
 	}
 
-	result, err := ParseChunk(*c.spec, str)
+	result, err := Parse(*c.spec, str)
 	if err != nil {
 		panic("Parsing rotated chunk failed")
 	}
@@ -78,7 +78,7 @@ func (c *Chunk) MirroredX() *Chunk {
 		str += "\n"
 	}
 
-	result, err := ParseChunk(*c.spec, str)
+	result, err := Parse(*c.spec, str)
 	if err != nil {
 		panic("Parsing mirrored chunk failed")
 	}
@@ -104,7 +104,7 @@ func (c *Chunk) isPegCell(cell MapCell) bool {
 	return strings.ContainsRune(c.spec.PegCells, rune(cell))
 }
 
-func generateChunkVariants(knownChunks map[string]bool, chunk *Chunk) []*Chunk {
+func generateVariants(knownChunks map[string]bool, chunk *Chunk) []*Chunk {
 	variants := []*Chunk{chunk}
 	for i := 0; i < 3; i++ {
 		variants = append(variants, variants[len(variants)-1].RotatedCW())
@@ -124,18 +124,18 @@ func generateChunkVariants(knownChunks map[string]bool, chunk *Chunk) []*Chunk {
 	return result
 }
 
-// GenerateChunkVariants expands a given chunk list with all the unique
-// mirrored and rotated versions of the chunks on the list.
-func GenerateChunkVariants(chunks []*Chunk) []*Chunk {
+// GenerateVariants expands a given chunk list with all the unique mirrored
+// and rotated versions of the chunks on the list.
+func GenerateVariants(chunks []*Chunk) []*Chunk {
 	knownChunks := map[string]bool{}
 	result := []*Chunk{}
 	for _, c := range chunks {
-		result = append(result, generateChunkVariants(knownChunks, c)...)
+		result = append(result, generateVariants(knownChunks, c)...)
 	}
 	return result
 }
 
-func ParseChunk(spec ParseSpec, asciiMap string) (result *Chunk, err error) {
+func Parse(spec ParseSpec, asciiMap string) (result *Chunk, err error) {
 	var lines []string
 	lines, err = preprocess(asciiMap)
 	if err != nil {

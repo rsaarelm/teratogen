@@ -24,6 +24,7 @@ import (
 	"image"
 	"math/rand"
 	"teratogen/entity"
+	"teratogen/mapgen/chunk"
 	"teratogen/space"
 	"teratogen/world"
 )
@@ -39,54 +40,37 @@ func New(w *world.World) *Mapgen {
 }
 
 func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Location) {
-	ok := false
-	// Try several times until you get one where all slots are filled.
-	for i := 0; i < 64; i++ {
-		entry, exit, ok = m.tryBuild(start, depth)
-		if ok {
-			break
-		}
-	}
-	if !ok {
-		panic("Couldn't generate map")
-	}
-	return
-}
+	m.chart = simpleChart(start)
 
-func (m *Mapgen) tryBuild(start space.Location, depth int) (entry, exit space.Location, ok bool) {
-	cg := NewChunkGraph()
-
-	// Set boundaries
-	edgeChunk := Chunks()[0] // Solid block
-	for i := -5; i <= 5; i++ {
-		cg.PlaceDummyChunk(image.Pt(i, -5), edgeChunk)
-		cg.PlaceDummyChunk(image.Pt(i, 5), edgeChunk)
-		cg.PlaceDummyChunk(image.Pt(-5, i), edgeChunk)
-		cg.PlaceDummyChunk(image.Pt(5, i), edgeChunk)
-	}
-
-	// Entrance vault
-	cg.PlaceChunk(image.Pt(0, 0), Chunks()[1])
-
-	for {
-		edge := cg.OpenSlots()
-		if len(edge) == 0 {
+	cg := chunk.New(chunkData[0], '#')
+	for i := 0; i < 32; i++ {
+		pegs := cg.OpenPegs()
+		if len(pegs) == 0 {
 			break
 		}
 
-		slot := edge[rand.Intn(len(edge))]
-		chunks := cg.FittingChunks(slot, Chunks())
+		peg := pegs[rand.Intn(len(pegs))]
+
+		chunks := cg.FittingChunks(peg, chunkData)
 
 		if len(chunks) == 0 {
-			ok = false
-			return
+			cg.ClosePeg(peg)
+			continue
 		}
-		cg.PlaceChunk(slot, chunks[rand.Intn(len(chunks))])
+		cg.AddChunk(chunks[rand.Intn(len(chunks))])
+	}
+	cg.CloseAllPegs()
+
+	for pt, cell := range cg.Map() {
+		fn, ok := legend[rune(cell)]
+		if ok {
+			fn(m.world, m.chart.At(pt))
+		} else {
+			panic("Unknown terrain type " + string(cell))
+		}
 	}
 
-	cg.Chunks().Place(m.world, start)
-	// TODO place exit
-	return start, space.Location{}, true
+	return start, space.Location{}
 }
 
 func (m *Mapgen) init(start space.Location) {
@@ -177,4 +161,12 @@ type simpleChart space.Location
 
 func (s simpleChart) At(pt image.Point) space.Location {
 	return space.Location(s).Add(pt)
+}
+
+type placeFn func(*world.World, space.Location)
+
+func terrainPlacer(ter world.Terrain) placeFn {
+	return func(w *world.World, loc space.Location) {
+		w.SetTerrain(loc, ter)
+	}
 }

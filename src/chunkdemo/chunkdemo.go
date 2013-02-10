@@ -219,13 +219,13 @@ func spawn(gen *chunk.Gen, chunks []*chunk.Chunk, pegIdx int, chunkIdx int) {
 
 func main() {
 	for _, ch := range strings.Split(chunkFile, "\n\n") {
-		c, err := chunk.ParseChunk(chunk.ParseSpec{"|.", '*'}, ch)
+		c, err := chunk.Parse(chunk.ParseSpec{"|.", '*'}, ch)
 		if err != nil {
 			panic(err)
 		}
 		chunks = append(chunks, c)
 	}
-	chunks = chunk.GenerateChunkVariants(chunks)
+	chunks = chunk.GenerateVariants(chunks)
 
 	gen := chunk.New(chunks[0], '#')
 

@@ -90,6 +90,12 @@ func (cg *Gen) ClosePeg(peg Peg) {
 	cg.sealPeg(peg)
 }
 
+func (cg *Gen) CloseAllPegs() {
+	for _, peg := range cg.OpenPegs() {
+		cg.ClosePeg(peg)
+	}
+}
+
 // FittingChunks returns the set of offset-wrapped chunks that can be attached
 // to the given Peg on the chunkmap generator.
 func (cg *Gen) FittingChunks(peg Peg, chunks []*Chunk) []OffsetChunk {
