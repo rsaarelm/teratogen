@@ -40,43 +40,118 @@ func New(w *world.World) *Mapgen {
 }
 
 func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Location) {
+	legend := map[rune]placeFn{
+		'#': terrainPlacer(world.WallTerrain),
+		'.': terrainPlacer(world.FloorTerrain),
+		'|': terrainPlacer(world.DoorTerrain),
+		'b': terrainPlacer(world.BarrelTerrain),
+		'c': terrainPlacer(world.ChairTerrain),
+		't': terrainPlacer(world.CounterTerrain),
+		'p': terrainPlacer(world.PlantTerrain),
+
+		// Downstairs cell gets special handling at mapgen, failing that, it gets
+		// turned into floor.
+		'>': terrainPlacer(world.FloorTerrain),
+		'<': terrainPlacer(world.StairTerrain),
+	}
+
+	entrance := parseChunks(`
+####|####
+#.......#
+#.......#
+#..###..#
+|..#<...|
+#..###..#
+#.......#
+#.......#
+####|####
+`)
+
+	exits := parseChunks(`
+####|####
+#.......#
+#.......#
+#..###..#
+|...>#..|
+#..###..#
+#.......#
+#.......#
+####|####
+`)
+
+	chunks := parseChunks(`
+####|####
+#.......#
+#.......#
+#.......#
+|.......|
+#.......#
+#.......#
+#.......#
+####|####
+
+####|####
+#.......#
+#.bb....#
+#.bb....#
+|.......|
+#.......#
+#.......#
+#.......#
+####|####
+
+####|####
+#.......#
+#....#..#
+#..c.|..#
+|.ptp#..|
+######..#
+#bb.....#
+#bb....b#
+####|####
+
+####|####
+#..p.p..#
+#.......#
+#p.ctc.p#
+|..ctc..|
+#p.ctc.p#
+#.......#
+#..p.p..#
+####|####
+`)
+	chunks = chunk.GenerateVariants(chunks)
+
 	m.chart = simpleChart(start)
 
-	cg := chunk.New(chunkData[0], '#')
-	cg.SetGrid(chunkGrid)
+	cg := chunk.New(entrance[rand.Intn(len(entrance))], '#')
+	cg.SetGrid(image.Pt(4, 4))
 
-	exitFound := false
-	for cellsPlaced := 0; !exitFound || cellsPlaced < 24 || rand.Intn(12) != 0; cellsPlaced++ {
+	nRooms := 5 + depth/2
+	for i := 0; i < nRooms; i++ {
 		pegs := cg.OpenPegs()
 		if len(pegs) == 0 {
-			break
+			panic("Map ran out of expansion room")
 		}
 
 		peg := pegs[rand.Intn(len(pegs))]
 
-		chunks := cg.FittingChunks(peg, chunkData)
-
-		if len(chunks) == 0 {
-			cg.ClosePeg(peg)
-			continue
+		var placeChunks []chunk.OffsetChunk
+		if i == nRooms-1 {
+			placeChunks = cg.FittingChunks(peg, exits)
+			// XXX: Hardcoded exit point. All exists are assumed to have the
+			// exit tile at the same offset.
+			exit = m.chart.At(placeChunks[0].Offset().Add(image.Pt(4, 4)))
+		} else {
+			placeChunks = cg.FittingChunks(peg, chunks)
 		}
-		chunk := chunks[rand.Intn(len(chunks))]
-
-		if !exitFound {
-			if exitPos, ok := findExit(chunk); ok {
-				exitFound = true
-				exit = m.chart.At(exitPos)
-			}
+		if len(placeChunks) == 0 {
+			panic("Can't expand map")
 		}
+
+		chunk := placeChunks[rand.Intn(len(placeChunks))]
 
 		cg.AddChunk(chunk)
-		if cellsPlaced > 128 {
-			if !exitFound {
-				panic("No exit found on huge map")
-			} else {
-				break
-			}
-		}
 	}
 	cg.CloseAllPegs()
 
@@ -89,7 +164,7 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 		}
 	}
 
-	entry = m.chart.At(image.Pt(2, 2))
+	entry = m.chart.At(image.Pt(4, 4))
 	return
 }
 
@@ -200,4 +275,16 @@ func terrainPlacer(ter world.Terrain) placeFn {
 	return func(w *world.World, loc space.Location) {
 		w.SetTerrain(loc, ter)
 	}
+}
+
+func parseChunks(chunkData string) []*chunk.Chunk {
+	result := []*chunk.Chunk{}
+	for _, asciiMap := range chunk.SplitMaps(chunkData) {
+		chunk, err := chunk.Parse(chunk.ParseSpec{"|.", '*'}, asciiMap)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, chunk)
+	}
+	return result
 }
