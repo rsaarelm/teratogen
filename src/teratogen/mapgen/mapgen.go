@@ -44,7 +44,9 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 
 	cg := chunk.New(chunkData[0], '#')
 	cg.SetGrid(chunkGrid)
-	for i := 0; i < 32; i++ {
+
+	exitFound := false
+	for cellsPlaced := 0; !exitFound || cellsPlaced < 24 || rand.Intn(12) != 0; cellsPlaced++ {
 		pegs := cg.OpenPegs()
 		if len(pegs) == 0 {
 			break
@@ -58,7 +60,23 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 			cg.ClosePeg(peg)
 			continue
 		}
-		cg.AddChunk(chunks[rand.Intn(len(chunks))])
+		chunk := chunks[rand.Intn(len(chunks))]
+
+		if !exitFound {
+			if exitPos, ok := findExit(chunk); ok {
+				exitFound = true
+				exit = m.chart.At(exitPos)
+			}
+		}
+
+		cg.AddChunk(chunk)
+		if cellsPlaced > 128 {
+			if !exitFound {
+				panic("No exit found on huge map")
+			} else {
+				break
+			}
+		}
 	}
 	cg.CloseAllPegs()
 
@@ -72,7 +90,17 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 	}
 
 	entry = m.chart.At(image.Pt(2, 2))
-	exit = space.Location{} // TODO
+	return
+}
+
+func findExit(oc chunk.OffsetChunk) (exit image.Point, ok bool) {
+	for offset, cell := range oc.Chunk().Map() {
+		if cell == chunk.MapCell('>') {
+			ok = true
+			exit = offset.Add(oc.Offset())
+			return
+		}
+	}
 	return
 }
 

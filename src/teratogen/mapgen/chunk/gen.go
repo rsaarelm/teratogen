@@ -57,6 +57,8 @@ func (oc OffsetChunk) Pegs() []Peg {
 	return result
 }
 
+func (oc OffsetChunk) Chunk() *Chunk { return oc.chunk }
+
 func New(initial *Chunk, wall MapCell) *Gen {
 	result := &Gen{
 		pegs:  newPegMap(),

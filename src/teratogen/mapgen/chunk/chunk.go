@@ -33,17 +33,13 @@ type Chunk struct {
 	spec  *ParseSpec
 }
 
-func (c *Chunk) Dim() image.Point {
-	return c.dim
-}
+func (c *Chunk) Dim() image.Point { return c.dim }
 
-func (c *Chunk) Bounds() image.Rectangle {
-	return image.Rectangle{image.Pt(0, 0), c.Dim()}
-}
+func (c *Chunk) Bounds() image.Rectangle { return image.Rectangle{image.Pt(0, 0), c.Dim()} }
 
-func (c *Chunk) InsideBounds() image.Rectangle {
-	return c.Bounds().Inset(1)
-}
+func (c *Chunk) InsideBounds() image.Rectangle { return c.Bounds().Inset(1) }
+
+func (c *Chunk) Map() map[image.Point]MapCell { return c.cells }
 
 func (c *Chunk) RotatedCW() *Chunk {
 	str := ""

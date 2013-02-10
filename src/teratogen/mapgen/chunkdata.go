@@ -31,6 +31,10 @@ var legend = map[rune]placeFn{
 	'c': terrainPlacer(world.ChairTerrain),
 	't': terrainPlacer(world.CounterTerrain),
 	'p': terrainPlacer(world.PlantTerrain),
+
+	// Downstairs cell gets special handling at mapgen, failing that, it gets
+	// turned into floor.
+	'>': terrainPlacer(world.FloorTerrain),
 }
 
 var chunkGrid = image.Pt(4, 4)
@@ -134,6 +138,12 @@ var chunkData = parseChunks(`
 |...#    
 #...#    
 ##|##    
+
+##|##
+#...#
+|...|
+##>##
+#####
 `)
 
 func parseChunks(chunkData string) []*chunk.Chunk {
