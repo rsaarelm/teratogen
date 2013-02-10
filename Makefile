@@ -31,7 +31,7 @@ dist: bin/teratogen
 	zip -r assets.zip assets/
 	cat assets.zip >> teratogen
 	zip -A teratogen
-	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-linux_$$(uname -m).zip teratogen
+	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-$$(go env GOOS)$$(go env GOARCH).zip teratogen
 	rm teratogen
 
 windist: bin/teratogen.exe
@@ -42,7 +42,7 @@ windist: bin/teratogen.exe
 	zip -r assets.zip assets/
 	cat assets.zip >> teratogen.exe
 	zip -A teratogen.exe
-	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-win32.zip teratogen.exe
+	zip dist/teratogen-$$(go run src/gen-version/gen-version.go)-$$(wine go env GOOS)$$(wine go env GOARCH).zip teratogen.exe
 	rm teratogen.exe
 
 alldist: dist windist
