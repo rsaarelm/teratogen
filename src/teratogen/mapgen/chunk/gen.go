@@ -115,8 +115,13 @@ func (cg *Gen) fits(oc OffsetChunk) bool {
 				return false
 			}
 		} else {
-			if existingCell, ok := cg.cells[pt.Add(oc.offset)]; ok && existingCell != cell {
-				return false
+			if existingCell, ok := cg.cells[pt.Add(oc.offset)]; ok {
+				// Non-peg cells in a chunk can overwrite peg cells in the
+				// existing map.
+				overwritingPeg := oc.chunk.isPegCell(existingCell) && !oc.chunk.isPegCell(cell)
+				if !overwritingPeg && cell != existingCell {
+					return false
+				}
 			}
 		}
 	}

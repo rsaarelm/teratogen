@@ -33,6 +33,14 @@ func parseChunk(t *testing.T, asciiMap string) *Chunk {
 	return result
 }
 
+func parseChunks(t *testing.T, asciiMaps string) []*Chunk {
+	result := []*Chunk{}
+	for _, asciiMap := range SplitMaps(asciiMaps) {
+		result = append(result, parseChunk(t, asciiMap))
+	}
+	return result
+}
+
 func TestChunk(t *testing.T) {
 	chunk := parseChunk(t, `
   ###.|.#
@@ -86,23 +94,19 @@ func TestGen(t *testing.T) {
 }
 
 func TestCorner(t *testing.T) {
-	chunks := []*Chunk{
-		parseChunk(t, `
+	chunks := parseChunks(t, `
 ...
 ...
 ...
-`),
-		parseChunk(t, `
+
 ...
 ...
 ###
-`),
-		parseChunk(t, `
+
 ..#
 ..#
 ###
-`),
-	}
+`)
 
 	gen := New(chunks[0], '#')
 
@@ -123,5 +127,38 @@ func TestCorner(t *testing.T) {
 	}
 	if len(gen.PegsAt(image.Pt(1, 0))) != 1 {
 		t.Error("Adjacent peg closed when chunk added")
+	}
+}
+
+func TestSideOverwrite(t *testing.T) {
+	chunks := parseChunks(t, `
+###
+#..
+#.#
+#.|
+###
+
+###
+..#
+#|#
+
+#|#
+#.#
+###
+
+###
+|.#
+###
+`)
+
+	// Build an L-shaped room from the first two chunks.
+	gen := New(chunks[0], '#')
+	gen.AddChunk(gen.FittingChunks(gen.PegsAt(image.Pt(1, -1))[0], chunks)[0])
+
+	// Add a chunk to south peg. The chunk that matches the peg but overwrites
+	// the other door should be returned.
+	fits := gen.FittingChunks(gen.PegsAt(image.Pt(1, 1))[0], chunks)
+	if len(fits) != 1 {
+		t.Error("Fitting chunks not found")
 	}
 }

@@ -100,6 +100,10 @@ func (c *Chunk) String() string {
 	return str
 }
 
+func (c *Chunk) isPegCell(cell MapCell) bool {
+	return strings.ContainsRune(c.spec.PegCells, rune(cell))
+}
+
 func generateChunkVariants(knownChunks map[string]bool, chunk *Chunk) []*Chunk {
 	variants := []*Chunk{chunk}
 	for i := 0; i < 3; i++ {
