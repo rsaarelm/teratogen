@@ -110,22 +110,22 @@ func TestCorner(t *testing.T) {
 
 	gen := New(chunks[0], '#')
 
-	// east peg
-	if len(gen.PegsAt(image.Pt(1, 0))) != 1 {
+	eastPt, southPt := image.Pt(2, 1), image.Pt(1, 2)
+
+	if len(gen.PegsAt(eastPt)) != 1 {
 		t.Fatal("Expected peg not found")
 	}
-	// south peg
-	if len(gen.PegsAt(image.Pt(0, 1))) != 1 {
+	if len(gen.PegsAt(southPt)) != 1 {
 		t.Fatal("Expected peg not found")
 	}
 
 	// Add a chunk to south peg
-	c := gen.FittingChunks(gen.PegsAt(image.Pt(0, 1))[0], chunks)[1]
+	c := gen.FittingChunks(gen.PegsAt(southPt)[0], chunks)[1]
 	gen.AddChunk(c)
-	if len(gen.PegsAt(image.Pt(0, 1))) != 0 {
+	if len(gen.PegsAt(southPt)) != 0 {
 		t.Error("Peg not closed after chunk added to it")
 	}
-	if len(gen.PegsAt(image.Pt(1, 0))) != 1 {
+	if len(gen.PegsAt(eastPt)) != 1 {
 		t.Error("Adjacent peg closed when chunk added")
 	}
 }
@@ -153,11 +153,11 @@ func TestSideOverwrite(t *testing.T) {
 
 	// Build an L-shaped room from the first two chunks.
 	gen := New(chunks[0], '#')
-	gen.AddChunk(gen.FittingChunks(gen.PegsAt(image.Pt(1, -1))[0], chunks)[0])
+	gen.AddChunk(gen.FittingChunks(gen.PegsAt(image.Pt(2, 1))[0], chunks)[0])
 
 	// Add a chunk to south peg. The chunk that matches the peg but overwrites
 	// the other door should be returned.
-	fits := gen.FittingChunks(gen.PegsAt(image.Pt(1, 1))[0], chunks)
+	fits := gen.FittingChunks(gen.PegsAt(image.Pt(2, 3))[0], chunks)
 	if len(fits) != 1 {
 		t.Error("Fitting chunks not found")
 	}

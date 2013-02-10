@@ -18,6 +18,7 @@
 package mapgen
 
 import (
+	"image"
 	"teratogen/mapgen/chunk"
 	"teratogen/world"
 )
@@ -31,6 +32,8 @@ var legend = map[rune]placeFn{
 	't': terrainPlacer(world.CounterTerrain),
 	'p': terrainPlacer(world.PlantTerrain),
 }
+
+var chunkGrid = image.Pt(4, 4)
 
 var chunkData = parseChunks(`
 ##|##

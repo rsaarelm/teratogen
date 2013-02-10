@@ -24,7 +24,6 @@ import (
 	"math/rand"
 	"strings"
 	"teratogen/mapgen/chunk"
-	"teratogen/num"
 )
 
 const chunkFile = `
@@ -168,10 +167,7 @@ func draw(gen *chunk.Gen, pegIdx int, chunkIdx int) {
 		fits := []chunk.OffsetChunk{}
 		// Add the chunks that fit in the lattice
 		for _, oc := range gen.FittingChunks(gen.OpenPegs()[pegIdx], chunks) {
-			p := oc.Offset()
-			if num.AbsMod(p.X, 4) == 2 && num.AbsMod(p.Y, 4) == 2 {
-				fits = append(fits, oc)
-			}
+			fits = append(fits, oc)
 		}
 		if len(fits) == 0 {
 			gen.ClosePeg(gen.OpenPegs()[pegIdx])
@@ -203,10 +199,7 @@ func spawn(gen *chunk.Gen, chunks []*chunk.Chunk, pegIdx int, chunkIdx int) {
 		fits := []chunk.OffsetChunk{}
 		// Add the chunks that fit in the lattice
 		for _, oc := range gen.FittingChunks(peg, chunks) {
-			p := oc.Offset()
-			if num.AbsMod(p.X, 4) == 2 && num.AbsMod(p.Y, 4) == 2 {
-				fits = append(fits, oc)
-			}
+			fits = append(fits, oc)
 		}
 		if len(fits) == 0 {
 			gen.ClosePeg(peg)
@@ -228,6 +221,7 @@ func main() {
 	chunks = chunk.GenerateVariants(chunks)
 
 	gen := chunk.New(chunks[0], '#')
+	gen.SetGrid(image.Pt(4, 4))
 
 	err := termbox.Init()
 	if err != nil {

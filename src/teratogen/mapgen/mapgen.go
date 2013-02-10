@@ -43,6 +43,7 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 	m.chart = simpleChart(start)
 
 	cg := chunk.New(chunkData[0], '#')
+	cg.SetGrid(chunkGrid)
 	for i := 0; i < 32; i++ {
 		pegs := cg.OpenPegs()
 		if len(pegs) == 0 {
@@ -70,7 +71,9 @@ func (m *Mapgen) TestMap(start space.Location, depth int) (entry, exit space.Loc
 		}
 	}
 
-	return start, space.Location{}
+	entry = m.chart.At(image.Pt(2, 2))
+	exit = space.Location{} // TODO
+	return
 }
 
 func (m *Mapgen) init(start space.Location) {

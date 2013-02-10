@@ -19,12 +19,14 @@ package chunk
 
 import (
 	"image"
+	"teratogen/num"
 )
 
 type Gen struct {
 	pegs  *pegMap
 	cells map[image.Point]MapCell
 	wall  MapCell
+	grid  image.Point
 }
 
 type OffsetChunk struct {
@@ -56,8 +58,11 @@ func (oc OffsetChunk) Pegs() []Peg {
 }
 
 func New(initial *Chunk, wall MapCell) *Gen {
-	result := &Gen{newPegMap(), map[image.Point]MapCell{}, wall}
-	result.AddChunk(OffsetChunk{initial, initial.dim.Div(-2)})
+	result := &Gen{
+		pegs:  newPegMap(),
+		cells: map[image.Point]MapCell{},
+		wall:  wall}
+	result.AddChunk(OffsetChunk{initial, image.Pt(0, 0)})
 	return result
 }
 
@@ -82,6 +87,13 @@ func (cg *Gen) sealPeg(peg Peg) {
 	for _, pt := range peg.Points() {
 		cg.cells[pt] = cg.wall
 	}
+}
+
+func (cg *Gen) SetGrid(dim image.Point) {
+	if dim.X < 0 || dim.Y < 0 {
+		panic("Invalid grid dim")
+	}
+	cg.grid = dim
 }
 
 // ClosePeg removes the Peg from the chunkmap generator's set of open pegs and
@@ -114,6 +126,14 @@ func (cg *Gen) FittingChunks(peg Peg, chunks []*Chunk) []OffsetChunk {
 }
 
 func (cg *Gen) fits(oc OffsetChunk) bool {
+	// If a grid is defined, chunks must set in it.
+	if cg.grid.X > 0 && num.AbsMod(oc.offset.X, cg.grid.X) != 0 {
+		return false
+	}
+	if cg.grid.Y > 0 && num.AbsMod(oc.offset.Y, cg.grid.Y) != 0 {
+		return false
+	}
+
 	inside := oc.chunk.InsideBounds()
 	for pt, cell := range oc.chunk.cells {
 		if pt.In(inside) {
