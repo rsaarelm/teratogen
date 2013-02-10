@@ -78,7 +78,7 @@ func NumberOfSetBitsU64(x uint64) (result int) {
 // AbsMod is a modulo operation which maps negative numbers to [0, modulo).
 func AbsMod(x, modulo int) int {
 	if x < 0 {
-		return x%modulo + modulo
+		return (x+1)%modulo + (modulo - 1)
 	}
 	return x % modulo
 }

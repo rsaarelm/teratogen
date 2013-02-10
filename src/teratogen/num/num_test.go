@@ -40,3 +40,24 @@ func TestInvSqrt(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestAbsMod(t *testing.T) {
+	set := []struct{ a, n, expected int }{
+		{0, 1, 0},
+		{1, 1, 0},
+		{-1, 1, 0},
+
+		{2, 4, 2},
+		{6, 4, 2},
+		{4, 4, 0},
+		{-1, 4, 3},
+		{-4, 4, 0},
+	}
+	for _, test := range set {
+		v := AbsMod(test.a, test.n)
+		if v != test.expected {
+			t.Errorf("Expected AbsMod(%d, %d) == %d, got %d\n",
+				test.a, test.n, test.expected, v)
+		}
+	}
+}
