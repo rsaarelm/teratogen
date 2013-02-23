@@ -122,6 +122,31 @@ func MaxI(x, y int) int {
 	return y
 }
 
+// ToUnitRange converts a number in a given range to a corresponding number
+// when the range is turned into the 0..1 range.
+func ToUnitRange(min, max, x float64) float64 {
+	if min == max {
+		return 0
+	}
+	return (x - min) / (max - min)
+}
+
+func IntToUnitRange(min, max, x int) float64 {
+	if min == max {
+		return 0
+	}
+	return float64((x - min) / (max - min))
+}
+
+// SmoothStep smoothens a value in the 0..1 range to slower movement near the
+// ends and faster movement near the middle. Useful for making linear
+// interpolations look more natural.
+//
+// See http://sol.gfxile.net/interpolation/
+func SmoothStep(x float64) float64 {
+	return x * x * (3 - 2*x)
+}
+
 // BresenhamLine traces a line from p1 to p2 using Bresenham's line drawing
 // algorithm and calls the callback function for each point along the line.
 func BresenhamLine(cb func(image.Point), p1, p2 image.Point) {
