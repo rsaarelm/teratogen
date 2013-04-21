@@ -19,7 +19,7 @@ gen-version:
 #   directories in C:\MinGW on the Wine drive.
 bin/teratogen.exe: gen-version
 	rm -f $@
-	wine go install -ldflags -Hwindowsgui teratogen
+	wine go install -ldflags -H=windowsgui teratogen
 
 dist: bin/teratogen
 	mkdir -p dist/
